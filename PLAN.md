@@ -84,7 +84,8 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 - [x] M01.5 在终端授权上下文中完成探针窗口点击、输入和仅该窗口的截图。证据：E04；不代表正常 GUI 启动已获权限。
 - [ ] M01.6 验证正式 GUI 启动身份的首次屏幕录制/辅助功能授权、撤销与恢复，以及桌面输入；目前 GUI 启动权限为 false，详见 E05。
 - [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。进程级退出测试已通过，尚未覆盖完整 GUI 异常退出和各显示器组合。
-- [ ] M01.8 验证 iPhone uni-app x 真机局域网请求、事件通道、扫码和证书信任可行性；设备已通过 USB 连接配对，开发者模式已开启，但无有效签名身份；最新复查见 E07，尚未安装应用或完成局域网验收。
+- [x] M01.8a 确认 iPhone 开发者模式、USB 配对和 Mac 有效 Apple Development 签名身份。证据：E08；不是应用安装验收。
+- [ ] M01.8 验证 iPhone uni-app x 真机局域网请求、事件通道、扫码和证书信任可行性；设备已通过 USB 连接配对，开发者模式已开启，Mac 已识别到有效开发签名身份；最新复查见 E08。尚未验证具体 app/profile 和 uni-app x 基座，未安装应用或完成局域网验收。
 
 测试与实际验收：分别执行最小运行样例；从打包后的 Mac 程序调用 PI 并停止；完成一次截屏/输入实测；iPhone 真机连接测试服务。记录架构、系统、版本、体积和结论。无法完成的样例阻塞对应下游，不用源码启动代替安装包验收。
 
@@ -100,7 +101,8 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 | E04 | 包内原生 helper 自有测试窗口：点击和输入验证通过，截图 520×232；证据 probes/m01/evidence/native-window.png | 终端权限上下文、缩放 1；未验证整个桌面操作、浏览器目标页或 Retina/跨屏 |
 | E05 | LaunchServices 正常启动 .app，实际点击“运行本地验证”，PI status=passed；屏幕录制与辅助功能均 false | GUI 应用尚未授权；不沿用终端权限结论，不声称 GUI Computer Use 已完成 |
 | E06 | 2026-11-03 15:56:44 北京时间复查：iPhone14,2/iOS 27.0.1，USB paired、tunnel connected；开发者模式 disabled；有效签名身份 0。脱敏证据 probes/m01/evidence/ios-preflight.json | 该次设备连接阻塞解除，开发者模式/签名未满足；后续状态以 E07 为准；提交说明 docs(M01): record paired iPhone and remaining device prerequisites |
-| E07 | 2026-11-03 16:01:14 北京时间：iPhone14,2/iOS 27.0.1，USB paired、tunnel connected、开发者模式 enabled；有效签名身份仍为 0。脱敏证据 probes/m01/evidence/ios-preflight-enabled.json | 开发者模式阻塞已解除；应用安装及同 Wi-Fi 验收仍未执行；提交说明 docs(M01): confirm iPhone developer mode enabled |
+| E07 | 2026-11-03 16:01:14 北京时间：iPhone14,2/iOS 27.0.1，USB paired、tunnel connected、开发者模式 enabled；有效签名身份仍为 0。脱敏证据 probes/m01/evidence/ios-preflight-enabled.json | 该次开发者模式阻塞解除，签名身份为 0；后续状态见 E08，应用安装及同 Wi-Fi 尚未验收；提交说明 docs(M01): confirm iPhone developer mode enabled |
+| E08 | 2026-11-03 16:12:18 北京时间：用户创建的 Apple Development 身份存在，补齐 Apple 官方 WWDR G3 公共中间证书后有效身份由 0 变为 1；设备开发者模式 enabled、USB paired/connected。证据 probes/m01/evidence/ios-signing-ready.json | 未导出私钥、未修改信任策略；标准目录未发现 profile，预期路径未发现 uni-app x iOS 标准基座；应用安装未执行；提交说明 docs(M01): verify development signing and repair WWDR chain |
 
 运行时决策：先保留完整内置基线保障复现；Node 占 119,944,608 字节，PI 生产依赖逻辑体积 114,221,839 字节。M09 前另验证独立、可校验和缓存的运行时分发或依赖裁剪；尚未选择最终小包分发方案，不承诺体积目标。M01 声明编译目标为 macOS 14，只有当前 macOS 27.0.1 实测通过。
 
@@ -214,7 +216,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 | 业务范围 | 已由本次对话明确，原“未提供业务需求”阻塞解除 | 按本计划推进，无需重复确认范围 | 不阻碍 M01 |
 | 模型实测 | 中转站地址、可用模型 ID、GLM 套餐区域和凭据尚未在应用配置 | M04 提供本机配置入口，用户在本机填写后连接实测；不在日志或聊天收集密钥 | 真实模型验收，模拟测试可先行 |
 | Mac 权限 | 探针已构建；正常 GUI 启动屏幕录制/辅助功能均未授权，终端上下文自测已通过 | 用户为实际应用身份授予系统权限后复测，后续验证权限撤销与恢复；不使用终端授权冒充产品授权 | M01.6 及 GUI 桌面操作实测 |
-| iPhone 实机 | iPhone 已连接配对且开发者模式 enabled；有效代码签名身份为 0，尚未安装测试应用 | 在本机配置可用开发签名及匹配的 app/profile 后复测；不在聊天或日志提交账号密码、私钥 | M01.8、手机安装/配对/证书验收 |
+| iPhone 实机 | iPhone 已配对、开发者模式 enabled；有效 Apple Development 身份已识别。尚无已验证的 app/profile，预期路径无 uni-app x iOS 标准基座 | 为最小 uni-app x 测试工程准备运行基座、配置匹配的 app/profile 后构建安装；不在聊天或日志提交账号密码、私钥 | M01.8、手机安装/配对/证书验收 |
 | 运行时打包 | arm64 完整内置包已通过；体积偏大，最终小包方案及其他架构未验证 | 对可校验下载/缓存或裁剪方案实测，保留完整安装体积口径 | 小包目标、正式安装交付 |
 
 以上前置条件不得伪装为功能已完成，也不阻碍先做可独立验证的工作。

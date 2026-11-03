@@ -46,4 +46,4 @@
 - 本轮应用验证仅覆盖 arm64/macOS 27.0.1。Swift helper 与 Tauri 声明目标统一 macOS 14，未实测的最低系统及其他架构不得标为已支持。
 - 自动检查入口：`npm test`（真实 PI + 本地模拟模型、原生只读权限探针）和原有 Python 文档检查。打包入口：`npm run build:probe`；离线包内验证：`npm run verify:probe`。
 - 显式桌面自测 `npm run verify:probe -- --desktop-input` 会点击输入并捕获探针自己的窗口，必须明确区分终端启动与 GUI 启动权限。当前终端自测通过，正常 GUI 启动尚未授权，不能将两者混用为验收证据。
-- 完整运行时基线与小包目标分开记录：当前内置 Node/PI 的开发包可运行，最终体积优化和分发方式未完成。iPhone 已通过 USB 连接并配对，开发者模式已开启；Mac 仍未检测到有效开发签名身份，应用安装及局域网实机验收继续保留未完成。
+- 完整运行时基线与小包目标分开记录：当前内置 Node/PI 的开发包可运行，最终体积优化和分发方式未完成。iPhone 已通过 USB 连接并配对，开发者模式已开启；Mac 已识别到有效 Apple Development 签名身份；仍需匹配具体 app/profile 和 uni-app x 运行基座，应用安装及局域网实机验收继续保留未完成。

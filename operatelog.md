@@ -69,3 +69,13 @@
 - 验证结果：iOS 27.0.1 / iPhone14,2；developerModeStatus=enabled、pairingState=paired、transportType=wired、tunnelState=connected；有效代码签名身份 0。本批次提交前运行 npm test（5 项）与 npm run test:docs（新增检查后 12 项）及 git diff --cached --check，结果以命令输出为证据；无真实应用安装/局域网验收结论。
 - 遗留问题：仍需可用开发签名和与 app 匹配的 profile，然后执行 uni-app x 最小真机样例；M01.8 保持未完成。GUI Mac 授权及其他 M01 未完成项仍按原计划推进。
 - 对应 Git 提交：本批次唯一提交说明 `docs(M01): confirm iPhone developer mode enabled`；查询命令：git log --all --oneline --grep='^docs(M01): confirm iPhone developer mode enabled$'。文档、证据及测试同批提交，推送后核对本地与远程 HEAD。
+
+## 2026-11-03 16:12:18 +08:00｜M01：验证开发签名并修复 WWDR 证书链
+
+- 时间说明：本批次首次查询为北京时间 16:09:22；本条以后续证书链处理和基座/profile 检查后的读取时间记录，不将它冒充所有操作的精确时间。
+- 修改或新增内容：AGENTS.md 更新有效开发签名已识别的现状；PLAN.md 新增 E08 及已验证的 M01.8a 前置子项，保留 M01.8 应用实测未完成；新增 ios-signing-ready.json 脱敏证据、签名就绪不等于安装通过的文档测试，以及 memory/2026-11-03-ios-signing.md 排查记录。主机登录钥匙串补充 Apple 官方 WWDR G3 公共中间证书，未改动信任策略。
+- 遇到的难题：用户已创建 Apple Development 身份，security find-identity 能匹配 1 个身份但有效身份为 0。已安装的旧 WWDR 中间证书于 2023 年过期，与新开发证书的 G3 签发者不匹配。单独叶证书链查询可通过，不能代替有效签名身份检查。文档测试初轮还有一项沿用 E07 历史失败状态要求当前计划继续提示创建证书，已改为核验对应历史证据行，避免否认 E08 的新结果。
+- 处理方式：先读取并脱敏核对证书签发者、有效期及匹配/有效身份数量；查阅 Apple 官方 WWDR 说明，从 https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer 获取公开 G3 中间证书，验证其系统信任链成功后仅导入登录钥匙串，再复查签名身份。没有导出私钥、创建新的开发身份、删除旧证书或设为始终信任。官方说明为 https://developer.apple.com/help/account/certificates/wwdr-intermediate-certificates 。
+- 验证结果：有效身份从 0 变为 1，检测到 Apple Development；官方中间证书验证退出码 0。iPhone 开发者模式 enabled、USB paired/wired/connected。标准 provisioning profile 目录计数为 0；HBuilderX 预期的 uniappx-launcher/base/iPhone_base.ipa 路径未发现基座。本批次提交前运行 npm test（5 项）和 npm run test:docs（新增后 13 项）及差异检查，结果以本批次命令输出为证据；未执行应用签名、安装或同 Wi-Fi 验收。
+- 遗留问题：签名身份就绪前置条件解除，但仍需最小 uni-app x 工程、运行基座、匹配的 app/profile 及实际构建安装，不能因证书可识别就勾选 M01.8。Mac GUI 权限和其余 M01 待验收项保持原状。
+- 对应 Git 提交：本批次唯一提交说明 `docs(M01): verify development signing and repair WWDR chain`；查询命令：git log --all --oneline --grep='^docs(M01): verify development signing and repair WWDR chain$'。文档、测试及证据同批提交并推送后核对远程 HEAD；主机钥匙串的公开中间证书属于本机环境修复，不随 Git 回滚，开发私钥未进入仓库。

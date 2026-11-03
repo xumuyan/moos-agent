@@ -155,7 +155,24 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E07 |', plan)
         if evidence['validCodeSigningIdentities'] == 0:
             self.assertIn('- [ ] M01.8', plan)
-            self.assertIn('在本机配置可用开发签名', plan)
+            historical_row = re.search(r'^\| E07 \|.*$', plan, re.MULTILINE)
+            self.assertIsNotNone(historical_row)
+            self.assertRegex(historical_row.group(0), r'有效签名身份.*0')
+
+    def test_signing_identity_readiness_is_not_app_install_acceptance(self):
+        evidence = json.loads((ROOT / 'probes/m01/evidence/ios-signing-ready.json').read_text())
+        signing = evidence['signing']
+        self.assertEqual(signing['validIdentitiesBeforeRepair'], 0)
+        self.assertGreaterEqual(signing['validIdentitiesAfterRepair'], 1)
+        self.assertTrue(signing['appleDevelopmentIdentityDetected'])
+        self.assertEqual(signing['officialIntermediateVerifyExitCode'], 0)
+        self.assertFalse(signing['trustSettingsChanged'])
+        self.assertFalse(signing['privateKeyExported'])
+        self.assertFalse(evidence['appInstalledByThisCheck'])
+        self.assertFalse(evidence['lanVerified'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('| E08 |', plan)
+        self.assertIn('- [ ] M01.8 验证', plan)
 
 
 if __name__ == '__main__':
