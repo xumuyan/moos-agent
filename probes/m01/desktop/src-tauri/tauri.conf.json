@@ -11,12 +11,13 @@
       {
         "title": "Moos · M01 可行性验证",
         "width": 760,
-        "height": 580
+        "height": 760
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'"
-    }
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

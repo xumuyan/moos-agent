@@ -1,10 +1,16 @@
 <!doctype html>
 <html lang="zh-CN"><meta charset="utf-8"><title>Moos M01 验证</title>
-<style>body{font:16px system-ui;max-width:680px;margin:36px;color:#182334;background:#f6f7fa}button{padding:12px 20px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:20px}small{color:#566477}</style>
+<style>body{font:16px system-ui;max-width:680px;margin:32px;color:#182334;background:#f6f7fa}button{padding:10px 14px;margin:4px 6px 4px 0;cursor:pointer}button:disabled{cursor:default}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:16px;max-height:220px;overflow:auto}small{color:#566477}img{max-width:100%;border:1px solid #ddd}h2{margin:24px 0 10px}</style>
 <h1>Moos · M01 验证</h1>
-<p>检查安装包内 PI 运行时及 Mac 权限状态。</p>
-<p>使用本地模拟模型，不调用付费服务。权限检查不会主动弹出系统授权。</p>
-<button id="run">运行本地验证</button>
-<pre id="result">尚未运行</pre>
-<small>这是开发阶段验证工具。聊天、项目开发、电脑操作与手机连接尚未实现。</small>
+<h2>Mac 操作权限</h2>
+<p id="permissions">正在检查权限…</p>
+<button id="screen">申请屏幕录制权限</button><button id="accessibility">申请辅助功能权限</button><button id="refresh">重新检查权限</button>
+<small>系统授权由你在系统设置中完成。授权后可能需要退出并重新打开此应用。</small>
+<h2>浏览器操作验证</h2>
+<p>切换到 Safari，创建新窗口，通过键盘输入本地测试页地址；核对页面后仅截图测试页内容。</p>
+<button id="browser">打开浏览器并验证页面</button><button id="stop" disabled>立即停止</button>
+<p id="browser-status">尚未运行</p><img id="capture" alt="本次验证的测试页面截图" hidden>
+<button id="run">运行 PI 本地验证</button>
+<pre id="result">本地 PI 验证使用模拟模型，不消耗付费额度。</pre>
+<small>这是独立开发验证工具，正式聊天、项目开发及手机任务控制尚未接入。</small>
 <script src="probe.js"></script></html>

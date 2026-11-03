@@ -89,3 +89,13 @@
 - 验证结果：HBuilderX 5.34.2026102909 / uni-app x 编译器 5.34 VDOM；Xcode 自动 profile 构建成功，基座签名验证通过，私钥未导出；iPhone14,2 / iOS 27.0.1 安装成功，用户信任开发者后原生启动退出码 0，设备 App Launch/页面就绪日志出现；最终页面编译和同步成功。手机日志为 M01_HTTP_HEALTH_PASSED network=wifi challenge=matched，Mac 为 health-response fromLoopback=false，用户确认收到 Mac 健康检查响应。证据见 probes/m01/evidence/ios-mobile-runtime.json，只保存脱敏摘要，不保存原始载荷、证书主体、Team ID 或 UDID。提交前执行 npm test（8 项）和 npm run test:docs（18 项，含 profile 策略），并检查暂存差异；结果以本批次最终命令输出为证据。
 - 遗留问题：M01.8 仍未整体完成，TLS 证书信任、事件通道和扫码尚未实测；HTTP 健康检查仅交换无敏感数据的挑战值，不提供远程任务接口，不能当作生产认证加密验收。正式手机客户端、多项目远程开发和模型调用尚未接入；Mac GUI 权限及 M01 其他未完成项不提前勾选。开发 profile 有有效期，过期后需重新生成签名安装；IPA/profile/本机 Xcode 文件留在忽略目录，不公开发布。临时 Mac 健康服务用于本轮验证，停止和复现步骤见手机探针 README。
 - 对应 Git 提交：本批次唯一提交说明 `feat(M01): add signed iPhone probe and verify Wi-Fi health`；查询命令：git log --all --oneline --grep='^feat(M01): add signed iPhone probe and verify Wi-Fi health$'。代码、测试、证据及三个根目录文档同批提交并推送后核对远程 HEAD；本机账户授权及开发设备注册不随 Git 回滚。
+
+## 2026-11-03 17:38:18 +08:00｜M01：Mac 权限入口、浏览器工具与停止控制
+
+- 时间说明：此为本批次记录整理的北京时间；开始环境读取时间为 17:14:14。权限界面观察及用户操作精确时间未逐项核实，不将整理时间冒充所有操作时间。
+- 修改或新增内容：扩展原生 helper 的固定本地 Safari 浏览器验证模式与权限请求命令；桌面界面新增权限状态、显式请求、浏览器验证、截图展示和立即停止；Rust 层新增单验证任务控制、取消进程、超时和应用退出清理；helper 检查父进程存活及 Safari 焦点，只有确认目标 URL/唯一窗口标题后才截取页面内容；新增本机开发签名脚本、UI/无效输入/进程隔离测试、README 及脱敏授权前证据；同步三份根目录文档和 npm 测试/签名入口。
+- 遇到的难题：旧应用进程仍在运行，需要退出加载新版；为避免开发构建更换身份影响授权，需复用现有开发证书签名；最初按旧版系统名称引导权限，用户无法定位；实际 macOS 27 页面叫“录屏与系统录音”和“设备控制和数据访问”，录屏列表未列出应用；点击手动添加时先触发系统身份验证，尚未进入应用选择器。
+- 处理方式：正常 GUI 退出旧实例，构建并用已有 Apple Development 身份签名 helper、Node 与应用包，严格验证签名，不导出私钥；只通过应用明确按钮发起请求，未替用户开启系统权限；读取系统设置实际页面修正引导，定位手动添加入口，系统触控 ID/密码由用户本人完成，保持身份验证请求待处理。浏览器流程不使用 open URL 冒充输入，改用真实 Cmd+N/Cmd+L/文本/回车，截图限制为已验证的测试页内容，取消只终止本任务 helper，不关闭 Safari 或中止其他子进程。
+- 验证结果：npm test 的 10 项测试通过，涵盖界面权限阻塞、成功/取消、手机与 PI 既有检查及原生无效浏览器参数；npm run test:desktop-native 的 3 项 Rust 测试通过，含重复运行拒绝、启动前取消、仅结束所属进程；npm run build:probe 成功，npm run sign:mac-probe 返回签名验证成功。新版 GUI 曾显示两项权限均未授权，系统录屏列表不含应用；手动添加前系统要求用户身份验证。证据见 probes/m01/evidence/desktop-browser-preflight.json。最终 npm test 10 项、Python 文档/profile 检查 19 项和 Rust 原生控制 3 项均通过，共 32 项；git diff --check 通过，暂存后另检查 git diff --cached --check。GUI 浏览器访问、截图、撤销恢复尚未验收，不用自动测试或终端已有权限代替。
+- 遗留问题：M01.6 仍未完成，当前等待用户完成系统身份验证并手动添加/允许应用，之后才能做正常 GUI 浏览器实测；授权撤销恢复、Retina/跨屏、实际 GUI 退出/崩溃链和手机剩余项仍按计划保留未完成。当前仅是固定本地测试页的原生工具，尚未由 PI 模型规划驱动，未宣称可自动操作任意网站/软件。开发包未公证；其他已有实机证据保持原貌。
+- 对应 Git 提交：本批次唯一提交说明 `feat(M01): add permission-guided desktop browser verification`；查询命令：git log --all --oneline --grep='^feat(M01): add permission-guided desktop browser verification$'。代码、测试、证据及文档同批提交并推送后核对远程 HEAD；不提前填写自身哈希。

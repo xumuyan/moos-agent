@@ -191,6 +191,16 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E09 |', plan)
         self.assertIn('| E10 |', plan)
 
+    def test_desktop_browser_preflight_does_not_claim_gui_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-browser-preflight.json').read_text())
+        self.assertTrue(report['prepared']['packagedBuildSucceeded'])
+        self.assertTrue(report['prepared']['signatureVerified'])
+        self.assertFalse(report['prepared']['privateKeyExported'])
+        self.assertEqual(report['prepared']['capturePolicy'], 'verified-test-page-content')
+        self.assertFalse(report['guiBrowserVerified'])
+        self.assertFalse(report['permissionRevocationRecoveryVerified'])
+        self.assertIn('- [ ] M01.6', (ROOT / 'PLAN.md').read_text(encoding='utf-8'))
+
 
 if __name__ == '__main__':
     unittest.main()

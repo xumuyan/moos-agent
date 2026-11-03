@@ -19,4 +19,11 @@ test('native passive permission probe reports status without capture or input',
     assert(result.activeDisplays > 0);
     const invalid = spawnSync(binary, ['not-a-mode']);
     assert.equal(invalid.status, 2);
+    for (const args of [
+      ['browser-probe', 'https://example.com', 'MOOS_M01_BROWSER_1_1', '/tmp/unused.png'],
+      ['browser-probe', 'file:///tmp/index.html', 'INVALID', '/tmp/unused.png'],
+    ]) {
+      const rejected = spawnSync(binary, args);
+      assert.equal(rejected.status, 2, 'invalid browser requests must be rejected before input');
+    }
   });

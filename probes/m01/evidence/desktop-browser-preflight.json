@@ -1,0 +1,29 @@
+{
+  "recordedAtBeijing": "2026-11-03 17:36:49 +08:00",
+  "observationScope": "Preparation and last GUI state before manual permission addition; not a post-authorization result",
+  "prepared": {
+    "packagedBuildSucceeded": true,
+    "developmentSigned": true,
+    "signatureVerified": true,
+    "privateKeyExported": false,
+    "browserUsesKeyboardNavigation": true,
+    "capturePolicy": "verified-test-page-content",
+    "singleBrowserJob": true,
+    "stopCommandImplemented": true
+  },
+  "lastGuiPermissionObservation": {
+    "screenCaptureGranted": false,
+    "accessibilityGranted": false,
+    "recordingListContainedApp": false,
+    "systemAuthenticationRequiredForAdd": true
+  },
+  "guiBrowserVerified": false,
+  "permissionRevocationRecoveryVerified": false,
+  "userActionPending": "Complete macOS system authentication and manually add/allow the app",
+  "notVerified": [
+    "GUI browser navigation and screenshot",
+    "Permission revocation and recovery",
+    "Retina and cross-display browser input",
+    "PI model-driven desktop operation"
+  ]
+}
