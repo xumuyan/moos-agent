@@ -22,9 +22,9 @@
 依赖：阶段一通过、GitHub 写入权限可用。
 
 - [x] 创建初始化提交 `01b880d0e5cc8f71a8491ab09f23c94b6a980487`，提交说明为 docs: initialize repository rules, operation log and plan。证据：git log 可查询，4 项测试及暂存差异检查通过。
-- [ ] 推送 origin/main，并通过 git ls-remote origin refs/heads/main 与本地 HEAD 一致确认远程验收。
+- [x] 推送 origin/main，并通过 git ls-remote origin refs/heads/main 与本地 HEAD 一致确认远程验收。
 
-远程推送受阻：GitHub 返回 HTTP 403，当前身份 xuguopeng 无 xumuyan/moos-agent 写入权限，远程 main 尚不存在。解除条件：为当前身份授予仓库写入权限，或使用已有写入权限的身份完成认证；随后重新推送并核对远程 HEAD。不得提前勾选。详见操作日志 2026-11-03 14:23:04 条目。
+远程推送阻塞已解除（北京时间 2026-11-03 14:29:22）：GitHub CLI 已登录仓库所有者 xumuyan，本次推送显式采用 gh 凭据助手，避免使用原 Git 凭据中的 xuguopeng。实际推送成功；git ls-remote 返回的 main 与本地 HEAD 均为 `0e9f3012ccd57f4390d2696de3b5d614463e88b8`。证据见操作日志对应条目。历史失败记录保留，不代表当前状态。
 
 ## 阶段三：业务开发规划（待明确）
 

@@ -31,13 +31,19 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn('- ' + field + '：', text)
         self.assertNotIn('待执行本轮自动检查', text)
 
-    def test_blocked_push_is_not_marked_complete(self):
+    def test_push_status_has_log_and_acceptance_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         log = (ROOT / 'operatelog.md').read_text(encoding='utf-8')
-        if 'HTTP 403' in plan:
+        if '远程推送受阻：' in plan:
             self.assertIn('- [ ] 推送 origin/main', plan)
             self.assertIn('解除条件', plan)
             self.assertIn('HTTP 403', log)
+        if '- [x] 推送 origin/main' in plan:
+            self.assertIn('git ls-remote', plan)
+            hashes = re.findall(r'`([0-9a-f]{40})`', plan)
+            self.assertTrue(hashes)
+            self.assertIn(hashes[-1], log)
+            self.assertIn('远程推送阻塞已解除', plan)
 
     def test_plan_contains_dependencies_and_acceptance_evidence(self):
         text = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

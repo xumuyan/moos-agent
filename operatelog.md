@@ -20,3 +20,12 @@
 - 验证结果：初始化提交为 01b880d0e5cc8f71a8491ab09f23c94b6a980487；此前 4 项测试全部通过、git diff --cached --check 通过。git ls-remote origin refs/heads/main 无输出，未发现远程 main。此次日志修订交付前再次运行全部测试（新增阻塞状态检查后共 5 项）及暂存差异检查；测试结果以命令输出为证据。
 - 遗留问题：GitHub 推送未完成；业务需求和应用部署目标仍待明确。所有文件和提交保留在本地。
 - 对应 Git 提交：本条修订使用唯一提交说明 `docs: record blocked GitHub push and acceptance evidence`，可通过 git log --all --oneline 查询；该提交推送同样依赖上述权限解除。
+
+## 2026-11-03 14:29:22 +08:00｜恢复 GitHub 推送并完成远程验收
+
+- 修改或新增内容：更新 PLAN.md，将已有初始化提交的推送及远程验收勾选完成；更新测试，要求已完成推送状态具有提交哈希及日志证据。
+- 遇到的难题：Git 使用的凭据身份与 GitHub CLI 的活动身份不同，导致此前推送被拒绝。
+- 处理方式：确认 gh auth status 中活动账号为仓库所有者 xumuyan；仅本次 Git 命令显式采用 gh auth git-credential 凭据助手，未修改全局 Git 配置，无需新增授权或暴露凭据。
+- 验证结果：git push 成功创建远程 main；git rev-parse HEAD 与 git ls-remote origin refs/heads/main 均为 0e9f3012ccd57f4390d2696de3b5d614463e88b8，已有两次提交均已推送。本条文档修订在提交前执行全部 5 项文档测试及 git diff --cached --check，结果见本批次命令输出；修订提交随后同样推送并核对远程 HEAD，不预先记录未知哈希。
+- 遗留问题：此前权限阻塞已解除；业务需求及应用部署目标仍待明确。本次仅完成仓库文档的 GitHub 发布。
+- 对应 Git 提交：已验收提交 0e9f3012ccd57f4390d2696de3b5d614463e88b8；本条及计划、测试修订使用唯一提交说明 `docs: resolve GitHub authentication and record remote acceptance`，查询命令：git log --all --oneline --grep='^docs: resolve GitHub authentication and record remote acceptance$'。
