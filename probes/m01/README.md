@@ -43,3 +43,5 @@ npm run verify:probe
 “立即停止”结束本次 helper，不关闭用户的 Safari；同一时刻只允许一个浏览器验证。应用正常退出时取消 helper，helper 检查父进程及前台焦点，发现父进程退出或焦点变化即停止。自动检查包括 UI 权限拦截/成功/取消测试、无效浏览器参数检查及 `npm run test:desktop-native` 的进程取消测试；这些不代替实际 GUI 验收。
 
 该流程验证原生电脑操作工具，尚未由 PI 模型规划驱动；完整开发任务集成仍在后续阶段。权限撤销恢复、Retina/跨屏以及进程退出场景只按实际实测状态记录，不由实现存在推断通过。
+
+本机已安装位置为 `/Applications/Moos M01 Probe.app`，权限添加选择器中可直接从“应用程序”选择。安装验证见 `evidence/desktop-installation.json`；当前该证据只证明签名、GUI 启动和内置 PI 可运行，不证明屏幕/辅助功能已授权。仓库 target 仍作为构建输出保留。

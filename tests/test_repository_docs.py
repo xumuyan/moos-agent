@@ -201,6 +201,20 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['permissionRevocationRecoveryVerified'])
         self.assertIn('- [ ] M01.6', (ROOT / 'PLAN.md').read_text(encoding='utf-8'))
 
+    def test_desktop_installation_is_not_permission_or_browser_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-installation.json').read_text())
+        self.assertEqual(report['installedPath'], '/Applications/Moos M01 Probe.app')
+        self.assertEqual(report['bundleId'], 'dev.moos.m01-probe')
+        self.assertTrue(report['installedSignatureVerified'])
+        self.assertTrue(report['guiLaunchVerified'])
+        self.assertTrue(report['runningFromInstalledPath'])
+        self.assertEqual(report['runningProbeInstances'], 1)
+        self.assertEqual(report['guiPiFixtureStatus'], 'passed')
+        self.assertFalse(report['realProviderVerified'])
+        self.assertFalse(report['guiBrowserVerified'])
+        self.assertFalse(report['observedPermissions']['screenCaptureGranted'])
+        self.assertFalse(report['observedPermissions']['accessibilityGranted'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -99,3 +99,13 @@
 - 验证结果：npm test 的 10 项测试通过，涵盖界面权限阻塞、成功/取消、手机与 PI 既有检查及原生无效浏览器参数；npm run test:desktop-native 的 3 项 Rust 测试通过，含重复运行拒绝、启动前取消、仅结束所属进程；npm run build:probe 成功，npm run sign:mac-probe 返回签名验证成功。新版 GUI 曾显示两项权限均未授权，系统录屏列表不含应用；手动添加前系统要求用户身份验证。证据见 probes/m01/evidence/desktop-browser-preflight.json。最终 npm test 10 项、Python 文档/profile 检查 19 项和 Rust 原生控制 3 项均通过，共 32 项；git diff --check 通过，暂存后另检查 git diff --cached --check。GUI 浏览器访问、截图、撤销恢复尚未验收，不用自动测试或终端已有权限代替。
 - 遗留问题：M01.6 仍未完成，当前等待用户完成系统身份验证并手动添加/允许应用，之后才能做正常 GUI 浏览器实测；授权撤销恢复、Retina/跨屏、实际 GUI 退出/崩溃链和手机剩余项仍按计划保留未完成。当前仅是固定本地测试页的原生工具，尚未由 PI 模型规划驱动，未宣称可自动操作任意网站/软件。开发包未公证；其他已有实机证据保持原貌。
 - 对应 Git 提交：本批次唯一提交说明 `feat(M01): add permission-guided desktop browser verification`；查询命令：git log --all --oneline --grep='^feat(M01): add permission-guided desktop browser verification$'。代码、测试、证据及文档同批提交并推送后核对远程 HEAD；不提前填写自身哈希。
+
+## 2026-11-03 21:21:38 +08:00｜M01：安装验证版到应用程序目录
+
+- 时间说明：安装前检查北京时间为 21:18:42，本条使用安装启动和验证后的记录时间，非每个操作精确执行时间。
+- 修改或新增内容：将已签名的 f12ef52 验证版复制到 /Applications/Moos M01 Probe.app；同步 AGENTS.md、PLAN.md 的安装位置与 E12；README 补充权限选择路径；新增 desktop-installation.json 和安装就绪不等于权限验收的文档检查。
+- 遇到的难题：此前只在仓库 target 目录运行，应用程序文件夹中确实没有该应用，用户因此无法在常用位置选择权限目标。
+- 处理方式：检查目标不存在且 /Applications 可写，验证源签名，正常 GUI 退出旧实例；使用 ditto 复制完整 bundle，不覆盖已有未知应用；验证安装版签名并从完整安装路径打开，避免启动旧构建实例。未改变隐私开关、未索取或代输密码。
+- 验证结果：源/目标 codesign --verify --deep --strict 均通过；安装 bundle ID 为 dev.moos.m01-probe、版本 0.1.0。进程检查确认唯一实例来自 /Applications；实际点击安装版“运行 PI 本地验证”，界面 status=passed，使用本地模拟模型，无真实服务调用；两项权限仍显示未授权。交付前 npm test 10 项、npm run test:docs 20 项及 npm run test:desktop-native 3 项均通过，共 33 项；git diff --check 通过，暂存后另检查 git diff --cached --check。
+- 遗留问题：实际 GUI 浏览器访问与截图仍待权限授权，M01.6 保持未完成；本机安装版未公证，不是正式产品交付。后续更新安装应先检查目标身份并退出已有实例，不混淆 target 产物与安装版。
+- 对应 Git 提交：本批次唯一提交说明 `docs(M01): record Applications installation and runtime check`；查询命令：git log --all --oneline --grep='^docs(M01): record Applications installation and runtime check$'。记录、测试及三个根目录文档同批提交并推送后核对远程 HEAD；本机应用副本不随 Git 回滚。

@@ -1,0 +1,20 @@
+{
+  "recordedAtBeijing": "2026-11-03 21:21:38 +08:00",
+  "sourceCommit": "f12ef527f9d68a93f5080ae534cc98fa7cb0a489",
+  "installedPath": "/Applications/Moos M01 Probe.app",
+  "bundleId": "dev.moos.m01-probe",
+  "version": "0.1.0",
+  "sourceSignatureVerified": true,
+  "installedSignatureVerified": true,
+  "guiLaunchVerified": true,
+  "runningFromInstalledPath": true,
+  "runningProbeInstances": 1,
+  "guiPiFixtureStatus": "passed",
+  "realProviderVerified": false,
+  "observedPermissions": {
+    "screenCaptureGranted": false,
+    "accessibilityGranted": false
+  },
+  "guiBrowserVerified": false,
+  "notarized": false
+}
