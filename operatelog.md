@@ -11,3 +11,12 @@
 - 验证结果：本地文档实际验收：三个根目录文件非空；五条规则逐条对照用户要求；日志字段及未解决事项完整；计划按依赖分阶段且未提前勾选远程或业务任务。自动验证命令为 `python3 -m unittest discover -s tests -v`（4 项检查）和 `git diff --check`，结果以本次提交前命令输出为证据；远程推送尚未执行。
 - 遗留问题：业务目标、技术栈、部署目标与业务验收标准尚未提供，等待需求明确；本轮不包含应用开发或部署。
 - 对应 Git 提交：本批次提交说明 `docs: initialize repository rules, operation log and plan`；提交后可用 `git log --all --format='%h %s' --grep='^docs: initialize repository rules, operation log and plan$'` 查询。提交与推送证据在后续条目记录。
+
+## 2026-11-03 14:23:04 +08:00｜提交验收与推送权限阻塞
+
+- 修改或新增内容：更新 PLAN.md，记录初始化提交完成、远程推送受阻及解除条件；更新文档检查，防止权限阻塞时误勾选推送完成。
+- 遇到的难题：git push -u origin main 返回 HTTP 403，GitHub 拒绝当前身份 xuguopeng 向 xumuyan/moos-agent 写入。
+- 处理方式：保留本地提交，不更换凭据或强制推送；如实记录远程未完成。解除条件为授予当前身份写入权限，或以具有权限的身份认证后重试。
+- 验证结果：初始化提交为 01b880d0e5cc8f71a8491ab09f23c94b6a980487；此前 4 项测试全部通过、git diff --cached --check 通过。git ls-remote origin refs/heads/main 无输出，未发现远程 main。此次日志修订交付前再次运行全部测试（新增阻塞状态检查后共 5 项）及暂存差异检查；测试结果以命令输出为证据。
+- 遗留问题：GitHub 推送未完成；业务需求和应用部署目标仍待明确。所有文件和提交保留在本地。
+- 对应 Git 提交：本条修订使用唯一提交说明 `docs: record blocked GitHub push and acceptance evidence`，可通过 git log --all --oneline 查询；该提交推送同样依赖上述权限解除。

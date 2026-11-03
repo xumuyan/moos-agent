@@ -31,6 +31,14 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn('- ' + field + '：', text)
         self.assertNotIn('待执行本轮自动检查', text)
 
+    def test_blocked_push_is_not_marked_complete(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        log = (ROOT / 'operatelog.md').read_text(encoding='utf-8')
+        if 'HTTP 403' in plan:
+            self.assertIn('- [ ] 推送 origin/main', plan)
+            self.assertIn('解除条件', plan)
+            self.assertIn('HTTP 403', log)
+
     def test_plan_contains_dependencies_and_acceptance_evidence(self):
         text = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         for term in ('依赖', '验收标准', '证据', '受阻原因', '解除条件'):
