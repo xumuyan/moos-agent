@@ -53,5 +53,56 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertRegex(text, r'- \[ \]')
 
 
+    def test_mvp_stages_have_ordered_dependencies_and_acceptance(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        stages = re.findall(r'^### (M\d{2})｜[^\n]+\n(.*?)(?=^### |^## |\Z)',
+                            plan, re.MULTILINE | re.DOTALL)
+        self.assertEqual([stage for stage, _ in stages],
+                         [f'M{i:02}' for i in range(1, 10)])
+        seen = set()
+        for stage, body in stages:
+            with self.subTest(stage=stage):
+                dependency = re.search(r'^依赖：(.+)$', body, re.MULTILINE)
+                self.assertIsNotNone(dependency)
+                for required in re.findall(r'M\d{2}', dependency.group(1)):
+                    self.assertIn(required, seen, '依赖必须存在且先于当前阶段')
+                self.assertIn('测试与实际验收：', body)
+                self.assertIn('- [ ] ' + stage, body)
+                seen.add(stage)
+
+    def test_unimplemented_mvp_is_not_claimed_complete(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        stages = plan.split('## MVP 开发任务', 1)[1]
+        self.assertNotRegex(stages, r'- \[x\]')
+        rows = re.findall(r'^\| (A\d{2}) \|.*?\| ([^|]+) \|$',
+                          plan, re.MULTILINE)
+        self.assertEqual([row[0] for row in rows],
+                         [f'A{i:02}' for i in range(1, 11)])
+        self.assertTrue(all(status.strip() == '未执行' for _, status in rows))
+
+    def test_confirmed_execution_constraints_are_consistent(self):
+        agents = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        for term in ('Tauri 2', 'Ant Design X', 'uni-app x', 'PI',
+                     'GLM Coding Plan', 'OpenAI 中转站', '两轮修复',
+                     '无需', '同一 Wi-Fi', '同一', '串行', '全局',
+                     '停止', '凭据', '体积'):
+            with self.subTest(term=term):
+                self.assertIn(term, agents)
+                self.assertIn(term, plan)
+        self.assertNotIn('当前受阻原因：用户尚未提供业务开发', plan)
+
+    def test_each_log_entry_has_audit_fields_and_commit_reference(self):
+        log = (ROOT / 'operatelog.md').read_text(encoding='utf-8')
+        entries = re.split(r'^## ', log, flags=re.MULTILINE)[1:]
+        self.assertGreaterEqual(len(entries), 4)
+        for entry in entries:
+            with self.subTest(entry=entry.splitlines()[0]):
+                self.assertRegex(entry, r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \+08:00')
+                for field in ('修改或新增内容', '遇到的难题', '处理方式',
+                              '验证结果', '遗留问题', '对应 Git 提交'):
+                    self.assertIn('- ' + field + '：', entry)
+
+
 if __name__ == '__main__':
     unittest.main()

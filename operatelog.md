@@ -29,3 +29,13 @@
 - 验证结果：git push 成功创建远程 main；git rev-parse HEAD 与 git ls-remote origin refs/heads/main 均为 0e9f3012ccd57f4390d2696de3b5d614463e88b8，已有两次提交均已推送。本条文档修订在提交前执行全部 5 项文档测试及 git diff --cached --check，结果见本批次命令输出；修订提交随后同样推送并核对远程 HEAD，不预先记录未知哈希。
 - 遗留问题：此前权限阻塞已解除；业务需求及应用部署目标仍待明确。本次仅完成仓库文档的 GitHub 发布。
 - 对应 Git 提交：已验收提交 0e9f3012ccd57f4390d2696de3b5d614463e88b8；本条及计划、测试修订使用唯一提交说明 `docs: resolve GitHub authentication and record remote acceptance`，查询命令：git log --all --oneline --grep='^docs: resolve GitHub authentication and record remote acceptance$'。
+
+## 2026-11-03 15:21:12 +08:00｜确认 MVP 范围并细化三个根目录文档
+
+- 时间说明：此时间为本批次开始时读取的北京时间，非此前每条需求确认的历史时间；各次对话的精确时间未核实，不编造。本文档批次按用户“按照文档进行，三个文档”的授权落盘，尚未实施应用功能。
+- 修改或新增内容：AGENTS.md 保留原五条规则，补充技术栈、模型自动路由、自动执行、多项目隔离、桌面独占队列、凭据和验收约束；PLAN.md 保留初始化证据，解除原业务需求未明确状态，增加已确认范围、架构、模型策略、M01—M09 依赖任务、A01—A10 最终验收、实施前置条件与参考文档；本日志追加决策与限制；更新 tests/test_repository_docs.py，检查阶段依赖顺序、未实测不勾选、关键约束一致性及每条日志审计字段。
+- 遇到的难题：Tauri 小包不等于 PI 运行时体积小；多项目并行与单桌面鼠标键盘争用；中转兼容协议不保证视觉或工具能力；iPhone 真机局域网、证书、签名及本地权限尚未验证；此前业务待明确状态已过时。
+- 处理方式：规划 M01 先验证完整运行时和打包体积；项目代码任务并行、同目录修改串行、整个观察—操作—验证片段持有桌面锁；记录模型能力实测要求和费用未知口径；计划写清手机通信和签名前置条件及解除条件，所有应用任务与实机验收保持未完成。配对后直接执行、自动升级模型无需费用确认，符合用户已确认偏好。初始并发 2 和任务次数/时长上限为可调整的实施默认值，非已测试指标。
+- 验证结果：本批次工作区文档逐项对照已确认需求，检查完整数据流、依赖顺序、范围、失败/取消、证据要求与前置条件；已执行 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`，9 项全部通过；`git diff --check` 通过，提交前另运行 `git diff --cached --check`。证据为本批次命令输出，对应本条日志所在工作区及提交。未运行 PI、真实模型、桌面操作、Mac 安装包或 iPhone 真机验收；文档测试通过不能代表应用功能可用。
+- 遗留问题：应用代码尚未创建；M01 需要核实工具链、架构与运行时方案，M04 需要本机填写模型配置，iPhone 实测需要设备与签名条件。具体原因和解除条件已写入 PLAN.md。业务需求未明确的历史阻塞已解除，旧日志保留原貌。
+- 对应 Git 提交：本批次唯一提交说明 `docs: define multi-project Mac and iPhone MVP plan`；提交后查询命令：git log --all --oneline --grep='^docs: define multi-project Mac and iPhone MVP plan$'。文档验收后提交并推送，再核对远程 HEAD，当前条目不预填自身哈希。
