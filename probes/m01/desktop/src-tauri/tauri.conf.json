@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Moos M01 Probe",
+  "version": "0.1.0",
+  "identifier": "dev.moos.m01-probe",
+  "build": {
+    "frontendDist": "../web"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Moos · M01 可行性验证",
+        "width": 760,
+        "height": 580
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.0"
+    },
+    "externalBin": [
+      "binaries/node",
+      "binaries/moos-native"
+    ],
+    "resources": {
+      "../../../../.generated/runtime/node_modules/": "runtime/node_modules/",
+      "../../../../.generated/runtime/NODE-LICENSE": "runtime/NODE-LICENSE",
+      "../../pi-rpc.mjs": "probe/pi-rpc.mjs",
+      "../../pi-fixture.mjs": "probe/pi-fixture.mjs",
+      "../../pi-probe.mjs": "probe/pi-probe.mjs"
+    },
+    "icon": [
+      "icons/icon.icns"
+    ]
+  }
+}

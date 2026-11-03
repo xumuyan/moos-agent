@@ -1,0 +1,22 @@
+[package]
+name = "moos-m01-probe"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde_json = "1"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
+# macOS 27 rejects stripped proc-macro dylibs (mis-aligned LINKEDIT).
+# Keep release application stripping, but never strip build-time macros.
+[profile.release.build-override]
+strip = false

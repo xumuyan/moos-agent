@@ -1,0 +1,57 @@
+import { spawnSync, execFileSync } from 'node:child_process';
+import { mkdir, readFile, writeFile, readdir, lstat } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+
+const app = resolve('probes/m01/desktop/src-tauri/target/release/bundle/macos/Moos M01 Probe.app');
+const artifacts = resolve('artifacts/m01');
+await mkdir(artifacts, { recursive: true });
+const output = join(artifacts, 'packaged-probe.json');
+const child = spawnSync(join(app, 'Contents/MacOS/moos-m01-probe'), [`--probe-output=${output}`], {
+  cwd: '/tmp', env: { PATH: '/usr/bin:/bin', TMPDIR: process.env.TMPDIR },
+  timeout: 60000, encoding: 'utf8',
+});
+assert.equal(child.status, 0, child.stderr || String(child.error));
+const result = JSON.parse(await readFile(output, 'utf8'));
+assert.equal(result.packagedRuntime, true);
+assert.equal(result.pi.status, 'passed');
+assert.equal(result.pi.realProviderVerified, false);
+async function bytes(path) {
+  const stat = await lstat(path);
+  if (stat.isSymbolicLink()) return 0;
+  if (!stat.isDirectory()) return stat.size;
+  const sizes = await Promise.all((await readdir(path)).map(name => bytes(join(path, name))));
+  return sizes.reduce((sum, size) => sum + size, 0);
+}
+const nativeBinary = join(app, 'Contents/MacOS/moos-native');
+let desktop = { status: 'not-run', reason: 'pass --desktop-input for an explicit own-window test' };
+if (process.argv.includes('--desktop-input')) {
+  const screenshot = join(artifacts, 'packaged-native-window.png');
+  const native = spawnSync(nativeBinary, ['self-test', screenshot], { timeout: 20000, encoding: 'utf8' });
+  if (native.status === 3) desktop = JSON.parse(native.stdout);
+  else {
+    assert.equal(native.status, 0, native.stderr || native.stdout || String(native.error));
+    desktop = JSON.parse(native.stdout);
+    assert.equal(desktop.clickVerified, true);
+    assert.equal(desktop.inputVerified, true);
+    desktop.screenshotSha256 = createHash('sha256').update(await readFile(screenshot)).digest('hex');
+  }
+}
+const archive = join(artifacts, 'Moos-M01-arm64.zip');
+execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', app, archive]);
+const report = {
+  recordedAt: new Date().toISOString(),
+  host: { arch: process.arch, macOS: execFileSync('sw_vers', ['-productVersion'], { encoding: 'utf8' }).trim() },
+  packagedResult: result, desktop,
+  sizes: { appLogicalBytes: await bytes(app),
+    appAllocatedBytes: Number(execFileSync('/usr/bin/du', ['-sk', app], { encoding: 'utf8' }).split('\t')[0]) * 1024,
+    archiveBytes: (await lstat(archive)).size,
+    nodeBytes: (await lstat(join(app, 'Contents/MacOS/node'))).size,
+    dependenciesLogicalBytes: await bytes(join(app, 'Contents/Resources/runtime/node_modules')) },
+  archiveSha256: createHash('sha256').update(await readFile(archive)).digest('hex'),
+  limitations: ['local model fixture only', 'iPhone not verified', 'ad-hoc development build, not notarized',
+    'no minimum macOS version or Retina input validation', 'full-runtime baseline, not final package size'],
+};
+await writeFile(join(artifacts, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+console.log(JSON.stringify(report, null, 2));

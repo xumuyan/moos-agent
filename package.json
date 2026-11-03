@@ -1,0 +1,23 @@
+{
+  "name": "moos-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test probes/m01/*.test.mjs",
+    "test:docs": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+    "probe:pi": "node probes/m01/pi-probe.mjs",
+    "prepare:runtime": "node scripts/prepare-runtime.mjs",
+    "build:probe": "npm run prepare:runtime && cd probes/m01/desktop/src-tauri && ../../../../node_modules/.bin/tauri build --bundles app",
+    "verify:probe": "node scripts/verify-m01.mjs"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "1.5.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

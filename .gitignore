@@ -1,0 +1,16 @@
+node_modules/
+**/target/
+**/dist/
+.generated/
+artifacts/
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+probes/m01/desktop/src-tauri/binaries/
+probes/m01/desktop/src-tauri/icons/*
+!probes/m01/desktop/src-tauri/icons/icon.png
+!probes/m01/desktop/src-tauri/icons/icon.icns
+probes/m01/desktop/src-tauri/gen/

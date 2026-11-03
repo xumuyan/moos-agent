@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-11-03T07:46:03.123Z",
+  "host": {
+    "arch": "arm64",
+    "macOS": "27.0.1"
+  },
+  "packagedResult": {
+    "native": {
+      "accessibilityGranted": true,
+      "activeDisplays": 2,
+      "displayQuerySucceeded": true,
+      "inputInjected": false,
+      "screenCaptureGranted": true,
+      "screenScale": 1,
+      "screenshotCaptured": false,
+      "system": "Version 27.0.1 (Build 26A434)"
+    },
+    "packagedRuntime": true,
+    "pi": {
+      "checks": [
+        "state",
+        "stream",
+        "read-tool",
+        "abort",
+        "process-exit"
+      ],
+      "mode": "rpc",
+      "piVersion": "1.5.0",
+      "provider": "local-fixture",
+      "realProviderVerified": false,
+      "requests": 3,
+      "status": "passed"
+    }
+  },
+  "desktop": {
+    "captureScope": "probe-window-only",
+    "clickVerified": true,
+    "imageHeight": 232,
+    "imageWidth": 520,
+    "inputVerified": true,
+    "screenScale": 1,
+    "status": "passed",
+    "screenshotSha256": "4cf31ffb88bb2895bcbb1545fc5a72d8cda0d2169ecebc10c2ed4d5633eecbd9"
+  },
+  "sizes": {
+    "appLogicalBytes": 239507687,
+    "appAllocatedBytes": 284495872,
+    "archiveBytes": 74881498,
+    "nodeBytes": 119944608,
+    "dependenciesLogicalBytes": 114221839
+  },
+  "archiveSha256": "624803ca5194b2e2aa9a8c379539713f9e6f32a6a308c42a7a2c11cca9843279",
+  "limitations": [
+    "local model fixture only",
+    "iPhone not verified",
+    "ad-hoc development build, not notarized",
+    "no minimum macOS version or Retina input validation",
+    "full-runtime baseline, not final package size"
+  ],
+  "launchContext": "Packaged executable launched from terminal with system-only PATH; native input probe launched as a terminal child",
+  "normalGuiLaunch": {
+    "observation": "Launched .app using LaunchServices and clicked its local verification button; result visually checked via CUA",
+    "piStatus": "passed",
+    "screenCaptureGranted": false,
+    "accessibilityGranted": false,
+    "desktopInputVerified": false
+  }
+}

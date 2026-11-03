@@ -1,6 +1,8 @@
 """仓库文档契约检查。运行：python3 -m unittest discover -s tests -v。"""
 from pathlib import Path
 import re
+import json
+import hashlib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,10 +72,18 @@ class RepositoryDocsTests(unittest.TestCase):
                 self.assertIn('- [ ] ' + stage, body)
                 seen.add(stage)
 
-    def test_unimplemented_mvp_is_not_claimed_complete(self):
+    def test_mvp_completed_subtasks_require_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stages = plan.split('## MVP 开发任务', 1)[1]
-        self.assertNotRegex(stages, r'- \[x\]')
+        for line in re.findall(r'^- \[x\].+$', stages, re.MULTILINE):
+            self.assertIn('证据：', line)
+            evidence_ids = re.findall(r'E\d{2}', line)
+            self.assertTrue(evidence_ids)
+            for evidence_id in evidence_ids:
+                self.assertIn('| ' + evidence_id + ' |', plan)
+        self.assertIn('- [ ] M01 整体验收', stages)
+        self.assertIn('- [ ] M01.6', stages)
+        self.assertIn('- [ ] M01.8', stages)
         rows = re.findall(r'^\| (A\d{2}) \|.*?\| ([^|]+) \|$',
                           plan, re.MULTILINE)
         self.assertEqual([row[0] for row in rows],
@@ -102,6 +112,21 @@ class RepositoryDocsTests(unittest.TestCase):
                 for field in ('修改或新增内容', '遇到的难题', '处理方式',
                               '验证结果', '遗留问题', '对应 Git 提交'):
                     self.assertIn('- ' + field + '：', entry)
+
+    def test_m01_report_does_not_confuse_fixture_terminal_and_gui_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/report.json').read_text())
+        self.assertEqual(report['packagedResult']['pi']['status'], 'passed')
+        self.assertFalse(report['packagedResult']['pi']['realProviderVerified'])
+        self.assertEqual(report['desktop']['captureScope'], 'probe-window-only')
+        self.assertFalse(report['normalGuiLaunch']['desktopInputVerified'])
+        self.assertFalse(report['normalGuiLaunch']['screenCaptureGranted'])
+        self.assertFalse(report['normalGuiLaunch']['accessibilityGranted'])
+        screenshot = ROOT / 'probes/m01/evidence/native-window.png'
+        self.assertEqual(hashlib.sha256(screenshot.read_bytes()).hexdigest(),
+                         report['desktop']['screenshotSha256'])
+        self.assertGreater(report['sizes']['appLogicalBytes'], report['sizes']['nodeBytes'])
+        self.assertGreater(report['sizes']['appAllocatedBytes'], 0)
+
 
 
 if __name__ == '__main__':

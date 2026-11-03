@@ -1,0 +1,33 @@
+# M01 运行时与平台探针
+
+这是独立验证工程，不是 MVP 产品界面。主产品的 React/Ant Design X 与 iPhone 工程尚未创建。
+
+## 本机复现
+
+已验证环境：Apple Silicon、macOS 27.0.1、Node 24.15.0、npm 11.12.1、Rust 1.91.1、Xcode 27.0。依赖固定在 package-lock.json 与 Cargo.lock；rust-toolchain 使用本机 stable，编译器版本随运行环境变化，不能把它当成精确版本锁。Swift helper 编译目标与 Tauri 声明最低系统均为 macOS 14，只有当前系统实测通过。
+
+从仓库根目录执行：
+
+```sh
+npm ci
+npm test
+npm run test:docs
+npm run build:probe
+npm run verify:probe
+```
+
+`build:probe` 为当前 arm64 Mac 准备内置 Node、PI 生产依赖和 Swift helper，再构建 Tauri `.app`。不会更改全局 Node 或 Git 配置。输出目录：`probes/m01/desktop/src-tauri/target/release/bundle/macos/`。
+
+`verify:probe` 从 `/tmp` 启动包内程序，将 PATH 限制为系统目录，使用本地临时模拟模型检查真实 PI RPC 的状态、流式事件、read 工具、取消和退出；不会读取用户模型凭据或调用付费模型。结果和 ZIP 位于被 Git 忽略的 `artifacts/m01/`。
+
+可选的 `npm run verify:probe -- --desktop-input` 会在包内 helper 自己创建的窗口中执行真实点击和输入，并仅捕获该窗口。它会短暂切换前台和鼠标位置；需要已授予屏幕录制、辅助功能权限，不会自动申请授权。普通 `npm test` 和界面按钮只查询权限，不注入输入。
+
+## 证据与限制
+
+`evidence/report.json` 为该次包内验证的脱敏报告，`evidence/native-window.png` 只包含探针自身的测试窗口。报告 SHA-256 对应本地 ZIP 与截图，不代表已发布 GitHub Release。完整 ZIP 不提交到源码仓库。
+
+选择 RPC 为主接入方式：Rust 与 PI 通过进程边界隔离，后续任务服务复用该协议。M01 的 JavaScript fixture 和宿主不是生产任务服务，不能对局域网开放。
+
+报告中的完整内置运行时仅用于基线测量。Node 与全部 PI 生产依赖占体积的大部分；后续应验证可校验、可缓存的独立运行时分发或按需裁剪，不能只缩小客户端空壳后声称总安装体积降低。
+
+未验收：真实中转站/GLM、首次系统授权、Retina 和跨屏坐标、其他 Mac 系统/架构、iPhone 实机/签名/证书、发布签名及公证、正常产品界面的项目开发流程。

@@ -1,0 +1,4 @@
+[toolchain]
+# M01 verified with the locally installed stable rustc 1.91.1.
+channel = "stable"
+profile = "minimal"
