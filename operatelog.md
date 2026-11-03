@@ -49,3 +49,13 @@
 - 验证结果：macOS 27.0.1/arm64；Node 24.15.0、npm 11.12.1、rustc 1.91.1、Xcode 27.0、HBuilderX 5.07.2026041006。npm test 的 5 项检查通过：PI 流式事件、read 工具、取消、异常命令、宿主 SIGTERM/SIGKILL 后子进程无残留，以及原生只读权限检查；npm run build:probe 成功；npm run verify:probe -- --desktop-input 从 /tmp 且仅系统 PATH 启动实际 .app，包内 Node/PI 验证通过，终端授权上下文中的 helper 完成自有窗口点击输入及 520×232 截图；LaunchServices 启动应用后实际点击界面按钮，PI status=passed，但 GUI 屏幕录制与辅助功能未授权。报告及截图见 probes/m01/evidence/。ZIP 74,881,498 字节，应用逻辑体积 239,507,687 字节，磁盘占用 284,495,872 字节，Node 119,944,608 字节，依赖逻辑体积 114,221,839 字节；无额外运行时下载。官方 registry 的 npm audit --omit=dev --audit-level=high 返回 0 漏洞。提交前再次运行 npm test（5 项通过）和 npm run test:docs（10 项通过），git diff --check 通过，暂存后另检查 git diff --cached --check，证据对应本条日志所在工作区及同批次提交。
 - 遗留问题：M01 整体尚未完成。正常 GUI 身份需系统授权后实测，首次授权/撤销/恢复、完整应用异常退出、Retina/跨屏坐标及 iPhone 真机通信与证书未验收；真机解除条件为连接信任 iPhone 并具备开发签名。中转站/GLM 真实配置及调用待 M04；正式 React/Ant Design X 工程、手机客户端和产品功能未开发。完整内置基线约 71.41 MiB ZIP/228.41 MiB 逻辑体积，最终小包运行时分发仍需验证。开发包未公证、无发布签名，不当作正式安装交付；M02 依赖整个 M01，暂不提前勾选或宣称解锁。
 - 对应 Git 提交：本批次唯一提交说明 `feat(M01): add packaged PI RPC and macOS feasibility probes`；查询命令：git log --all --oneline --grep='^feat(M01): add packaged PI RPC and macOS feasibility probes$'。本条及代码、测试、计划同一提交保存；推送后用 git ls-remote origin refs/heads/main 与本地 HEAD 核对，不预填自身哈希。
+
+## 2026-11-03 15:56:44 +08:00｜M01：iPhone 连接复查与剩余前置条件
+
+- 时间说明：此时间为本批次设备查询后写入记录的北京时间，不冒充各条命令精确执行时间。保留此前“无设备”的历史记录，当前状态以本次复查为准。
+- 修改或新增内容：更新 AGENTS.md 的手机现状，更新 PLAN.md 的 M01.8/E06 及实机阻塞条件；新增 probes/m01/evidence/ios-preflight.json 脱敏证据；新增文档回归检查，区分 USB 配对成功与应用安装、同 Wi-Fi 验收成功。
+- 遇到的难题：用户连接手机后 CoreDevice 已可通信，但开发者模式关闭；security find-identity 仍显示有效签名身份为 0。xctrace 列表将设备列为 offline，不能将其误读为 USB 未配对，也不能宣称已具备运行条件。
+- 处理方式：通过 devicectl 的结构化详情核对配对/隧道/开发者模式；只保留系统版本、产品型号和状态，不保存设备名称、UDID、序列号或原始设备输出。查阅 Apple 开发者模式及 DCloud iOS 基座签名官方文档，记录由用户在手机完成开发者模式、在本机配置签名的解除步骤；未更改手机安全设置、未创建证书、未安装应用。
+- 验证结果：iPhone14,2 / iOS 27.0.1；pairingState=paired、transportType=wired、tunnelState=connected；developerModeStatus=disabled；有效签名身份为 0。设备连接前置条件已满足，但原生应用安装和局域网通信未验收。交付前执行 npm test（5 项）及 npm run test:docs（新增检查后 11 项）和差异检查，结果以本批次命令输出为证据；该证据对应本条日志所在工作区及同批次提交。
+- 遗留问题：M01.8 继续未完成。解除条件为用户开启手机开发者模式并按提示重启确认，配置有效签名和匹配的 app/profile，然后运行 uni-app x 最小样例验证网络、扫码、事件通道与证书；USB 连接不代替同 Wi-Fi 验收。其他 M01 未完成项保持原状。
+- 对应 Git 提交：本批次唯一提交说明 `docs(M01): record paired iPhone and remaining device prerequisites`；查询命令：git log --all --oneline --grep='^docs(M01): record paired iPhone and remaining device prerequisites$'。本次文档、测试、证据同一提交保存，并推送后核对远程 HEAD。

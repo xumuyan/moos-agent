@@ -128,6 +128,23 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertGreater(report['sizes']['appAllocatedBytes'], 0)
 
 
+    def test_ios_preflight_distinguishes_usb_pairing_from_app_acceptance(self):
+        preflight = json.loads((ROOT / 'probes/m01/evidence/ios-preflight.json').read_text())
+        self.assertEqual(set(preflight['device']), {
+            'platform', 'productType', 'osVersion', 'pairingState', 'transportType',
+            'tunnelState', 'developerModeStatus'})
+        self.assertEqual(preflight['device']['pairingState'], 'paired')
+        self.assertEqual(preflight['device']['tunnelState'], 'connected')
+        self.assertFalse(preflight['appInstalledByThisCheck'])
+        self.assertFalse(preflight['lanVerified'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('| E06 |', plan)
+        if (preflight['device']['developerModeStatus'] != 'enabled'
+                or preflight['validCodeSigningIdentities'] == 0):
+            self.assertIn('- [ ] M01.8', plan)
+        self.assertNotIn('当前无连接设备', plan)
+        self.assertNotIn('devicectl 无设备', plan)
+
 
 if __name__ == '__main__':
     unittest.main()
