@@ -1,0 +1,15 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "Moos · M01"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#F6F7FA",
+    "backgroundColor": "#F6F7FA"
+  }
+}

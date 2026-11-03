@@ -79,3 +79,13 @@
 - 验证结果：有效身份从 0 变为 1，检测到 Apple Development；官方中间证书验证退出码 0。iPhone 开发者模式 enabled、USB paired/wired/connected。标准 provisioning profile 目录计数为 0；HBuilderX 预期的 uniappx-launcher/base/iPhone_base.ipa 路径未发现基座。本批次提交前运行 npm test（5 项）和 npm run test:docs（新增后 13 项）及差异检查，结果以本批次命令输出为证据；未执行应用签名、安装或同 Wi-Fi 验收。
 - 遗留问题：签名身份就绪前置条件解除，但仍需最小 uni-app x 工程、运行基座、匹配的 app/profile 及实际构建安装，不能因证书可识别就勾选 M01.8。Mac GUI 权限和其余 M01 待验收项保持原状。
 - 对应 Git 提交：本批次唯一提交说明 `docs(M01): verify development signing and repair WWDR chain`；查询命令：git log --all --oneline --grep='^docs(M01): verify development signing and repair WWDR chain$'。文档、测试及证据同批提交并推送后核对远程 HEAD；主机钥匙串的公开中间证书属于本机环境修复，不随 Git 回滚，开发私钥未进入仓库。
+
+## 2026-11-03 17:02:39 +08:00｜M01：uni-app x 真机安装启动与 Wi-Fi 健康检查
+
+- 时间说明：此为本轮证据整理时间。项目创建日志为 16:25:22，基座安装成功为 16:37:14，最终完整编译成功为 16:42:23，手机健康检查成功日志为 16:45:45.252；这些时间来自实际命令/运行日志。用户完成钥匙串和开发者信任的精确操作时间未核实，不编造。
+- 修改或新增内容：通过已登录的 HBuilderX CLI 创建独立 uni-app x VDOM 默认工程，新增手机连接检查页、局域网地址及挑战响应策略；新增只提供健康接口的 Mac 测试服务；新增 Xcode 自动 profile 准备脚本、临时原生目标模板和基座签名脚本；新增地址/响应/服务/页面语法及 profile 策略测试；补充 profile、私钥和 HBuilderX 产物忽略规则；新增复现说明和 ios-mobile-runtime.json 脱敏实机证据；同步三个根目录文档及 npm 入口。
+- 遇到的难题：当前 HBuilderX 已更新为 5.34，与早期环境快照不同；CLI 创建项目时在 --path 下增加项目名子目录，首次使用了错误根路径；iOS 编译/运行要求已签名基座；generic/platform=iOS 自动 profile 生成因没有选中设备失败；首次私钥访问等待系统授权；基座安装后 iOS 拒绝未信任开发者的启动；HBuilderX 的 pageQuery 未传到页面；一次诊断日志代码出现多余括号导致差量编译失败；CoreDevice 列表的 tunnel 状态会暂时显示 disconnected，即使详情查询可建立连接。
+- 处理方式：以实际 CLI help/schema 为准，使用正确子目录并下载官方 uni-app x 组件；Xcode 明确选择已连接 iPhone，允许自动管理 profile 与设备注册后构建成功；复用有效开发身份，在本机逐项签名 13 个嵌套组件及基座并严格验证，不导出私钥，去掉测试不需的原基座推送/Apple 登录权限；系统工具禁止访问 SecurityAgent，因此由用户在本机完成钥匙串授权；用户在手机信任开发者后，CoreDevice 启动成功；手机页面手动填写 Mac 地址完成实测；修复括号并新增页面脚本静态语法检查，随后真实 iOS 编译通过；自动 profile 脚本改为从已配对列表选设备后查询最新详情，不用列表缓存的 tunnel 状态断定不可达。
+- 验证结果：HBuilderX 5.34.2026102909 / uni-app x 编译器 5.34 VDOM；Xcode 自动 profile 构建成功，基座签名验证通过，私钥未导出；iPhone14,2 / iOS 27.0.1 安装成功，用户信任开发者后原生启动退出码 0，设备 App Launch/页面就绪日志出现；最终页面编译和同步成功。手机日志为 M01_HTTP_HEALTH_PASSED network=wifi challenge=matched，Mac 为 health-response fromLoopback=false，用户确认收到 Mac 健康检查响应。证据见 probes/m01/evidence/ios-mobile-runtime.json，只保存脱敏摘要，不保存原始载荷、证书主体、Team ID 或 UDID。提交前执行 npm test（8 项）和 npm run test:docs（18 项，含 profile 策略），并检查暂存差异；结果以本批次最终命令输出为证据。
+- 遗留问题：M01.8 仍未整体完成，TLS 证书信任、事件通道和扫码尚未实测；HTTP 健康检查仅交换无敏感数据的挑战值，不提供远程任务接口，不能当作生产认证加密验收。正式手机客户端、多项目远程开发和模型调用尚未接入；Mac GUI 权限及 M01 其他未完成项不提前勾选。开发 profile 有有效期，过期后需重新生成签名安装；IPA/profile/本机 Xcode 文件留在忽略目录，不公开发布。临时 Mac 健康服务用于本轮验证，停止和复现步骤见手机探针 README。
+- 对应 Git 提交：本批次唯一提交说明 `feat(M01): add signed iPhone probe and verify Wi-Fi health`；查询命令：git log --all --oneline --grep='^feat(M01): add signed iPhone probe and verify Wi-Fi health$'。代码、测试、证据及三个根目录文档同批提交并推送后核对远程 HEAD；本机账户授权及开发设备注册不随 Git 回滚。

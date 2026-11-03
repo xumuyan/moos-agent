@@ -14,3 +14,8 @@ probes/m01/desktop/src-tauri/icons/*
 !probes/m01/desktop/src-tauri/icons/icon.png
 !probes/m01/desktop/src-tauri/icons/icon.icns
 probes/m01/desktop/src-tauri/gen/
+**/unpackage/
+**/.hbuilderx/
+*.mobileprovision
+*.p12
+*.p8

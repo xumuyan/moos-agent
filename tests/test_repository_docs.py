@@ -174,6 +174,23 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E08 |', plan)
         self.assertIn('- [ ] M01.8 验证', plan)
 
+    def test_mobile_runtime_evidence_keeps_http_separate_from_product_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/ios-mobile-runtime.json').read_text())
+        self.assertTrue(report['base']['appInstalled'])
+        self.assertTrue(report['base']['appLaunchVerified'])
+        self.assertTrue(report['base']['signedBaseVerified'])
+        self.assertFalse(report['provisioning']['privateKeyExported'])
+        self.assertTrue(report['lan']['healthVerified'])
+        self.assertEqual(report['lan']['clientNetworkType'], 'wifi')
+        self.assertFalse(report['lan']['serverRequestFromLoopback'])
+        self.assertEqual(report['lan']['transport'], 'HTTP')
+        self.assertFalse(report['lan']['agentTaskApiExposed'])
+        self.assertIn('TLS certificate trust', report['notVerified'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('- [ ] M01.8 验证完整手机通信', plan)
+        self.assertIn('| E09 |', plan)
+        self.assertIn('| E10 |', plan)
+
 
 if __name__ == '__main__':
     unittest.main()

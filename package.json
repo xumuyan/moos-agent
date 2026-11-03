@@ -9,7 +9,10 @@
     "probe:pi": "node probes/m01/pi-probe.mjs",
     "prepare:runtime": "node scripts/prepare-runtime.mjs",
     "build:probe": "npm run prepare:runtime && cd probes/m01/desktop/src-tauri && ../../../../node_modules/.bin/tauri build --bundles app",
-    "verify:probe": "node scripts/verify-m01.mjs"
+    "verify:probe": "node scripts/verify-m01.mjs",
+    "probe:health": "node probes/m01/health-server.mjs",
+    "probe:ios:profile": "python3 scripts/prepare-ios-profile.py",
+    "probe:ios:sign": "python3 scripts/sign-ios-probe.py --base /Applications/HBuilderX.app/Contents/HBuilderX/plugins/uniappx-launcher/base/iPhone_base.ipa --profile .generated/ios-provisioning/DerivedData/Build/Products/Debug-iphoneos/M01Signing.app/embedded.mobileprovision --output probes/m01/mobile/moos-m01-mobile/unpackage/debug/iOS_debug.ipa"
   },
   "engines": {
     "node": ">=22.19.0"

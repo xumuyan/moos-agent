@@ -46,4 +46,8 @@
 - 本轮应用验证仅覆盖 arm64/macOS 27.0.1。Swift helper 与 Tauri 声明目标统一 macOS 14，未实测的最低系统及其他架构不得标为已支持。
 - 自动检查入口：`npm test`（真实 PI + 本地模拟模型、原生只读权限探针）和原有 Python 文档检查。打包入口：`npm run build:probe`；离线包内验证：`npm run verify:probe`。
 - 显式桌面自测 `npm run verify:probe -- --desktop-input` 会点击输入并捕获探针自己的窗口，必须明确区分终端启动与 GUI 启动权限。当前终端自测通过，正常 GUI 启动尚未授权，不能将两者混用为验收证据。
-- 完整运行时基线与小包目标分开记录：当前内置 Node/PI 的开发包可运行，最终体积优化和分发方式未完成。iPhone 已通过 USB 连接并配对，开发者模式已开启；Mac 已识别到有效 Apple Development 签名身份；仍需匹配具体 app/profile 和 uni-app x 运行基座，应用安装及局域网实机验收继续保留未完成。
+- 完整运行时基线与小包目标分开记录：当前内置 Node/PI 的开发包可运行，最终体积优化和分发方式未完成。iPhone 已通过 USB 连接并配对，开发者模式已开启；Mac 已识别到有效 Apple Development 签名身份；已在 HBuilderX 5.34 下匹配开发 profile、重签基座并完成安装启动及 Wi-Fi HTTP 健康检查。该结果不等于加密连接、扫码配对、事件通道或远程开发任务已验收。
+
+- M01 手机探针位于 probes/m01/mobile/moos-m01-mobile；`npm run probe:ios:profile` 使用现有 Xcode 账号管理测试描述文件，`npm run probe:ios:sign` 复用钥匙串私钥签名基座，不导出私钥。开发者信任、钥匙串和本地网络授权由用户在系统界面完成，不尝试绕过受保护授权窗口。
+- `npm run probe:health` 仅提供临时 HTTP 健康检查，不提供任务、文件、截图或模型接口。生产手机通信仍需 M07 的认证与加密；不能把该无敏感数据探针复用成未认证的控制服务。
+- 签名材料、包含设备标识的 profile、IPA、Xcode 本机产物及 HBuilderX 缓存必须留在 Git 忽略目录；实机证据只记录脱敏结果。HBuilderX CLI 退出码为 0 不能单独证明编译/安装成功，必须核对实际日志及设备结果。

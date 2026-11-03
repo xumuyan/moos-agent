@@ -1,0 +1,66 @@
+{
+  "recordedAtBeijing": "2026-11-03 17:02:39 +08:00",
+  "recordingNote": "Recorded after this batch; event times below come from compiler/device logs and user confirmation, not the recording time.",
+  "environment": {
+    "hbuilderx": "5.34.2026102909",
+    "compiler": "5.34",
+    "renderMode": "VDOM",
+    "platform": "iOS",
+    "osVersion": "27.0.1",
+    "productType": "iPhone14,2"
+  },
+  "provisioning": {
+    "xcodeAutomaticProfileBuildSucceeded": true,
+    "explicitDeviceRegistrationUsed": true,
+    "bundleId": "dev.moos.m01mobile",
+    "profileExpiryUTC": "2026-11-10T08:30:56Z",
+    "privateKeyExported": false,
+    "profileCommitted": false
+  },
+  "base": {
+    "source": "HBuilderX official uniappx-launcher/base/iPhone_base.ipa",
+    "signedBaseVerified": true,
+    "nestedComponentsSigned": 13,
+    "appInstalled": true,
+    "installObservedAtBeijing": "2026-11-03 16:37:14 +08:00",
+    "appLaunchVerified": true,
+    "developerTrustCompletedByUser": true,
+    "permissionsHandledByUser": [
+      "Keychain access for signing",
+      "iPhone developer trust",
+      "iPhone local network permission if prompted"
+    ]
+  },
+  "page": {
+    "compileSucceeded": true,
+    "finalCompileObservedAtBeijing": "2026-11-03 16:42:23 +08:00",
+    "loadedOnDevice": true,
+    "addressEnteredByUser": true,
+    "cliPageQueryObservedToBeMissing": true
+  },
+  "lan": {
+    "healthVerified": true,
+    "clientNetworkType": "wifi",
+    "clientChallengeMatched": true,
+    "serverRequestFromLoopback": false,
+    "clientSuccessObservedAtBeijing": "2026-11-03 16:45:45.252 +08:00",
+    "userConfirmedSuccess": true,
+    "transport": "HTTP",
+    "sensitivePayloadSent": false,
+    "agentTaskApiExposed": false
+  },
+  "notVerified": [
+    "TLS certificate trust",
+    "WebSocket/SSE event channel",
+    "QR scanning and authenticated pairing",
+    "Remote task execution",
+    "MVP product installation"
+  ],
+  "evidenceSummaries": [
+    "HBuilderX: custom base installed successfully; compile and sync succeeded",
+    "CoreDevice launchExitCode=0 after developer trust",
+    "Mobile: M01_HTTP_HEALTH_PASSED network=wifi challenge=matched",
+    "Mac: health-response fromLoopback=false",
+    "User confirmed: received Mac health-check response"
+  ]
+}

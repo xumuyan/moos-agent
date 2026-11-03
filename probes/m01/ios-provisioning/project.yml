@@ -1,0 +1,18 @@
+# Temporary native target used only to obtain a development profile for the test base.
+name: M01Signing
+options:
+  deploymentTarget:
+    iOS: '15.0'
+targets:
+  M01Signing:
+    type: application
+    platform: iOS
+    sources: [main.m]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.moos.m01mobile
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${MOOS_SIGNING_TEAM}
+        TARGETED_DEVICE_FAMILY: '1'
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES

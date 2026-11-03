@@ -1,0 +1,76 @@
+<template>
+  <scroll-view class="page" scroll-y="true">
+    <view class="content">
+      <text class="title">Moos · 手机连接验证</text>
+      <text class="description">在 iPhone 上检查是否能访问同一 Wi-Fi 下的 Mac。</text>
+      <text class="label">Mac 测试服务地址</text>
+      <input class="address" v-model="address" placeholder="http://mac-name.local:43101" />
+      <button type="primary" :disabled="running" @click="checkConnection">{{ running ? '检查中…' : '检查连接' }}</button>
+      <text class="status">{{ status }}</text>
+      <text class="note">仅检查无敏感数据的健康接口，不发送开发任务。HTTP 探针通过不代表生产加密连接已验收。</text>
+    </view>
+  </scroll-view>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { localOrigin, verifyHealth } from '../../probe-contract.js'
+const address = ref('')
+const status = ref('尚未检查')
+const running = ref(false)
+onLoad((options) => {
+  console.log('M01_PAGE_READY originProvided=' + (options != null && typeof options.origin === 'string'))
+  if (options != null && typeof options.origin === 'string') {
+    try {
+      address.value = localOrigin(options.origin)
+      if (options.autocheck === '1') checkConnection()
+    }
+    catch (error) { status.value = String(error) }
+  }
+})
+function checkConnection() {
+  let origin = ''
+  try { origin = localOrigin(address.value) }
+  catch (error) { status.value = String(error); return }
+  const probeId = 'm01-' + Date.now().toString() + '-' + Math.random().toString(36).slice(2)
+  running.value = true
+  status.value = '正在请求 Mac…'
+  uni.getNetworkType({
+    success: (network) => {
+      if (network.networkType !== 'wifi') {
+        status.value = '请让 iPhone 连接与 Mac 相同的 Wi-Fi 后再检查。'
+        running.value = false
+        return
+      }
+      uni.request({
+        url: origin + '/health?probeId=' + probeId,
+        method: 'GET',
+        timeout: 8000,
+        success: (response) => {
+          try {
+            status.value = verifyHealth(response.statusCode, response.data, probeId)
+            console.log('M01_HTTP_HEALTH_PASSED network=wifi challenge=matched')
+          } catch (error) { status.value = String(error) }
+        },
+        fail: () => { status.value = '连接失败。检查同一 Wi-Fi、Mac 测试服务和 iPhone 本地网络权限。' },
+        complete: () => { running.value = false }
+      })
+    },
+    fail: () => {
+      status.value = '无法读取网络类型，请重试。'
+      running.value = false
+    }
+  })
+}
+</script>
+
+<style>
+.page { flex: 1; background-color: #f6f7fa; }
+.content { padding: 24px; }
+.title { font-size: 26px; font-weight: bold; margin-bottom: 16px; color: #182334; }
+.description { font-size: 16px; margin-bottom: 32px; color: #566477; }
+.label { font-size: 14px; margin-bottom: 8px; }
+.address { height: 48px; padding: 8px; background-color: #ffffff; border-radius: 8px; margin-bottom: 16px; }
+.status { margin-top: 24px; font-size: 16px; color: #182334; }
+.note { margin-top: 32px; font-size: 13px; color: #566477; }
+</style>

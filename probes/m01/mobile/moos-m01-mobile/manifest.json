@@ -1,0 +1,65 @@
+{
+  "name": "Moos M01 Mobile",
+  "appid": "__UNI__7E164DD",
+  "description": "M01 iPhone local-network transport probe; not the product client",
+  "versionName": "0.1.0",
+  "versionCode": "10",
+  "uni-app-x": {
+    "styleIsolationVersion": "2",
+    "vapor-render-target": "bytecode"
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "mp-alipay": {
+    "usingComponents": true
+  },
+  "mp-baidu": {
+    "usingComponents": true
+  },
+  "mp-toutiao": {
+    "usingComponents": true
+  },
+  "uniStatistics": {
+    "enable": false
+  },
+  "vueVersion": "3",
+  "app": {
+    "distribute": {
+      "icons": {
+        "android": {
+          "hdpi": "",
+          "xhdpi": "",
+          "xxhdpi": "",
+          "xxxhdpi": ""
+        }
+      }
+    }
+  },
+  "app-android": {
+    "distribute": {
+      "modules": {},
+      "icons": {
+        "hdpi": "",
+        "xhdpi": "",
+        "xxhdpi": "",
+        "xxxhdpi": ""
+      },
+      "splashScreens": {
+        "default": {}
+      }
+    }
+  },
+  "app-ios": {
+    "distribute": {
+      "modules": {},
+      "icons": {},
+      "splashScreens": {}
+    }
+  }
+}

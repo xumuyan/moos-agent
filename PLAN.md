@@ -2,7 +2,7 @@
 
 ## 范围与状态
 
-当前范围：实施已确认的个人开发助手 MVP。已完成规范及需求规划，当前推进 M01；已创建独立可运行的 Mac/PI 验证探针，尚未创建正式产品工程与 iPhone 客户端。M01 部分验证通过，整体仍待验收。文件存在、模拟模型或探针通过不能代表产品已完成。
+当前范围：实施已确认的个人开发助手 MVP。已完成规范及需求规划，当前推进 M01；已创建独立可运行的 Mac/PI 验证探针，尚未创建正式产品工程；已创建独立 uni-app x 手机测试页，验证了安装、启动及 HTTP 健康检查。M01 部分验证通过，整体仍待验收。文件存在、模拟模型或探针通过不能代表产品已完成。
 
 ## 阶段一：基础文件与本地验收
 
@@ -70,7 +70,7 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 
 ## MVP 开发任务
 
-下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E05；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
+下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E10；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
 
 ### M01｜运行时与平台可行性
 
@@ -85,7 +85,9 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 - [ ] M01.6 验证正式 GUI 启动身份的首次屏幕录制/辅助功能授权、撤销与恢复，以及桌面输入；目前 GUI 启动权限为 false，详见 E05。
 - [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。进程级退出测试已通过，尚未覆盖完整 GUI 异常退出和各显示器组合。
 - [x] M01.8a 确认 iPhone 开发者模式、USB 配对和 Mac 有效 Apple Development 签名身份。证据：E08；不是应用安装验收。
-- [ ] M01.8 验证 iPhone uni-app x 真机局域网请求、事件通道、扫码和证书信任可行性；设备已通过 USB 连接配对，开发者模式已开启，Mac 已识别到有效开发签名身份；最新复查见 E08。尚未验证具体 app/profile 和 uni-app x 基座，未安装应用或完成局域网验收。
+- [x] M01.8b 创建最小 uni-app x 工程，通过自动描述文件生成、基座签名、真机安装和启动。证据：E09。
+- [x] M01.8c 在 iPhone Wi-Fi 网络下完成 Mac HTTP 健康接口挑战响应校验，Mac 记录非回环请求，用户确认页面成功。证据：E10；没有敏感数据或远程执行能力。
+- [ ] M01.8 验证完整手机通信可行性：局域网健康请求已通过，但事件通道、扫码及 TLS 证书信任仍未实测；该项继续未完成，不能替代 M07/M08 产品验收。
 
 测试与实际验收：分别执行最小运行样例；从打包后的 Mac 程序调用 PI 并停止；完成一次截屏/输入实测；iPhone 真机连接测试服务。记录架构、系统、版本、体积和结论。无法完成的样例阻塞对应下游，不用源码启动代替安装包验收。
 
@@ -102,7 +104,10 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 | E05 | LaunchServices 正常启动 .app，实际点击“运行本地验证”，PI status=passed；屏幕录制与辅助功能均 false | GUI 应用尚未授权；不沿用终端权限结论，不声称 GUI Computer Use 已完成 |
 | E06 | 2026-11-03 15:56:44 北京时间复查：iPhone14,2/iOS 27.0.1，USB paired、tunnel connected；开发者模式 disabled；有效签名身份 0。脱敏证据 probes/m01/evidence/ios-preflight.json | 该次设备连接阻塞解除，开发者模式/签名未满足；后续状态以 E07 为准；提交说明 docs(M01): record paired iPhone and remaining device prerequisites |
 | E07 | 2026-11-03 16:01:14 北京时间：iPhone14,2/iOS 27.0.1，USB paired、tunnel connected、开发者模式 enabled；有效签名身份仍为 0。脱敏证据 probes/m01/evidence/ios-preflight-enabled.json | 该次开发者模式阻塞解除，签名身份为 0；后续状态见 E08，应用安装及同 Wi-Fi 尚未验收；提交说明 docs(M01): confirm iPhone developer mode enabled |
-| E08 | 2026-11-03 16:12:18 北京时间：用户创建的 Apple Development 身份存在，补齐 Apple 官方 WWDR G3 公共中间证书后有效身份由 0 变为 1；设备开发者模式 enabled、USB paired/connected。证据 probes/m01/evidence/ios-signing-ready.json | 未导出私钥、未修改信任策略；标准目录未发现 profile，预期路径未发现 uni-app x iOS 标准基座；应用安装未执行；提交说明 docs(M01): verify development signing and repair WWDR chain |
+| E08 | 2026-11-03 16:12:18 北京时间：用户创建的 Apple Development 身份存在，补齐 Apple 官方 WWDR G3 公共中间证书后有效身份由 0 变为 1；设备开发者模式 enabled、USB paired/connected。证据 probes/m01/evidence/ios-signing-ready.json | 该次未导出私钥、未修改信任策略，profile/基座尚未就绪；后续安装及健康检查见 E09/E10；提交说明 docs(M01): verify development signing and repair WWDR chain |
+| E09 | HBuilderX 5.34.2026102909 / 编译器 5.34 VDOM：最小页面编译通过；Xcode 指定实际 iPhone 自动生成 profile；13 个嵌套组件及基座签名验证通过；16:37:14 安装成功，用户信任开发者后 CoreDevice 启动返回 0 | 脱敏证据 probes/m01/evidence/ios-mobile-runtime.json；临时基座非最终产品。提交说明 feat(M01): add signed iPhone probe and verify Wi-Fi health |
+| E10 | 16:45:45.252 手机日志 network=wifi、challenge=matched；Mac 服务端 fromLoopback=false；用户确认收到 Mac 健康响应。测试页面手动输入局域网地址 | 同 E09 提交；HTTP、无敏感载荷，不代表 TLS、事件通道、扫码配对或远程任务通过 |
+
 
 运行时决策：先保留完整内置基线保障复现；Node 占 119,944,608 字节，PI 生产依赖逻辑体积 114,221,839 字节。M09 前另验证独立、可校验和缓存的运行时分发或依赖裁剪；尚未选择最终小包分发方案，不承诺体积目标。M01 声明编译目标为 macOS 14，只有当前 macOS 27.0.1 实测通过。
 
@@ -216,7 +221,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 | 业务范围 | 已由本次对话明确，原“未提供业务需求”阻塞解除 | 按本计划推进，无需重复确认范围 | 不阻碍 M01 |
 | 模型实测 | 中转站地址、可用模型 ID、GLM 套餐区域和凭据尚未在应用配置 | M04 提供本机配置入口，用户在本机填写后连接实测；不在日志或聊天收集密钥 | 真实模型验收，模拟测试可先行 |
 | Mac 权限 | 探针已构建；正常 GUI 启动屏幕录制/辅助功能均未授权，终端上下文自测已通过 | 用户为实际应用身份授予系统权限后复测，后续验证权限撤销与恢复；不使用终端授权冒充产品授权 | M01.6 及 GUI 桌面操作实测 |
-| iPhone 实机 | iPhone 已配对、开发者模式 enabled；有效 Apple Development 身份已识别。尚无已验证的 app/profile，预期路径无 uni-app x iOS 标准基座 | 为最小 uni-app x 测试工程准备运行基座、配置匹配的 app/profile 后构建安装；不在聊天或日志提交账号密码、私钥 | M01.8、手机安装/配对/证书验收 |
+| iPhone 实机 | 设备、签名、测试 profile/基座、安装启动及 HTTP 健康检查已通过；事件通道、扫码与 TLS 证书信任尚未验证 | 保持可用测试签名和设备连接，补齐并实测剩余通信样例；签名过期时重新生成及安装。生产连接需认证加密 | M01.8 剩余项、M07/M08 产品验收 |
 | 运行时打包 | arm64 完整内置包已通过；体积偏大，最终小包方案及其他架构未验证 | 对可校验下载/缓存或裁剪方案实测，保留完整安装体积口径 | 小包目标、正式安装交付 |
 
 以上前置条件不得伪装为功能已完成，也不阻碍先做可独立验证的工作。
@@ -225,7 +230,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 
 文档检查：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`；差异检查：`git diff --cached --check`。这两项仅验证文档，不验证 PI、模型、桌面操作或手机功能。
 
-M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离线验证：`npm run verify:probe`；显式桌面自测：`npm run verify:probe -- --desktop-input`（仅作用于探针自有窗口，需要已有系统权限）。正式产品测试命令在 M02 随实际工程建立后记录，探针不能代替产品验收。每项实机证据记录任务/验收 ID、北京时间、提交、系统/设备、步骤、预期与实际结果、脱敏输出或截图位置。全部通过后才勾选相应任务。
+M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离线验证：`npm run verify:probe`；显式桌面自测：`npm run verify:probe -- --desktop-input`（仅作用于探针自有窗口，需要已有系统权限）。手机探针复现步骤见 probes/m01/mobile/README.md；健康服务入口 `npm run probe:health`。正式产品测试命令在 M02 随实际工程建立后记录，探针不能代替产品验收。每项实机证据记录任务/验收 ID、北京时间、提交、系统/设备、步骤、预期与实际结果、脱敏输出或截图位置。全部通过后才勾选相应任务。
 
 ## 技术参考（2026-11-03 查阅）
 
