@@ -145,6 +145,18 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('当前无连接设备', plan)
         self.assertNotIn('devicectl 无设备', plan)
 
+    def test_enabled_developer_mode_does_not_claim_signed_app_or_lan_acceptance(self):
+        evidence = json.loads((ROOT / 'probes/m01/evidence/ios-preflight-enabled.json').read_text())
+        self.assertEqual(evidence['device']['developerModeStatus'], 'enabled')
+        self.assertEqual(evidence['device']['tunnelState'], 'connected')
+        self.assertFalse(evidence['appInstalledByThisCheck'])
+        self.assertFalse(evidence['lanVerified'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('| E07 |', plan)
+        if evidence['validCodeSigningIdentities'] == 0:
+            self.assertIn('- [ ] M01.8', plan)
+            self.assertIn('在本机配置可用开发签名', plan)
+
 
 if __name__ == '__main__':
     unittest.main()

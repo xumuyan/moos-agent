@@ -59,3 +59,13 @@
 - 验证结果：iPhone14,2 / iOS 27.0.1；pairingState=paired、transportType=wired、tunnelState=connected；developerModeStatus=disabled；有效签名身份为 0。设备连接前置条件已满足，但原生应用安装和局域网通信未验收。交付前执行 npm test（5 项）及 npm run test:docs（新增检查后 11 项）和差异检查，结果以本批次命令输出为证据；该证据对应本条日志所在工作区及同批次提交。
 - 遗留问题：M01.8 继续未完成。解除条件为用户开启手机开发者模式并按提示重启确认，配置有效签名和匹配的 app/profile，然后运行 uni-app x 最小样例验证网络、扫码、事件通道与证书；USB 连接不代替同 Wi-Fi 验收。其他 M01 未完成项保持原状。
 - 对应 Git 提交：本批次唯一提交说明 `docs(M01): record paired iPhone and remaining device prerequisites`；查询命令：git log --all --oneline --grep='^docs(M01): record paired iPhone and remaining device prerequisites$'。本次文档、测试、证据同一提交保存，并推送后核对远程 HEAD。
+
+## 2026-11-03 16:01:14 +08:00｜M01：确认 iPhone 开发者模式开启
+
+- 时间说明：采用本次设备查询批次结束时读取的北京时间。前一次用户开启后复查仍返回 disabled/tunnel unavailable，本次重新查询已明确返回 enabled/connected；不推断前一次缓存或断连的具体原因。
+- 修改或新增内容：追加 probes/m01/evidence/ios-preflight-enabled.json，保留此前 preflight 证据原貌；AGENTS.md 更新当前设备状态；PLAN.md 新增 E07，解除开发者模式阻塞，保留签名与应用实机验收未完成；新增文档回归检查以防把开发者模式开启当作应用安装或局域网验收通过。
+- 遇到的难题：手机开发者模式和 USB 通信已就绪，但 Mac 有效签名身份仍为 0，单凭设备连通不能安装开发应用或宣称 uni-app x 真机验证完成。
+- 处理方式：重新读取 CoreDevice 结构化详情并仅保存非唯一标识的状态字段；签名检查只记录有效身份数量；未变更手机安全设置、未创建签名凭据、未安装应用。继续要求由用户在本机完成开发签名配置，密码及私钥不进入聊天、代码或日志。
+- 验证结果：iOS 27.0.1 / iPhone14,2；developerModeStatus=enabled、pairingState=paired、transportType=wired、tunnelState=connected；有效代码签名身份 0。本批次提交前运行 npm test（5 项）与 npm run test:docs（新增检查后 12 项）及 git diff --cached --check，结果以命令输出为证据；无真实应用安装/局域网验收结论。
+- 遗留问题：仍需可用开发签名和与 app 匹配的 profile，然后执行 uni-app x 最小真机样例；M01.8 保持未完成。GUI Mac 授权及其他 M01 未完成项仍按原计划推进。
+- 对应 Git 提交：本批次唯一提交说明 `docs(M01): confirm iPhone developer mode enabled`；查询命令：git log --all --oneline --grep='^docs(M01): confirm iPhone developer mode enabled$'。文档、证据及测试同批提交，推送后核对本地与远程 HEAD。

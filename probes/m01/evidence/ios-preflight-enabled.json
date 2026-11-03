@@ -1,0 +1,25 @@
+{
+  "recordedAtBeijing": "2026-11-03 16:01:14 +08:00",
+  "timeNote": "Time read after this device-query batch; not a claim about earlier checks.",
+  "device": {
+    "platform": "iOS",
+    "productType": "iPhone14,2",
+    "osVersion": "27.0.1",
+    "pairingState": "paired",
+    "transportType": "wired",
+    "tunnelState": "connected",
+    "developerModeStatus": "enabled"
+  },
+  "validCodeSigningIdentities": 0,
+  "appInstalledByThisCheck": false,
+  "lanVerified": false,
+  "sources": [
+    "devicectl list devices",
+    "devicectl device info details",
+    "security find-identity -v -p codesigning"
+  ],
+  "limitations": [
+    "USB pairing is not Wi-Fi app acceptance",
+    "No valid signing identity detected"
+  ]
+}
