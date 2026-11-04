@@ -121,3 +121,12 @@
 - 体积结果：替换前安装版文件逻辑总量 233.03 MiB，实际磁盘 275.93 MiB；Node 113.72 MiB，PI 依赖逻辑 108.93 MiB（磁盘 151.82 MiB），主程序 4.90 MiB。当前完整内置，无额外运行时下载；未重新测量压缩包。原有压缩包历史基线见 E03。后续验证依赖裁剪与可校验下载/缓存；只把运行时移到应用外不会减少完整落盘体积。
 - 遗留问题：小包方案、浏览器稳定性、撤销恢复及原计划其他未完成项仍待验证。本次只验收权限独立跳转，未宣称整体桌面操作完成。
 - 对应 Git 提交：本批次唯一说明 `fix(M01): route permission buttons to distinct settings panes`；查询：git log --all --oneline --grep='^fix(M01): route permission buttons to distinct settings panes$'。证据对应提交前工作区；提交推送后核对远程 HEAD，不提前编造提交哈希。
+
+## 2026-11-04 08:57:05 +08:00｜D01：记录暂缓开发的 Git 管理工具插件
+
+- 修改或新增内容：PLAN.md 新增 D01 分八项的后续计划，按 WebStorm 常用 Git 流程覆盖仓库状态、diff/历史、暂存提交、分支标签、远程同步、冲突和 stash、智能体目录锁、分批验收；同步 AGENTS.md 并增加暂缓范围及验收契约测试。
+- 遇到的难题：用户新增需求范围较大，要求可暂缓；当前仍在处理 M01 浏览器验证，不能混入首版完成条件或宣称已有 Git 插件。
+- 处理方式：独立后续 D01，依赖 M09/M03/M06，全部保持未完成；记录长期对齐目标、具体功能、跨端待定边界、受阻原因和解除条件，当前不增加运行时依赖、不改变客户端实现。
+- 验证结果：本次为需求规划变更，人工核对八项均未勾选、无插件已实现声明、包含前置依赖和真实 UI/仓库内容验收；自动检查执行 npm test、npm run test:docs、npm run test:desktop-native，分别为 11、22、3 项通过，共 36 项；git diff --cached --check 通过。
+- 遗留问题：Git 插件尚未设计、开发或实测，不能声称与 WebStorm 完全等同。M01 浏览器故障调查继续，未在本次需求记录中改动功能或验收状态。
+- 对应 Git 提交：本批次唯一提交说明 `docs(D01): plan deferred Git management plugin`；查询命令：git log --all --oneline --grep='^docs(D01): plan deferred Git management plugin$'。推送后核对远程 HEAD，不提前填写自身哈希。

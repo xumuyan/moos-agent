@@ -19,6 +19,17 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['sizeOptimizationComplete'])
         self.assertGreater(report['sizeBeforeReplacementMiB']['allocated'], report['sizeBeforeReplacementMiB']['logical'])
 
+    def test_git_plugin_is_deferred_with_dependencies_and_acceptance(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        section = plan.split('## 后续计划：D01｜', 1)[1].split('## 最终验收清单', 1)[0]
+        for term in ('WebStorm', '暂缓开发', '未实现、未验收', '不阻塞当前 M01',
+                     'M09', 'M03', 'M06', '规范化工作目录锁', '三方对比', 'bare remote',
+                     'Mac 安装版', '受阻原因', '解除条件'):
+            self.assertIn(term, section)
+        self.assertNotIn('- [x]', section)
+        for number in range(1, 9):
+            self.assertIn(f'- [ ] D01.{number} ', section)
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):
