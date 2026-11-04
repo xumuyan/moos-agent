@@ -48,6 +48,34 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['permissionRevokeRestoreVerified'])
         self.assertFalse(report['piModelPlanningVerified'])
 
+    def test_permission_completion_requires_both_real_gui_recovery_cycles(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-permission-recovery.json').read_text())
+        self.assertTrue(report['allPermissionCyclesComplete'])
+        for kind, revoked_key, other_key in [
+            ('screen', 'screenCaptureGranted', 'accessibilityGranted'),
+            ('accessibility', 'accessibilityGranted', 'screenCaptureGranted')]:
+            case = report[kind]
+            self.assertTrue(case['cycleComplete'])
+            revoked = case['revoked']['report']
+            self.assertEqual(revoked['launchContext'], 'GUI application command')
+            self.assertEqual(revoked['status'], 'blocked')
+            self.assertEqual(revoked['reason'], 'system-permission-required')
+            self.assertFalse(revoked[revoked_key])
+            self.assertTrue(revoked[other_key])
+            self.assertFalse(case['revoked']['screenshotExists'])
+            restored = case['restored']['report']
+            self.assertEqual(restored['status'], 'passed')
+            self.assertTrue(restored['keyboardNavigation'])
+            self.assertTrue(restored['urlVerified'])
+            self.assertTrue(restored['markerVerified'])
+            self.assertEqual(restored['captureScope'], 'verified-test-page-content')
+            self.assertTrue(case['restored']['screenshotExists'])
+            self.assertNotEqual(case['revoked']['id'], case['restored']['id'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertRegex(plan, r'- \[x\] M01\.6[^\n]*证据：[^\n]*E15')
+        self.assertIn('- [ ] M01 整体验收', plan)
+        self.assertIn('- [ ] M01.7', plan)
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):
@@ -121,7 +149,7 @@ class RepositoryDocsTests(unittest.TestCase):
             for evidence_id in evidence_ids:
                 self.assertIn('| ' + evidence_id + ' |', plan)
         self.assertIn('- [ ] M01 整体验收', stages)
-        self.assertIn('- [ ] M01.6', stages)
+        self.assertIn('- [x] M01.6', stages)
         self.assertIn('- [ ] M01.8', stages)
         rows = re.findall(r'^\| (A\d{2}) \|.*?\| ([^|]+) \|$',
                           plan, re.MULTILINE)
@@ -238,7 +266,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(report['prepared']['capturePolicy'], 'verified-test-page-content')
         self.assertFalse(report['guiBrowserVerified'])
         self.assertFalse(report['permissionRevocationRecoveryVerified'])
-        self.assertIn('- [ ] M01.6', (ROOT / 'PLAN.md').read_text(encoding='utf-8'))
+        self.assertIn('| E11 |', (ROOT / 'PLAN.md').read_text(encoding='utf-8'))
 
     def test_desktop_installation_is_not_permission_or_browser_acceptance(self):
         report = json.loads((ROOT / 'probes/m01/evidence/desktop-installation.json').read_text())

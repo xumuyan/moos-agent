@@ -1,0 +1,84 @@
+{
+  "recordedAtBeijing": "2026-11-04T09:27:00+08:00",
+  "appCommit": "cfec622376e25aaadf2447d32bb2bf4919ed0167",
+  "appVersion": "0.1.0",
+  "system": "macOS 27.0.1 / arm64",
+  "installedPath": "/Applications/Moos M01 Probe.app",
+  "permissionSwitchOperator": "user via System Settings",
+  "screen": {
+    "cycleComplete": true,
+    "revoked": {
+      "id": "MOOS_M01_BROWSER_1793755314060478000_50828",
+      "report": {
+        "accessibilityGranted": true,
+        "launchContext": "GUI application command",
+        "reason": "system-permission-required",
+        "screenCaptureGranted": false,
+        "status": "blocked"
+      },
+      "screenshotExists": false
+    },
+    "restored": {
+      "id": "MOOS_M01_BROWSER_1793755351326675000_53921",
+      "report": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    }
+  },
+  "accessibility": {
+    "cycleComplete": true,
+    "revoked": {
+      "id": "MOOS_M01_BROWSER_1793755501418057000_53921",
+      "report": {
+        "accessibilityGranted": false,
+        "launchContext": "GUI application command",
+        "reason": "system-permission-required",
+        "screenCaptureGranted": true,
+        "status": "blocked"
+      },
+      "screenshotExists": false
+    },
+    "restored": {
+      "id": "MOOS_M01_BROWSER_1793755535777273000_53921",
+      "report": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    }
+  },
+  "allPermissionCyclesComplete": true,
+  "limits": [
+    "Native fixed local browser fixture only",
+    "No arbitrary website or model-planned task acceptance",
+    "M01 overall remains incomplete"
+  ],
+  "finalGuiPermissions": {
+    "screenCaptureGranted": true,
+    "accessibilityGranted": true
+  },
+  "restoredScreenshot": {
+    "path": "/Users/xuguopeng/Library/Application Support/dev.moos.m01-probe/browser-probes/MOOS_M01_BROWSER_1793755535777273000_53921/browser.png",
+    "sha256": "9a95c5991cb7a1a3c9be00f9d31ff0f07ba5a2914b9e10c11c25efffde61ea1a",
+    "visuallyInspected": true
+  },
+  "timeNote": "Recording time; exact times of user system toggles not independently verified. Case IDs identify local app reports.",
+  "installedSignatureVerified": true,
+  "runningFromInstalledPathVerified": true
+}

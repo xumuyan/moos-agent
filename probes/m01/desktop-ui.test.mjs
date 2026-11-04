@@ -60,3 +60,35 @@ test('each permission button sends its own explicit permission kind', async () =
   await get('accessibility').click();
   assert.deepEqual(requested, ['screen', 'accessibility']);
 });
+
+test('revoking either permission hides old success and reauthorization permits a new verified run', async () => {
+  for (const permission of ['screenCaptureGranted', 'accessibilityGranted']) {
+    const state = { screenCaptureGranted: true, accessibilityGranted: true };
+    const requests = [];
+    const get = await view(async (name) => {
+      requests.push(name);
+      if (name === 'run_browser_probe') {
+        return state.screenCaptureGranted && state.accessibilityGranted
+          ? { status: 'passed', imageDataUrl: 'data:image/png;base64,new-capture' }
+          : { status: 'blocked', reason: 'system-permission-required' };
+      }
+      return { ...state };
+    });
+    await get('browser').click();
+    assert.equal(get('capture').hidden, false);
+    state[permission] = false;
+    await get('browser').click();
+    assert.equal(get('capture').hidden, true, 'an earlier screenshot must not look like the blocked run succeeded');
+    assert.match(get('browser-status').textContent, /先授权/);
+    assert.match(get('permissions').textContent, /未授权/);
+    assert.equal(get('browser').disabled, false);
+    assert.equal(get('stop').disabled, true);
+    state[permission] = true;
+    await get('refresh').click();
+    assert(!get('permissions').textContent.includes('未授权'));
+    await get('browser').click();
+    assert.match(get('browser-status').textContent, /验证通过/);
+    assert.equal(get('capture').hidden, false);
+    assert(!requests.includes('request_desktop_permission'), 'restoration must remain a user system action');
+  }
+});

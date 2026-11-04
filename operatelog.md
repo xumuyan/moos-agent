@@ -139,3 +139,13 @@
 - 验证结果：npm test 11 项通过（新增实际事件构造标志断言，无输入注入）；npm run test:desktop-native 3 项通过；npm run build:probe、npm run sign:mac-probe 与安装目标签名验证通过。旧安装版 keyboard-events 模式退出 2；诊断版在旧输入行为下复现带 Command 的失败。修复后 GUI 初始连续三次 passed，再一次 passed；首次停止点击发生在任务已完成之后，未计为取消验收，随后同一界面操作批次实际停止，界面为“本次验证已停止。”、报告 cancelled 且无截图，之后新任务 passed。共五次成功均核对 URL/窗口标记并返回 1710×936 测试页截图，最终截图已人工查看且 SHA-256 写入 E14。证据对应提交前工作区，源码基线和各次本地报告标记见 E14。npm run test:docs 23 项通过，合计 37 项自动检查通过；git diff --cached --check 通过。npm run verify:probe 包内离线 PI 模拟验证通过（无桌面输入，不能替代上述 GUI 证据）；新 ZIP 75,283,046 字节，逻辑应用 244,364,223 字节，磁盘 289,353,728 字节，完整内置体积未优化，报告摘要见 E14。
 - 遗留问题：权限撤销/恢复需要用户在系统安全界面实际操作后验证；M01.6 继续未完成。Retina/跨屏与 GUI 崩溃链未验收，固定页工具尚未由模型驱动，不代表任意网站自动操作或正式产品完成。此前失败报告和日志保持不变。
 - 对应 Git 提交：本批次唯一提交说明 `fix(M01): isolate browser keyboard modifier state`；查询：git log --all --oneline --grep='^fix(M01): isolate browser keyboard modifier state$'。本机安装副本不随 Git 回滚；提交推送后核对远程 HEAD，不提前编造哈希。
+
+## 2026-11-04 09:27:00 +08:00｜M01.6：录屏和辅助功能分别撤销与恢复实机验收
+
+- 时间说明：此为记录整理北京时间；用户在系统设置切换开关的精确时间未独立核实，各次应用报告通过唯一 ID 对应，不以整理时间冒充每次操作时间。
+- 修改或新增内容：新增 E15 脱敏证据，更新 UI 回归测试覆盖“已有成功截图 → 撤销任一权限 → 隐藏旧截图/拒绝执行 → 恢复 → 新任务通过”；文档检查校验两种真实 GUI 撤销/恢复证据，修正旧授权前快照测试不应永久锁定当前计划为未完成；同步 AGENTS.md、PLAN.md 及探针 README，M01.6 本机项完成，M01 整体保持未完成。未改运行时代码、未重打包安装。
+- 遇到的难题：两项系统权限必须分别操作，旧成功截图和初始权限文字不能代替当前检查；授权前的历史文档测试硬编码 M01.6 必须未完成，与后续真实验收状态不符。
+- 处理方式：所有开关均由用户在系统设置操作；使用 /Applications 中 cfec622 的正常 GUI 安装版，每次重新检查并点击真实浏览器按钮，核对独立报告与截图文件有无。更新测试依据 E15 检验完成证据，同时保留 E11/E12/E13/E14 当时的未授权、失败或待验收事实，不改历史日志。
+- 验证结果：录屏撤销时 screenCaptureGranted=false、accessibilityGranted=true，任务 blocked/system-permission-required，无截图；录屏恢复后实际输入 URL、核对 URL/窗口标记、1710×936 页面截图 passed。辅助功能撤销时两项分别 true/false，界面显示未授权，任务同样 blocked 且旧截图已隐藏，无本次截图；恢复后重新检查两项 true，新浏览器任务及截图 passed，最终截图已查看，哈希与本机路径见 E15。npm test 12 项通过；npm run test:desktop-native 3 项通过；npm run test:docs 24 项通过，共 39 项自动检查通过；git diff --cached --check 通过。应用代码未变化，继续复用 cfec622 已验证构建与签名；本轮再次 codesign --verify --deep --strict 验证通过，进程路径确认来自 /Applications。
+- 遗留问题：M01.7 完整 GUI 退出/崩溃链、Retina/跨屏坐标和 M01.8 手机剩余通信尚未验收；本次不代表模型驱动电脑任务或正式产品完成，后续更换系统/签名身份需重新实测。Git 插件 D01 仍暂缓。
+- 对应 Git 提交：本批次唯一提交说明 `test(M01): verify GUI permission revocation and recovery`；查询命令：git log --all --oneline --grep='^test(M01): verify GUI permission revocation and recovery$'。证据对应提交前测试/文档工作区，实际运行应用为 cfec622；推送后核对远程 HEAD，不提前填写自身哈希。

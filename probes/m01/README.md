@@ -47,3 +47,5 @@ npm run verify:probe
 本机已安装位置为 `/Applications/Moos M01 Probe.app`，权限添加选择器中可直接从“应用程序”选择。安装验证见 `evidence/desktop-installation.json`；当前该证据只证明签名、GUI 启动和内置 PI 可运行，不证明屏幕/辅助功能已授权。仓库 target 仍作为构建输出保留。
 
 2026-11-04 后续验收：`evidence/desktop-browser-keyboard-fix.json` 记录安装版固定页连续三次通过、实际取消及取消后重新通过；截图 `evidence/desktop-browser-page.png` 已核对只含专用测试页。旧报告中的未授权/失败状态保留为历史。键盘事件采用私有事件源，明确清除文字、回车及抬键的 Command 标志，避免地址输入变成快捷键。失焦时安全停止，报告记录所处阶段；不要在验证中途切换应用。权限撤销恢复仍需用户在系统界面完成操作后再验证，当前不宣称已通过。
+
+2026-11-04 权限后续验收：`evidence/desktop-permission-recovery.json`（E15）补齐录屏与辅助功能各自的“撤销 → blocked 且无截图 → 用户恢复 → 新任务通过”。最终两项均已授权，M01.6 本机检查完成；上述 E14 的“撤销恢复未验收”是当时状态，保留作为历史。此次只覆盖安装版 cfec622 与固定本地页面，多屏坐标及完整 GUI 崩溃链仍待 M01.7 验证。
