@@ -9,6 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_permission_routing_evidence_preserves_failed_browser_retest(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-permission-routing.json').read_text())
+        self.assertTrue(report['permissionNavigation']['bothClickedInInstalledGUI'])
+        self.assertNotEqual(report['permissionNavigation']['screen'], report['permissionNavigation']['accessibility'])
+        self.assertEqual(report['priorGuiBrowserResult']['status'], 'passed')
+        self.assertEqual(report['currentGuiBrowserResult']['reason'], 'target-url-not-observed')
+        self.assertFalse(report['revokeRestoreVerified'])
+        self.assertFalse(report['sizeOptimizationComplete'])
+        self.assertGreater(report['sizeBeforeReplacementMiB']['allocated'], report['sizeBeforeReplacementMiB']['logical'])
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):

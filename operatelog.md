@@ -109,3 +109,15 @@
 - 验证结果：源/目标 codesign --verify --deep --strict 均通过；安装 bundle ID 为 dev.moos.m01-probe、版本 0.1.0。进程检查确认唯一实例来自 /Applications；实际点击安装版“运行 PI 本地验证”，界面 status=passed，使用本地模拟模型，无真实服务调用；两项权限仍显示未授权。交付前 npm test 10 项、npm run test:docs 20 项及 npm run test:desktop-native 3 项均通过，共 33 项；git diff --check 通过，暂存后另检查 git diff --cached --check。
 - 遗留问题：实际 GUI 浏览器访问与截图仍待权限授权，M01.6 保持未完成；本机安装版未公证，不是正式产品交付。后续更新安装应先检查目标身份并退出已有实例，不混淆 target 产物与安装版。
 - 对应 Git 提交：本批次唯一提交说明 `docs(M01): record Applications installation and runtime check`；查询命令：git log --all --oneline --grep='^docs(M01): record Applications installation and runtime check$'。记录、测试及三个根目录文档同批提交并推送后核对远程 HEAD；本机应用副本不随 Git 回滚。
+
+## 2026-11-04 08:43:05 +08:00｜M01：修正权限页面跳转并核实体积
+
+- 时间为本轮整理时间，未核实用户授权和旧版浏览器成功操作的精确时间。
+- 修改或新增内容：两个权限命令分别显式打开 Privacy_ScreenCapture 与 Privacy_Accessibility；新增只读路由检查、按钮参数回归测试及 E13 脱敏证据；同步规则和计划。未修改权限开关，未替用户授权。
+- 遇到的难题：原实现仅调用系统权限申请 API，实际点击辅助功能后设置仍停在录屏页。
+- 处理方式：改为固定的独立系统设置 URL，保留只读权限状态。重新构建、使用现有开发身份签名，退出旧实例后更新 /Applications 安装副本并严格验证签名。
+- 验证结果：npm test 11 项通过；npm run test:desktop-native 3 项通过；npm run build:probe 和 npm run sign:mac-probe 成功。安装版实际点击两个按钮，分别观察到“录屏与系统录音”和“设备控制和数据访问”，两项权限均已授权。旧安装版 permission-settings 退出码 2，新版只读路由检查通过，回归覆盖不同路由及 UI 参数。Python 文档检查初次因日志字段合并未符合契约失败，拆分字段后复测；最终 21 项文档/profile 检查通过，总计 35 项自动检查通过，git diff --cached --check 通过。
+- 浏览器证据限制：调查期间发现旧版 GUI 已有 passed 报告（实际输入、URL/标记验证、1710×936 页面截图）；但本轮修正版复测失败，reason=target-url-not-observed。不宣称浏览器稳定通过，原因尚未查明；M01.6 保持未完成，解除条件为调查失败并重复实测、补齐撤销恢复。未把历史成功覆盖为失败，也未把本次失败隐藏。
+- 体积结果：替换前安装版文件逻辑总量 233.03 MiB，实际磁盘 275.93 MiB；Node 113.72 MiB，PI 依赖逻辑 108.93 MiB（磁盘 151.82 MiB），主程序 4.90 MiB。当前完整内置，无额外运行时下载；未重新测量压缩包。原有压缩包历史基线见 E03。后续验证依赖裁剪与可校验下载/缓存；只把运行时移到应用外不会减少完整落盘体积。
+- 遗留问题：小包方案、浏览器稳定性、撤销恢复及原计划其他未完成项仍待验证。本次只验收权限独立跳转，未宣称整体桌面操作完成。
+- 对应 Git 提交：本批次唯一说明 `fix(M01): route permission buttons to distinct settings panes`；查询：git log --all --oneline --grep='^fix(M01): route permission buttons to distinct settings panes$'。证据对应提交前工作区；提交推送后核对远程 HEAD，不提前编造提交哈希。

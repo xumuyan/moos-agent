@@ -17,6 +17,10 @@ test('native passive permission probe reports status without capture or input',
     assert.equal(result.screenshotCaptured, false);
     assert.equal(result.displayQuerySucceeded, true);
     assert(result.activeDisplays > 0);
+    const routes = JSON.parse(execFileSync(binary, ['permission-settings'], { encoding: 'utf8' }));
+    assert.equal(routes['request-screen'], 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    assert.equal(routes['request-accessibility'], 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
+    assert.notEqual(routes['request-screen'], routes['request-accessibility']);
     const invalid = spawnSync(binary, ['not-a-mode']);
     assert.equal(invalid.status, 2);
     for (const args of [

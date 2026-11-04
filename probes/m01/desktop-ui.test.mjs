@@ -48,3 +48,15 @@ test('desktop UI displays only a verified successful screenshot and supports can
   assert.match(cancelled('browser-status').textContent, /已停止/);
   assert.equal(cancelled('stop').disabled, true);
 });
+
+test('each permission button sends its own explicit permission kind', async () => {
+  const requested = [];
+  const get = await view(async (name, args) => {
+    if (name === 'request_desktop_permission') requested.push(args.kind);
+    return {};
+  });
+  assert.deepEqual(requested, []);
+  await get('screen').click();
+  await get('accessibility').click();
+  assert.deepEqual(requested, ['screen', 'accessibility']);
+});

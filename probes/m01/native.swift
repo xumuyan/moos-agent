@@ -24,15 +24,17 @@ if mode == "permissions" {
           "inputInjected": false, "screenshotCaptured": false])
 }
 
-// Requests are separate commands, invoked only by explicit UI buttons.
-if mode == "request-screen" {
-    let granted = CGRequestScreenCaptureAccess()
-    emit(["screenCaptureGranted": granted, "requestIssued": true])
-}
-if mode == "request-accessibility" {
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-    let granted = AXIsProcessTrustedWithOptions(options)
-    emit(["accessibilityGranted": granted, "requestIssued": true])
+// Explicit navigation avoids leaving System Settings on a previously opened pane.
+let permissionSettings = [
+    "request-screen": "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture",
+    "request-accessibility": "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+]
+// Read-only route inspection for regression tests; never opens settings or grants access.
+if mode == "permission-settings" { emit(permissionSettings) }
+if let destination = permissionSettings[mode], let url = URL(string: destination) {
+    let opened = NSWorkspace.shared.open(url)
+    emit(["screenCaptureGranted": screenGranted, "accessibilityGranted": inputGranted,
+          "settingsOpened": opened, "settingsURL": destination], code: opened ? 0 : 1)
 }
 
 func axValue(_ element: AXUIElement, _ key: String) -> CFTypeRef? {

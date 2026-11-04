@@ -1,0 +1,44 @@
+{
+  "recordedAtBeijing": "2026-11-04T08:43:05+08:00",
+  "baseCommit": "e6db0651782c1e8e644eff93078ba64e548f1cb0",
+  "workspaceChanges": "fix(M01): route permission buttons to distinct settings panes",
+  "system": "macOS 27.0.1 / arm64",
+  "installedPath": "/Applications/Moos M01 Probe.app",
+  "developmentSignatureVerified": true,
+  "permissionNavigation": {
+    "screen": "录屏与系统录音",
+    "accessibility": "设备控制和数据访问",
+    "bothClickedInInstalledGUI": true
+  },
+  "observedPermissions": {
+    "screenCaptureGranted": true,
+    "accessibilityGranted": true
+  },
+  "priorGuiBrowserResult": {
+    "status": "passed",
+    "keyboardNavigation": true,
+    "urlVerified": true,
+    "markerVerified": true,
+    "imageWidth": 1710,
+    "imageHeight": 936,
+    "source": "local prior report observed during investigation; exact action time not independently verified"
+  },
+  "currentGuiBrowserResult": {
+    "launchContext": "GUI application command",
+    "reason": "target-url-not-observed",
+    "status": "failed"
+  },
+  "currentBrowserEvidencePath": "/Users/xuguopeng/Library/Application Support/dev.moos.m01-probe/browser-probes/MOOS_M01_BROWSER_1793752909965069000_22237/report.json",
+  "revokeRestoreVerified": false,
+  "sizeBeforeReplacementMiB": {
+    "logical": 233.03,
+    "allocated": 275.93,
+    "nodeLogical": 113.72,
+    "piDependenciesLogical": 108.93,
+    "piDependenciesAllocated": 151.82,
+    "mainExecutableLogical": 4.9
+  },
+  "sizeOptimizationComplete": false,
+  "extraRuntimeDownloadBytes": 0,
+  "packageArchiveRemeasured": false
+}
