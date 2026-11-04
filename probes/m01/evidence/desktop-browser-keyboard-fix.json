@@ -1,0 +1,132 @@
+{
+  "recordedAtBeijing": "2026-11-04T09:07:37+08:00",
+  "baseCommit": "366f84cfd35788036c9d2652b2e5832b3aec53f9",
+  "workspaceChanges": "fix(M01): isolate browser keyboard modifier state",
+  "system": "macOS 27.0.1 / arm64",
+  "installedPath": "/Applications/Moos M01 Probe.app",
+  "appVersion": "0.1.0",
+  "developmentSignatureVerified": true,
+  "launchContext": "GUI application command",
+  "beforeFixDiagnostic": {
+    "launchContext": "GUI application command",
+    "reason": "target-url-not-observed",
+    "status": "failed",
+    "textEventFlags": 537919488
+  },
+  "commandMask": 1048576,
+  "rootCause": "Text event inherited Command after Cmd+L; explicit event flags and private source fix this.",
+  "runs": [
+    {
+      "id": "MOOS_M01_BROWSER_1793754288855764000_47280",
+      "result": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    },
+    {
+      "id": "MOOS_M01_BROWSER_1793754305217428000_47280",
+      "result": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    },
+    {
+      "id": "MOOS_M01_BROWSER_1793754317714884000_47280",
+      "result": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    },
+    {
+      "id": "MOOS_M01_BROWSER_1793754335948082000_47280",
+      "result": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    },
+    {
+      "id": "MOOS_M01_BROWSER_1793754352597077000_47280",
+      "result": {
+        "launchContext": "GUI application command",
+        "status": "cancelled"
+      },
+      "screenshotExists": false
+    },
+    {
+      "id": "MOOS_M01_BROWSER_1793754357880565000_47280",
+      "result": {
+        "browser": "Safari",
+        "captureScope": "verified-test-page-content",
+        "imageHeight": 936,
+        "imageWidth": 1710,
+        "keyboardNavigation": true,
+        "launchContext": "GUI application command",
+        "markerVerified": true,
+        "status": "passed",
+        "urlVerified": true
+      },
+      "screenshotExists": true
+    }
+  ],
+  "consecutiveInitialPasses": 3,
+  "cancelGuiStatus": "本次验证已停止。",
+  "successAfterCancel": true,
+  "screenshot": {
+    "path": "probes/m01/evidence/desktop-browser-page.png",
+    "sha256": "ece982aaac4a8c500a6f4d9325654865e063446cd8b40243ff38a25fc9b76f10",
+    "visuallyInspected": true,
+    "content": "Only unique local fixture page, no browser chrome or other tabs"
+  },
+  "permissionRevokeRestoreVerified": false,
+  "piModelPlanningVerified": false,
+  "limitations": [
+    "Permission revocation/recovery awaits user system operation",
+    "No arbitrary website or production assistant acceptance",
+    "Retina/cross-display coordinates and GUI crash chain remain unverified"
+  ],
+  "packagedOfflineVerification": {
+    "piStatus": "passed",
+    "provider": "local-fixture",
+    "desktopInput": "not-run; separate installed GUI runs above",
+    "sizes": {
+      "appLogicalBytes": 244364223,
+      "appAllocatedBytes": 289353728,
+      "archiveBytes": 75283046,
+      "nodeBytes": 119246224,
+      "dependenciesLogicalBytes": 114221839
+    },
+    "archiveSha256": "a215dafbe565ed51f27e8bb8370499539d322ea478e35bc289c04bb1856f8310"
+  }
+}

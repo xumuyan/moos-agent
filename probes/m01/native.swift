@@ -69,13 +69,36 @@ func pageFrame(_ element: AXUIElement) -> CGRect? {
     return CGRect(origin: point, size: dimensions)
 }
 
-func browserKey(_ key: CGKeyCode, command: Bool = false) {
-    guard let down = CGEvent(keyboardEventSource: nil, virtualKey: key, keyDown: true),
-          let up = CGEvent(keyboardEventSource: nil, virtualKey: key, keyDown: false) else {
+// A private source plus explicit flags prevents Cmd+L from contaminating text/Return.
+let browserEventSource = CGEventSource(stateID: .privateState)
+func browserEvents(_ key: CGKeyCode, command: Bool = false, text: String? = nil) -> (CGEvent, CGEvent) {
+    guard let source = browserEventSource,
+          let down = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: true),
+          let up = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: false) else {
         emit(["status": "failed", "reason": "keyboard-event-unavailable"], code: 1)
     }
-    if command { down.flags = .maskCommand; up.flags = .maskCommand }
+    down.flags = command ? .maskCommand : []
+    up.flags = []
+    if let text = text {
+        let units = Array(text.utf16)
+        down.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+        up.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+    }
+    return (down, up)
+}
+func browserKey(_ key: CGKeyCode, command: Bool = false) {
+    let (down, up) = browserEvents(key, command: command)
     down.post(tap: .cghidEventTap); up.post(tap: .cghidEventTap)
+}
+// Construct events without posting any input; exercise the same factory as the GUI flow.
+if mode == "keyboard-events" {
+    let (shortcutDown, shortcutUp) = browserEvents(37, command: true)
+    let (textDown, textUp) = browserEvents(0, text: "file:///tmp/moos/index.html")
+    let (returnDown, returnUp) = browserEvents(36)
+    emit(["shortcutDownFlags": shortcutDown.flags.rawValue, "shortcutUpFlags": shortcutUp.flags.rawValue,
+          "textDownFlags": textDown.flags.rawValue, "textUpFlags": textUp.flags.rawValue,
+          "returnDownFlags": returnDown.flags.rawValue, "returnUpFlags": returnUp.flags.rawValue,
+          "inputInjected": false])
 }
 
 if mode == "browser-probe" {
@@ -108,34 +131,30 @@ if mode == "browser-probe" {
             emit(["status": "failed", "reason": "safari-launch-failed"], code: 1)
         }
         let safariPID = safari.processIdentifier
-        func ensureFocus() {
+        var textEventFlags: UInt64 = 0
+        func ensureFocus(_ stage: String) {
             guard getppid() == parentPID else {
                 emit(["status": "cancelled", "reason": "parent-process-exited"])
             }
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == safariPID else {
-                emit(["status": "blocked", "reason": "safari-lost-focus"])
+                emit(["status": "blocked", "reason": "safari-lost-focus", "stage": stage])
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            ensureFocus()
+            ensureFocus("before-new-window")
             browserKey(45, command: true) // Cmd+N: preserve existing tabs by using a new window.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                ensureFocus()
+                ensureFocus("before-address-focus")
                 browserKey(37, command: true) // Cmd+L
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    ensureFocus()
-                    let units = Array(url.absoluteString.utf16)
-                    guard let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true),
-                          let up = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false) else {
-                        emit(["status": "failed", "reason": "keyboard-event-unavailable"], code: 1)
-                    }
-                    down.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
-                    up.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
+                    ensureFocus("before-url-input")
+                    let (down, up) = browserEvents(0, text: url.absoluteString)
+                    textEventFlags = down.flags.rawValue
                     down.post(tap: .cghidEventTap); up.post(tap: .cghidEventTap)
                     browserKey(36) // Return
                     let deadline = Date().addingTimeInterval(12)
                     func verify() {
-                        ensureFocus()
+                        ensureFocus("observe-target")
                         let safariAX = AXUIElementCreateApplication(safariPID)
                         var budget = 2500
                         let focused = axValue(safariAX, kAXFocusedWindowAttribute as String)
@@ -169,7 +188,7 @@ if mode == "browser-probe" {
                                         emit(["status": "failed", "reason": "png-encoding-failed"], code: 1)
                                     }
                                     var finalBudget = 2500
-                                    ensureFocus()
+                                    ensureFocus("before-save")
                                     guard targetPage(webArea, url: url, budget: &finalBudget) != nil else {
                                         emit(["status": "blocked", "reason": "test-page-changed-before-save"])
                                     }
@@ -182,7 +201,7 @@ if mode == "browser-probe" {
                         } else if Date() < deadline {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { verify() }
                         } else {
-                            emit(["status": "failed", "reason": "target-url-not-observed"], code: 1)
+                            emit(["status": "failed", "reason": "target-url-not-observed", "textEventFlags": textEventFlags], code: 1)
                         }
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { verify() }

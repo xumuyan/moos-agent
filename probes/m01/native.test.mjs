@@ -21,6 +21,12 @@ test('native passive permission probe reports status without capture or input',
     assert.equal(routes['request-screen'], 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
     assert.equal(routes['request-accessibility'], 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
     assert.notEqual(routes['request-screen'], routes['request-accessibility']);
+    const events = JSON.parse(execFileSync(binary, ['keyboard-events'], { encoding: 'utf8' }));
+    assert.equal(events.shortcutDownFlags, 1 << 20, 'only shortcut key-down carries Command');
+    for (const field of ['shortcutUpFlags', 'textDownFlags', 'textUpFlags', 'returnDownFlags', 'returnUpFlags']) {
+      assert.equal(events[field], 0, `${field} must not inherit the previous Command modifier`);
+    }
+    assert.equal(events.inputInjected, false);
     const invalid = spawnSync(binary, ['not-a-mode']);
     assert.equal(invalid.status, 2);
     for (const args of [

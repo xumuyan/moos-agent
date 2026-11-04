@@ -30,6 +30,24 @@ class RepositoryDocsTests(unittest.TestCase):
         for number in range(1, 9):
             self.assertIn(f'- [ ] D01.{number} ', section)
 
+    def test_browser_keyboard_fix_keeps_gui_evidence_and_remaining_limits(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-browser-keyboard-fix.json').read_text())
+        self.assertTrue(report['beforeFixDiagnostic']['textEventFlags'] & report['commandMask'])
+        self.assertEqual(report['beforeFixDiagnostic']['reason'], 'target-url-not-observed')
+        self.assertTrue(all(run['result']['status'] == 'passed' for run in report['runs'][:3]))
+        self.assertEqual(report['runs'][-2]['result']['status'], 'cancelled')
+        self.assertFalse(report['runs'][-2]['screenshotExists'])
+        self.assertEqual(report['runs'][-1]['result']['status'], 'passed')
+        for run in report['runs']:
+            if run['result']['status'] == 'passed':
+                self.assertTrue(run['result']['urlVerified'])
+                self.assertTrue(run['result']['markerVerified'])
+                self.assertEqual(run['result']['captureScope'], 'verified-test-page-content')
+        screenshot = ROOT / report['screenshot']['path']
+        self.assertEqual(hashlib.sha256(screenshot.read_bytes()).hexdigest(), report['screenshot']['sha256'])
+        self.assertFalse(report['permissionRevokeRestoreVerified'])
+        self.assertFalse(report['piModelPlanningVerified'])
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):

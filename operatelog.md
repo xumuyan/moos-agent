@@ -130,3 +130,12 @@
 - 验证结果：本次为需求规划变更，人工核对八项均未勾选、无插件已实现声明、包含前置依赖和真实 UI/仓库内容验收；自动检查执行 npm test、npm run test:docs、npm run test:desktop-native，分别为 11、22、3 项通过，共 36 项；git diff --cached --check 通过。
 - 遗留问题：Git 插件尚未设计、开发或实测，不能声称与 WebStorm 完全等同。M01 浏览器故障调查继续，未在本次需求记录中改动功能或验收状态。
 - 对应 Git 提交：本批次唯一提交说明 `docs(D01): plan deferred Git management plugin`；查询命令：git log --all --oneline --grep='^docs(D01): plan deferred Git management plugin$'。推送后核对远程 HEAD，不提前填写自身哈希。
+
+## 2026-11-04 09:07:37 +08:00｜M01：修复浏览器键盘修饰键继承并验证停止恢复
+
+- 修改或新增内容：原生浏览器输入使用私有 CGEventSource 与显式修饰键，快捷键仅按下携带 Command，抬键/文字/回车清除标志；新增只读事件回归检查，失焦报告增加阶段，地址未识别报告保留输入标志位。新增 E14、专用测试页截图及证据检查，同步三份根文档及探针说明。
+- 遇到的难题：复现期间既遇到 safari-lost-focus，也遇到 target-url-not-observed；仅凭错误无法判断。旧实现 Cmd+L 的抬键仍携带 Command，后续 nil 事件源的文字事件继承系统状态。
+- 处理方式：先增加阶段/位标志诊断并从正常 GUI 重现，捕获 textEventFlags=537919488，Command 位 1048576 确实置位；随后统一事件构造并清除非快捷键状态，未更改目标 URL 核验条件。构建签名后退出旧实例，验证源/目标签名，再复制到 /Applications 并正常 GUI 启动。只记录阶段和标志，不记录其他网页载荷。参考 Apple CGEventSourceStateID 与 keyboardSetUnicodeString 官方说明，实际根因以本机诊断和修复前后行为为准。
+- 验证结果：npm test 11 项通过（新增实际事件构造标志断言，无输入注入）；npm run test:desktop-native 3 项通过；npm run build:probe、npm run sign:mac-probe 与安装目标签名验证通过。旧安装版 keyboard-events 模式退出 2；诊断版在旧输入行为下复现带 Command 的失败。修复后 GUI 初始连续三次 passed，再一次 passed；首次停止点击发生在任务已完成之后，未计为取消验收，随后同一界面操作批次实际停止，界面为“本次验证已停止。”、报告 cancelled 且无截图，之后新任务 passed。共五次成功均核对 URL/窗口标记并返回 1710×936 测试页截图，最终截图已人工查看且 SHA-256 写入 E14。证据对应提交前工作区，源码基线和各次本地报告标记见 E14。npm run test:docs 23 项通过，合计 37 项自动检查通过；git diff --cached --check 通过。npm run verify:probe 包内离线 PI 模拟验证通过（无桌面输入，不能替代上述 GUI 证据）；新 ZIP 75,283,046 字节，逻辑应用 244,364,223 字节，磁盘 289,353,728 字节，完整内置体积未优化，报告摘要见 E14。
+- 遗留问题：权限撤销/恢复需要用户在系统安全界面实际操作后验证；M01.6 继续未完成。Retina/跨屏与 GUI 崩溃链未验收，固定页工具尚未由模型驱动，不代表任意网站自动操作或正式产品完成。此前失败报告和日志保持不变。
+- 对应 Git 提交：本批次唯一提交说明 `fix(M01): isolate browser keyboard modifier state`；查询：git log --all --oneline --grep='^fix(M01): isolate browser keyboard modifier state$'。本机安装副本不随 Git 回滚；提交推送后核对远程 HEAD，不提前编造哈希。

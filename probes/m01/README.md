@@ -45,3 +45,5 @@ npm run verify:probe
 该流程验证原生电脑操作工具，尚未由 PI 模型规划驱动；完整开发任务集成仍在后续阶段。权限撤销恢复、Retina/跨屏以及进程退出场景只按实际实测状态记录，不由实现存在推断通过。
 
 本机已安装位置为 `/Applications/Moos M01 Probe.app`，权限添加选择器中可直接从“应用程序”选择。安装验证见 `evidence/desktop-installation.json`；当前该证据只证明签名、GUI 启动和内置 PI 可运行，不证明屏幕/辅助功能已授权。仓库 target 仍作为构建输出保留。
+
+2026-11-04 后续验收：`evidence/desktop-browser-keyboard-fix.json` 记录安装版固定页连续三次通过、实际取消及取消后重新通过；截图 `evidence/desktop-browser-page.png` 已核对只含专用测试页。旧报告中的未授权/失败状态保留为历史。键盘事件采用私有事件源，明确清除文字、回车及抬键的 Command 标志，避免地址输入变成快捷键。失焦时安全停止，报告记录所处阶段；不要在验证中途切换应用。权限撤销恢复仍需用户在系统界面完成操作后再验证，当前不宣称已通过。
