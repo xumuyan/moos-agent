@@ -24,6 +24,8 @@
 
 #### P02 本轮证据
 
+2026-11-05 23:24 北京时间交付位置补充：最新 P02.7 构建已安装至 `/Applications/Moos.app`，本地 ad-hoc 签名严格校验通过，GUI 已核对三栏、九分区和 ZIP/文件夹入口，证据 `apps/desktop/evidence/p02-installed-ui.json`。原项目目录的 15:57 旧包仍保留；从应用程序打开 Moos 可使用新版。本次不改变 P02.8/P02.9 状态。
+
 | 证据 | 执行与实际结果 | 限制 |
 | --- | --- | --- |
 | E19 | 2026-11-05，arm64/macOS 27.0.1；固定 DeepSeek Harness 来源提交与 MIT 声明，P02.1 未复制上游源码或品牌素材；新增类型化 UI Adapter、命令白名单、语义 AppShell、响应式上下文栏和主题变量。新增 5 项组件/适配器测试；本地浏览器使用真实 PI 1.5.0 + 模拟模型完成 write/bash 任务，项目切换时显示 1 个后台任务且未取消，返回后停止成功；设置页可打开，控制台错误/警告 0。脱敏证据 `apps/desktop/evidence/p02-ui-shell.json` | 浏览器实际宽度 872px，右栏按 1180px 断点隐藏，但 DOM、组件测试与 CSS 契约存在；未做宽屏视觉实测、打包 Mac GUI 验收或生产进程树检查。P02.2—P02.9 未完成，不能据本地 fixture 声称插件、Usage、SDK 单运行时或无 Node 闪烁已实现。提交说明 `feat(P02.1): add UI adapter and DSH-style shell` |

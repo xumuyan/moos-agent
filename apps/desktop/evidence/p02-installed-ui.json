@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-11-05T23:24:09+08:00",
+  "sourceCommit": "1789611cc8d9499bd098696dadeba0fdd8fb52d8",
+  "oldCheckoutCommit": "89a4078",
+  "oldBundleModifiedAt": "2026-11-05 15:57 +08:00",
+  "installedPath": "/Applications/Moos.app",
+  "signature": "local ad-hoc, deep strict verification passed after resigning",
+  "sourceAndInstalledExecutableSha256": "19d64934309091969e5b23fed2d706a91599de65fdb07d3cfa1fc159edef322b",
+  "gui": { "threePaneShell": true, "nineSettingsSections": true, "localZipAndFolderButtons": true, "existingProviderLoaded": true },
+  "process": { "appFromApplications": true, "bundledNodeHosts": 1, "pluginServers": 0 },
+  "limits": { "notarized": false, "nativePtyImplemented": false, "p02Complete": false }
+}

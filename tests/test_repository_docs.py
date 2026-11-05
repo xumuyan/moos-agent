@@ -9,6 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_latest_ui_installation_keeps_scope_and_source_traceable(self):
+        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-installed-ui.json').read_text())
+        self.assertEqual(evidence['installedPath'], '/Applications/Moos.app')
+        self.assertRegex(evidence['sourceCommit'], r'^[a-f0-9]{40}$')
+        self.assertRegex(evidence['sourceAndInstalledExecutableSha256'], r'^[a-f0-9]{64}$')
+        self.assertTrue(evidence['gui']['localZipAndFolderButtons'])
+        self.assertTrue(evidence['process']['appFromApplications'])
+        self.assertFalse(evidence['limits']['notarized'])
+        self.assertFalse(evidence['limits']['nativePtyImplemented'])
+
     def test_confirmed_dsh_ui_plugin_design_keeps_implementation_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design_path = ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md'
