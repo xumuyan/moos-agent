@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Popconfirm } from 'antd';
 import type { Conversation, Project, Provider, UsageExport, UsageSummary } from '../types';
 import UsageMetric from '../usage/UsageMetric';
+import { SlotHost } from '../plugins/slots';
 
 const token = (value: number | null) => value === null ? '暂无数据' : value.toLocaleString();
 const percent = (value: number | null) => value === null ? '暂无数据' : `${(value * 100).toFixed(1)}%`;
@@ -55,6 +56,7 @@ export default function UsageSection({ providers, projects, conversations, loadU
       <UsageMetric label="费用（USD）" value={cost(summary?.costUsd ?? null)} />
       <UsageMetric label="最新上下文" value={summary?.contextTokens !== null && summary?.contextWindow ? `${token(summary?.contextTokens ?? null)} / ${token(summary.contextWindow)}` : '暂无数据'} />
       <UsageMetric label="记录数" value={token(summary?.recordCount ?? 0)} />
+      <SlotHost slot="usage.metric" context={summary} />
     </div>
     <div className="usage-actions"><Button onClick={() => void download()}>导出 JSON</Button>
       <Popconfirm title="清空全部本地用量记录？" okText="确认清空" cancelText="取消" onConfirm={async () => { await clearUsage(); await refresh(); }}><Button danger aria-label="清空用量记录">清空记录</Button></Popconfirm>

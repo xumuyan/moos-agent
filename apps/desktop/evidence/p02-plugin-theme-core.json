@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-11-05T20:31:40+08:00",
+  "scope": "P02.6 typed slots, trusted built-in UI plugins and safe theme core",
+  "slots": {
+    "approved": [
+      "sidebar.primary", "sidebar.footer", "conversation.header", "conversation.message", "conversation.tool",
+      "composer.leading", "composer.trailing", "rightPanel.tab", "settings.section", "usage.metric"
+    ],
+    "allMounted": true,
+    "unknownRejected": true,
+    "duplicatePluginIdRejected": true,
+    "incompatibleVersionRejected": true,
+    "idempotentRevokeVerified": true,
+    "disableCleanupVerified": true,
+    "renderErrorLimit": 3
+  },
+  "builtinPlugin": {
+    "id": "dev.moos.usage-insights",
+    "runsInsideExistingWebView": true,
+    "startsNodeOrWebService": false,
+    "browserDisableRemovedContribution": true,
+    "browserEnableRestoredContribution": true
+  },
+  "themes": {
+    "builtin": ["ocean", "graphite"],
+    "acceptedInputs": ["whitelisted tokens", "fixed region properties", "packaged or bounded raster assets"],
+    "rejectedInputs": ["unknown tokens", "unknown regions", "remote assets", "scripts", "remote imports", "incompatible versions"],
+    "previewChangedRootTheme": false,
+    "explicitApplyPersistedAcrossReload": true,
+    "invalidStartupFixtureFellBackToDefault": true,
+    "invalidStartupConsoleIssues": 0,
+    "focusAfterReset": "task input active with FOCUS_OK",
+    "browserViewport": "1280x720",
+    "horizontalOverflow": false
+  },
+  "automaticTests": {
+    "core": "125/125 passed",
+    "desktopUi": "63/63 passed",
+    "desktopRust": "12/12 passed",
+    "rustfmt": "passed",
+    "desktopBuild": "passed"
+  },
+  "package": { "tauriReportedMiB": 230.53, "logicalKiB": 240647, "allocatedKiB": 279408 },
+  "limits": {
+    "thirdPartyPluginInstallImplemented": false,
+    "zipValidationAndSandboxImplemented": false,
+    "onlineMarketplaceImplemented": false,
+    "nativePtyImplemented": false,
+    "p02Complete": false
+  }
+}

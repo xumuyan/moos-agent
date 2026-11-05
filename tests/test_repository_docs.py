@@ -30,10 +30,12 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('证据：E22', plan)
         self.assertIn('- [x] P02.5 ', plan)
         self.assertIn('证据：E23', plan)
-        for number in range(6, 10):
+        self.assertIn('- [x] P02.6 ', plan)
+        self.assertIn('证据：E24', plan)
+        for number in range(7, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 5)
+        self.assertEqual(p02.count('- [x]'), 6)
         self.assertIn('在线插件市场不在首批范围', p02)
 
     def test_p02_1_records_license_adapter_and_shell_evidence(self):
@@ -114,6 +116,42 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(evidence['limits']['p02Complete'])
         self.assertIn('cacheReadTokens / denominator', usage)
 
+    def test_p02_6_records_typed_slots_builtin_plugin_and_safe_theme_limits(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-plugin-theme-core.json').read_text())
+        mounted_sources = '\n'.join(
+            (ROOT / path).read_text(encoding='utf-8')
+            for path in (
+                'apps/desktop/src/App.tsx',
+                'apps/desktop/src/layout/RightPanel.tsx',
+                'apps/desktop/src/settings/SettingsCenter.tsx',
+                'apps/desktop/src/settings/UsageSection.tsx',
+            )
+        )
+        self.assertIn('- [x] P02.6 ', plan)
+        self.assertIn('| E24 |', plan)
+        self.assertEqual(len(evidence['slots']['approved']), 10)
+        self.assertTrue(evidence['slots']['allMounted'])
+        self.assertTrue(evidence['slots']['unknownRejected'])
+        self.assertTrue(evidence['slots']['duplicatePluginIdRejected'])
+        self.assertTrue(evidence['slots']['incompatibleVersionRejected'])
+        self.assertTrue(evidence['slots']['idempotentRevokeVerified'])
+        self.assertTrue(evidence['slots']['disableCleanupVerified'])
+        self.assertEqual(evidence['slots']['renderErrorLimit'], 3)
+        for slot in evidence['slots']['approved']:
+            self.assertIn(f'slot="{slot}"', mounted_sources)
+        self.assertTrue(evidence['builtinPlugin']['runsInsideExistingWebView'])
+        self.assertFalse(evidence['builtinPlugin']['startsNodeOrWebService'])
+        self.assertTrue(evidence['builtinPlugin']['browserDisableRemovedContribution'])
+        self.assertTrue(evidence['builtinPlugin']['browserEnableRestoredContribution'])
+        self.assertFalse(evidence['themes']['previewChangedRootTheme'])
+        self.assertTrue(evidence['themes']['explicitApplyPersistedAcrossReload'])
+        self.assertTrue(evidence['themes']['invalidStartupFixtureFellBackToDefault'])
+        self.assertFalse(evidence['themes']['horizontalOverflow'])
+        self.assertFalse(evidence['limits']['thirdPartyPluginInstallImplemented'])
+        self.assertFalse(evidence['limits']['zipValidationAndSandboxImplemented'])
+        self.assertFalse(evidence['limits']['p02Complete'])
+
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design = (ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md').read_text(encoding='utf-8')
@@ -129,7 +167,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('- [x] P02.3 ', plan)
         self.assertIn('- [x] P02.4 ', plan)
         self.assertIn('- [x] P02.5 ', plan)
-        for number in range(6, 10):
+        self.assertIn('- [x] P02.6 ', plan)
+        for number in range(7, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -137,7 +176,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 5)
+        self.assertEqual(p02.count('- [x]'), 6)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

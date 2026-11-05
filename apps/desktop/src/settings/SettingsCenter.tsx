@@ -9,6 +9,8 @@ import PrivacySection from './PrivacySection';
 import MobileSection from './MobileSection';
 import AdvancedSection from './AdvancedSection';
 import type { RuntimeConfig } from '../types';
+import { SlotHost } from '../plugins/slots';
+import { BUILTIN_THEMES } from '../themes/builtin';
 
 const SECTIONS = [
   ['general', '通用'], ['models', '模型服务'], ['permissions', '权限'], ['usage', '用量'], ['plugins', '插件'],
@@ -16,14 +18,14 @@ const SECTIONS = [
 ] as const;
 type Section = typeof SECTIONS[number][0];
 
-export default function SettingsCenter({ open, onClose, modelContent, usageContent, runtime, onTaskTimeoutChange }: {
+export default function SettingsCenter({ open, onClose, modelContent, usageContent, runtime, onTaskTimeoutChange, activeThemeId = 'default', onThemeApply = () => {} }: {
   open: boolean; onClose: () => void; modelContent: ReactNode; usageContent: ReactNode; runtime: RuntimeConfig;
-  onTaskTimeoutChange: (value: number) => Promise<boolean>;
+  onTaskTimeoutChange: (value: number) => Promise<boolean>; activeThemeId?: string; onThemeApply?: (id: string) => void;
 }) {
   const [active, setActive] = useState<Section>('models');
   const content: Record<Section, ReactNode> = {
     general: <GeneralSection />, models: <ModelSection>{modelContent}</ModelSection>, permissions: <PermissionSection />,
-    usage: usageContent, plugins: <PluginSection />, theme: <ThemeSection />, privacy: <PrivacySection />,
+    usage: usageContent, plugins: <PluginSection />, theme: <ThemeSection themes={BUILTIN_THEMES} activeId={activeThemeId} onApply={onThemeApply} />, privacy: <PrivacySection />,
     mobile: <MobileSection />, advanced: <AdvancedSection runtime={runtime} onTaskTimeoutChange={onTaskTimeoutChange} />,
   };
   return <Modal title="设置中心" open={open} onCancel={onClose} footer={null} destroyOnHidden width={860}>
@@ -31,7 +33,7 @@ export default function SettingsCenter({ open, onClose, modelContent, usageConte
       <nav className="settings-nav" role="tablist" aria-label="设置分区">
         {SECTIONS.map(([key, label]) => <button key={key} role="tab" aria-selected={active === key} onClick={() => setActive(key)}>{label}</button>)}
       </nav>
-      <div className="settings-content" role="tabpanel" aria-label={SECTIONS.find(([key]) => key === active)?.[1]}>{content[active]}</div>
+      <div className="settings-content" role="tabpanel" aria-label={SECTIONS.find(([key]) => key === active)?.[1]}>{content[active]}<SlotHost slot="settings.section" context={active} /></div>
     </div>
   </Modal>;
 }

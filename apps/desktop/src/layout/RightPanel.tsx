@@ -1,6 +1,7 @@
 import { CodeOutlined, FolderOpenOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 import { useState } from 'react';
+import { SlotHost } from '../plugins/slots';
 
 export default function RightPanel({ projectName, projectPath, activeTasks }: {
   projectName?: string;
@@ -17,6 +18,7 @@ export default function RightPanel({ projectName, projectPath, activeTasks }: {
       <div><dt><CodeOutlined /> 当前任务</dt><dd>{activeTasks ? `${activeTasks} 个执行中` : '暂无执行中任务'}</dd></div>
     </dl>
     <p className="right-panel-note">这里只显示 Moos 已验证的项目和任务状态。</p>
+    <SlotHost slot="rightPanel.tab" context={{ projectName, projectPath, activeTasks }} />
     </div>
   </aside>;
 }

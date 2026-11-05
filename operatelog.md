@@ -347,3 +347,13 @@
 - 验证结果：推送输出为 `7d7e2d1..2ff0c25  HEAD -> main`；推送后本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 均为 `2ff0c25add23d4bd5be14e15f8b6bd046f16e424`。功能、测试、实际界面验收和限制仍以该提交内 E23 及前一条日志为准。
 - 遗留问题：P02.6—P02.9 仍未完成；真实 GLM/中转站 usage 与账单、插件、皮肤、PTY、完整系统验收和小包目标继续按 PLAN.md 推进。本条远程交付日志自身仍需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `2ff0c25add23d4bd5be14e15f8b6bd046f16e424`；本条补记使用唯一提交说明 `docs(P02.5): record verified usage delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.5): record verified usage delivery$'`。
+
+## 2026-11-05 20:34:45 +08:00｜P02.6：类型化 UI Slot、受信任内置插件与安全皮肤核心
+
+- 时间说明：此为功能、测试和浏览器验收完成后读取的北京时间；不将整理时间冒充中间每项操作的精确时间。
+- 修改或新增内容：新增 10 个固定、类型化 UI Slot，实现严格内置 manifest、Moos 版本/权限/重复 ID 校验、可重复撤销、启停清理、订阅和连续 3 次渲染错误自动停用；新增不启动 Node 或 Web 服务的受信任内置用量洞察插件。皮肤只接受白名单 Token、固定区域属性以及打包或有界栅格资源，支持隔离预览、显式应用持久化、重启恢复和非法值回退。设置中接入内置插件开关和海洋/石墨皮肤；新增 E24 脱敏证据并仅将 PLAN.md 的 P02.6 勾选完成。
+- 遇到的难题：测试先行时 4 个 suite 因插件/皮肤模块尚不存在按预期失败；设置组件测试首轮将 Ant Design 按钮可访问名称假设为无空格的“停用”，实际为“停 用”。浏览器自动化环境不提供直接 localStorage 脚本读取；PluginBoundary 的预期异常还会由 React 输出错误日志。最终核心全量回归首轮在既有的代理大请求上限用例出现单次 `ECONNRESET`，当轮为 124/125，不记为通过。
+- 处理方式：保留首轮失败后实现最小严格契约；测试按实际可访问名称改为容忍空白的正则。持久化不依赖脚本窃取，而是先显式应用石墨皮肤，再真实刷新页面核对根变量恢复；非法启动值通过仅 DEV 构建有效的参数注入，核对回退后再进入普通地址。PluginBoundary 测试仅屏蔽该预期错误的 console 噪声，仍断言隔离、计数与停用行为。对代理用例单独复测 1/1 后重跑完整核心集，未修改与本批无关的旧实现。
+- 验证结果：代理边界用例复测 1/1，随后 `npm test` 125/125；`npm run test:desktop-ui` 63/63、`npm run test:desktop-product` 12/12、文档 37/37、Rust fmt 与 `git diff --check` 通过，`npm run build:desktop` 及 `npm run build:app` 均通过。Tauri 报告 230.53 MiB，逻辑大小 240647 KiB、磁盘占用 279408 KiB。浏览器 1280×720 实际验收确认：插件停用后输入区贡献消失、重启后恢复；皮肤预览不改根主题，显式应用后刷新恢复，切回默认后输入框可输入 `FOCUS_OK`，无水平溢出；不兼容启动皮肤回退默认且控制台问题为 0。脱敏证据见 E24。
+- 遗留问题：P02.7 的本地 ZIP/文件夹安装、签名/权限/大小校验、第三方沙箱 API 与崩溃处理尚未实现，不能据内置插件推断恶意插件已隔离；P02.8 PTY、P02.9 总验收与包体优化仍未完成。现有 jsdom `NaN` 高度警告及 Vite 917.84 kB 大 chunk 警告未在本批处理。
+- 对应 Git 提交：本批次使用唯一提交说明 `feat(P02.6): add typed UI slots and safe themes`；查询命令：`git log --all --oneline --grep='^feat(P02.6): add typed UI slots and safe themes$'`。完成最终验证后提交、推送并核对远程，不预填未知哈希。

@@ -15,6 +15,10 @@ import RightPanel from './layout/RightPanel';
 import ComposerDock from './layout/ComposerDock';
 import PermissionMenu from './composer/PermissionMenu';
 import ComposerStatus from './composer/ComposerStatus';
+import { createBuiltinPluginRegistry } from './builtin-plugins/insights';
+import { PluginProvider, SlotHost } from './plugins/slots';
+import { BUILTIN_THEMES } from './themes/builtin';
+import { applyTheme, loadSavedTheme, resetTheme, THEME_STORAGE_KEY } from './themes/loader';
 import TaskTrajectory from './conversation/TaskTrajectory';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
@@ -36,6 +40,8 @@ export default function App() {
   const [settings, setSettings] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string>();
+  const [pluginRegistry] = useState(createBuiltinPluginRegistry);
+  const [themeId, setThemeId] = useState('default');
   const pendingProject = useRef('');
   const mounted = useRef(true);
   const revision = useRef(0);
@@ -56,6 +62,11 @@ export default function App() {
     void poll();
     return () => { mounted.current = false; clearTimeout(timer); };
   }, [refresh]);
+  useEffect(() => {
+    // Development-only browser acceptance fixture; production builds remove this branch.
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('theme-fixture') === 'incompatible') localStorage.setItem(THEME_STORAGE_KEY, 'incompatible-fixture');
+    setThemeId(loadSavedTheme(BUILTIN_THEMES));
+  }, []);
   useEffect(() => {
     if (pendingProject.current && data.projects.some(p => p.id === pendingProject.current)) {
       setProjectId(pendingProject.current);
@@ -91,6 +102,14 @@ export default function App() {
   const taskAnchors = new Map(tasks.map(task => [task.id, messages.find(m => m.taskId === task.id)?.id]));
   const draft = drafts[conversationId] ?? '';
   const disabled = !project || !conversation || !providerId || !!connectionError || busy || active.length > 0;
+  const activeTheme = BUILTIN_THEMES.find(theme => theme.id === themeId);
+  const selectTheme = (id: string) => {
+    try {
+      if (id === 'default') resetTheme();
+      else applyTheme(BUILTIN_THEMES.find(theme => theme.id === id), { persist: true });
+      setThemeId(id);
+    } catch { resetTheme(); setThemeId('default'); }
+  };
   const submit = async () => {
     if (disabled || !draft.trim()) return;
     const id = conversationId;
@@ -134,15 +153,16 @@ export default function App() {
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
       {stream && !saved && <Bubble content={<span className="plain-text">{stream}</span>} />}
       <TaskTrajectory events={tools} />
+      <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: tools }} />
       {task.error && <Alert type="error" message={task.error} description={task.errorCode ? `错误码：${task.errorCode}` : undefined} showIcon />}
       {isActive(task) && task.heartbeatAt && <p className="muted">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
   };
-  return <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: '#247e7b', borderRadius: 9, colorBgLayout: '#f5f7f9', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
+  return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#247e7b', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '9', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#f5f7f9', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
     <AppShell
       sidebar={<WorkspaceSidebar>
-        <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div>
+        <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div><SlotHost slot="sidebar.primary" />
         <div className="section-label">工作空间<Button type="text" size="small" icon={<PlusOutlined />} aria-label="添加项目" disabled={adding} onClick={() => void addProject()} /></div>
         <nav className="projects" aria-label="项目列表">{workspace.projects.map(p => {
           const running = p.runningTasks;
@@ -153,10 +173,10 @@ export default function App() {
         })}{loaded && !data.projects.length && <p className="sidebar-hint">添加本地目录，将任务与历史按项目隔离。</p>}</nav>
         <div className="section-label">会话历史<Button type="text" size="small" icon={<PlusOutlined />} aria-label="新建会话" disabled={!project || busy || !!connectionError} onClick={() => void createConversation()} /></div>
         <nav className="conversations" aria-label="会话历史">{workspace.conversations.map(c => <button key={c.id} aria-label={c.title} className={`conversation-button ${c.selected ? 'selected' : ''}`} onClick={() => setConversationId(c.id)}><MessageOutlined /><span>{c.title}</span>{c.running && <Badge status="processing" />}</button>)}{project && !workspace.conversations.length && <p className="sidebar-hint">暂无会话，点击 + 新建。</p>}</nav>
-        <div className="sidebar-footer"><span>切换项目不会停止任务</span><Button icon={<SettingOutlined />} onClick={() => setSettings(true)}>设置</Button></div>
+        <div className="sidebar-footer"><SlotHost slot="sidebar.footer" /><span>切换项目不会停止任务</span><Button icon={<SettingOutlined />} onClick={() => setSettings(true)}>设置</Button></div>
       </WorkspaceSidebar>}
       conversation={<ConversationPane>
-        <header className="topbar"><div className="heading"><span className="eyebrow">开发工作台</span><h1>{conversation?.title ?? project?.name ?? '你的下一个想法，从这里开始'}</h1></div>
+        <header className="topbar"><div className="heading"><span className="eyebrow">开发工作台</span><h1>{conversation?.title ?? project?.name ?? '你的下一个想法，从这里开始'}</h1></div><SlotHost slot="conversation.header" context={{ projectId, conversationId }} />
           <Space><Select aria-label="选择模型" className="model-select" placeholder="选择模型服务" value={providerId || undefined} onChange={setProviderId} options={data.providers.map(p => ({ value: p.id, label: `${p.name} · ${p.model}` }))} notFoundContent={<Button type="link" onClick={() => setSettings(true)}>配置模型服务</Button>} />
             <Tag color={connectionError ? 'error' : active.length ? 'processing' : 'default'}>{connectionError ? '连接中断' : !loaded ? '连接中' : active.length ? '执行中' : '待命'}</Tag>
             <Tooltip title="仅停止当前会话任务"><Button danger icon={<StopOutlined />} aria-label="停止任务" disabled={!active.length} onClick={() => { for (const t of active) void mutateCommand(uiCommands.cancelTask(t.id)); }}>停止</Button></Tooltip>
@@ -169,22 +189,23 @@ export default function App() {
             const associated = tasks.filter(task => taskAnchors.get(task.id) === m.id);
             return <Fragment key={m.id}>
               {m.role !== 'user' && associated.map(renderTask)}
-              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div><Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.content}</span>} /></div>
+              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div><Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.content}</span>} /><SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
               {m.role === 'user' && associated.map(renderTask)}
             </Fragment>;
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
           <TaskTrajectory events={history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId))} />
         </div>
-        <ComposerDock><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />
+        <ComposerDock><SlotHost slot="composer.leading" context={{ projectId, conversationId }} /><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
           <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Button type="primary" aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()}>发送任务</Button>} />
           <PermissionMenu />
+          <SlotHost slot="composer.trailing" context={{ projectId, conversationId }} />
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>
         </ComposerDock>
       </ConversationPane>}
       rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
-    {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} onClose={() => setSettings(false)} mutate={mutate} />}
-  </ConfigProvider>;
+    {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} onClose={() => setSettings(false)} mutate={mutate} />}
+  </ConfigProvider></PluginProvider>;
 }
