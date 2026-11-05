@@ -33,6 +33,15 @@ async fn agent_request(
     .map_err(|_| "Agent request interrupted".to_owned())?
 }
 
+#[tauri::command]
+async fn pick_directory() -> Option<String> {
+    rfd::AsyncFileDialog::new()
+        .set_title("选择项目目录")
+        .pick_folder()
+        .await
+        .map(|folder| folder.path().to_string_lossy().into_owned())
+}
+
 fn main() {
     let app = tauri::Builder::default()
         .setup(|app| {
@@ -56,7 +65,7 @@ fn main() {
             );
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![agent_request])
+        .invoke_handler(tauri::generate_handler![agent_request, pick_directory])
         .build(tauri::generate_context!())
         .expect("Unable to initialize Moos desktop");
     app.run(|app, event| {

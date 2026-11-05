@@ -14,6 +14,7 @@ beforeEach(() => {
   bridge.mockReset();
   bridge.mockImplementation(async (method, params = {}) => {
     if (method === 'snapshot') return structuredClone(state);
+    if (method === 'pick_directory') return '/work/project';
     if (method === 'add_project') { state.projects.push(project); return project; }
     if (method === 'create_conversation') { state.conversations.push(conversation); return conversation; }
     if (method === 'submit') { state.tasks.push({ id: 't1', projectId: 'p1', conversationId: params.conversationId, message: params.message, status: 'running' }); return { id: 't1' }; }
@@ -22,18 +23,45 @@ beforeEach(() => {
   });
 });
 describe('desktop assistant', () => {
-  it('offers only manual absolute-path entry even when the legacy Tauri global is present', async () => {
-    vi.stubGlobal('__TAURI__', {});
-    try {
-      const user = userEvent.setup(); render(<App />);
-      await screen.findByText('添加项目，开始开发');
-      await user.click(screen.getByRole('button', { name: '添加项目' }));
-      expect(screen.queryByText('选择目录…')).not.toBeInTheDocument();
-      await user.type(screen.getByRole('textbox', { name: '项目目录' }), '/work/project');
-      await user.click(screen.getByRole('button', { name: '添加目录' }));
-      await waitFor(() => expect(bridge).toHaveBeenCalledWith('add_project', { path: '/work/project' }));
-      expect(bridge.mock.calls.some(([method]) => method === 'pick_directory')).toBe(false);
-    } finally { vi.unstubAllGlobals(); }
+  it('opens the directory picker and adds its selected path without a text field', async () => {
+    const user = userEvent.setup(); render(<App />);
+    await screen.findByText('添加项目，开始开发');
+    await user.click(screen.getByRole('button', { name: '添加项目' }));
+    await waitFor(() => expect(bridge).toHaveBeenCalledWith('pick_directory'));
+    await screen.findByRole('button', { name: '工作项目' });
+    expect(bridge).toHaveBeenCalledWith('add_project', { path: '/work/project' });
+    expect(screen.queryByRole('textbox', { name: '项目目录' })).not.toBeInTheDocument();
+  });
+  it('selects the added project only when a refreshed snapshot contains it', async () => {
+    state.projects = [{ id: 'old', name: '原有项目', path: '/old' }];
+    let added = false;
+    bridge.mockImplementation(async method => {
+      if (method === 'pick_directory') return '/work/project';
+      if (method === 'add_project') { added = true; return project; }
+      return structuredClone(state);
+    });
+    const user = userEvent.setup(); render(<App />);
+    await user.click(await screen.findByRole('button', { name: '添加项目' }));
+    await waitFor(() => expect(added).toBe(true));
+    state.projects.push(project);
+    await screen.findByRole('button', { name: '工作项目' });
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('工作项目'), { timeout: 2500 });
+  });
+  it('does not add a project when directory selection is cancelled', async () => {
+    bridge.mockImplementation(async method => method === 'pick_directory' ? null : structuredClone(state));
+    const user = userEvent.setup(); render(<App />);
+    await user.click(await screen.findByRole('button', { name: '添加项目' }));
+    await waitFor(() => expect(bridge).toHaveBeenCalledWith('pick_directory'));
+    expect(bridge.mock.calls.some(([method]) => method === 'add_project')).toBe(false);
+    expect(screen.getByRole('button', { name: '添加项目' })).toBeEnabled();
+  });
+  it('shows directory picker failures and allows retry', async () => {
+    bridge.mockImplementation(async method => { if (method === 'pick_directory') throw new Error('无法打开目录选择器'); return structuredClone(state); });
+    const user = userEvent.setup(); render(<App />);
+    await user.click(await screen.findByRole('button', { name: '添加项目' }));
+    await screen.findByText('无法打开目录选择器');
+    expect(screen.getByRole('button', { name: '添加项目' })).toBeEnabled();
+    expect(bridge.mock.calls.some(([method]) => method === 'add_project')).toBe(false);
   });
   it('keeps each turn’s execution between its prompt and answer, including after streaming is saved', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
@@ -94,8 +122,6 @@ describe('desktop assistant', () => {
     const user = userEvent.setup(); render(<App />);
     await screen.findByText('添加项目，开始开发');
     await user.click(screen.getByRole('button', { name: '添加项目' }));
-    await user.type(screen.getByRole('textbox', { name: '项目目录' }), '/work/project');
-    await user.click(screen.getByRole('button', { name: '添加目录' }));
     await screen.findByRole('button', { name: '工作项目' });
     await user.click(screen.getByRole('button', { name: '新建会话' }));
     await screen.findByRole('button', { name: /开发会话/ });

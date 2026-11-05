@@ -2,6 +2,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { request } from './api';
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 describe('request bridge', () => {
+  it('routes directory selection directly to its native command', async () => {
+    const invoke = vi.fn().mockResolvedValue('/work/project');
+    vi.stubGlobal('isTauri', true);
+    vi.stubGlobal('__TAURI_INTERNALS__', { invoke });
+    expect(await request('pick_directory')).toBe('/work/project');
+    expect(invoke).toHaveBeenCalledWith('pick_directory', {}, undefined);
+  });
+  it('never asks the browser fixture to choose a local directory', async () => {
+    const fetchMock = vi.fn(); vi.stubGlobal('fetch', fetchMock);
+    await expect(request('pick_directory')).rejects.toThrow('请在 Moos 桌面应用中选择项目目录');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('uses native IPC with withGlobalTauri disabled and never falls back to HTTP', async () => {
     const invoke = vi.fn().mockResolvedValue({ native: true });
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ http: true }) });

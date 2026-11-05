@@ -197,3 +197,13 @@
 - 遗留问题：真实模型未验收；用户须在正式应用本机填写模型配置后验证 GLM/中转站。不以本地 fixture 证明服务能力、图片输入或计费。打包 GUI 通过 PID 绑定 AX 操作添加一个自建临时项目和新会话，正常关闭并重启后 SQLite 和 GUI 保留相同 ID，证据 /tmp/moos-native-accept-6db29f/32-sqlite-after-restart.txt 与 33-ui-restored.txt；这不覆盖活跃任务退出。钥匙串表单填写受阻，未成功保存测试模型，不记录为 Keychain 已验收；打包 GUI 完整聊天仍待真实配置实测；本地包为 ad-hoc 签名，未公证或正式安装。前端仍有大 chunk 警告及 jsdom 高度 NaN 警告；不影响已执行测试通过，不隐瞒。任意 shell 不是系统沙箱，脱敏不保证阻止任意编码外传。尚未推送，不提前记录远程成功。
 - 收尾复验：`npm test` 59/59、文档 28/28；`npm --prefix apps/desktop test -- --maxWorkers=1` 23/23；正式 Rust 8/8、探针 Rust 11/11；最终 `npm run build:app` 通过。前端并行执行曾有一项 20 秒超时，单工作进程全量通过，保留该资源竞争限制。原生测试曾因时间戳临时目录冲突失败，加入进程内原子编号后全量重跑通过。新增历史版本变化回归先失败后通过；后端修复活跃任务被历史挤出、可变记录分块混合和元数据失控，任务接纳上限 128。浏览器用自建 fixture 的 65 条历史验证分页/返回最新、120200 字节大行完整还原（内容 40014 字符），没有调用真实模型。真实模型、Keychain 系统交互与完整原生聊天仍未验收。
 - 对应 Git 提交：本批次唯一提交说明 `feat(M02-M04): add multi-project PI desktop chat`；查询命令：git log --all --oneline --grep='^feat(M02-M04): add multi-project PI desktop chat$'。完成验证后按规则提交推送并核对远程 HEAD。
+
+## 2026-11-05 13:59:44 +08:00｜P01：工作空间使用系统目录选择器
+
+- 修改或新增内容：移除添加项目的绝对路径输入框，两个添加入口直接调用原生文件夹选择器；取消不写入，选择后切换到所选项目，重复目录沿用服务端规范化去重。增加 rfd 原生依赖与锁文件、选择/取消/异常/原生 IPC 和刷新竞态回归，同步 PLAN.md。
+- 遇到的难题：原按钮文字称选择目录，实际只打开输入框且没有原生命令；后台轮询可能覆盖添加后的项目选择。
+- 处理方式：新增独立 pick_directory 命令，异步打开 macOS 系统窗口，不通过 Node 或浏览器传递选择命令；保留待选 ID 至快照包含项目后再切换。先观察选择流程及竞态测试失败再修复。浏览器明确提示使用桌面应用，不假装能获取本地绝对目录。
+- 验证结果：前端 `npm --prefix apps/desktop test -- --maxWorkers=1` 28/28、`npm test` 59/59、文档 28/28、探针原生 11/11；正式原生 8/8 与首次选择器打包通过，最终前端竞态修复后的 `npm run build:app` 重打包亦通过。目录选择与项目切换竞态均观察失败后修复通过；原生 IPC 测试最初误期望 undefined 参数，按 Tauri 默认空对象修正后通过。旧版 0bfed17784889d002b22055a70ce2ca0794ddb21 已推送且远程 HEAD 一致，本条不提前宣称新改动已推送。
+- 实机证据：macOS 27.0.1/arm64，debug PID 39983 绑定 AX；picker-05-sheet.txt 第 74 行出现原生 AXSheet/open-panel、第 397—400 行有“选择项目目录”与 Cancel/Open，取消后 picker-07-after-cancel.txt 恢复项目界面。证据位于 /tmp/moos-native-accept-6db29f。新增目录及重复选择未完成：前台变为 loginwindow，且共享项目状态出现并发干扰；未向非目标应用输入，未把有限取消证据当成完整 ID 不变验证。
+- 遗留问题：目录新增/去重完整实机验收需桌面解锁且暂停其他 GUI 操作后补验；真实模型、Keychain 系统交互及完整原生聊天仍未验收；现有 jsdom NaN 高度和 Vite 大 chunk 警告保留，不因本次选择器改动宣称解除。
+- 对应 Git 提交：本批次唯一提交说明 `fix(M03): select workspace directories with native dialog`；查询命令：git log --all --oneline --grep='^fix(M03): select workspace directories with native dialog$'。

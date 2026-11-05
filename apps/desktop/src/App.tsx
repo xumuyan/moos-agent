@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
-import { Alert, Badge, Button, ConfigProvider, Empty, Input, Modal, Select, Space, Tag, Tooltip } from 'antd';
+import { Alert, Badge, Button, ConfigProvider, Empty, Modal, Select, Space, Tag, Tooltip } from 'antd';
 import { CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
 import { request } from './api';
@@ -23,8 +23,8 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [path, setPath] = useState('');
   const [removing, setRemoving] = useState<string>();
+  const pendingProject = useRef('');
   const mounted = useRef(true);
   const revision = useRef(0);
   const refresh = useCallback(async () => {
@@ -45,7 +45,10 @@ export default function App() {
     return () => { mounted.current = false; clearTimeout(timer); };
   }, [refresh]);
   useEffect(() => {
-    if (!data.projects.some(p => p.id === projectId)) setProjectId(data.projects[0]?.id ?? '');
+    if (pendingProject.current && data.projects.some(p => p.id === pendingProject.current)) {
+      setProjectId(pendingProject.current);
+      pendingProject.current = '';
+    } else if (!data.projects.some(p => p.id === projectId)) setProjectId(data.projects[0]?.id ?? '');
     if (!data.providers.some(p => p.id === providerId)) setProviderId(data.providers[0]?.id ?? '');
   }, [data.projects, data.providers, projectId, providerId]);
   useEffect(() => {
@@ -78,10 +81,17 @@ export default function App() {
     } finally { setBusy(false); }
   };
   const addProject = async () => {
-    if (!path.trim()) return;
-    setBusy(true);
-    try { if (await mutate('add_project', { path: path.trim() })) { setPath(''); setAdding(false); } }
-    finally { setBusy(false); }
+    if (adding) return;
+    setAdding(true); setError('');
+    try {
+      const path = await request<string | null>('pick_directory');
+      if (path) {
+        const project = await request<{ id: string }>('add_project', { path });
+        pendingProject.current = project.id;
+        await refresh();
+      }
+    } catch (e) { setError(errorText(e)); }
+    finally { setAdding(false); }
   };
   const createConversation = async () => {
     if (!project || busy) return;
@@ -113,7 +123,7 @@ export default function App() {
     <div className="desktop-shell">
       <aside className="sidebar">
         <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div>
-        <div className="section-label">工作空间<Button type="text" size="small" icon={<PlusOutlined />} aria-label="添加项目" onClick={() => setAdding(true)} /></div>
+        <div className="section-label">工作空间<Button type="text" size="small" icon={<PlusOutlined />} aria-label="添加项目" disabled={adding} onClick={() => void addProject()} /></div>
         <nav className="projects" aria-label="项目列表">{data.projects.map(p => {
           const running = data.tasks.filter(t => t.projectId === p.id && isActive(t)).length;
           return <div key={p.id} className={`project-item ${p.id === projectId ? 'selected' : ''}`}>
@@ -135,7 +145,7 @@ export default function App() {
         <div className="notice-area">{connectionError && <Alert type="error" showIcon message="无法连接本机服务" description={`${connectionError}。正在自动重连；请检查 Mac 服务是否运行。`} />}{error && <Alert type="error" showIcon closable message={error} onClose={() => setError('')} />}</div>
         <div className="conversation-area" aria-label="对话内容" aria-live={history.isOlder ? 'off' : 'polite'}>
           <HistoryControls key={conversation?.id ?? ''} conversationId={conversation?.id ?? ''} page={history.page} isOlder={history.isOlder} loading={history.loading} error={history.error} onOlder={() => void history.loadOlder()} onLatest={history.latest} />
-          {!loaded ? <Empty description="正在连接本机服务…" /> : !project ? <div className="welcome"><span className="welcome-icon"><CodeOutlined /></span><span className="eyebrow">MOOS · 本地开发工作空间</span><h2>添加项目，开始开发</h2><p>把想做的事交给助手。<br />在这里查看真实输出、工具动作与执行结果。</p><Button type="primary" icon={<FolderOpenOutlined />} onClick={() => setAdding(true)}>选择项目目录</Button><div className="welcome-notes"><span>项目与会话独立管理</span><span>任务可随时停止</span><span>密钥留在 Mac</span></div></div> : !messages.length && !tasks.length ? <div className="welcome"><span className="welcome-icon"><MessageOutlined /></span><h2>{conversation ? '今天想完成什么？' : '为这个项目新建一个会话'}</h2><p>{conversation ? '描述目标、问题或验收要求。提交后将直接执行任务。' : '会话用于保存任务和对话历史。切换会话不影响正在执行的任务。'}</p><code className="project-path">{project.path}</code>{!conversation && <Button onClick={() => void createConversation()} disabled={busy}>创建会话</Button>}</div> : <div className="thread">{messages.map(m => {
+          {!loaded ? <Empty description="正在连接本机服务…" /> : !project ? <div className="welcome"><span className="welcome-icon"><CodeOutlined /></span><span className="eyebrow">MOOS · 本地开发工作空间</span><h2>添加项目，开始开发</h2><p>把想做的事交给助手。<br />在这里查看真实输出、工具动作与执行结果。</p><Button type="primary" icon={<FolderOpenOutlined />} disabled={adding} onClick={() => void addProject()}>选择项目目录</Button><div className="welcome-notes"><span>项目与会话独立管理</span><span>任务可随时停止</span><span>密钥留在 Mac</span></div></div> : !messages.length && !tasks.length ? <div className="welcome"><span className="welcome-icon"><MessageOutlined /></span><h2>{conversation ? '今天想完成什么？' : '为这个项目新建一个会话'}</h2><p>{conversation ? '描述目标、问题或验收要求。提交后将直接执行任务。' : '会话用于保存任务和对话历史。切换会话不影响正在执行的任务。'}</p><code className="project-path">{project.path}</code>{!conversation && <Button onClick={() => void createConversation()} disabled={busy}>创建会话</Button>}</div> : <div className="thread">{messages.map(m => {
             const associated = tasks.filter(task => taskAnchors.get(task.id) === m.id);
             return <Fragment key={m.id}>
               {m.role !== 'user' && associated.map(renderTask)}
@@ -152,9 +162,6 @@ export default function App() {
         </footer>
       </main>
     </div>
-    <Modal title="添加本地项目" open={adding} onCancel={() => setAdding(false)} footer={<Button type="primary" loading={busy} disabled={!path.trim()} onClick={() => void addProject()}>添加目录</Button>}>
-      <p className="muted">填写 Mac 上的项目绝对路径。项目文件不会被移动。</p><Input aria-label="项目目录" placeholder="/Users/你的用户名/Projects/项目" value={path} onChange={e => setPath(e.target.value)} onPressEnter={() => { if (!busy) void addProject(); }} />
-    </Modal>
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (await mutate('remove_project', { projectId: removing })) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
     {settings && <Settings providers={data.providers} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider>;
