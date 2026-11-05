@@ -282,3 +282,12 @@
 - 验证结果：`npm run test:desktop-ui` 51/51、`npm test` 109/109、`npm run test:desktop-product` 12/12、`npm run test:docs` 33/33、`npm run build:desktop`、`npm run build:app` 和 `git diff --check` 通过。打包 GUI 实际显示九个设置分区、三档权限与 macOS 权限边界说明、真实持久化工具事件；右栏收起/恢复通过。Tauri 报告包 230.49 MiB，逻辑大小 240598 KiB、磁盘占用 279348 KiB。既有 jsdom `NaN` 高度警告和 874.18 kB chunk 警告仍存在。
 - 遗留问题：权限档位尚未接入后端执行策略，不能扩大系统或任务权限；Usage、缓存命中、上下文窗口、插件、皮肤、产品级手机连接均未实现。当前完整 Node/PI、双宿主、逐任务 RPC spawn、600000ms 上限和 `Task execution failed` 未改变；P02.3—P02.9 仍未完成，包体也未优化。
 - 对应 Git 提交：本批次使用唯一提交说明 `feat(P02.2): build DSH-style workspace experience`；查询命令：`git log --all --oneline --grep='^feat(P02.2): build DSH-style workspace experience$'`。验证后提交推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 17:56:47 +08:00｜P02.2：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.2 功能提交 `8f9c7de883df939920c5e284e1d89beb4194a16d` 快进推送至 GitHub `main`，并补记远程核对结果；不修改产品代码或扩大 E20 验收范围。
+- 遇到的难题：默认 Git 凭据仍无仓库写权限；本次没有远程并发提交，功能提交父节点和推送前 `origin/main` 均为 `2a93a0c90767ac2e887532ab997a44481891f9b4`。
+- 处理方式：先执行 `git fetch origin main` 并核对直接父子关系，再仅对本次推送使用 GitHub CLI 凭据助手；不修改全局 Git 配置、不强制推送、不记录令牌。
+- 验证结果：推送输出为 `2a93a0c..8f9c7de  HEAD -> main`；本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 均为 `8f9c7de883df939920c5e284e1d89beb4194a16d`。
+- 遗留问题：P02.3—P02.9 仍未完成，尤其 Node 双宿主/闪烁、逐任务 RPC、600 秒超时和通用失败提示均未由 P02.2 修复。本条日志自身仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `8f9c7de883df939920c5e284e1d89beb4194a16d`；本条补记使用唯一提交说明 `docs(P02.2): record workspace delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.2): record workspace delivery$'`。
