@@ -376,3 +376,12 @@
 - 验证结果：打包 GUI 实际完成文件夹安装、ZIP 安装、默认停用、启停恢复、通知、`composer.trailing`/`settings.section` Slot、1.0.0→1.1.0 升级保持启用、带脚本入口的 2.0.0 升级拒绝且 1.1.0 保留、Worker 抛错后自动回到默认停用。本地皮肤修复后可预览、显式应用、重启仍显示已应用，验收后恢复 Moos 默认。最终包启动进程树仅为 App PID 27739 → 一个内置 Node PID 27753 → `services/agent/main.mjs`，没有插件 Node/Web 服务。最终 `npm test` 125/125、`npm run test:desktop-product` 17/17、`npm run test:docs` 38/38；并行 UI 回归的超时失败后，单独完整 `npm run test:desktop-ui` 为 71/71。`cargo fmt --check`、`npm run build:app` 和 `git diff --check` 通过；Tauri 报告 230.94 MiB，逻辑 241067 KiB、磁盘 279828 KiB。现有 jsdom `NaN` 高度警告及 Vite 946.90 kB 大 chunk 警告仍存在。
 - 遗留问题：没有在 GUI 点击最终“清理并卸载”的破坏性确认；卸载、升级回滚、保留/清理插件配置由真实 Rust 临时目录测试覆盖，前端测试覆盖确认框到命令路由。Worker 以输入/消息/时间/健康边界和异常终止处理资源滥用，但不具备操作系统级硬内存配额；任意恶意第三方代码安全性不能由 fixture 推断。在线插件市场、第三方原生插件、任意文件/Shell/截图/输入权限、P02.8 原生 PTY、P02.9 完整组合验收和小包优化仍未完成。
 - 对应 Git 提交：本批次使用唯一提交说明 `feat(P02.7): install sandboxed local UI plugins`；查询命令：`git log --all --oneline --grep='^feat(P02.7): install sandboxed local UI plugins$'`。完成最终检查后创建提交、推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 23:16:19 +08:00｜P02.7：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.7 本地插件安装、声明式 Worker 沙箱、生命周期和本地皮肤功能提交 `bdd0f39530ecdf04c72179b6018df4a939751db7` 快进推送至 GitHub `main`，并补记远程核对结果；不修改产品实现或扩大 E25 验收范围。
+- 遇到的难题：本次没有新的推送错误；默认系统凭据历史上无仓库写权限，因此直接沿用已确认的 GitHub CLI 活动账号。推送前已 fetch，功能提交父节点、本地起点和 `origin/main` 均为 `80570376c7cda9f5a8465c42dadbb32e19f4ee2d`，没有远程并发提交。
+- 处理方式：仅对本次 push 清空默认 helper 并使用 `gh auth git-credential`；未修改全局 Git 配置、未强制推送、未输出或记录令牌。推送后分别读取本地 HEAD 和 GitHub `refs/heads/main`。
+- 验证结果：推送输出为 `8057037..bdd0f39  HEAD -> main`；本地 HEAD 与 `git ls-remote origin refs/heads/main` 均为 `bdd0f39530ecdf04c72179b6018df4a939751db7`。功能、测试、GUI 验收和限制仍以该提交内 E25 及前一条日志为准。
+- 遗留问题：P02.8 原生 PTY 和 P02.9 完整组合验收仍未完成；在线市场、第三方原生插件、硬内存配额和小包优化不因本次推送变为已实现。本条远程交付日志自身仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `bdd0f39530ecdf04c72179b6018df4a939751db7`；本条补记使用唯一提交说明 `docs(P02.7): record local plugin delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.7): record local plugin delivery$'`。
