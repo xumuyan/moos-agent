@@ -319,3 +319,12 @@
 - 验证结果：最终真实本地 fixture 任务从北京时间 18:52:21.991 运行到 19:02:27.123，共 605.132 秒，40 次心跳，状态 `succeeded`、阶段 `completed`、无错误码，助手内容为 `完成 LONG`；结束后代理连接被拒绝且 dev 宿主没有子进程。`npm test` 最终 120/120、`npm run test:desktop-ui` 51/51、`npm run test:desktop-product` 12/12、`cargo fmt --check --manifest-path apps/desktop/src-tauri/Cargo.toml`、`npm run test:docs` 35/35、`npm run build:app` 和 `git diff --check` 通过。Tauri 报告 230.51 MiB，逻辑大小 240626 KiB、磁盘占用 279392 KiB，包内确认 Undici 8.12.3。E22 记录提交前工作区状态及失败到成功的完整脱敏证据。
 - 遗留问题：未调用真实收费 GLM 或 OpenAI 中转站，不能据本地 fixture 推断服务商 10 分钟以上稳定性、额度或费用；Usage/缓存命中/上下文统计、插件、皮肤、原生 PTY、完整 P02.9 和包体优化仍未完成。M01 历史 RPC adapter 继续保留探针的 10 分钟边界，不是正式产品任务入口；P02.5 从真实 usage 持久化开始。既有 UI jsdom `NaN` 高度警告和 875.44 kB chunk 警告未在本批处理。
 - 对应 Git 提交：本批次唯一提交说明 `fix(P02.4): support bounded long-running tasks`；查询命令：`git log --all --oneline --grep='^fix(P02.4): support bounded long-running tasks$'`。完成最终提交、推送和远程核对后再补记实际哈希，不预填未知提交。
+
+## 2026-11-05 19:06:50 +08:00｜P02.4：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.4 有界长任务功能提交 `a3f49d3c8ed2c378cc7b2f57368d277b4c50e5d0` 快进推送至 GitHub `main`，并补记远程分支核对结果；不修改产品实现或扩大 E22 的验收范围。
+- 遇到的难题：默认 Git 凭据仍不具备目标仓库写权限；本次远程没有并发提交，推送前功能提交父节点与 `origin/main` 都是 `d47ec0bd0d966a5a28f6f6addfc837f4829fea31`。
+- 处理方式：先执行 `git fetch origin main` 并核对直接父子关系，再仅对本次 push 使用已确认的 GitHub CLI 凭据助手；未修改全局 Git 配置、未强制推送，也未输出或记录令牌。
+- 验证结果：推送输出为 `d47ec0b..a3f49d3  HEAD -> main`；推送后本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 都是 `a3f49d3c8ed2c378cc7b2f57368d277b4c50e5d0`。功能测试、真实 605.132 秒验收与限制仍以该提交内 E22 和前一条日志为准。
+- 遗留问题：P02.5—P02.9 仍未完成；真实 Usage/缓存/上下文、插件、皮肤、原生 PTY、完整系统验收和包体优化继续按 PLAN.md 推进。本条远程交付日志自身还需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `a3f49d3c8ed2c378cc7b2f57368d277b4c50e5d0`；本条补记使用唯一提交说明 `docs(P02.4): record long-task delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.4): record long-task delivery$'`。
