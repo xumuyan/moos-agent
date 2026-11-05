@@ -237,3 +237,12 @@
 - 验证结果：设计提交 `81bb914575572e26b70488e4800feccf071d64d6` 已快进推送至 GitHub main；`git ls-remote origin refs/heads/main` 与当时本地 HEAD 均为该哈希。该结果只证明设计文档远程交付，不证明 P02 功能实现。
 - 遗留问题：P02.1—P02.9 继续全部未完成；本条日志自身仍需按仓库规则提交、推送并再次核对远程。
 - 对应 Git 提交：已推送设计提交 `81bb914575572e26b70488e4800feccf071d64d6`；本条补记使用唯一提交说明 `docs(P02): record design remote delivery`，查询命令：`git log --all --oneline --grep='^docs(P02): record design remote delivery$'`。
+
+## 2026-11-05 17:11:11 +08:00｜P02：九批实施计划与运行时迁移门禁
+
+- 修改或新增内容：新增 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，将 P02.1—P02.9 拆为第三方边界/UI Adapter、完整页面、PI SDK 单运行时门禁、长任务、Usage、Slot/皮肤、本地插件沙箱、Tauri 原生 PTY 和系统验收九批；每批列出具体文件、测试先行步骤、实际验收、提交说明和完成条件。PLAN.md 链接实施计划并保持九项全部未完成，修正旧架构文字为“SDK 门禁通过前保留 RPC，迁移后只保留一条正式路径”。设计稿按当前仓库规则统一为 macOS Keychain，不再写本地密钥文件。新增文档契约测试约束计划顺序、RPC 回退门禁和未完成状态。
+- 遇到的难题：brainstorming 工作流要求下一步使用 writing-plans，但当前会话没有该技能，只能采用等价的手工实施计划模板。新增文档测试首轮因“SDK 验证通过以前”和测试中的“门禁通过以前”措辞不一致失败；修正后第二轮又发现计划只写“原生 PTY”，没有完整写出测试要求的“Tauri 原生 PTY”。梳理现状还发现 Tauri 正式产品同时维护普通和诊断两个 Node 宿主，旧 PLAN 的“不同时维护 SDK”与用户已确认的 P02.3 可行性门禁冲突。
+- 处理方式：完整阅读 brainstorming 技能并在用户确认书面设计后只进入计划阶段，未修改产品代码；根据现有 App、Controller、Store、PI adapter、Rust host 和测试入口逐文件拆解实施步骤。将测试锁定为更准确的 SDK 门禁措辞，并在计划标题明确 Tauri 原生 PTY；把双宿主合并和逐任务 spawn 移除列入 P02.3 验收矩阵，门禁失败时明确保留 RPC。自检扫描 TODO/TBD、旧密钥文件文字和旧 SDK 冲突文字，均无残留。
+- 验证结果：最终 `npm run test:docs` 31/31、`npm test` 109/109、`npm run test:desktop-ui` 41/41、`npm run test:desktop-product` 12/12、`npm run build:desktop` 和 `git diff --check` 通过。文档测试两次预期失败均已如实保留在本条：第一次缺少精确 SDK 门禁短语，第二次缺少完整“Tauri 原生 PTY”短语。桌面 UI 仍有既有 jsdom `NaN` 高度警告，生产构建仍有 804.37 kB chunk 警告；本次未启动 GUI 实测，因为范围仅为实施计划和契约修订，不能据此宣称 P02 功能可用。
+- 遗留问题：P02.1—P02.9 全部尚未实施；当前两个正式 Node 宿主、逐任务 PI RPC spawn、600000ms 上限和通用 `Task execution failed` 仍存在。下一批从 P02.1 的第三方清单和失败测试开始，完成并推送前不启动 P02.2/P02.3。真实模型、超过 10 分钟任务、进程树、插件沙箱、皮肤和 PTY 均待对应批次实际验收。
+- 对应 Git 提交：本批次唯一提交说明 `docs(P02): add phased implementation plan`；查询命令：`git log --all --oneline --grep='^docs(P02): add phased implementation plan$'`。验证后提交推送并核对远程，不预填未知哈希。

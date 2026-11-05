@@ -26,6 +26,25 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x]', p02)
         self.assertIn('在线插件市场不在首批范围', p02)
 
+    def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        design = (ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md').read_text(encoding='utf-8')
+        implementation_path = ROOT / 'docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md'
+        implementation = implementation_path.read_text(encoding='utf-8')
+        self.assertIn(str(implementation_path.relative_to(ROOT)), plan)
+        self.assertIn('macOS Keychain', design)
+        self.assertNotIn('本地密钥文件', design)
+        for number in range(1, 10):
+            self.assertIn(f'P02.{number}', implementation)
+            self.assertIn(f'- [ ] P02.{number} ', plan)
+        for term in ('测试先行', 'SDK 单运行时可行性门禁',
+                     'SDK 验证通过以前不得删除已验证的 RPC 路径',
+                     'Activity Monitor', '超过 10 分钟', 'plugin.json',
+                     'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
+            self.assertIn(term, implementation)
+        p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
+        self.assertNotIn('- [x]', p02)
+
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         for term in ('模型配置诊断', '草稿', '钥匙串', '独立诊断通道', '真实模型未验收'):

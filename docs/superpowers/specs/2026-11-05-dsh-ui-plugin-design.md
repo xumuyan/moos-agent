@@ -35,7 +35,7 @@ Moos Agent Runtime
 PI SDK + SQLite + 本地工具
 ```
 
-前端只消费 Moos 的版本化视图模型，不读取 SQLite、密钥文件或 PI 内部文件。适配层把 `projects`、`conversations`、`messages`、`tasks`、`events`、`providers` 和 `usage` 投影为页面所需的数据，并把页面动作转换为类型化命令。DSH 组件中依赖 Cordis、DSH RPC、Slots Store 或 Profile 的部分不得直接连接 Moos；应拆出可复用的展示组件，或以等价交互重新实现。
+前端只消费 Moos 的版本化视图模型，不读取 SQLite、系统凭据存储或 PI 内部文件。适配层把 `projects`、`conversations`、`messages`、`tasks`、`events`、`providers` 和 `usage` 投影为页面所需的数据，并把页面动作转换为类型化命令。DSH 组件中依赖 Cordis、DSH RPC、Slots Store 或 Profile 的部分不得直接连接 Moos；应拆出可复用的展示组件，或以等价交互重新实现。
 
 正式产品从 RPC 子进程迁移到 PI 1.5.0 的进程内 SDK 会话。该决定只适用于正式产品后续实现；M01 探针和已有 RPC 验证证据保持历史原样。迁移前必须以独立可回滚任务验证 SDK 的会话恢复、并发、取消、工具事件、模型代理、退出清理和包体影响。
 
@@ -89,7 +89,7 @@ Mac 桌面先完整实现；iPhone 复用同一数据协议和信息结构，但
 5. 用量统计：Token、缓存、费用、模型、项目、会话和时间区间。
 6. 插件：安装、启停、更新、卸载、权限和兼容性。
 7. 皮肤：预览、应用、恢复默认和导入。
-8. 数据与隐私：本地密钥文件、日志、截图、历史和清理。
+8. 数据与隐私：macOS Keychain 凭据、日志、截图、历史和清理。
 9. 手机连接：同 Wi-Fi 配对、设备、撤销凭据和连接状态。
 10. 高级：并发、上下文策略、任务上限和诊断。
 

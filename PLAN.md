@@ -8,7 +8,7 @@
 
 ## P02｜DSH 风格前端、插件与长任务运行时（设计已确认，未实施）
 
-用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。该设计尚未实施，以下任务全部保持未完成：
+用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。设计已确认且实施计划已编写，但功能尚未实施，以下任务全部保持未完成：
 
 - [ ] P02.1 建立第三方来源清单、许可证归属、Moos UI Adapter 契约和 DSH 风格静态页面骨架。
 - [ ] P02.2 移植三栏布局、工作区/会话、对话/轨迹、输入区、三档权限、完整设置中心和右侧面板。
@@ -80,7 +80,7 @@
 Mac React 界面 → Tauri 原生桥 → 本地任务服务 → PI 适配层 → 模型服务/开发工具/桌面工具。
 iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端共享协议与状态语义，界面分别实现。
 
-- Tauri Rust 层管理原生能力、系统权限、凭据和运行时生命周期；PI/TypeScript 任务服务以独立进程运行。M01 已选择 RPC 为主接入方式并验证真实 PI 子进程，后续任务服务复用进程隔离边界；不同时维护 SDK 接入。
+- Tauri Rust 层管理原生能力、系统权限、凭据和运行时生命周期；PI/TypeScript 任务服务以独立进程运行。M01 已选择 RPC 并验证真实 PI 子进程，该结论保持为探针历史基线；正式产品按 P02.3 先验证 SDK 单运行时，门禁通过前保留 RPC 回退，迁移完成后只保留一条正式运行路径，不长期双重维护。
 - 产品目录：apps/desktop、services/agent、packages/pi-adapter 正在本轮实施；apps/mobile 与 packages/protocol 仍为后续范围。原生电脑操作暂不接入本轮聊天链路，不以探针代码存在代表产品能力。
 - 本地 SQLite 保存项目、会话、任务、事件和用量；PI 自有会话存储与项目、会话 ID 建立关联，不重复并发写同一 PI 会话文件。数据库库选型在 M02 验证。
 - 核心实体：Project、Conversation、Task、TaskEvent、ProviderConfig、ModelCapability、UsageRecord、PairedDevice。全局模型配置可被项目偏好覆盖，密钥引用与普通配置分开。
