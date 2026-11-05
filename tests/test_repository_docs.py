@@ -76,6 +76,26 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('- [ ] M01 整体验收', plan)
         self.assertIn('- [ ] M01.7', plan)
 
+    def test_gui_exit_evidence_does_not_complete_crash_or_coordinate_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-gui-exit.json').read_text())
+        acceptance = report['acceptance']
+        self.assertEqual(acceptance['status'], 'passed')
+        self.assertTrue(acceptance['piActiveBeforeExit'])
+        self.assertTrue(acceptance['hostProcessExited'])
+        self.assertTrue(acceptance['piProcessExited'])
+        self.assertFalse(acceptance['realProviderVerified'])
+        self.assertTrue(report['unitTests']['postShutdownSpawnRejected'])
+        self.assertTrue(report['unitTests']['sigkillFallbackVerified'])
+        self.assertTrue(report['unitTests']['unrelatedProcessUntouched'])
+        self.assertTrue(report['unitTests']['largeStderrDrained'])
+        self.assertTrue(report['unitTests']['descendantOutputWaitBounded'])
+        self.assertFalse(report['limits']['guiCrashCleanupVerified'])
+        self.assertFalse(report['limits']['retinaAndMultiDisplayCoordinatesVerified'])
+        self.assertFalse(report['limits']['m01_7Complete'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('| E16 |', plan)
+        self.assertIn('- [ ] M01.7', plan)
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):

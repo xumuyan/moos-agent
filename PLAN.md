@@ -70,7 +70,7 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 
 ## MVP 开发任务
 
-下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E15；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
+下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E16；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
 
 ### M01｜运行时与平台可行性
 
@@ -83,7 +83,8 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 - [x] M01.4 验证 PI 宿主 SIGTERM/SIGKILL 后子进程退出；异常命令正确返回错误。证据：E02。
 - [x] M01.5 在终端授权上下文中完成探针窗口点击、输入和仅该窗口的截图。证据：E04；不代表正常 GUI 启动已获权限。
 - [x] M01.6 验证本机正常 GUI 启动身份的屏幕录制/辅助功能授权、分别撤销与恢复，以及固定本地浏览器输入和页面截图。证据：E13、E14、E15；两项撤销均 blocked 且无截图，恢复后均 passed。仅覆盖当前 arm64/macOS 27.0.1 探针，不代表正式产品或其他系统验收。
-- [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。进程级退出测试已通过，尚未覆盖完整 GUI 异常退出和各显示器组合。
+- [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。正常 GUI 退出子项已通过 E16，尚未覆盖 GUI 异常退出和各显示器组合。
+- [x] M01.7a 在打包应用的 PI 请求活跃时触发正常 Tauri 退出，Rust 登记并清理 Node 宿主及真实 PI 子进程，退出后拒绝新进程且不影响无关进程。证据：E16；不代表崩溃清理、Retina 或跨屏验收通过。
 - [x] M01.8a 确认 iPhone 开发者模式、USB 配对和 Mac 有效 Apple Development 签名身份。证据：E08；不是应用安装验收。
 - [x] M01.8b 创建最小 uni-app x 工程，通过自动描述文件生成、基座签名、真机安装和启动。证据：E09。
 - [x] M01.8c 在 iPhone Wi-Fi 网络下完成 Mac HTTP 健康接口挑战响应校验，Mac 记录非回环请求，用户确认页面成功。证据：E10；没有敏感数据或远程执行能力。
@@ -116,6 +117,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 | E14 | 2026-11-04：诊断捕获旧文字事件 flags=537919488，包含 Command；修复明确按键标志和私有事件源后，安装版前 3 次连续 passed，另 1 次 passed，实际 cancelled 后重跑 passed；截图均为 1710×936 唯一测试页，已查看 | probes/m01/evidence/desktop-browser-keyboard-fix.json 与 desktop-browser-page.png；仅原生固定页工具，不代表模型驱动或整个 M01 通过；权限撤销恢复仍未测试。提交说明 fix(M01): isolate browser keyboard modifier state |
 
 | E15 | 正常 GUI 安装版 cfec622：用户分别关闭/恢复录屏及辅助功能；两次撤销报告 blocked/system-permission-required，撤销项 false、另一项 true，均无本次截图；两次恢复后 URL/标记核验与 1710×936 页面截图通过，最终两项均授权 | probes/m01/evidence/desktop-permission-recovery.json；最终截图已查看，SHA-256 和本地路径已记录；未实测多屏坐标或完整 GUI 崩溃链。提交说明 test(M01): verify GUI permission revocation and recovery |
+| E16 | 2026-11-05：打包应用在本地模拟模型的 PI 请求活跃时触发正常 Tauri 退出；Node 宿主与真实 PI 子进程均退出。原生 11 项测试覆盖 SIGTERM/SIGKILL 回退、退出后拒绝新进程、运行中清理、无关进程隔离、大体积 stderr 及后代占用输出管道；`npm run verify:probe` 通过 | probes/m01/evidence/desktop-gui-exit.json；证据对应提交前工作区，ZIP SHA-256 已记录。仅验证正常退出，不覆盖 GUI 崩溃、Retina 或跨屏坐标，M01.7 保持未完成。提交说明 fix(M01): clean up runtime children on GUI exit |
 
 运行时决策：先保留完整内置基线保障复现；Node 占 119,944,608 字节，PI 生产依赖逻辑体积 114,221,839 字节。M09 前另验证独立、可校验和缓存的运行时分发或依赖裁剪；尚未选择最终小包分发方案，不承诺体积目标。M01 声明编译目标为 macOS 14，只有当前 macOS 27.0.1 实测通过。
 
@@ -257,7 +259,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 
 文档检查：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`；差异检查：`git diff --cached --check`。这两项仅验证文档，不验证 PI、模型、桌面操作或手机功能。
 
-M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离线验证：`npm run verify:probe`；显式桌面自测：`npm run verify:probe -- --desktop-input`（仅作用于探针自有窗口，需要已有系统权限）。手机探针复现步骤见 probes/m01/mobile/README.md；健康服务入口 `npm run probe:health`。正式产品测试命令在 M02 随实际工程建立后记录，探针不能代替产品验收。每项实机证据记录任务/验收 ID、北京时间、提交、系统/设备、步骤、预期与实际结果、脱敏输出或截图位置。全部通过后才勾选相应任务。
+M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离线验证：`npm run verify:probe`（含 PI 活跃时正常 Tauri 退出的 Node/PI 进程清理检查）；显式桌面自测：`npm run verify:probe -- --desktop-input`（仅作用于探针自有窗口，需要已有系统权限）。手机探针复现步骤见 probes/m01/mobile/README.md；健康服务入口 `npm run probe:health`。正式产品测试命令在 M02 随实际工程建立后记录，探针不能代替产品验收。每项实机证据记录任务/验收 ID、北京时间、提交、系统/设备、步骤、预期与实际结果、脱敏输出或截图位置。全部通过后才勾选相应任务。
 
 ## 技术参考（2026-11-03 查阅）
 

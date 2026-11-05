@@ -1,0 +1,32 @@
+{
+  "recordedAtBeijing": "2026-11-05T08:08:01+08:00",
+  "system": "macOS 27.0.1 / arm64",
+  "appVersion": "0.1.0",
+  "change": "fix(M01): clean up runtime children on GUI exit",
+  "evidenceState": "Pre-commit working tree; packaged app built from this working tree",
+  "acceptance": {
+    "command": "npm run verify:probe",
+    "status": "passed",
+    "normalExitTrigger": "Tauri AppHandle::exit after the hold report confirmed an active PI request",
+    "piActiveBeforeExit": true,
+    "hostProcessExited": true,
+    "piProcessExited": true,
+    "realProviderVerified": false,
+    "archiveSha256": "d1949b1380120b70fea490f66bea812338dedeca1d30e6370a131c76b2630f89"
+  },
+  "unitTests": {
+    "command": "npm run test:desktop-native",
+    "passed": 11,
+    "sigtermCleanupVerified": true,
+    "sigkillFallbackVerified": true,
+    "postShutdownSpawnRejected": true,
+    "unrelatedProcessUntouched": true,
+    "largeStderrDrained": true,
+    "descendantOutputWaitBounded": true
+  },
+  "limits": {
+    "guiCrashCleanupVerified": false,
+    "retinaAndMultiDisplayCoordinatesVerified": false,
+    "m01_7Complete": false
+  }
+}

@@ -1,5 +1,5 @@
 import { spawnSync, execFileSync } from 'node:child_process';
-import { mkdir, readFile, writeFile, readdir, lstat } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, readdir, lstat, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
@@ -17,6 +17,18 @@ const result = JSON.parse(await readFile(output, 'utf8'));
 assert.equal(result.packagedRuntime, true);
 assert.equal(result.pi.status, 'passed');
 assert.equal(result.pi.realProviderVerified, false);
+const holdFile = join(artifacts, 'gui-exit-hold.json');
+const exitOutput = join(artifacts, 'gui-exit-probe.json');
+await Promise.all([rm(holdFile, { force: true }), rm(exitOutput, { force: true })]);
+const exited = spawnSync(join(app, 'Contents/MacOS/moos-m01-probe'), [
+  `--probe-output=${exitOutput}`, `--probe-hold-file=${holdFile}`, '--probe-exit-after-hold',
+], { cwd: '/tmp', env: { PATH: '/usr/bin:/bin', TMPDIR: process.env.TMPDIR }, timeout: 60000, encoding: 'utf8' });
+assert.equal(exited.status, 0, exited.stderr || String(exited.error));
+const held = JSON.parse(await readFile(holdFile, 'utf8'));
+assert(held.hostPid > 0 && held.piPid > 0);
+for (const pid of [held.hostPid, held.piPid]) {
+  assert.throws(() => process.kill(pid, 0), error => error.code === 'ESRCH', `process ${pid} must exit with the GUI`);
+}
 async function bytes(path) {
   const stat = await lstat(path);
   if (stat.isSymbolicLink()) return 0;
@@ -44,6 +56,8 @@ const report = {
   recordedAt: new Date().toISOString(),
   host: { arch: process.arch, macOS: execFileSync('sw_vers', ['-productVersion'], { encoding: 'utf8' }).trim() },
   packagedResult: result, desktop,
+  guiExit: { status: 'passed', exitMode: 'normal Tauri exit while PI was active',
+    hostProcessExited: true, piProcessExited: true },
   sizes: { appLogicalBytes: await bytes(app),
     appAllocatedBytes: Number(execFileSync('/usr/bin/du', ['-sk', app], { encoding: 'utf8' }).split('\t')[0]) * 1024,
     archiveBytes: (await lstat(archive)).size,

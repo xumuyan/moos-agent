@@ -18,7 +18,7 @@ npm run verify:probe
 
 `build:probe` 为当前 arm64 Mac 准备内置 Node、PI 生产依赖和 Swift helper，再构建 Tauri `.app`。不会更改全局 Node 或 Git 配置。输出目录：`probes/m01/desktop/src-tauri/target/release/bundle/macos/`。
 
-`verify:probe` 从 `/tmp` 启动包内程序，将 PATH 限制为系统目录，使用本地临时模拟模型检查真实 PI RPC 的状态、流式事件、read 工具、取消和退出；不会读取用户模型凭据或调用付费模型。结果和 ZIP 位于被 Git 忽略的 `artifacts/m01/`。
+`verify:probe` 从 `/tmp` 启动包内程序，将 PATH 限制为系统目录，使用本地临时模拟模型检查真实 PI RPC 的状态、流式事件、read 工具、取消和退出；随后在 PI 请求仍活跃时触发正常 Tauri 退出，核对 Node 宿主与真实 PI 子进程均已退出。不会读取用户模型凭据或调用付费模型。结果和 ZIP 位于被 Git 忽略的 `artifacts/m01/`。
 
 可选的 `npm run verify:probe -- --desktop-input` 会在包内 helper 自己创建的窗口中执行真实点击和输入，并仅捕获该窗口。它会短暂切换前台和鼠标位置；需要已授予屏幕录制、辅助功能权限，不会自动申请授权。普通 `npm test` 和 PI 验证按钮只查询权限，不注入输入；新增的浏览器验证按钮是显式桌面操作，会切换 Safari 并输入测试页地址。
 
@@ -49,3 +49,5 @@ npm run verify:probe
 2026-11-04 后续验收：`evidence/desktop-browser-keyboard-fix.json` 记录安装版固定页连续三次通过、实际取消及取消后重新通过；截图 `evidence/desktop-browser-page.png` 已核对只含专用测试页。旧报告中的未授权/失败状态保留为历史。键盘事件采用私有事件源，明确清除文字、回车及抬键的 Command 标志，避免地址输入变成快捷键。失焦时安全停止，报告记录所处阶段；不要在验证中途切换应用。权限撤销恢复仍需用户在系统界面完成操作后再验证，当前不宣称已通过。
 
 2026-11-04 权限后续验收：`evidence/desktop-permission-recovery.json`（E15）补齐录屏与辅助功能各自的“撤销 → blocked 且无截图 → 用户恢复 → 新任务通过”。最终两项均已授权，M01.6 本机检查完成；上述 E14 的“撤销恢复未验收”是当时状态，保留作为历史。此次只覆盖安装版 cfec622 与固定本地页面，多屏坐标及完整 GUI 崩溃链仍待 M01.7 验证。
+
+2026-11-05 正常退出验收：`evidence/desktop-gui-exit.json`（E16）记录 Rust 子进程登记与清理。固定验证子进程退出后移除登记；应用开始退出后拒绝新子进程，已登记进程先收 SIGTERM，3 秒未退出再 SIGKILL。stdout/stderr 由独立线程持续排空，进程成功退出后等待 stdout 最多 1 秒，后代继承管道不会卡住应用退出；SIGKILL 回退、无关进程隔离和管道边界均有原生回归测试。打包验证通过专用参数在 PI 活跃时原子写入临时 PID 报告，再调用正常 Tauri 退出并核对两个进程均退出；这些参数不开放任意命令，也不调用真实模型。浏览器 helper 继续由既有取消路径清理，不结束 Safari。此次不覆盖应用被强制杀掉后的看门狗恢复、Retina 或跨屏坐标，M01.7 未完成。

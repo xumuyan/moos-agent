@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { rename, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { createFixture } from './pi-fixture.mjs';
 
@@ -28,6 +29,13 @@ export async function probePi(options) {
     await rpc.request('prompt', { message: 'M01_HOLD' });
     await rpc.waitEvent(record => record.type === 'message_update', 15000, before);
     await options?.onHold?.({ pid: rpc.child.pid });
+    if (process.env.MOOS_PROBE_HOLD_FILE) {
+      const holdFile = process.env.MOOS_PROBE_HOLD_FILE;
+      const temporary = `${holdFile}.${process.pid}.tmp`;
+      await writeFile(temporary, JSON.stringify({ hostPid: process.pid, piPid: rpc.child.pid }));
+      await rename(temporary, holdFile);
+      await new Promise(() => {});
+    }
     await rpc.request('abort');
     const stopped = await rpc.request('get_state');
     assert.equal(stopped.data.isStreaming, false);

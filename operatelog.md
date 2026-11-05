@@ -149,3 +149,12 @@
 - 验证结果：录屏撤销时 screenCaptureGranted=false、accessibilityGranted=true，任务 blocked/system-permission-required，无截图；录屏恢复后实际输入 URL、核对 URL/窗口标记、1710×936 页面截图 passed。辅助功能撤销时两项分别 true/false，界面显示未授权，任务同样 blocked 且旧截图已隐藏，无本次截图；恢复后重新检查两项 true，新浏览器任务及截图 passed，最终截图已查看，哈希与本机路径见 E15。npm test 12 项通过；npm run test:desktop-native 3 项通过；npm run test:docs 24 项通过，共 39 项自动检查通过；git diff --cached --check 通过。应用代码未变化，继续复用 cfec622 已验证构建与签名；本轮再次 codesign --verify --deep --strict 验证通过，进程路径确认来自 /Applications。
 - 遗留问题：M01.7 完整 GUI 退出/崩溃链、Retina/跨屏坐标和 M01.8 手机剩余通信尚未验收；本次不代表模型驱动电脑任务或正式产品完成，后续更换系统/签名身份需重新实测。Git 插件 D01 仍暂缓。
 - 对应 Git 提交：本批次唯一提交说明 `test(M01): verify GUI permission revocation and recovery`；查询命令：git log --all --oneline --grep='^test(M01): verify GUI permission revocation and recovery$'。证据对应提交前测试/文档工作区，实际运行应用为 cfec622；推送后核对远程 HEAD，不提前填写自身哈希。
+
+## 2026-11-05 08:08:01 +08:00｜M01.7a：正常 GUI 退出的运行时链清理
+
+- 修改或新增内容：Tauri 增加 RuntimeControl 子进程登记，固定权限/PI 验证进程完成或异常后移除登记；退出开始后拒绝新进程，已登记进程先收 SIGTERM，3 秒未退出再 SIGKILL 并回收，保留既有浏览器 helper 取消路径。stdout/stderr 由独立线程持续排空，成功后 stdout 最多等待 1 秒，避免大体积输出或后代继承管道阻塞退出。新增 PI 活跃保持、原子 hold 文件及正常 Tauri 退出专用验证参数、打包进程退出断言、11 项原生测试、E16 脱敏证据和文档契约；同步三个根文档及探针 README。
+- 遇到的难题：原退出事件只取消浏览器 helper，Node 宿主只能依赖自身父进程看门狗；Rust 标准库没有直接发送 SIGTERM 的 Child API。独立代码审查发现 SIGKILL 回退和无关进程隔离缺少直接测试，并指出大体积 stderr 与后代继承 stdout 可能破坏有界退出；hold 文件直接写入也存在监视者读到部分 JSON 的竞态。
+- 处理方式：通过 libc 发送固定 SIGTERM，登记器在锁内完成关闭状态检查与子进程登记，避免退出和新增进程竞态；不引入任意 shell 参数或结束 Safari。按 TDD 为 SIGKILL、无关进程、大体积 stderr 和后代管道分别补充失败测试后修复；hold 文件改为临时文件写完后原子 rename。打包验证仅在测试参数下记录临时 PID 并调用正常 Tauri 退出，提交证据不保存 PID。
+- 验证结果：macOS 27.0.1/arm64。`npm test` 12 项通过；`npm run test:desktop-native` 11 项通过，覆盖 SIGTERM、SIGKILL 回退、退出后拒绝新进程、运行中进程清理、完成后移除登记、无关进程隔离、大体积 stderr 和后代输出等待上限；`npm run test:docs` 25 项通过。`npm run build:probe` 与 `npm run verify:probe` 通过，最终报告 recordedAt=2026-11-05T00:08:01.670Z，本地模拟模型 PI 活跃时正常退出后 Node 宿主与真实 PI 子进程均不存在，ZIP SHA-256 为 d1949b1380120b70fea490f66bea812338dedeca1d30e6370a131c76b2630f89。证据对应提交前工作区，见 probes/m01/evidence/desktop-gui-exit.json。
+- 遗留问题：只覆盖正常 Tauri 退出，不覆盖应用被强制终止或崩溃后的清理；多个顽固子进程目前串行等待，最坏退出耗时随数量增加；Retina、跨屏坐标及 M01.8 手机剩余通信仍未验收，M01.7 和 M01 整体保持未完成。真实 GLM/中转站、正式产品任务链和多项目隔离不在本次范围。
+- 对应 Git 提交：本批次唯一提交说明 `fix(M01): clean up runtime children on GUI exit`；查询命令：git log --all --oneline --grep='^fix(M01): clean up runtime children on GUI exit$'。提交并推送后核对远程 HEAD，不预填自身哈希。
