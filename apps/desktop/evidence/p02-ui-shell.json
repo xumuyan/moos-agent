@@ -1,0 +1,50 @@
+{
+  "evidenceId": "E19",
+  "recordedAt": "2026-11-05T17:26:23+08:00",
+  "platform": {
+    "os": "macOS 27.0.1",
+    "architecture": "arm64"
+  },
+  "source": {
+    "state": "pre-commit workspace",
+    "plannedCommit": "feat(P02.1): add UI adapter and DSH-style shell"
+  },
+  "fixture": {
+    "externalProviderContacted": false,
+    "realCredentialUsed": false,
+    "writeAndBashTask": {
+      "prompt": "MOOS_FIXTURE_WRITE P02_SHELL",
+      "result": "completed",
+      "assistantText": "完成 P02_SHELL"
+    },
+    "backgroundTask": {
+      "prompt": "MOOS_FIXTURE_HOLD",
+      "projectSwitchPreservedTask": true,
+      "backgroundCount": 1,
+      "cancelAfterReturn": "cancelled"
+    }
+  },
+  "shell": {
+    "workspaceSidebarCount": 1,
+    "conversationMainCount": 1,
+    "rightPanelCount": 1,
+    "composerCount": 1,
+    "browserViewportWidth": 872,
+    "rightPanelDisplayAtViewport": "none",
+    "responsiveBreakpoint": 1180,
+    "horizontalOverflow": false
+  },
+  "settingsOpened": true,
+  "consoleErrorsOrWarnings": 0,
+  "visualInspection": {
+    "performed": true,
+    "rawScreenshotCommitted": false
+  },
+  "limits": {
+    "packagedMacGuiVerified": false,
+    "wideViewportRightPanelVisuallyVerified": false,
+    "piSdkRuntimeVerified": false,
+    "productionNodeProcessCountVerified": false,
+    "pluginsOrUsageImplemented": false
+  }
+}

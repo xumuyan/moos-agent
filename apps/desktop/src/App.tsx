@@ -8,6 +8,15 @@ import { emptySnapshot, isActive, statusLabel, type Snapshot, type Task } from '
 import Settings from './Settings';
 import { useHistory } from './useHistory';
 import HistoryControls from './HistoryControls';
+import AppShell from './layout/AppShell';
+import WorkspaceSidebar from './layout/Sidebar';
+import ConversationPane from './layout/ConversationPane';
+import RightPanel from './layout/RightPanel';
+import ComposerDock from './layout/ComposerDock';
+import { createWorkspaceView } from './ui-adapter/snapshot';
+import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
+import './theme/tokens.css';
+import './theme/shell.css';
 import './style.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
@@ -61,8 +70,14 @@ export default function App() {
     try { await request(method, params); await refresh(); return true; }
     catch (e) { setError(errorText(e)); return false; }
   };
+  const mutateCommand = async (command: UiCommand) => {
+    setError('');
+    try { await executeUiCommand(request, command); await refresh(); return true; }
+    catch (e) { setError(errorText(e)); return false; }
+  };
   const project = data.projects.find(p => p.id === projectId);
   const conversation = data.conversations.find(c => c.id === conversationId && c.projectId === projectId);
+  const workspace = createWorkspaceView(data, { projectId, conversationId });
   const history = useHistory(data, conversation?.id ?? '');
   const tasks = history.visible.tasks.filter(t => t.projectId === projectId && t.conversationId === conversation?.id);
   // Controls always use recent state, even while the user browses an older page.
@@ -77,16 +92,16 @@ export default function App() {
     const id = conversationId;
     setBusy(true);
     try {
-      if (await mutate('submit', { conversationId: id, message: draft.trim(), providerId })) setDrafts(prev => ({ ...prev, [id]: '' }));
+      if (await mutateCommand(uiCommands.submit(id, draft.trim(), providerId))) setDrafts(prev => ({ ...prev, [id]: '' }));
     } finally { setBusy(false); }
   };
   const addProject = async () => {
     if (adding) return;
     setAdding(true); setError('');
     try {
-      const path = await request<string | null>('pick_directory');
+      const path = await executeUiCommand<string | null>(request, uiCommands.pickDirectory());
       if (path) {
-        const project = await request<{ id: string }>('add_project', { path });
+        const project = await executeUiCommand<{ id: string }>(request, uiCommands.addProject(path));
         pendingProject.current = project.id;
         await refresh();
       }
@@ -97,7 +112,7 @@ export default function App() {
     if (!project || busy) return;
     setBusy(true); setError('');
     try {
-      const result = await request<{ id?: string }>('create_conversation', { projectId, title: '新会话' });
+      const result = await executeUiCommand<{ id?: string }>(request, uiCommands.createConversation(projectId, '新会话'));
       await refresh();
       if (result?.id) setConversationId(result.id);
     } catch (e) { setError(errorText(e)); }
@@ -110,7 +125,7 @@ export default function App() {
     const tools = events.filter(e => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(e.type));
     return <section className="task-card" key={task.id} aria-label="任务执行记录">
       <div className="task-heading"><CodeOutlined /><span>任务记录</span><Tag color={isActive(task) ? 'processing' : task.status === 'failed' ? 'error' : 'default'}>{statusLabel(task.status)}</Tag><span className="task-id">{task.id}</span>
-        {isActive(task) && <Button size="small" danger aria-label="停止此任务" onClick={() => void mutate('cancel', { taskId: task.id })}>停止</Button>}
+        {isActive(task) && <Button size="small" danger aria-label="停止此任务" onClick={() => void mutateCommand(uiCommands.cancelTask(task.id))}>停止</Button>}
       </div>
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
       {stream && !saved && <Bubble content={<span className="plain-text">{stream}</span>} />}
@@ -120,26 +135,26 @@ export default function App() {
     </section>;
   };
   return <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: '#247e7b', borderRadius: 9, colorBgLayout: '#f5f7f9', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
-    <div className="desktop-shell">
-      <aside className="sidebar">
+    <AppShell
+      sidebar={<WorkspaceSidebar>
         <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div>
         <div className="section-label">工作空间<Button type="text" size="small" icon={<PlusOutlined />} aria-label="添加项目" disabled={adding} onClick={() => void addProject()} /></div>
-        <nav className="projects" aria-label="项目列表">{data.projects.map(p => {
-          const running = data.tasks.filter(t => t.projectId === p.id && isActive(t)).length;
-          return <div key={p.id} className={`project-item ${p.id === projectId ? 'selected' : ''}`}>
+        <nav className="projects" aria-label="项目列表">{workspace.projects.map(p => {
+          const running = p.runningTasks;
+          return <div key={p.id} className={`project-item ${p.selected ? 'selected' : ''}`}>
             <button className="project-button" aria-label={p.name} title={p.path} onClick={() => setProjectId(p.id)}><FolderOpenOutlined /><span>{p.name}</span>{running > 0 && <Badge count={running} color="#247e7b" title="后台任务执行中" />}</button>
             <Button type="text" size="small" icon={<DeleteOutlined />} aria-label={`移除项目 ${p.name}`} onClick={() => setRemoving(p.id)} />
           </div>;
         })}{loaded && !data.projects.length && <p className="sidebar-hint">添加本地目录，将任务与历史按项目隔离。</p>}</nav>
         <div className="section-label">会话历史<Button type="text" size="small" icon={<PlusOutlined />} aria-label="新建会话" disabled={!project || busy || !!connectionError} onClick={() => void createConversation()} /></div>
-        <nav className="conversations" aria-label="会话历史">{data.conversations.filter(c => c.projectId === projectId).map(c => <button key={c.id} aria-label={c.title} className={`conversation-button ${c.id === conversation?.id ? 'selected' : ''}`} onClick={() => setConversationId(c.id)}><MessageOutlined /><span>{c.title}</span>{data.tasks.some(t => t.conversationId === c.id && isActive(t)) && <Badge status="processing" />}</button>)}{project && !data.conversations.some(c => c.projectId === projectId) && <p className="sidebar-hint">暂无会话，点击 + 新建。</p>}</nav>
+        <nav className="conversations" aria-label="会话历史">{workspace.conversations.map(c => <button key={c.id} aria-label={c.title} className={`conversation-button ${c.selected ? 'selected' : ''}`} onClick={() => setConversationId(c.id)}><MessageOutlined /><span>{c.title}</span>{c.running && <Badge status="processing" />}</button>)}{project && !workspace.conversations.length && <p className="sidebar-hint">暂无会话，点击 + 新建。</p>}</nav>
         <div className="sidebar-footer"><span>切换项目不会停止任务</span><Button icon={<SettingOutlined />} onClick={() => setSettings(true)}>设置</Button></div>
-      </aside>
-      <main className="main-panel">
+      </WorkspaceSidebar>}
+      conversation={<ConversationPane>
         <header className="topbar"><div className="heading"><span className="eyebrow">开发工作台</span><h1>{conversation?.title ?? project?.name ?? '你的下一个想法，从这里开始'}</h1></div>
           <Space><Select aria-label="选择模型" className="model-select" placeholder="选择模型服务" value={providerId || undefined} onChange={setProviderId} options={data.providers.map(p => ({ value: p.id, label: `${p.name} · ${p.model}` }))} notFoundContent={<Button type="link" onClick={() => setSettings(true)}>配置模型服务</Button>} />
             <Tag color={connectionError ? 'error' : active.length ? 'processing' : 'default'}>{connectionError ? '连接中断' : !loaded ? '连接中' : active.length ? '执行中' : '待命'}</Tag>
-            <Tooltip title="仅停止当前会话任务"><Button danger icon={<StopOutlined />} aria-label="停止任务" disabled={!active.length} onClick={() => { for (const t of active) void mutate('cancel', { taskId: t.id }); }}>停止</Button></Tooltip>
+            <Tooltip title="仅停止当前会话任务"><Button danger icon={<StopOutlined />} aria-label="停止任务" disabled={!active.length} onClick={() => { for (const t of active) void mutateCommand(uiCommands.cancelTask(t.id)); }}>停止</Button></Tooltip>
           </Space>
         </header>
         <div className="notice-area">{connectionError && <Alert type="error" showIcon message="无法连接本机服务" description={`${connectionError}。正在自动重连；请检查 Mac 服务是否运行。`} />}{error && <Alert type="error" showIcon closable message={error} onClose={() => setError('')} />}</div>
@@ -155,14 +170,15 @@ export default function App() {
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
           {history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId)).map(e => <details className="tool-row" key={e.id}><summary><CodeOutlined /> {String(e.payload.name ?? e.payload.toolName ?? e.type)} <span className="muted">{e.type} · 任务 {e.taskId}（位于其他分页）</span></summary><pre>{JSON.stringify(e.payload, null, 2)}</pre></details>)}
         </div>
-        <footer className="composer"><div className="composer-context"><span><FolderOpenOutlined /> {project?.name ?? '未选择项目'}</span><span>{data.tasks.filter(t => isActive(t) && t.conversationId !== conversation?.id).length} 个后台任务</span></div>
+        <ComposerDock><div className="composer-context"><span><FolderOpenOutlined /> {project?.name ?? '未选择项目'}</span><span>{workspace.backgroundTaskCount} 个后台任务</span></div>
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
           <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Button type="primary" aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()}>发送任务</Button>} />
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>
-        </footer>
-      </main>
-    </div>
-    <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (await mutate('remove_project', { projectId: removing })) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
+        </ComposerDock>
+      </ConversationPane>}
+      rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
+    />
+    <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
     {settings && <Settings providers={data.providers} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider>;
 }

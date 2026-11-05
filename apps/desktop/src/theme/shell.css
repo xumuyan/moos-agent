@@ -1,0 +1,73 @@
+.app-shell {
+  background: var(--moos-panel);
+}
+
+.workspace-sidebar {
+  background: var(--moos-sidebar);
+  border-color: var(--moos-border);
+}
+
+.conversation-pane {
+  min-width: 0;
+}
+
+.right-panel {
+  width: var(--moos-right-panel-width);
+  flex: none;
+  padding: 24px 18px;
+  border-left: 1px solid var(--moos-border);
+  background: #f7f9fa;
+  overflow: auto;
+}
+
+.right-panel-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--moos-border);
+}
+
+.right-panel-heading strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.context-summary {
+  margin: 0;
+}
+
+.context-summary div {
+  padding: 16px 0;
+  border-bottom: 1px solid #e7ebee;
+}
+
+.context-summary dt {
+  color: var(--moos-muted);
+  font-size: 11px;
+}
+
+.context-summary dt .anticon {
+  margin-right: 6px;
+}
+
+.context-summary dd {
+  margin: 7px 0 0;
+  color: #526272;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.right-panel-note {
+  margin-top: 18px;
+  color: #94a0aa;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1180px) {
+  .right-panel {
+    display: none;
+  }
+}

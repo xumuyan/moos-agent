@@ -6,11 +6,11 @@
 
 本轮优先范围：项目目录管理、多会话与历史、PI 流式聊天和文件/命令工具、默认并发 2 的跨项目调度、同真实目录串行、单任务停止、模型配置及 Mac 钥匙串。手机、原生电脑操作和自动模型路由暂不接入。按 M02/M03/M04 相关子集与 M06 的代码调度子集推进，不提前勾选整个阶段；真实模型须用户在本机填写配置，模拟验收与真实模型验收分别记录。
 
-## P02｜DSH 风格前端、插件与长任务运行时（设计已确认，未实施）
+## P02｜DSH 风格前端、插件与长任务运行时（实施中）
 
-用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。设计已确认且实施计划已编写，但功能尚未实施，以下任务全部保持未完成：
+用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。P02.1 已按 E19 实施并验收，P02.2—P02.9 仍未完成：
 
-- [ ] P02.1 建立第三方来源清单、许可证归属、Moos UI Adapter 契约和 DSH 风格静态页面骨架。
+- [x] P02.1 建立第三方来源清单、许可证归属、Moos UI Adapter 契约和 DSH 风格静态页面骨架。证据：E19。
 - [ ] P02.2 移植三栏布局、工作区/会话、对话/轨迹、输入区、三档权限、完整设置中心和右侧面板。
 - [ ] P02.3 验证 PI 1.5.0 SDK 的会话恢复、并发、取消、工具事件、模型代理和退出清理；通过后将正式产品从逐任务 RPC 子进程迁移为单一隐藏运行时。M01 RPC 探针证据保持历史原样。
 - [ ] P02.4 移除当前固定 600000ms 任务上限；提供 10 分钟至 24 小时的有界配置、默认 2 小时、心跳和真实错误分类。已观察到两项任务分别在 600.0 秒和 600.1 秒失败，修复前不得宣称支持长任务。
@@ -20,7 +20,13 @@
 - [ ] P02.8 增加受信任的内置终端插件，使用 Tauri 原生 PTY，不增加 Node Web Server；Git 管理继续按 D01 单独排期。
 - [ ] P02.9 完成自动测试与 Mac GUI 实测：连续任务无 Node/Dock 闪烁、超过 10 分钟任务、进程树、停止/崩溃清理、真实模型 usage、插件越权拒绝、皮肤恢复、打包和完整落盘体积。
 
-依赖：P01 已有正式产品子集；P02.3 先做 SDK 可行性门禁，失败时不得删除已验证 RPC 路径。受阻原因：设计已确认但尚无实现、SDK 单一运行时和第三方代码移植边界未做实际验证。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用 DSH 截图、按钮存在或模拟 usage 替代验收。
+依赖：P01 已有正式产品子集；P02.1 已完成来源/许可、适配契约与页面骨架。P02.3 先做 SDK 可行性门禁，失败时不得删除已验证 RPC 路径。剩余受阻原因：P02.2—P02.9 尚未实现，SDK 单一运行时、长任务、Usage、插件、皮肤、PTY 和完整进程验收均未通过。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用 DSH 截图、按钮存在或模拟 usage 替代验收。
+
+#### P02 本轮证据
+
+| 证据 | 执行与实际结果 | 限制 |
+| --- | --- | --- |
+| E19 | 2026-11-05，arm64/macOS 27.0.1；固定 DeepSeek Harness 来源提交与 MIT 声明，P02.1 未复制上游源码或品牌素材；新增类型化 UI Adapter、命令白名单、语义 AppShell、响应式上下文栏和主题变量。新增 5 项组件/适配器测试；本地浏览器使用真实 PI 1.5.0 + 模拟模型完成 write/bash 任务，项目切换时显示 1 个后台任务且未取消，返回后停止成功；设置页可打开，控制台错误/警告 0。脱敏证据 `apps/desktop/evidence/p02-ui-shell.json` | 浏览器实际宽度 872px，右栏按 1180px 断点隐藏，但 DOM、组件测试与 CSS 契约存在；未做宽屏视觉实测、打包 Mac GUI 验收或生产进程树检查。P02.2—P02.9 未完成，不能据本地 fixture 声称插件、Usage、SDK 单运行时或无 Node 闪烁已实现。提交说明 `feat(P02.1): add UI adapter and DSH-style shell` |
 
 ## P01｜正式桌面 PI 聊天与多项目子集
 

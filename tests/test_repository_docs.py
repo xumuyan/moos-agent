@@ -19,12 +19,32 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, design)
         self.assertIn('fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159', design)
         self.assertIn('600.0 秒和 600.1 秒', design)
-        self.assertIn('P02｜DSH 风格前端、插件与长任务运行时（设计已确认，未实施）', plan)
-        for number in range(1, 10):
+        self.assertIn('P02｜DSH 风格前端、插件与长任务运行时（实施中）', plan)
+        self.assertIn('- [x] P02.1 ', plan)
+        self.assertIn('证据：E19', plan)
+        for number in range(2, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertNotIn('- [x]', p02)
+        self.assertEqual(p02.count('- [x]'), 1)
         self.assertIn('在线插件市场不在首批范围', p02)
+
+    def test_p02_1_records_license_adapter_and_shell_evidence(self):
+        notice = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text(encoding='utf-8')
+        source = (ROOT / 'docs/third-party/deepseek-harness.md').read_text(encoding='utf-8')
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        for document in (notice, source):
+            self.assertIn('fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159', document)
+            self.assertIn('MIT', document)
+            self.assertIn('Copyright (c) 2026 DeepSeek', document)
+        self.assertIn('没有复制或实质性改写', source)
+        self.assertIn('apps/desktop/src/ui-adapter/', source)
+        self.assertIn('apps/desktop/src/layout/', source)
+        self.assertIn('| E19 |', plan)
+        for path in ('apps/desktop/src/ui-adapter/snapshot.ts',
+                     'apps/desktop/src/ui-adapter/commands.ts',
+                     'apps/desktop/src/layout/AppShell.tsx',
+                     'apps/desktop/src/layout/RightPanel.tsx'):
+            self.assertTrue((ROOT / path).is_file(), path)
 
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
@@ -36,6 +56,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('本地密钥文件', design)
         for number in range(1, 10):
             self.assertIn(f'P02.{number}', implementation)
+        self.assertIn('- [x] P02.1 ', plan)
+        for number in range(2, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -43,7 +65,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertNotIn('- [x]', p02)
+        self.assertEqual(p02.count('- [x]'), 1)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

@@ -255,3 +255,12 @@
 - 验证结果：实施计划提交 `e19115627266bc86396c79a5f89934ef4aec0cce` 已快进推送至 GitHub main；`git ls-remote origin refs/heads/main` 与当时本地 HEAD 均为该哈希。该结果只证明计划远程交付，不证明任何 P02 产品功能完成。
 - 遗留问题：P02.1—P02.9 全部未实施；下一步仍从 P02.1 开始。本条日志自身需创建独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送计划提交 `e19115627266bc86396c79a5f89934ef4aec0cce`；本条补记使用唯一提交说明 `docs(P02): record implementation plan delivery`，查询命令：`git log --all --oneline --grep='^docs(P02): record implementation plan delivery$'`。
+
+## 2026-11-05 17:31:13 +08:00｜P02.1：第三方边界、UI Adapter 与静态 AppShell
+
+- 修改或新增内容：新增根目录 `THIRD_PARTY_NOTICES.md` 和 DeepSeek Harness 文件级来源记录，固定 `fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`、MIT 与 Copyright (c) 2026 DeepSeek；P02.1 采用 Moos 独立实现，未复制上游源码、品牌或图形素材。新增 Snapshot→Workspace ViewModel、类型化 UI 命令白名单和敏感参数拒绝；新增 AppShell、工作区/会话侧栏、对话主区、响应式上下文栏、输入 Dock 和主题变量，将正式 App 接入而不改变后端方法语义。新增 5 项适配器/组件测试和 E19 脱敏证据；PLAN.md 将且仅将 P02.1 勾选完成，P02.2—P02.9 保持未完成。
+- 遇到的难题：三组测试先因实现文件不存在按预期失败；完整 UI 回归随后有 2 项失败，原因是无参数 `pick_directory` 经新命令适配器额外传入空对象，破坏旧桥调用形状。本机另一工作区已占用 4318/1420，不能停止无关进程。browse 技能默认查找旧 `~/.claude` 路径，实际工具位于 Codex 目录；继续启动又发现缺少 Bun，官方安装脚本当前 SHA-256 `04882bf...` 与技能固定安全值 `bab8acf...` 不一致，未执行安装。浏览器实际视口只有 872px，右栏按响应式断点隐藏，不能冒充宽屏视觉验收。
+- 处理方式：先保留失败测试再实现最小契约；无参数命令恢复为只传方法名，有参数命令继续传类型化对象。使用临时且不提交的 4319/1421 配置隔离本工作树，结束后只停止本次两个进程并删除临时配置；不触碰占用 4318/1420 的无关进程。Bun 校验失败后停止 browse 安装并改用现有系统浏览器自动化；实际提交固定本地 PI fixture 任务、切换项目、返回停止并打开设置。右栏只记录 DOM/组件/CSS 契约和窄屏隐藏事实。浏览器技能意外向 `.gitignore` 加入 `.gstack/` 后已移除，未纳入提交。
+- 验证结果：新增适配器/组件 5/5，最终 `npm run test:desktop-ui` 46/46、`npm test` 109/109、`npm run test:desktop-product` 12/12、`npm run test:desktop-native` 11/11、`npm run test:docs` 32/32、`npm run build:desktop` 和 `git diff --check` 通过。浏览器使用真实 PI 1.5.0 + 本地模拟模型完成 `MOOS_FIXTURE_WRITE P02_SHELL` 的 write/bash 和回复；`MOOS_FIXTURE_HOLD` 运行时切到第二项目显示 1 个后台任务且未取消，返回后停止为 cancelled；设置页成功打开。语义 Shell、侧栏、主区、右栏和输入区各 1 个，无横向溢出，控制台错误/警告 0；截图已人工查看但未提交原始图像，脱敏结果见 E19。既有 jsdom `NaN` 高度警告和 807.33 kB chunk 警告仍存在。
+- 遗留问题：未做宽屏右栏视觉实测、打包 Mac GUI 或生产进程树验收；当前两个 Node 宿主、逐任务 PI RPC spawn、600000ms 上限和通用 `Task execution failed` 未改变。P02.2 的完整三栏交互、三档权限和设置中心，及 P02.3—P02.9 的 SDK、长任务、Usage、插件、皮肤、PTY 和总验收均未完成。browse 的 Bun 安装脚本校验差异需技能维护者更新可信哈希或提供已验证运行时后才能使用该工具。
+- 对应 Git 提交：本批次唯一提交说明 `feat(P02.1): add UI adapter and DSH-style shell`；查询命令：`git log --all --oneline --grep='^feat(P02.1): add UI adapter and DSH-style shell$'`。验证后提交推送并核对远程，不预填未知哈希。

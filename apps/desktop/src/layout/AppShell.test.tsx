@@ -1,0 +1,23 @@
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import AppShell from './AppShell';
+import WorkspaceSidebar from './Sidebar';
+import ConversationPane from './ConversationPane';
+import RightPanel from './RightPanel';
+import ComposerDock from './ComposerDock';
+
+describe('AppShell', () => {
+  it('provides the DSH-style semantic shell without claiming future plugins', () => {
+    render(<AppShell
+      sidebar={<WorkspaceSidebar><button>项目</button><button>会话</button></WorkspaceSidebar>}
+      conversation={<ConversationPane header={<h1>会话标题</h1>} notices={<div>状态</div>} composer={<ComposerDock><textarea aria-label="输入" /></ComposerDock>}><div>对话与轨迹</div></ConversationPane>}
+      rightPanel={<RightPanel projectName="项目" projectPath="/work/project" activeTasks={1} />}
+    />);
+
+    expect(screen.getByRole('complementary', { name: '工作区与会话' })).toBeInTheDocument();
+    expect(screen.getByRole('main', { name: '对话工作区' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: '上下文面板' })).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo', { name: '任务输入区' })).toBeInTheDocument();
+    expect(screen.queryByText(/插件市场|Token 统计已启用/)).not.toBeInTheDocument();
+  });
+});
