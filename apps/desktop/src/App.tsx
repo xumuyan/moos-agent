@@ -13,6 +13,9 @@ import WorkspaceSidebar from './layout/Sidebar';
 import ConversationPane from './layout/ConversationPane';
 import RightPanel from './layout/RightPanel';
 import ComposerDock from './layout/ComposerDock';
+import PermissionMenu from './composer/PermissionMenu';
+import ComposerStatus from './composer/ComposerStatus';
+import TaskTrajectory from './conversation/TaskTrajectory';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
 import './theme/tokens.css';
@@ -129,7 +132,7 @@ export default function App() {
       </div>
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
       {stream && !saved && <Bubble content={<span className="plain-text">{stream}</span>} />}
-      {tools.map(e => <details className="tool-row" key={e.id}><summary><CodeOutlined /> {String(e.payload.name ?? e.payload.toolName ?? e.type)} <span className="muted">{e.type}</span></summary><pre>{JSON.stringify(e.payload, null, 2)}</pre></details>)}
+      <TaskTrajectory events={tools} />
       {task.error && <Alert type="error" message={task.error} showIcon />}
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
@@ -168,11 +171,12 @@ export default function App() {
               {m.role === 'user' && associated.map(renderTask)}
             </Fragment>;
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
-          {history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId)).map(e => <details className="tool-row" key={e.id}><summary><CodeOutlined /> {String(e.payload.name ?? e.payload.toolName ?? e.type)} <span className="muted">{e.type} · 任务 {e.taskId}（位于其他分页）</span></summary><pre>{JSON.stringify(e.payload, null, 2)}</pre></details>)}
+          <TaskTrajectory events={history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId))} />
         </div>
-        <ComposerDock><div className="composer-context"><span><FolderOpenOutlined /> {project?.name ?? '未选择项目'}</span><span>{workspace.backgroundTaskCount} 个后台任务</span></div>
+        <ComposerDock><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} />
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
           <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Button type="primary" aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()}>发送任务</Button>} />
+          <PermissionMenu />
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>
         </ComposerDock>
       </ConversationPane>}

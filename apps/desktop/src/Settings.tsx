@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AutoComplete, Button, Form, Input, Modal, Popconfirm, Select, Space, Tag } from 'antd';
+import { Alert, AutoComplete, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd';
 import type { Provider } from './types';
 import { request } from './api';
+import SettingsCenter from './settings/SettingsCenter';
 
 interface DiagnosticResult { ok: boolean; code: string; message: string; elapsedMs: number; models?: string[]; status?: number }
 
@@ -70,7 +71,7 @@ export default function Settings({ providers, onClose, mutate }: { providers: Pr
       if (ok) reset();
     } finally { setBusy(false); }
   };
-  return <Modal title="模型服务设置" open onCancel={close} footer={null} destroyOnHidden width={600}>
+  const modelContent = <>
     <Alert type="info" showIcon message="使用你自己的 GLM 或 OpenAI 兼容服务" description="请填写已确认的服务地址、模型 ID 与协议。能力以实际调用为准；密钥仅交给 Mac 后端保存，不存入浏览器。" />
     <div className="provider-list">{providers.map(p => <div className="provider-row" key={p.id}>
       <div><strong>{p.name}</strong><div className="muted">{p.model} · {p.api}</div><Tag>{p.hasKey === undefined ? '密钥由本机管理' : p.hasKey ? '已保存密钥' : '未保存密钥'}</Tag></div>
@@ -94,5 +95,6 @@ export default function Settings({ providers, onClose, mutate }: { providers: Pr
         description={`${result.code}${result.status === undefined ? '' : ` · HTTP ${result.status}`} · ${result.elapsedMs} ms${result.ok && result.models?.length === 0 ? ' · 未返回模型，可手动填写模型 ID。' : ''}`} />}
       <Space><Button type="primary" htmlType="submit" loading={busy}>保存服务</Button>{editing && <Button onClick={reset}>取消编辑</Button>}</Space>
     </Form>
-  </Modal>;
+  </>;
+  return <SettingsCenter open onClose={close} modelContent={modelContent} />;
 }

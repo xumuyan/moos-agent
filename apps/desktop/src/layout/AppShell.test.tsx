@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import AppShell from './AppShell';
 import WorkspaceSidebar from './Sidebar';
@@ -19,5 +20,14 @@ describe('AppShell', () => {
     expect(screen.getByRole('complementary', { name: '上下文面板' })).toBeInTheDocument();
     expect(screen.getByRole('contentinfo', { name: '任务输入区' })).toBeInTheDocument();
     expect(screen.queryByText(/插件市场|Token 统计已启用/)).not.toBeInTheDocument();
+  });
+
+  it('collapses and restores the context panel with accessible controls', async () => {
+    const user = userEvent.setup();
+    render(<RightPanel projectName="项目" projectPath="/work/project" activeTasks={0} />);
+    await user.click(screen.getByRole('button', { name: '收起上下文面板' }));
+    expect(screen.getByRole('complementary', { name: '上下文面板' })).toHaveClass('collapsed');
+    await user.click(screen.getByRole('button', { name: '展开上下文面板' }));
+    expect(screen.getByRole('complementary', { name: '上下文面板' })).not.toHaveClass('collapsed');
   });
 });

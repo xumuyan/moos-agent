@@ -273,3 +273,12 @@
 - 验证结果：推送输出为 `7fe8cf7..3a4ddec  HEAD -> main`；本地 `HEAD` 与 GitHub `main` 均为 `3a4ddec073a92ef5b9e369a6ce2ba9be8630caf1`。功能测试与实际验收范围沿用同一提交内 E19 和前一条日志，不因远程交付扩大。
 - 遗留问题：P02.2—P02.9 仍未完成；browse 技能的本地遥测脚本因全局安装目录中的脚本无执行权限且本机无 Bun 未能写入时间线，不影响 Moos 产品测试，未修改全局工具规避。此日志补记仍需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `3a4ddec073a92ef5b9e369a6ce2ba9be8630caf1`；本条补记使用唯一提交说明 `docs(P02.1): record shell remote delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.1): record shell remote delivery$'`。
+
+## 2026-11-05 17:51:10 +08:00｜P02.2：完整工作区体验、权限菜单与设置中心
+
+- 修改或新增内容：新增真实事件 `TaskTrajectory`、脱敏 `ToolCard`、消息列表展示组件、输入区状态和三档 `PermissionMenu`；权限档位固定为“请求批准 / 帮我批准 / 完全访问权限”，默认“帮我批准”，只将非敏感 UI 偏好保存在 WebView localStorage。新增九分区设置中心，保留既有模型 Keychain 与诊断表单，其余未实现能力显示真实“计划中/未接入”状态；右侧上下文栏支持手动收起和恢复。新增 4 项组件测试、E20 脱敏证据，并在 PLAN.md 只勾选 P02.2。
+- 遇到的难题：测试先行时三个新组件模块尚不存在，3 个 suite 按预期失败；实现后测试错误假设 Ant Design 可选择菜单使用 `menuitemradio`，实际可访问角色为 `menuitem`，且闭合 `details` 内容在可见性断言中不可见。首次 `npm run build:app` 需要重新编译 Tauri 依赖，耗时约 3 分 33 秒。GUI 自动化中一次状态刷新超时导致会话重置，但未修改用户数据。
+- 处理方式：按实际 Ant Design 语义修正测试角色，工具卡默认展开以直接展示真实输入摘要和结果；递归过滤凭据形状的字段，不合成 Think/隐藏推理。设置页对 Usage、插件、主题、手机连接、高级运行时明确说明未实现。打包后直接启动工作树产物，不覆盖 `/Applications` 中已有应用；GUI 逐项核对设置导航、权限菜单、历史轨迹和右栏折叠，并恢复右栏原状态。
+- 验证结果：`npm run test:desktop-ui` 51/51、`npm test` 109/109、`npm run test:desktop-product` 12/12、`npm run test:docs` 33/33、`npm run build:desktop`、`npm run build:app` 和 `git diff --check` 通过。打包 GUI 实际显示九个设置分区、三档权限与 macOS 权限边界说明、真实持久化工具事件；右栏收起/恢复通过。Tauri 报告包 230.49 MiB，逻辑大小 240598 KiB、磁盘占用 279348 KiB。既有 jsdom `NaN` 高度警告和 874.18 kB chunk 警告仍存在。
+- 遗留问题：权限档位尚未接入后端执行策略，不能扩大系统或任务权限；Usage、缓存命中、上下文窗口、插件、皮肤、产品级手机连接均未实现。当前完整 Node/PI、双宿主、逐任务 RPC spawn、600000ms 上限和 `Task execution failed` 未改变；P02.3—P02.9 仍未完成，包体也未优化。
+- 对应 Git 提交：本批次使用唯一提交说明 `feat(P02.2): build DSH-style workspace experience`；查询命令：`git log --all --oneline --grep='^feat(P02.2): build DSH-style workspace experience$'`。验证后提交推送并核对远程，不预填未知哈希。

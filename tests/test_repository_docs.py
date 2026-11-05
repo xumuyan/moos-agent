@@ -22,10 +22,12 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('P02｜DSH 风格前端、插件与长任务运行时（实施中）', plan)
         self.assertIn('- [x] P02.1 ', plan)
         self.assertIn('证据：E19', plan)
-        for number in range(2, 10):
+        self.assertIn('- [x] P02.2 ', plan)
+        self.assertIn('证据：E20', plan)
+        for number in range(3, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 1)
+        self.assertEqual(p02.count('- [x]'), 2)
         self.assertIn('在线插件市场不在首批范围', p02)
 
     def test_p02_1_records_license_adapter_and_shell_evidence(self):
@@ -46,6 +48,19 @@ class RepositoryDocsTests(unittest.TestCase):
                      'apps/desktop/src/layout/RightPanel.tsx'):
             self.assertTrue((ROOT / path).is_file(), path)
 
+    def test_p02_2_records_truthful_settings_and_packaged_gui_evidence(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        evidence = (ROOT / 'apps/desktop/evidence/p02-workspace-experience.json').read_text(encoding='utf-8')
+        self.assertIn('- [x] P02.2 ', plan)
+        self.assertIn('| E20 |', plan)
+        for term in ('请求批准', '帮我批准', '完全访问权限', 'permissionPolicyBackendConnected',
+                     'verifiedUsageImplemented', 'tauriReportedSizeMiB'):
+            self.assertIn(term, evidence)
+        for path in ('apps/desktop/src/composer/PermissionMenu.tsx',
+                     'apps/desktop/src/conversation/TaskTrajectory.tsx',
+                     'apps/desktop/src/settings/SettingsCenter.tsx'):
+            self.assertTrue((ROOT / path).is_file(), path)
+
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design = (ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md').read_text(encoding='utf-8')
@@ -57,7 +72,8 @@ class RepositoryDocsTests(unittest.TestCase):
         for number in range(1, 10):
             self.assertIn(f'P02.{number}', implementation)
         self.assertIn('- [x] P02.1 ', plan)
-        for number in range(2, 10):
+        self.assertIn('- [x] P02.2 ', plan)
+        for number in range(3, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -65,7 +81,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 1)
+        self.assertEqual(p02.count('- [x]'), 2)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
