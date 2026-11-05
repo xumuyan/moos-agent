@@ -11,6 +11,8 @@ pub fn allowed_method(method: &str) -> bool {
             | "create_conversation"
             | "submit"
             | "cancel"
+            | "list_models"
+            | "test_provider"
     )
 }
 
@@ -42,7 +44,7 @@ pub fn public_params(method: &str, mut params: Value) -> Result<(Value, Option<S
     if !allowed_method(method) || !params.is_object() {
         return Err("Invalid agent request".into());
     }
-    let key = if method == "save_provider" {
+    let key = if matches!(method, "save_provider" | "list_models" | "test_provider") {
         match params.get("apiKey") {
             Some(Value::String(key)) if !key.trim().is_empty() => Some(key.clone()),
             Some(_) => return Err(

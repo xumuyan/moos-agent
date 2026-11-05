@@ -12,6 +12,8 @@ fn only_public_controller_commands_are_allowed() {
         "create_conversation",
         "submit",
         "cancel",
+        "list_models",
+        "test_provider",
     ] {
         assert!(allowed_method(method), "{method}");
     }
@@ -38,6 +40,21 @@ fn save_extracts_key_and_recursively_removes_public_credentials() {
         json!({"apiKey":"", "provider":{"id":"glm"}})
     )
     .is_err());
+}
+
+#[test]
+fn diagnostics_extract_only_the_explicit_draft_key() {
+    for method in ["list_models", "test_provider"] {
+        let (params, key) = public_params(
+            method,
+            json!({"apiKey":"draft-key", "provider":{"id":"saved", "apiKey":"nested"}}),
+        )
+        .unwrap();
+        assert_eq!(key.as_deref(), Some("draft-key"));
+        assert_eq!(params, json!({"provider":{"id":"saved"}}));
+        let (_, key) = public_params(method, json!({"provider":{"id":"saved"}})).unwrap();
+        assert!(key.is_none());
+    }
 }
 
 #[test]

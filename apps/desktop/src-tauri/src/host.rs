@@ -22,12 +22,34 @@ pub struct Host {
 
 impl Host {
     pub fn launch(node: &Path, entry: &Path, runtime: &Path, data: &Path) -> Result<Self, String> {
+        Self::spawn(node, entry, runtime, data, false)
+    }
+
+    pub fn launch_diagnostics(
+        node: &Path,
+        entry: &Path,
+        runtime: &Path,
+        data: &Path,
+    ) -> Result<Self, String> {
+        Self::spawn(node, entry, runtime, data, true)
+    }
+
+    fn spawn(
+        node: &Path,
+        entry: &Path,
+        runtime: &Path,
+        data: &Path,
+        diagnostics: bool,
+    ) -> Result<Self, String> {
         if !node.is_absolute() || !entry.is_absolute() {
             return Err("Agent paths must be absolute".into());
         }
         let mut command = Command::new(node);
+        command.arg(entry);
+        if diagnostics {
+            command.arg("--diagnostics");
+        }
         command
-            .arg(entry)
             .current_dir(entry.parent().ok_or("Invalid agent path")?)
             .env("MOOS_DATA_DIR", data)
             .env("MOOS_RUNTIME_DIR", runtime)

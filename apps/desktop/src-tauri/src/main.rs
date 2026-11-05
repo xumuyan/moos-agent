@@ -10,18 +10,24 @@ use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
 
 type SharedAgent = Arc<Mutex<Option<Agent>>>;
+struct DiagnosticAgent(SharedAgent);
 
 #[tauri::command]
 async fn agent_request(
     method: String,
     params: Value,
     state: State<'_, SharedAgent>,
+    diagnostics: State<'_, DiagnosticAgent>,
 ) -> Result<Value, String> {
     // Never block the WebView/main event loop with stdio or Keychain operations.
     if !moos_desktop::protocol::allowed_method(&method) {
         return Err("Invalid agent request".into());
     }
-    let agent = state.inner().clone();
+    let agent = if matches!(method.as_str(), "list_models" | "test_provider") {
+        diagnostics.0.clone()
+    } else {
+        state.inner().clone()
+    };
     tauri::async_runtime::spawn_blocking(move || {
         let mut guard = agent.lock().map_err(|_| "Agent state unavailable")?;
         guard
@@ -59,6 +65,12 @@ fn main() {
             };
             let host =
                 Host::launch(&node, &entry, &runtime, &data).map_err(std::io::Error::other)?;
+            let diagnostic_host = Host::launch_diagnostics(&node, &entry, &runtime, &data)
+                .map_err(std::io::Error::other)?;
+            app.manage(DiagnosticAgent(Arc::new(Mutex::new(Some(Agent::new(
+                diagnostic_host,
+                Box::new(NativeKeychain),
+            ))))));
             app.manage(
                 Arc::new(Mutex::new(Some(Agent::new(host, Box::new(NativeKeychain)))))
                     as SharedAgent,
@@ -70,7 +82,13 @@ fn main() {
         .expect("Unable to initialize Moos desktop");
     app.run(|app, event| {
         if matches!(event, tauri::RunEvent::Exit) {
-            if let Some(state) = app.try_state::<SharedAgent>() {
+            let regular = app
+                .try_state::<SharedAgent>()
+                .map(|state| state.inner().clone());
+            let diagnostics = app
+                .try_state::<DiagnosticAgent>()
+                .map(|state| state.0.clone());
+            for state in [regular, diagnostics].into_iter().flatten() {
                 if let Ok(mut guard) = state.lock() {
                     if let Some(mut agent) = guard.take() {
                         agent.shutdown();

@@ -9,6 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        for term in ('模型配置诊断', '草稿', '钥匙串', '独立诊断通道', '真实模型未验收'):
+            self.assertIn(term, plan)
+        self.assertIn('- [ ] M04 接入 GLM Coding Plan', plan)
+
     def test_product_chat_evidence_preserves_unverified_real_provider_scope(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         for term in ('P01', 'npm run dev:app', 'npm run build:app', '真实模型未验收',

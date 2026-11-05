@@ -42,6 +42,30 @@ impl Agent {
                     }
                 }
             }
+            "list_models" | "test_provider" => {
+                let credential = if key.is_some() {
+                    key
+                } else if params.pointer("/provider/id").is_some() {
+                    let id = protocol::provider_id(&params, "/provider/id")?;
+                    match self.credentials.get(id) {
+                        Ok(key) => key,
+                        Err(_) => {
+                            return Ok(
+                                serde_json::json!({"ok":false,"code":"keychain","message":"无法读取钥匙串，请解锁或在 macOS 中授权后重试","elapsedMs":0}),
+                            )
+                        }
+                    }
+                } else {
+                    None
+                };
+                let Some(key) = credential else {
+                    return Ok(
+                        serde_json::json!({"ok":false,"code":"missing_key","message":"请填写 API 密钥，或编辑已保存密钥的服务","elapsedMs":0}),
+                    );
+                };
+                params["apiKey"] = Value::String(key);
+                self.host.request(method, params)
+            }
             "submit" => {
                 let id = protocol::provider_id(&params, "/providerId")?;
                 let key = self

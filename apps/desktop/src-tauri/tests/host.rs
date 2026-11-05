@@ -93,6 +93,225 @@ fn real_host_snapshots_and_key_boundary_and_shutdown() {
 }
 
 #[test]
+fn diagnostics_use_draft_or_saved_credentials_without_saving() {
+    let temp = Temp::new();
+    let entry = temp.0.join("diagnostics.mjs");
+    std::fs::write(&entry, r#"import {createInterface} from 'node:readline';
+createInterface({input:process.stdin}).on('line', line => {
+ const r=JSON.parse(line); if(r.method==='shutdown') process.exit(0);
+ const key=r.params.apiKey;
+ console.log(JSON.stringify({id:r.id,result:{ok:true,draft:key==='draft-key',saved:key==='saved-key',method:r.method}}));
+});"#).unwrap();
+    let (node, _, runtime) = dev_paths().unwrap();
+    let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
+    let keys = MemoryCredentials::default();
+    keys.set("saved", "saved-key").unwrap();
+    let mut agent = Agent::new(host, Box::new(keys.clone()));
+    let draft = agent
+        .request(
+            "list_models",
+            json!({"provider":{"id":"saved"},"apiKey":"draft-key"}),
+        )
+        .unwrap();
+    assert_eq!(draft["draft"], true);
+    assert_eq!(keys.get("saved").unwrap().as_deref(), Some("saved-key"));
+    let saved = agent
+        .request("test_provider", json!({"provider":{"id":"saved"}}))
+        .unwrap();
+    assert_eq!(saved["saved"], true);
+    let missing = agent
+        .request("test_provider", json!({"provider":{}}))
+        .unwrap();
+    assert_eq!(missing["code"], "missing_key");
+    let missing_saved = agent
+        .request("list_models", json!({"provider":{"id":"unknown"}}))
+        .unwrap();
+    assert_eq!(missing_saved["code"], "missing_key");
+    assert!(keys.get("unknown").unwrap().is_none());
+    agent.shutdown();
+}
+
+#[test]
+fn diagnostic_entry_never_opens_task_or_provider_storage() {
+    use std::{
+        io::Write,
+        process::{Command, Stdio},
+    };
+    let temp = Temp::new();
+    let (node, entry, _) = dev_paths().unwrap();
+    let mut child = Command::new(node)
+        .arg(entry)
+        .arg("--diagnostics")
+        .env("MOOS_DATA_DIR", &temp.0)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    child.stdin.take().unwrap().write_all(
+        b"{\"id\":1,\"method\":\"snapshot\",\"params\":{}}\n{\"id\":2,\"method\":\"shutdown\",\"params\":{}}\n"
+    ).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    assert_eq!(
+        std::fs::read_dir(&temp.0).unwrap().count(),
+        0,
+        "diagnostic mode must not create SQLite or provider data"
+    );
+    let replies: Vec<serde_json::Value> = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert!(
+        replies
+            .iter()
+            .any(|reply| reply["id"] == 1 && reply.get("error").is_some()),
+        "diagnostic mode must reject task-controller methods"
+    );
+}
+
+#[test]
+fn delayed_diagnostics_leave_regular_snapshot_and_cancel_responsive() {
+    use std::{
+        io::{Read, Write},
+        net::TcpListener,
+        sync::mpsc,
+        thread,
+        time::Duration,
+    };
+    let temp = Temp::new();
+    let diagnostic_data = Temp::new();
+    let (node, entry, runtime) = dev_paths().unwrap();
+    let keys = MemoryCredentials::default();
+    keys.set("fixture", "saved-fixture-key").unwrap();
+    let mut regular = Agent::new(
+        Host::launch(&node, &entry, &runtime, &temp.0).unwrap(),
+        Box::new(keys.clone()),
+    );
+    let project = regular
+        .request("add_project", json!({"path": temp.0}))
+        .unwrap();
+    let conversation = regular
+        .request("create_conversation", json!({"projectId": project["id"]}))
+        .unwrap();
+    // Keep the task's upstream pending too, so cancel targets live work, not a failed task.
+    let task_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let task_url = format!("http://{}/v1", task_listener.local_addr().unwrap());
+    regular
+        .request(
+            "save_provider",
+            json!({"provider": {"id":"fixture", "model":"fixture",
+        "api":"openai-completions", "baseUrl":task_url}}),
+        )
+        .unwrap();
+    let task = regular
+        .request(
+            "submit",
+            json!({"conversationId":conversation["id"],
+        "providerId":"fixture", "message":"Wait for cancellation"}),
+        )
+        .unwrap();
+
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}/v1", listener.local_addr().unwrap());
+    let (started, waiting) = mpsc::channel();
+    let (release, held) = mpsc::channel();
+    let server = thread::spawn(move || {
+        let (mut socket, _) = listener.accept().unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut request = Vec::new();
+        while !request.ends_with(b"\r\n\r\n") {
+            let mut byte = [0];
+            socket.read_exact(&mut byte).unwrap();
+            request.push(byte[0]);
+        }
+        started.send(String::from_utf8(request).unwrap()).unwrap();
+        held.recv_timeout(Duration::from_secs(5)).unwrap();
+        let body = r#"{"data":[{"id":"fixture-model"}]}"#;
+        write!(socket, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+    });
+    let diagnostic = Host::launch_diagnostics(&node, &entry, &runtime, &diagnostic_data.0).unwrap();
+    let (done, result) = mpsc::channel();
+    let worker = thread::spawn(move || {
+        let mut diagnostic = Agent::new(diagnostic, Box::new(keys));
+        let reply = diagnostic.request(
+            "list_models",
+            json!({"provider": {"id":"fixture",
+            "baseUrl":url, "api":"openai-completions"}}),
+        );
+        done.send(reply).unwrap();
+        let test = diagnostic
+            .request(
+                "test_provider",
+                json!({"provider": {"id":"fixture",
+            "baseUrl":"invalid", "api":"openai-completions", "model":"fixture"}}),
+            )
+            .unwrap();
+        assert_eq!(test["code"], "invalid_config");
+        assert!(diagnostic.request("snapshot", json!({})).is_err());
+        diagnostic.shutdown();
+        assert!(diagnostic
+            .request("list_models", json!({"apiKey":"draft", "provider":{}}))
+            .is_err());
+    });
+    let request = waiting.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert!(request.starts_with("GET /v1/models HTTP/1.1"));
+    assert!(request
+        .to_lowercase()
+        .contains("authorization: bearer saved-fixture-key"));
+    let start = Instant::now();
+    assert!(regular.request("snapshot", json!({})).unwrap()["tasks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|item| item["id"] == task["id"] && item["status"] == "running"));
+    assert_eq!(
+        regular
+            .request("cancel", json!({"taskId":task["id"]}))
+            .unwrap()["id"],
+        task["id"]
+    );
+    assert!(
+        start.elapsed() < Duration::from_secs(1),
+        "control lane blocked on diagnostics"
+    );
+    let deadline = Instant::now() + Duration::from_secs(2);
+    loop {
+        let snapshot = regular.request("snapshot", json!({})).unwrap();
+        if snapshot["tasks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["id"] == task["id"] && item["status"] == "cancelled")
+        {
+            break;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "task cancellation did not finish"
+        );
+        thread::yield_now();
+    }
+    assert!(
+        matches!(result.try_recv(), Err(mpsc::TryRecvError::Empty)),
+        "fixture must still be delayed"
+    );
+    release.send(()).unwrap();
+    let reply = result
+        .recv_timeout(Duration::from_secs(5))
+        .unwrap()
+        .unwrap();
+    assert_eq!(reply["models"], json!(["fixture-model"]));
+    worker.join().unwrap();
+    server.join().unwrap();
+    assert_eq!(std::fs::read_dir(&diagnostic_data.0).unwrap().count(), 0);
+    regular.shutdown();
+}
+
+#[test]
 fn uncooperative_child_shutdown_is_bounded_and_rejects_new_work() {
     let temp = Temp::new();
     let entry = temp.0.join("stall.mjs");

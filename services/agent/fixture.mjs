@@ -31,7 +31,12 @@ export async function startFixture() {
   const server = createServer(async (req, res) => {
     try {
       if (req.headers.authorization !== `Bearer ${apiKey}`) return reply(res, 401, 'Invalid fixture credential');
-      if (req.method !== 'POST' || req.url !== '/v1/chat/completions') return reply(res, 404, 'Unknown fixture route');
+      const diagnostic = body => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify(body));
+      };
+      if (req.method === 'GET' && req.url === '/v1/models') return diagnostic({ data: [{ id: 'fixture' }] });
+      if (req.method !== 'POST' || !['/v1/chat/completions', '/v1/responses'].includes(req.url)) return reply(res, 404, 'Unknown fixture route');
       let body = ''; let bytes = 0;
       for await (const part of req) {
         bytes += part.length;
@@ -40,6 +45,17 @@ export async function startFixture() {
       }
       let input;
       try { input = JSON.parse(body); } catch { return reply(res, 400, 'Invalid fixture JSON'); }
+      if (input.stream === false && input.model === 'fixture') {
+        if (req.url === '/v1/responses' && input.input === 'Reply OK' && input.max_output_tokens === 16) {
+          return diagnostic({ status: 'completed', output: [{ type: 'message', role: 'assistant', status: 'completed',
+            content: [{ type: 'output_text', text: 'OK' }] }] });
+        }
+        if (req.url === '/v1/chat/completions' && input.max_tokens === 16 && input.messages?.length === 1 &&
+            input.messages[0]?.role === 'user' && input.messages[0].content === 'Reply OK') {
+          return diagnostic({ choices: [{ message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' }] });
+        }
+      }
+      if (req.url === '/v1/responses') return reply(res, 400, 'Unknown fixture diagnostic');
       if (!Array.isArray(input.messages)) return reply(res, 400, 'Fixture messages required');
       const messages = input.messages;
       const lastUser = messages.findLastIndex(message => message.role === 'user');

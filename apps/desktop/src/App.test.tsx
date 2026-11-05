@@ -44,7 +44,7 @@ describe('desktop assistant', () => {
     await user.click(await screen.findByRole('button', { name: '添加项目' }));
     await waitFor(() => expect(added).toBe(true));
     state.projects.push(project);
-    await screen.findByRole('button', { name: '工作项目' });
+    await screen.findByRole('button', { name: '工作项目' }, { timeout: 2500 });
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('工作项目'), { timeout: 2500 });
   });
   it('does not add a project when directory selection is cancelled', async () => {

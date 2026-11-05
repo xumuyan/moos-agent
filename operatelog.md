@@ -207,3 +207,15 @@
 - 实机证据：macOS 27.0.1/arm64，debug PID 39983 绑定 AX；picker-05-sheet.txt 第 74 行出现原生 AXSheet/open-panel、第 397—400 行有“选择项目目录”与 Cancel/Open，取消后 picker-07-after-cancel.txt 恢复项目界面。证据位于 /tmp/moos-native-accept-6db29f。新增目录及重复选择未完成：前台变为 loginwindow，且共享项目状态出现并发干扰；未向非目标应用输入，未把有限取消证据当成完整 ID 不变验证。
 - 遗留问题：目录新增/去重完整实机验收需桌面解锁且暂停其他 GUI 操作后补验；真实模型、Keychain 系统交互及完整原生聊天仍未验收；现有 jsdom NaN 高度和 Vite 大 chunk 警告保留，不因本次选择器改动宣称解除。
 - 对应 Git 提交：本批次唯一提交说明 `fix(M03): select workspace directories with native dialog`；查询命令：git log --all --oneline --grep='^fix(M03): select workspace directories with native dialog$'。
+
+## 2026-11-05 14:29:03 +08:00｜P01：模型列表与配置诊断
+
+- 时间说明：此为本批次收尾阶段读取的北京时间，验证跨越其后时间；证据对应本条所在提交前工作区。
+- 修改或新增内容：设置增加获取模型列表、可选或手填模型 ID、当前草稿短文本测试与状态/耗时；原生桥支持临时密钥优先和编辑空密钥复用，不保存诊断草稿。后端支持两个 OpenAI 协议、安全错误分类、8 秒含响应体超时、1 MiB 响应及 500 个模型上限、禁止重定向。新增后端、原生、界面和文档测试；同步 PLAN.md。
+- 遇到的难题：原生通用错误会隐藏诊断原因；外部错误文本可能泄露密钥；单宿主锁会令慢诊断延迟停止任务；原有目录刷新测试默认 1 秒等待与 1 秒轮询相撞，全量界面测试并行负载时还出现 20 秒交互超时。
+- 处理方式：诊断使用固定脱敏结构化结果，不返回上游原文；HTTP 200 仍校验完成状态与实际文本；过期草稿结果不展示。独立诊断通道不打开任务数据库；按先失败再通过补充通道隔离测试。目录刷新等待调整为 2.5 秒，不改变生产轮询；保留失败记录并在最终单独运行界面全量复验。
+- 验证结果：本批次主代理 `npm test` 109/109、正式原生初版 10/10、旧探针 11/11、文档新增边界检查先失败后 29/29；根与桌面生产依赖 npm audit 均 0 漏洞。最终通道修复、界面全量及打包结果在收尾复验字段追加，不以初版结果替代最终状态。
+- 实际验收：macOS 27.0.1/arm64，Vite 127.0.0.1:1420，独立临时 fixture；浏览器实际编辑服务、空密钥获取列表及下拉 fixture、测试 completions 成功 HTTP 200/6 ms，草稿切换 responses 测试成功 HTTP 200/25 ms。手填 missing-model 返回协议错误 HTTP 400，非法 URL 被表单拦截，修改清除旧成功结果；快照仍保存原 completions/fixture，localStorage 为空，控制台无错误或警告。所有上游为本地模拟服务，无真实密钥读取或外部计费；浏览器结果不替代正式 macOS 钥匙串授权验收。
+- 遗留问题：真实模型未验收，需用户在正式应用填写服务后实测；列表接口不可用不代表推理不可用，短文本成功也不代表工具/图片能力。原有 Keychain 系统授权、完整打包 GUI 聊天及目录选择部分实机验收仍待补验；jsdom NaN 高度和 Vite 大 chunk 警告未处理。
+- 收尾复验：最终 `npm run test:desktop-product` 12/12、`npm test` 109/109、`npm run test:docs` 29/29、旧探针 11/11；`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 41/41，默认 20 秒在高负载下的失败保留，不宣称默认期限全量稳定。`npm run build:app` 通过，TypeScript/Vite 与 Rust release 均成功；包内 Node 以 --diagnostics 处理 missing_key/shutdown 正常退出且未创建任何存储。独立通道测试在本地 HTTP 诊断等待期间，对活跃任务的 snapshot/cancel 均在 1 秒内完成；不替代 Tauri 命令路由及 GUI 退出的端到端验收。设置与隔离补丁均经只读审查，无阻塞问题；路由/双宿主 GUI 退出的自动集成覆盖仍可补充。最终差异和 Rust 格式检查通过，日志修订后再运行文档检查。
+- 对应 Git 提交：本批次唯一提交说明 `feat(M04): add model listing and safe provider diagnostics`；查询命令：git log --all --oneline --grep='^feat(M04): add model listing and safe provider diagnostics$'。验证后提交推送并核对远程，不预填未知哈希。

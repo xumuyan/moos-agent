@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Store } from './store.mjs';
 import { Scheduler } from './scheduler.mjs';
+import { diagnoseProvider } from './provider-diagnostics.mjs';
 
 function validateProvider(input) {
   if (!input || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.id ?? '')) throw new Error('模型配置标识无效');
@@ -131,6 +132,8 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         }
         return snapshot;
       }
+      case 'list_models':
+      case 'test_provider': return diagnoseProvider(method, params);
       case 'add_project': return store.addProject(params.path);
       case 'remove_project':
         store.removeProject(params.projectId);

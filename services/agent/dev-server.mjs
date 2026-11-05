@@ -18,13 +18,13 @@ for (const name of ['sample-a', 'sample-b']) {
   const project = await controller.request('add_project', { path });
   await controller.request('create_conversation', { projectId: project.id, title: '本地验证会话' });
 }
-const allowed = new Set(['snapshot', 'add_project', 'remove_project', 'create_conversation', 'submit', 'cancel', 'save_provider', 'remove_provider']);
+const allowed = new Set(['snapshot', 'add_project', 'remove_project', 'create_conversation', 'submit', 'cancel', 'save_provider', 'remove_provider', 'list_models', 'test_provider']);
 const server = createServer(async (request, response) => {
   response.setHeader('content-type', 'application/json; charset=utf-8');
   response.setHeader('cache-control', 'no-store');
   const reject = (code, message) => { response.writeHead(code); response.end(JSON.stringify({ error: message })); };
   if (request.method !== 'POST' || request.headers['content-type'] !== 'application/json' ||
-      !['127.0.0.1:1420', '127.0.0.1:4318', 'localhost:1420'].includes(request.headers.host) ||
+      !['127.0.0.1:1420', `127.0.0.1:${server.address().port}`, 'localhost:1420'].includes(request.headers.host) ||
       (request.headers.origin && !['http://127.0.0.1:1420', 'http://localhost:1420'].includes(request.headers.origin))) {
     reject(403, '不允许的本地请求'); return;
   }
@@ -37,6 +37,13 @@ const server = createServer(async (request, response) => {
       if (Buffer.byteLength(body) > 1024 * 1024) { reject(413, '请求过大'); return; }
     }
     const params = JSON.parse(body || '{}');
+    if (method === 'list_models' || method === 'test_provider') {
+      if (params?.provider?.baseUrl !== fixture.baseUrl ||
+          (Object.hasOwn(params, 'apiKey') && params.apiKey !== fixture.apiKey)) {
+        throw new Error('浏览器验收仅允许本地 fixture 配置和测试密钥');
+      }
+      params.apiKey = fixture.apiKey;
+    }
     if (method === 'submit') params.apiKey = fixture.apiKey;
     if (method === 'save_provider') {
       if (params.provider?.baseUrl !== fixture.baseUrl || params.apiKey) throw new Error('浏览器验收不接收真实模型配置或密钥');
@@ -45,8 +52,9 @@ const server = createServer(async (request, response) => {
     response.end(JSON.stringify(result));
   } catch (error) { reject(400, error.message); }
 });
-await new Promise(resolve => server.listen(4318, '127.0.0.1', resolve));
-console.log(`Local fixture bridge ready on 127.0.0.1:4318; temporary projects: ${dataDir}`);
+const port = Number(process.argv.find(value => value.startsWith('--port='))?.slice(7) ?? 4318);
+await new Promise(resolve => server.listen(port, '127.0.0.1', resolve));
+console.log(`Local fixture bridge ready on 127.0.0.1:${server.address().port}; temporary projects: ${dataDir}`);
 let stopping;
 async function stop() {
   if (stopping) return stopping;
