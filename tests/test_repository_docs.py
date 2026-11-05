@@ -32,10 +32,12 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('证据：E23', plan)
         self.assertIn('- [x] P02.6 ', plan)
         self.assertIn('证据：E24', plan)
-        for number in range(7, 10):
+        self.assertIn('- [x] P02.7 ', plan)
+        self.assertIn('证据：E25', plan)
+        for number in range(8, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 6)
+        self.assertEqual(p02.count('- [x]'), 7)
         self.assertIn('在线插件市场不在首批范围', p02)
 
     def test_p02_1_records_license_adapter_and_shell_evidence(self):
@@ -152,6 +154,29 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(evidence['limits']['zipValidationAndSandboxImplemented'])
         self.assertFalse(evidence['limits']['p02Complete'])
 
+    def test_p02_7_records_local_installer_sandbox_lifecycle_and_limits(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-local-plugins.json').read_text())
+        rust = (ROOT / 'apps/desktop/src-tauri/src/plugins.rs').read_text(encoding='utf-8')
+        sandbox = (ROOT / 'apps/desktop/src/plugins/sandbox/runtime.ts').read_text(encoding='utf-8')
+        self.assertIn('- [x] P02.7 ', plan)
+        self.assertIn('| E25 |', plan)
+        self.assertTrue(evidence['installer']['folderInstallVerifiedInPackagedGui'])
+        self.assertTrue(evidence['installer']['zipInstallVerifiedInPackagedGui'])
+        self.assertTrue(evidence['installer']['invalidUpgradePreservedInstalledVersion'])
+        self.assertTrue(evidence['sandbox']['hostRendersOnlyValidatedDeclarativeUi'])
+        self.assertTrue(evidence['sandbox']['workerCrashAutoDisabledInPackagedGui'])
+        self.assertTrue(evidence['sandbox']['healthWatchdog'])
+        self.assertFalse(evidence['sandbox']['hardPerWorkerMemoryQuotaAvailable'])
+        self.assertEqual(evidence['packagedGui']['pluginNodeOrWebServiceProcesses'], 0)
+        self.assertTrue(evidence['lifecycle']['installEnableDisableUpgradeRollbackUninstallAutomated'])
+        self.assertFalse(evidence['lifecycle']['guiUninstallDestructiveConfirmationExecuted'])
+        self.assertFalse(evidence['limits']['onlineMarketplaceImplemented'])
+        for term in ('enclosed_name', 'MAX_TOTAL_BYTES', 'nlink()', 'reject_executable'):
+            self.assertIn(term, rust)
+        for term in ('new Worker', 'message_limit', 'worker_unresponsive', '__TAURI_INTERNALS__'):
+            self.assertIn(term, sandbox)
+
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design = (ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md').read_text(encoding='utf-8')
@@ -168,7 +193,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('- [x] P02.4 ', plan)
         self.assertIn('- [x] P02.5 ', plan)
         self.assertIn('- [x] P02.6 ', plan)
-        for number in range(7, 10):
+        self.assertIn('- [x] P02.7 ', plan)
+        for number in range(8, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -176,7 +202,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 6)
+        self.assertEqual(p02.count('- [x]'), 7)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

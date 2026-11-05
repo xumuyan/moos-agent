@@ -19,6 +19,7 @@ import { createBuiltinPluginRegistry } from './builtin-plugins/insights';
 import { PluginProvider, SlotHost } from './plugins/slots';
 import { BUILTIN_THEMES } from './themes/builtin';
 import { applyTheme, loadSavedTheme, resetTheme, THEME_STORAGE_KEY } from './themes/loader';
+import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
@@ -41,6 +42,7 @@ export default function App() {
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string>();
   const [pluginRegistry] = useState(createBuiltinPluginRegistry);
+  const localPlugins = useLocalPlugins(pluginRegistry);
   const [themeId, setThemeId] = useState('default');
   const pendingProject = useRef('');
   const mounted = useRef(true);
@@ -62,11 +64,13 @@ export default function App() {
     void poll();
     return () => { mounted.current = false; clearTimeout(timer); };
   }, [refresh]);
+  const themes = [...BUILTIN_THEMES, ...localPlugins.themes];
   useEffect(() => {
+    if (!localPlugins.loaded) return;
     // Development-only browser acceptance fixture; production builds remove this branch.
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('theme-fixture') === 'incompatible') localStorage.setItem(THEME_STORAGE_KEY, 'incompatible-fixture');
-    setThemeId(loadSavedTheme(BUILTIN_THEMES));
-  }, []);
+    setThemeId(loadSavedTheme(themes));
+  }, [localPlugins.loaded, localPlugins.themes]);
   useEffect(() => {
     if (pendingProject.current && data.projects.some(p => p.id === pendingProject.current)) {
       setProjectId(pendingProject.current);
@@ -102,11 +106,11 @@ export default function App() {
   const taskAnchors = new Map(tasks.map(task => [task.id, messages.find(m => m.taskId === task.id)?.id]));
   const draft = drafts[conversationId] ?? '';
   const disabled = !project || !conversation || !providerId || !!connectionError || busy || active.length > 0;
-  const activeTheme = BUILTIN_THEMES.find(theme => theme.id === themeId);
+  const activeTheme = themes.find(theme => theme.id === themeId);
   const selectTheme = (id: string) => {
     try {
       if (id === 'default') resetTheme();
-      else applyTheme(BUILTIN_THEMES.find(theme => theme.id === id), { persist: true });
+      else applyTheme(themes.find(theme => theme.id === id), { persist: true });
       setThemeId(id);
     } catch { resetTheme(); setThemeId('default'); }
   };
@@ -206,6 +210,6 @@ export default function App() {
       rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
-    {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} onClose={() => setSettings(false)} mutate={mutate} />}
+    {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} themes={themes} localPlugins={localPlugins} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider></PluginProvider>;
 }

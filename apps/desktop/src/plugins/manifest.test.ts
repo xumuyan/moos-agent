@@ -17,4 +17,11 @@ describe('plugin manifest', () => {
     expect(() => validatePluginManifest({ ...valid, version: 'latest' })).toThrow(/version/i);
     expect(() => validatePluginManifest({ ...valid, permissions: ['shell'] })).toThrow(/permission/i);
   });
+
+  it('accepts a local JavaScript entry only through the explicit native-validated path', () => {
+    const local = { ...valid, entry: 'ui/main.js', permissions: ['ui:slots', 'storage:private', 'context:read'] };
+    expect(validatePluginManifest(local, { local: true }).entry).toBe('ui/main.js');
+    expect(() => validatePluginManifest(local)).toThrow(/entry/i);
+    expect(() => validatePluginManifest({ ...local, entry: '../main.js' }, { local: true })).toThrow(/entry/i);
+  });
 });

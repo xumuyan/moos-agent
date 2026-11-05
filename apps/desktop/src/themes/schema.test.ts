@@ -7,6 +7,7 @@ const valid = { id: 'ocean', name: 'Ocean', version: '1.0.0', moosVersion: '^0.1
 it('accepts whitelisted theme tokens, fixed regions and static assets', () => {
   expect(validateTheme(valid).tokens.accent).toBe('#116b68');
   expect(validateTheme({ ...valid, assets: { grain: 'data:image/png;base64,AA==' }, styles: { composer: { backgroundAsset: 'grain' } } }).id).toBe('ocean');
+  expect(validateTheme({ ...valid, id: 'dev.moos.fixture-theme' }).id).toBe('dev.moos.fixture-theme');
 });
 
 it('rejects scripts, remote imports, global selectors, unknown tokens and incompatible versions', () => {

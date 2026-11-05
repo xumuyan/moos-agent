@@ -1,5 +1,6 @@
 pub mod host;
 pub mod keychain;
+pub mod plugins;
 pub mod protocol;
 
 use host::Host;

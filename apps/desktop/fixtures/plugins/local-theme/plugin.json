@@ -1,0 +1,24 @@
+{
+  "id": "dev.moos.fixture-theme",
+  "name": "薄荷验收皮肤",
+  "version": "1.0.0",
+  "type": "theme",
+  "moosVersion": "^0.1.0",
+  "slots": [],
+  "permissions": [],
+  "tokens": {
+    "accent": "#26746f",
+    "accentSoft": "#dcf3ee",
+    "border": "#bddbd4",
+    "panel": "#f5fcfa",
+    "sidebar": "#e4f5f1",
+    "muted": "#557a72",
+    "radius": "10px",
+    "rightPanelWidth": "248px"
+  },
+  "styles": {
+    "sidebar": { "backgroundColor": "#e4f5f1" },
+    "composer": { "backgroundColor": "#f5fcfa" }
+  },
+  "assets": {}
+}

@@ -12,7 +12,7 @@ const asset = (value: string) => (/^\/assets\/themes\/[a-zA-Z0-9/_-]+\.(png|jpe?
 export function validateTheme(input: unknown): ThemeDefinition {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid theme');
   const value = input as Record<string, unknown>;
-  if (typeof value.id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(value.id) || typeof value.name !== 'string' || !value.name.trim()) throw new Error('Invalid theme identity');
+  if (typeof value.id !== 'string' || !/^[a-z][a-z0-9.-]{0,127}$/.test(value.id) || typeof value.name !== 'string' || !value.name.trim()) throw new Error('Invalid theme identity');
   if (typeof value.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(value.version)) throw new Error('Invalid theme version');
   if (typeof value.moosVersion !== 'string' || !isMoosCompatible(value.moosVersion)) throw new Error('Theme is not compatible with this Moos version');
   if (!value.tokens || typeof value.tokens !== 'object' || Array.isArray(value.tokens)) throw new Error('Invalid theme token map');

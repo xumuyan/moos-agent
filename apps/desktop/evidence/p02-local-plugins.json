@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-11-05T23:00:51+08:00",
+  "scope": "P02.7 local ZIP/folder plugins, declarative Worker sandbox, lifecycle and local themes",
+  "installer": {
+    "folderInstallVerifiedInPackagedGui": true,
+    "zipInstallVerifiedInPackagedGui": true,
+    "temporaryStagingAndAtomicRename": true,
+    "upgradePreservedEnabledState": true,
+    "invalidUpgradePreservedInstalledVersion": true,
+    "limits": { "files": 256, "totalBytes": 5242880, "singleFileBytes": 1048576, "entryBytes": 524288 },
+    "rejectedByAutomatedFixtures": ["path traversal", "symbolic links", "hard links", "executable mode", "native executable magic", "script shebang", "compression bomb", "too many files", "oversized file", "unsafe manifest", "incompatible Moos version"],
+    "packagedGuiRejectedExecutableUpgrade": true
+  },
+  "sandbox": {
+    "runtime": "dedicated blob Web Worker",
+    "hostRendersOnlyValidatedDeclarativeUi": true,
+    "domAvailable": false,
+    "tauriGlobalsAvailable": false,
+    "networkApisAvailable": false,
+    "browserPersistenceApisAvailable": false,
+    "nestedWorkersAvailable": false,
+    "dynamicImportsAllowed": false,
+    "messageBytesLimit": 65536,
+    "messagesPerSecondLimit": 200,
+    "startupTimeoutMs": 2000,
+    "renderTimeoutMs": 1000,
+    "healthWatchdog": true,
+    "workerCrashAutoDisabledInPackagedGui": true,
+    "unresponsiveOrAbnormallyTerminatedWorkerIsStopped": true,
+    "hardPerWorkerMemoryQuotaAvailable": false,
+    "contextExcludesProjectPathsAndToolPayloads": true,
+    "privateConfigBytesLimit": 32768
+  },
+  "packagedGui": {
+    "folderUiPluginInstalledDefaultDisabled": true,
+    "notificationActionVerified": true,
+    "composerSlotVerified": true,
+    "disableRemovedContribution": true,
+    "reenableRestoredContribution": true,
+    "upgradeFrom": "1.0.0",
+    "upgradeTo": "1.1.0",
+    "zipReinstallVersion": "1.0.0",
+    "localThemeId": "dev.moos.fixture-theme",
+    "localThemeApplied": true,
+    "localThemePersistedAcrossRestart": true,
+    "defaultThemeRestoredAfterAcceptance": true,
+    "acceptancePackagesLeftDisabled": true,
+    "processTree": "Moos.app -> one bundled Node services/agent/main.mjs",
+    "pluginNodeOrWebServiceProcesses": 0
+  },
+  "lifecycle": {
+    "installEnableDisableUpgradeRollbackUninstallAutomated": true,
+    "keepPrivateConfigOnUninstallAutomated": true,
+    "clearPrivateConfigOnUninstallAutomated": true,
+    "guiInstallEnableDisableUpgradeAndRollbackVerified": true,
+    "guiUninstallDestructiveConfirmationExecuted": false
+  },
+  "automaticTests": {
+    "core": "125/125 passed",
+    "desktopUi": "71/71 passed",
+    "desktopRust": "17/17 passed",
+    "docs": "38/38 passed",
+    "rustfmt": "passed",
+    "desktopBuild": "passed"
+  },
+  "package": { "tauriReportedMiB": 230.94, "logicalKiB": 241067, "allocatedKiB": 279828 },
+  "limits": {
+    "onlineMarketplaceImplemented": false,
+    "thirdPartyNativePluginsAllowed": false,
+    "arbitraryFileShellScreenInputPermissionsAllowed": false,
+    "nativePtyImplemented": false,
+    "p02Complete": false
+  }
+}

@@ -5,7 +5,7 @@ export interface SlotContribution { slot: PluginSlot; render: (context?: unknown
 export interface PluginState extends PluginManifest { enabled: boolean; errorCount: number; disabledReason?: string }
 interface Installed { manifest: PluginManifest; contributions: SlotContribution[]; cleanups: (() => void)[]; enabled: boolean; errorCount: number; disabledReason?: string }
 export interface PluginRegistry {
-  register(manifest: unknown, contributions: SlotContribution[]): { revoke: () => void };
+  register(manifest: unknown, contributions: SlotContribution[], options?: { local?: boolean }): { revoke: () => void };
   contributions(slot: PluginSlot): { pluginId: string; render: SlotContribution['render'] }[];
   list(): PluginState[];
   setEnabled(id: string, enabled: boolean): void;
@@ -20,8 +20,8 @@ export function createPluginRegistry(): PluginRegistry {
   const activate = (item: Installed) => { item.cleanups = item.contributions.flatMap(entry => entry.activate ? [entry.activate()] : []); };
   const deactivate = (item: Installed) => { for (const cleanup of item.cleanups.splice(0)) { try { cleanup(); } catch { /* Plugin cleanup is isolated. */ } } };
   return {
-    register(input, contributions) {
-      const manifest = validatePluginManifest(input);
+    register(input, contributions, options) {
+      const manifest = validatePluginManifest(input, options);
       if (installed.has(manifest.id)) throw new Error('Duplicate plugin id');
       if (!Array.isArray(contributions) || contributions.some(item => !item || typeof item.render !== 'function' || (item.activate !== undefined && typeof item.activate !== 'function') || !manifest.slots.includes(item.slot))) throw new Error('Plugin contribution uses an undeclared slot');
       if (contributions.length && !manifest.permissions.includes('ui:slots')) throw new Error('Plugin lacks slot permission');

@@ -11,7 +11,7 @@
   "app": {
     "windows": [{ "label": "main", "title": "Moos", "width": 1280, "height": 820 }],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'",
+      "csp": "default-src 'self'; script-src 'self'; worker-src blob:; connect-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'",
       "capabilities": []
     }
   },
