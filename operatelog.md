@@ -228,3 +228,12 @@
 - 验证结果：`npm run test:docs` 30/30、`npm test` 109/109、`npm run test:desktop-ui` 41/41、准备运行时后 `npm run test:desktop-product` 12/12、`npm run test:desktop-native` 11/11 均通过；文档设计验收通过，`git diff --check` 通过。桌面 UI 测试仍输出既有 jsdom `NaN` 高度警告但用例通过。首次正式 Rust 测试在环境前置条件缺失时退出 101，补齐运行时后通过；探针 `cargo fmt --check` 未通过，显示的是已有探针格式差异。本批次没有启动产品 GUI 或执行功能实机验收，因为交付范围仅为设计与计划，不能以文档测试替代后续实现验收。
 - 遗留问题：P02.1—P02.9 均待实施；当前逐任务 Node 启动、600000ms 上限和通用 `Task execution failed` 仍存在。PI SDK 单运行时必须先完成会话恢复、并发、取消、工具事件、模型代理与退出清理验证；插件沙箱、皮肤、Token/缓存统计、终端和 DSH 风格页面均未实现。M01 探针 rustfmt 基线差异、桌面 UI jsdom 警告也未在本次范围处理。
 - 对应 Git 提交：本批次唯一提交说明 `docs(P02): define DSH UI and plugin architecture`；查询命令：`git log --all --oneline --grep='^docs(P02): define DSH UI and plugin architecture$'`。提交并推送后核对远程 HEAD，不预填未知哈希。
+
+## 2026-11-05 16:55:39 +08:00｜P02：设计提交的 GitHub 推送与远程核验
+
+- 修改或新增内容：补记 P02 设计提交的推送过程与远程验收结果，不修改设计范围、产品代码或 P02 完成状态。
+- 遇到的难题：默认 `git push origin HEAD:main` 使用无仓库写权限的本机账号 xuguopeng，GitHub 返回 HTTP 403。
+- 处理方式：保留本地提交，确认 GitHub CLI 当前活动账号为仓库所有者 xumuyan；仅对本次 Git 命令使用 `gh auth git-credential`，未修改全局 Git 配置、未强制推送、未记录或输出原始令牌。
+- 验证结果：设计提交 `81bb914575572e26b70488e4800feccf071d64d6` 已快进推送至 GitHub main；`git ls-remote origin refs/heads/main` 与当时本地 HEAD 均为该哈希。该结果只证明设计文档远程交付，不证明 P02 功能实现。
+- 遗留问题：P02.1—P02.9 继续全部未完成；本条日志自身仍需按仓库规则提交、推送并再次核对远程。
+- 对应 Git 提交：已推送设计提交 `81bb914575572e26b70488e4800feccf071d64d6`；本条补记使用唯一提交说明 `docs(P02): record design remote delivery`，查询命令：`git log --all --oneline --grep='^docs(P02): record design remote delivery$'`。
