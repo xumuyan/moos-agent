@@ -167,3 +167,12 @@
 - 验证结果：实现提交 `eb9609113900654a804fd86ab71291c30e5699e3` 推送成功；`git ls-remote origin refs/heads/main` 与 `git rev-parse HEAD` 均为该哈希，远程 main 与本地 HEAD 一致，工作区在本条文档补记前干净。
 - 遗留问题：M01.7 的崩溃清理、Retina 和跨屏坐标仍未验收，M01 整体未完成；本条只记录远程交付，不扩大 E16 验收范围。
 - 对应 Git 提交：已推送实现提交 `eb9609113900654a804fd86ab71291c30e5699e3`；本条补记使用唯一提交说明 `docs(M01): record GUI exit remote delivery`，查询命令：git log --all --oneline --grep='^docs(M01): record GUI exit remote delivery$'。
+
+## 2026-11-05 08:45:24 +08:00｜M01.7b：打包 GUI 强制终止后的运行时链验收
+
+- 修改或新增内容：扩展 `scripts/verify-m01.mjs`，异步启动打包探针并等待 PI 活跃 hold，仅对本次探针 App 发送 SIGKILL，在有界时间内核对 App、Node 宿主及真实 PI 子进程退出。新增 `scripts/owned-processes.mjs` 统一有界等待与失败清理，4 项真实/模拟回归覆盖进程回收、清理失败报告、exit 等待超时及 Promise 拒绝；新增 E17 脱敏证据和文档契约，同步 PLAN、AGENTS、探针 README；无需修改应用生产代码。
+- 遇到的难题：正常 Tauri 退出事件无法处理 SIGKILL，必须单独验证 Node 父进程看门狗与 PI 关闭链；测试还必须避免误杀 Safari 或无关进程。新增文档契约首轮因 PLAN 尚无 E17 而按预期失败。独立审查指出初版失败清理只发信号、不等待也不报告清理失败，不能证明失败后无进程泄漏；复审又指出 App exit 等待缺少超时、exit Promise 拒绝可能绕过错误聚合。
+- 处理方式：复用原子 hold 报告取得本次 Node/PI 测试 PID，只向新启动的探针子进程对象发送 SIGKILL；随后每 50ms 检查两个运行时 PID，最多等待 10 秒。审查后先观察清理辅助模块不存在的失败，再实现统一清理：等待 App exit 和所有本次 PID 消失，清理失败与原验证错误一起通过 AggregateError 显式报告；App exit 等待统一设置 10 秒上限，Promise 拒绝转为清理错误返回，4 项回归通过。全程使用本地模拟模型，不读取真实模型凭据。补齐 E17 计划和证据记录，不扩大坐标验收范围。
+- 验证结果：macOS 27.0.1/arm64。首次、重新构建后及两轮审查修复后的 `npm run verify:probe` 均通过，最终报告 recordedAt=2026-11-05T01:05:09.538Z；PI 活跃时探针 App 被 SIGKILL 后，App、Node 宿主与真实 PI 子进程均退出。`npm test` 16 项（含 4 项清理回归）、`npm run test:desktop-native` 11 项、`npm run build:probe` 通过；`npm run test:docs` 26 项通过。ZIP SHA-256 为 d2f3f84aac7390591b5681f5c57fb32c34d567d6ef01917261b21f2613c1bb22，证据对应提交前验证脚本工作区。
+- 遗留问题：只覆盖显式 SIGKILL 强制终止，不模拟断电或内核异常；Retina、跨屏坐标仍未验收，M01.7 和 M01 整体保持未完成。真实 GLM/中转站和正式产品任务链不在本次范围。
+- 对应 Git 提交：本批次唯一提交说明 `test(M01): verify GUI crash runtime cleanup`；查询命令：git log --all --oneline --grep='^test(M01): verify GUI crash runtime cleanup$'。提交并推送后核对远程 HEAD，不预填自身哈希。

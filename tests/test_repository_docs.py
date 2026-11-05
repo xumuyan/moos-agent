@@ -96,6 +96,30 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E16 |', plan)
         self.assertIn('- [ ] M01.7', plan)
 
+    def test_gui_crash_evidence_covers_runtime_chain_without_coordinate_acceptance(self):
+        report = json.loads((ROOT / 'probes/m01/evidence/desktop-gui-crash.json').read_text())
+        acceptance = report['acceptance']
+        self.assertEqual(acceptance['status'], 'passed')
+        self.assertEqual(acceptance['crashTrigger'],
+                         'SIGKILL only to the packaged probe process spawned by this verification')
+        self.assertTrue(acceptance['piActiveBeforeCrash'])
+        self.assertTrue(acceptance['appProcessExited'])
+        self.assertTrue(acceptance['hostProcessExited'])
+        self.assertTrue(acceptance['piProcessExited'])
+        self.assertFalse(acceptance['realProviderVerified'])
+        self.assertEqual(report['verificationTests']['ownedProcessCleanupPassed'], 4)
+        self.assertTrue(report['verificationTests']['cleanupWaitsForOwnedProcessExit'])
+        self.assertTrue(report['verificationTests']['cleanupFailureIsReported'])
+        self.assertTrue(report['verificationTests']['childExitWaitBounded'])
+        self.assertTrue(report['verificationTests']['rejectedExitReturnedAsCleanupError'])
+        self.assertFalse(report['cleanupPath']['productionCodeChangeRequired'])
+        self.assertFalse(report['limits']['retinaAndMultiDisplayCoordinatesVerified'])
+        self.assertFalse(report['limits']['m01_7Complete'])
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('| E17 |', plan)
+        self.assertRegex(plan, r'- \[x\] M01\.7b[^\n]*证据：[^\n]*E17')
+        self.assertIn('- [ ] M01.7', plan)
+
     def test_required_documents_are_nonempty_utf8(self):
         for name in ('AGENTS.md', 'operatelog.md', 'PLAN.md'):
             with self.subTest(name=name):

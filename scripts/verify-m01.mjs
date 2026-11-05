@@ -1,8 +1,10 @@
-import { spawnSync, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile, readdir, lstat, rm } from 'node:fs/promises';
+import { once } from 'node:events';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { cleanupOwnedProcesses, waitForChildExit, waitForExitedPids } from './owned-processes.mjs';
 
 const app = resolve('probes/m01/desktop/src-tauri/target/release/bundle/macos/Moos M01 Probe.app');
 const artifacts = resolve('artifacts/m01');
@@ -29,6 +31,52 @@ assert(held.hostPid > 0 && held.piPid > 0);
 for (const pid of [held.hostPid, held.piPid]) {
   assert.throws(() => process.kill(pid, 0), error => error.code === 'ESRCH', `process ${pid} must exit with the GUI`);
 }
+const delay = milliseconds => new Promise(resolveDelay => setTimeout(resolveDelay, milliseconds));
+async function verifyGuiCrash(binary) {
+  const holdFile = join(artifacts, 'gui-crash-hold.json');
+  const crashOutput = join(artifacts, 'gui-crash-probe.json');
+  await Promise.all([rm(holdFile, { force: true }), rm(crashOutput, { force: true })]);
+  const child = spawn(binary, [`--probe-output=${crashOutput}`, `--probe-hold-file=${holdFile}`], {
+    cwd: '/tmp', env: { PATH: '/usr/bin:/bin', TMPDIR: process.env.TMPDIR }, stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  const exited = once(child, 'exit');
+  let stderr = '';
+  let crashHeld;
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  let result;
+  let failure;
+  try {
+    for (let attempt = 0; attempt < 600 && !crashHeld; attempt++) {
+      try { crashHeld = JSON.parse(await readFile(holdFile, 'utf8')); } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+        if (child.exitCode !== null || child.signalCode !== null) break;
+        await delay(25);
+      }
+    }
+    assert(crashHeld, `packaged GUI did not reach active PI hold: ${stderr}`);
+    assert(crashHeld.hostPid > 0 && crashHeld.piPid > 0);
+    assert.equal(child.kill('SIGKILL'), true);
+    assert.equal(await waitForChildExit(exited), true, 'packaged app must exit after SIGKILL');
+    const [, signal] = await exited;
+    assert.equal(signal, 'SIGKILL');
+    const remaining = await waitForExitedPids([crashHeld.hostPid, crashHeld.piPid]);
+    assert.equal(remaining.size, 0, 'Node host and PI child must exit after the packaged GUI is killed');
+    result = { status: 'passed', exitMode: 'SIGKILL to packaged GUI while PI was active',
+      appProcessExited: true, hostProcessExited: true, piProcessExited: true };
+  } catch (error) {
+    failure = error;
+  }
+  const cleanupErrors = await cleanupOwnedProcesses(child, exited,
+    crashHeld ? [crashHeld.hostPid, crashHeld.piPid] : []);
+  if (failure && cleanupErrors.length) {
+    throw new AggregateError([failure, ...cleanupErrors], 'GUI crash verification and cleanup failed');
+  }
+  if (failure) throw failure;
+  if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'GUI crash cleanup failed');
+  return result;
+}
+const guiCrash = await verifyGuiCrash(join(app, 'Contents/MacOS/moos-m01-probe'));
 async function bytes(path) {
   const stat = await lstat(path);
   if (stat.isSymbolicLink()) return 0;
@@ -55,7 +103,7 @@ execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', app, archive]);
 const report = {
   recordedAt: new Date().toISOString(),
   host: { arch: process.arch, macOS: execFileSync('sw_vers', ['-productVersion'], { encoding: 'utf8' }).trim() },
-  packagedResult: result, desktop,
+  packagedResult: result, desktop, guiCrash,
   guiExit: { status: 'passed', exitMode: 'normal Tauri exit while PI was active',
     hostProcessExited: true, piProcessExited: true },
   sizes: { appLogicalBytes: await bytes(app),

@@ -1,0 +1,36 @@
+{
+  "recordedAtBeijing": "2026-11-05T09:05:09+08:00",
+  "system": "macOS 27.0.1 / arm64",
+  "appVersion": "0.1.0",
+  "appCommit": "eb9609113900654a804fd86ab71291c30e5699e3",
+  "change": "test(M01): verify GUI crash runtime cleanup",
+  "evidenceState": "Pre-commit verification-script working tree; packaged app rebuilt before acceptance",
+  "acceptance": {
+    "command": "npm run verify:probe",
+    "status": "passed",
+    "crashTrigger": "SIGKILL only to the packaged probe process spawned by this verification",
+    "piActiveBeforeCrash": true,
+    "appProcessExited": true,
+    "hostProcessExited": true,
+    "piProcessExited": true,
+    "realProviderVerified": false,
+    "archiveSha256": "d2f3f84aac7390591b5681f5c57fb32c34d567d6ef01917261b21f2613c1bb22"
+  },
+  "verificationTests": {
+    "ownedProcessCleanupPassed": 4,
+    "cleanupWaitsForOwnedProcessExit": true,
+    "cleanupFailureIsReported": true,
+    "childExitWaitBounded": true,
+    "rejectedExitReturnedAsCleanupError": true
+  },
+  "cleanupPath": {
+    "nodeParentWatchdogMilliseconds": 500,
+    "piSigtermSent": true,
+    "piSigkillFallbackSeconds": 3,
+    "productionCodeChangeRequired": false
+  },
+  "limits": {
+    "retinaAndMultiDisplayCoordinatesVerified": false,
+    "m01_7Complete": false
+  }
+}
