@@ -59,7 +59,7 @@ fn real_host_snapshots_and_key_boundary_and_shutdown() {
     let (node, entry, runtime) = dev_paths().unwrap();
     let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
     let keys = MemoryCredentials::default();
-    let mut agent = Agent::new(host, Box::new(keys.clone()));
+    let agent = Agent::new(host, Box::new(keys.clone()));
     assert!(agent.request("snapshot", json!({})).unwrap()["providers"].is_array());
     agent.request("save_provider", json!({"apiKey":"RUST_SECRET_TEST", "provider":{"id":"test", "model":"test", "api":"openai-completions", "baseUrl":"https://example.com/v1"}})).unwrap();
     assert_eq!(
@@ -106,7 +106,7 @@ createInterface({input:process.stdin}).on('line', line => {
     let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
     let keys = MemoryCredentials::default();
     keys.set("saved", "saved-key").unwrap();
-    let mut agent = Agent::new(host, Box::new(keys.clone()));
+    let agent = Agent::new(host, Box::new(keys.clone()));
     let draft = agent
         .request(
             "list_models",
@@ -132,43 +132,14 @@ createInterface({input:process.stdin}).on('line', line => {
 }
 
 #[test]
-fn diagnostic_entry_never_opens_task_or_provider_storage() {
-    use std::{
-        io::Write,
-        process::{Command, Stdio},
-    };
+fn unified_entry_serves_tasks_and_diagnostics() {
     let temp = Temp::new();
-    let (node, entry, _) = dev_paths().unwrap();
-    let mut child = Command::new(node)
-        .arg(entry)
-        .arg("--diagnostics")
-        .env("MOOS_DATA_DIR", &temp.0)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .unwrap();
-    child.stdin.take().unwrap().write_all(
-        b"{\"id\":1,\"method\":\"snapshot\",\"params\":{}}\n{\"id\":2,\"method\":\"shutdown\",\"params\":{}}\n"
-    ).unwrap();
-    let output = child.wait_with_output().unwrap();
-    assert!(output.status.success());
-    assert_eq!(
-        std::fs::read_dir(&temp.0).unwrap().count(),
-        0,
-        "diagnostic mode must not create SQLite or provider data"
-    );
-    let replies: Vec<serde_json::Value> = String::from_utf8(output.stdout)
-        .unwrap()
-        .lines()
-        .map(|line| serde_json::from_str(line).unwrap())
-        .collect();
-    assert!(
-        replies
-            .iter()
-            .any(|reply| reply["id"] == 1 && reply.get("error").is_some()),
-        "diagnostic mode must reject task-controller methods"
-    );
+    let (node, entry, runtime) = dev_paths().unwrap();
+    let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
+    assert!(host.request("snapshot", json!({})).unwrap()["projects"].is_array());
+    let diagnostic = host.request("list_models", json!({"provider":{}})).unwrap();
+    assert_eq!(diagnostic["code"], "invalid_config");
+    host.shutdown();
 }
 
 #[test]
@@ -181,14 +152,13 @@ fn delayed_diagnostics_leave_regular_snapshot_and_cancel_responsive() {
         time::Duration,
     };
     let temp = Temp::new();
-    let diagnostic_data = Temp::new();
     let (node, entry, runtime) = dev_paths().unwrap();
     let keys = MemoryCredentials::default();
     keys.set("fixture", "saved-fixture-key").unwrap();
-    let mut regular = Agent::new(
+    let regular = Arc::new(Agent::new(
         Host::launch(&node, &entry, &runtime, &temp.0).unwrap(),
         Box::new(keys.clone()),
-    );
+    ));
     let project = regular
         .request("add_project", json!({"path": temp.0}))
         .unwrap();
@@ -233,10 +203,9 @@ fn delayed_diagnostics_leave_regular_snapshot_and_cancel_responsive() {
         let body = r#"{"data":[{"id":"fixture-model"}]}"#;
         write!(socket, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
     });
-    let diagnostic = Host::launch_diagnostics(&node, &entry, &runtime, &diagnostic_data.0).unwrap();
+    let diagnostic = regular.clone();
     let (done, result) = mpsc::channel();
     let worker = thread::spawn(move || {
-        let mut diagnostic = Agent::new(diagnostic, Box::new(keys));
         let reply = diagnostic.request(
             "list_models",
             json!({"provider": {"id":"fixture",
@@ -251,11 +220,7 @@ fn delayed_diagnostics_leave_regular_snapshot_and_cancel_responsive() {
             )
             .unwrap();
         assert_eq!(test["code"], "invalid_config");
-        assert!(diagnostic.request("snapshot", json!({})).is_err());
-        diagnostic.shutdown();
-        assert!(diagnostic
-            .request("list_models", json!({"apiKey":"draft", "provider":{}}))
-            .is_err());
+        assert!(diagnostic.request("snapshot", json!({})).is_ok());
     });
     let request = waiting.recv_timeout(Duration::from_secs(5)).unwrap();
     assert!(request.starts_with("GET /v1/models HTTP/1.1"));
@@ -307,7 +272,6 @@ fn delayed_diagnostics_leave_regular_snapshot_and_cancel_responsive() {
     assert_eq!(reply["models"], json!(["fixture-model"]));
     worker.join().unwrap();
     server.join().unwrap();
-    assert_eq!(std::fs::read_dir(&diagnostic_data.0).unwrap().count(), 0);
     regular.shutdown();
 }
 
@@ -321,7 +285,7 @@ fn uncooperative_child_shutdown_is_bounded_and_rejects_new_work() {
     )
     .unwrap();
     let (node, _, runtime) = dev_paths().unwrap();
-    let mut host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
+    let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
     let start = Instant::now();
     host.shutdown();
     assert!(start.elapsed().as_secs() < 5);
@@ -338,7 +302,7 @@ fn malformed_host_reply_invalidates_connection() {
     )
     .unwrap();
     let (node, _, runtime) = dev_paths().unwrap();
-    let mut host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
+    let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
     assert!(host.request("snapshot", json!({})).is_err());
     assert!(host
         .request("snapshot", json!({}))

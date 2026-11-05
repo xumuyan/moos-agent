@@ -8,11 +8,11 @@
 
 ## P02｜DSH 风格前端、插件与长任务运行时（实施中）
 
-用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。P02.1—P02.2 已按 E19—E20 实施并验收，P02.3—P02.9 仍未完成：
+用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。P02.1—P02.3 已按 E19—E21 实施并验收，P02.4—P02.9 仍未完成：
 
 - [x] P02.1 建立第三方来源清单、许可证归属、Moos UI Adapter 契约和 DSH 风格静态页面骨架。证据：E19。
 - [x] P02.2 移植三栏布局、工作区/会话、对话/轨迹、输入区、三档权限、完整设置中心和右侧面板。证据：E20。
-- [ ] P02.3 验证 PI 1.5.0 SDK 的会话恢复、并发、取消、工具事件、模型代理和退出清理；通过后将正式产品从逐任务 RPC 子进程迁移为单一隐藏运行时。M01 RPC 探针证据保持历史原样。
+- [x] P02.3 验证 PI 1.5.0 SDK 的会话恢复、并发、取消、七类工具事件、模型代理和退出清理；正式产品已从逐任务 RPC 子进程迁移为一个隐藏 Node 宿主内的 PI SDK，会话任务与模型诊断共用该宿主。M01 RPC 探针证据保持历史原样。证据：E21。
 - [ ] P02.4 移除当前固定 600000ms 任务上限；提供 10 分钟至 24 小时的有界配置、默认 2 小时、心跳和真实错误分类。已观察到两项任务分别在 600.0 秒和 600.1 秒失败，修复前不得宣称支持长任务。
 - [ ] P02.5 持久化真实 usage，完成输入框下方缓存命中/上下文状态及设置中的 Token、缓存和费用统计；缺失数据不得估算。
 - [ ] P02.6 实现类型化 Slot、内置 UI 插件、皮肤变量/区域样式、隔离预览、应用失败回退和不兼容禁用。
@@ -20,7 +20,7 @@
 - [ ] P02.8 增加受信任的内置终端插件，使用 Tauri 原生 PTY，不增加 Node Web Server；Git 管理继续按 D01 单独排期。
 - [ ] P02.9 完成自动测试与 Mac GUI 实测：连续任务无 Node/Dock 闪烁、超过 10 分钟任务、进程树、停止/崩溃清理、真实模型 usage、插件越权拒绝、皮肤恢复、打包和完整落盘体积。
 
-依赖：P01 已有正式产品子集；P02.1—P02.2 已完成来源/许可、适配契约、页面骨架和打包 GUI 页面体验。P02.3 先做 SDK 可行性门禁，失败时不得删除已验证 RPC 路径。剩余受阻原因：P02.3—P02.9 尚未实现，SDK 单一运行时、长任务、Usage、插件、皮肤、PTY 和完整进程验收均未通过。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用 DSH 截图、按钮存在或模拟 usage 替代验收。
+依赖：P01 已有正式产品子集；P02.1—P02.3 已完成来源/许可、适配契约、页面体验和 SDK 单一运行时门禁。剩余受阻原因：P02.4—P02.9 尚未实现，超过 10 分钟任务、Usage、插件、皮肤、PTY 和完整 P02 系统验收均未通过。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用 DSH 截图、按钮存在或模拟 usage 替代验收。
 
 #### P02 本轮证据
 
@@ -28,6 +28,7 @@
 | --- | --- | --- |
 | E19 | 2026-11-05，arm64/macOS 27.0.1；固定 DeepSeek Harness 来源提交与 MIT 声明，P02.1 未复制上游源码或品牌素材；新增类型化 UI Adapter、命令白名单、语义 AppShell、响应式上下文栏和主题变量。新增 5 项组件/适配器测试；本地浏览器使用真实 PI 1.5.0 + 模拟模型完成 write/bash 任务，项目切换时显示 1 个后台任务且未取消，返回后停止成功；设置页可打开，控制台错误/警告 0。脱敏证据 `apps/desktop/evidence/p02-ui-shell.json` | 浏览器实际宽度 872px，右栏按 1180px 断点隐藏，但 DOM、组件测试与 CSS 契约存在；未做宽屏视觉实测、打包 Mac GUI 验收或生产进程树检查。P02.2—P02.9 未完成，不能据本地 fixture 声称插件、Usage、SDK 单运行时或无 Node 闪烁已实现。提交说明 `feat(P02.1): add UI adapter and DSH-style shell` |
 | E20 | 2026-11-05，arm64/macOS 27.0.1；新增真实事件轨迹/安全工具卡、输入区权限菜单、状态组件、九分区设置中心和可手动折叠右栏。打包 `Moos.app` GUI 实测九分区导航、三档权限及 macOS 边界说明、真实持久化工具事件、右栏收起/恢复；模型 Keychain/诊断流程保持。自动测试：桌面 UI 51/51、核心 109/109、Rust 产品 12/12、文档 33/33。脱敏证据 `apps/desktop/evidence/p02-workspace-experience.json` | 权限档位目前只持久化 UI 偏好，执行后端明确显示“计划中”；Usage、插件、主题、手机产品连接和高级运行时仅显示真实未实现状态。包内仍含完整 Node/PI：Tauri 报告 230.49 MiB，逻辑大小 240598 KiB、磁盘占用 279348 KiB；P02.3—P02.9 未完成。提交说明 `feat(P02.2): build DSH-style workspace experience` |
+| E21 | 2026-11-05，arm64/macOS 27.0.1、PI 1.5.0；正式任务改用官方进程内 SDK，Chat Completions/Responses 流式、重启续会话、跨项目并发/同目录串行、read/write/edit/bash/grep/find/ls 事件、运行/排队取消、密钥不落盘和代理关闭均通过真实 PI + 本地模型测试。Rust 单宿主可并发分发响应，慢诊断期间 snapshot/cancel 可用。最终打包进程树为 `Moos.app → 一个内置 node → main.mjs`，任务期间无 PI CLI/RPC 子进程；正常退出和本次 App SIGKILL 后 Node 均退出。核心 111/111、UI 51/51、Rust 12/12、打包通过；脱敏证据 `apps/desktop/evidence/p02-sdk-runtime.json` | 本轮不读取或计费真实服务商；强制结束时未让打包 App 正在执行 SDK 工具，但任务取消已验证工具子进程退出。600 秒上限、超过 10 分钟任务、Usage、插件、皮肤、PTY、完整 P02.9 与小包目标未完成；包仍为 230.50 MiB。提交说明 `feat(P02.3): migrate product tasks to one PI SDK runtime` |
 
 ## P01｜正式桌面 PI 聊天与多项目子集
 

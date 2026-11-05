@@ -291,3 +291,13 @@
 - 验证结果：推送输出为 `2a93a0c..8f9c7de  HEAD -> main`；本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 均为 `8f9c7de883df939920c5e284e1d89beb4194a16d`。
 - 遗留问题：P02.3—P02.9 仍未完成，尤其 Node 双宿主/闪烁、逐任务 RPC、600 秒超时和通用失败提示均未由 P02.2 修复。本条日志自身仍需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `8f9c7de883df939920c5e284e1d89beb4194a16d`；本条补记使用唯一提交说明 `docs(P02.2): record workspace delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.2): record workspace delivery$'`。
+
+## 2026-11-05 18:19:32 +08:00｜P02.3：PI SDK 单一运行时迁移
+
+- 时间说明：此为收尾阶段读取的北京时间；开发、失败测试、构建和进程验收发生在本条之前，无法核实每个中间动作的精确北京时间，均以命令结果和 E21 为准。
+- 修改或新增内容：正式任务入口从每任务启动 `pi-coding-agent --mode rpc` 改为 PI 1.5.0 官方进程内 SDK；新增 `packages/pi-runtime/sdk-runtime.mjs`，保留旧 adapter 供 M01 历史探针及回退测试使用。SDK 会话按项目/会话持久化，复用严格本地认证代理和安全上下文，支持 completions/responses、七类开发工具、取消和重启续会话。Tauri Rust host 改为请求 ID 并发分发，普通任务与模型诊断共用一个 Node 宿主；移除正式 `--diagnostics` 第二宿主，并将 SDK runtime 加入打包资源。新增 Responses 流式 fixture、七工具及密钥/代理/取消验收、单宿主并发测试、E21 和文档契约。
+- 遇到的难题：首次 SDK 接入错误假设包根导出 `AuthStorage`，改用 PI 1.5.0 实际 `ModelRuntime.create` API 后通过。新增 Responses 验收首轮失败，任务只记录 usage 后失败；直接诊断确认请求已到 `/responses`，实际是本地 fixture 只接受非流式诊断并返回 400，不是 SDK 路由故障。Rust 旧测试仍假设第二诊断宿主，迁移后按新单宿主架构失败。错误排查期间 SDK 异常曾临时拼接上游 errorMessage，收尾前已移除，避免把服务商原文带入公开错误。Rust 回归还报告 4 个无用 `mut` 警告，已清理。
+- 处理方式：根据现有 adapter 的 Responses SSE 格式给 fixture 增加专用确定性流式场景；另增 `MOOS_FIXTURE_TOOLS`，由真实 PI SDK 依次执行 read/write/edit/bash/grep/find/ls 并核对 start/update/end。模型真实密钥只留在 Controller 内存和上游代理，SDK 仅取得每次随机代理 token；遍历运行时文件和快照确认不存在 fixture 上游密钥，任务结束后确认代理端口关闭。Rust stdout dispatcher 以响应 ID 唤醒各自等待者，慢模型诊断期间 snapshot/cancel 仍可并发完成。打包后只启动本工作树产物，按精确 PID 检查并只向本次 Moos App 发送 SIGKILL，不结束其他应用。
+- 验证结果：`npm test` 111/111、`npm run test:desktop-ui` 51/51、`npm run test:desktop-product` 12/12 通过；PI SDK 验收包括两个协议、重启续会话、两项目并发、同真实目录串行、七工具事件、运行/排队取消和其他项目隔离。`npm run build:app` 通过，Tauri 报告 230.50 MiB。最终包进程树实际为 App PID 57255 → 唯一 Node PID 57260 → `services/agent/main.mjs`，未出现 `--diagnostics` 或 PI CLI/RPC 子进程；此前本轮本地 fixture HOLD 任务进程检查只观察到受控工具子进程并显示 `NO_PI_CLI_CHILD`。正常退出检查 Node 已退出；最终向 PID 57255 发送 SIGKILL 后 PID 57260 在有界轮询内退出。GUI 已加载最终单宿主包；E21 为脱敏提交前工作区证据。最终文档测试和差异检查在提交前另行执行。
+- 遗留问题：未使用真实收费 GLM/中转站，本地 fixture 不能证明服务商兼容性、额度或费用；最终打包 App 的 SIGKILL 检查时没有活跃 SDK 工具，活跃工具清理由 SDK 取消集成测试覆盖，完整 P02.9 仍需组合实测。固定 600000ms 上限和通用长任务错误属于 P02.4，尚未修复；超过 10 分钟任务、Usage、插件、皮肤、PTY、小包优化均未完成。前端仍有既有 jsdom `NaN` 高度警告和 874.18 kB chunk 警告。
+- 对应 Git 提交：本批次唯一提交说明 `feat(P02.3): migrate product tasks to one PI SDK runtime`；查询命令：`git log --all --oneline --grep='^feat(P02.3): migrate product tasks to one PI SDK runtime$'`。完成最终验证后提交、推送并核对远程，不预填自身哈希。

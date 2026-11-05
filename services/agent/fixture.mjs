@@ -25,6 +25,24 @@ function tool(res, name, args, turn) {
   stream(res, { tool_calls: [{ index: 0, id: `call_fixture_${turn}_${name}`, type: 'function',
     function: { name, arguments: JSON.stringify(args) } }] }, 'tool_calls');
 }
+function responsesText(res, text) {
+  res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
+  const item = { id: 'msg_fixture', type: 'message', status: 'completed', role: 'assistant',
+    content: [{ type: 'output_text', text, annotations: [] }] };
+  const response = { id: `resp_${randomUUID()}`, object: 'response', status: 'completed', output: [item],
+    usage: { input_tokens: 10, output_tokens: 2, total_tokens: 12 } };
+  const events = [
+    { type: 'response.created', response: { ...response, status: 'in_progress', output: [] } },
+    { type: 'response.output_item.added', output_index: 0, item: { ...item, content: [] } },
+    { type: 'response.content_part.added', item_id: item.id, output_index: 0, content_index: 0,
+      part: { type: 'output_text', text: '', annotations: [] } },
+    { type: 'response.output_text.delta', item_id: item.id, output_index: 0, content_index: 0, delta: text },
+    { type: 'response.output_item.done', output_index: 0, item },
+    { type: 'response.completed', response },
+  ];
+  for (const event of events) res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
+  res.end();
+}
 
 /** Local-only, deterministic OpenAI SSE endpoint. Never contacts a model service. */
 export async function startFixture() {
@@ -55,7 +73,12 @@ export async function startFixture() {
           return diagnostic({ choices: [{ message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' }] });
         }
       }
-      if (req.url === '/v1/responses') return reply(res, 400, 'Unknown fixture diagnostic');
+      if (req.url === '/v1/responses') {
+        if (input.stream === true && JSON.stringify(input.input).includes('MOOS_FIXTURE_RESPONSES')) {
+          return responsesText(res, 'Responses SDK ready');
+        }
+        return reply(res, 400, 'Unknown fixture scenario');
+      }
       if (!Array.isArray(input.messages)) return reply(res, 400, 'Fixture messages required');
       const messages = input.messages;
       const lastUser = messages.findLastIndex(message => message.role === 'user');
@@ -64,12 +87,13 @@ export async function startFixture() {
       // Match the complete marker token: never accept a safe prefix of shell/path input.
       const match = /\bMOOS_FIXTURE_WRITE\s+([^\s]+)/.exec(text);
       const hold = /\bMOOS_FIXTURE_HOLD\b/.test(text);
+      const allTools = /\bMOOS_FIXTURE_TOOLS\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ((!match && !hold) || (match && hold) || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
-      const sequence = hold ? ['bash'] : ['write', 'bash'];
+      const sequence = hold ? ['bash'] : allTools ? ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'] : ['write', 'bash'];
       // Derive progress from this request, not a shared counter (projects run concurrently).
       // Only results paired with this turn's assistant calls advance the scenario.
       const turn = messages.slice(0, lastUser + 1).filter(message => message.role === 'user').length;
@@ -81,9 +105,21 @@ export async function startFixture() {
         }
       }
       if (calls.length > sequence.length || results.length !== calls.length) return reply(res, 409, 'Unexpected fixture tool results');
-      if (calls.length === sequence.length) return stream(res, { content: `完成 ${hold ? 'HOLD' : marker}` }, 'stop');
+      if (calls.length === sequence.length) return stream(res, { content: `完成 ${hold ? 'HOLD' : allTools ? 'TOOLS' : marker}` }, 'stop');
       if (hold) {
         return tool(res, 'bash', { command: nodeCommand("require('node:fs').writeFileSync('fixture-hold.pid',String(process.pid)); console.log('fixture hold started'); setTimeout(()=>{console.log('fixture hold finished')},25000)"), timeout: 30 }, turn);
+      }
+      if (allTools) {
+        const toolCases = [
+          ['write', { path: 'all-tools.txt', content: 'before edit\n' }],
+          ['read', { path: 'all-tools.txt' }],
+          ['edit', { path: 'all-tools.txt', oldText: 'before edit', newText: 'after edit' }],
+          ['grep', { pattern: 'after edit', path: '.' }],
+          ['find', { pattern: 'all-tools.txt', path: '.' }],
+          ['ls', { path: '.' }],
+          ['bash', { command: nodeCommand("const fs=require('node:fs');if(fs.readFileSync('all-tools.txt','utf8')!=='after edit\\n')throw Error('edit missing');console.log('all tools verified')"), timeout: 5 }],
+        ];
+        return tool(res, ...toolCases[calls.length], turn);
       }
       if (calls.length === 0) return tool(res, 'write', { path: 'result.txt', content: `${marker}\n` }, turn);
       const source = `const fs=require('node:fs'); const expected=${JSON.stringify(`${marker}\n`)}; if(fs.readFileSync('result.txt','utf8')!==expected) throw new Error('fixture marker mismatch'); console.log(${JSON.stringify(`verified ${marker}`)});`;

@@ -3,7 +3,7 @@ import { mkdtemp, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createController } from './controller.mjs';
-import { runPi } from '../../packages/pi-adapter/index.mjs';
+import { runPiSdk as runPi } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from './fixture.mjs';
 
 if (!process.argv.includes('--fixture')) throw new Error('浏览器桥仅允许显式本地 fixture 验收；真实密钥使用 Tauri 钥匙串');

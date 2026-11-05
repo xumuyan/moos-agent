@@ -1,10 +1,15 @@
 use crate::protocol;
 use serde_json::{json, Value};
 use std::{
+    collections::HashMap,
     io::{BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
-    sync::mpsc::{self, Receiver, SyncSender},
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        mpsc::{self, SyncSender},
+        Arc, Mutex,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -13,42 +18,20 @@ const MAX_FRAME: u64 = 4 * 1024 * 1024;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 pub struct Host {
-    child: Child,
-    writes: Option<SyncSender<Vec<u8>>>,
-    replies: Receiver<Result<String, String>>,
-    sequence: u64,
-    stopped: bool,
+    child: Mutex<Child>,
+    writes: Mutex<Option<SyncSender<Vec<u8>>>>,
+    pending: Arc<Mutex<HashMap<u64, SyncSender<Result<String, String>>>>>,
+    sequence: AtomicU64,
+    stopped: AtomicBool,
 }
 
 impl Host {
     pub fn launch(node: &Path, entry: &Path, runtime: &Path, data: &Path) -> Result<Self, String> {
-        Self::spawn(node, entry, runtime, data, false)
-    }
-
-    pub fn launch_diagnostics(
-        node: &Path,
-        entry: &Path,
-        runtime: &Path,
-        data: &Path,
-    ) -> Result<Self, String> {
-        Self::spawn(node, entry, runtime, data, true)
-    }
-
-    fn spawn(
-        node: &Path,
-        entry: &Path,
-        runtime: &Path,
-        data: &Path,
-        diagnostics: bool,
-    ) -> Result<Self, String> {
         if !node.is_absolute() || !entry.is_absolute() {
             return Err("Agent paths must be absolute".into());
         }
         let mut command = Command::new(node);
         command.arg(entry);
-        if diagnostics {
-            command.arg("--diagnostics");
-        }
         command
             .current_dir(entry.parent().ok_or("Invalid agent path")?)
             .env("MOOS_DATA_DIR", data)
@@ -73,12 +56,14 @@ impl Host {
                 }
             }
         });
-        let (send, replies) = mpsc::sync_channel(1);
+        let pending: Arc<Mutex<HashMap<u64, SyncSender<Result<String, String>>>>> =
+            Arc::new(Mutex::new(HashMap::new()));
+        let dispatch = pending.clone();
         thread::spawn(move || {
             let mut reader = BufReader::new(stdout);
             loop {
                 let mut bytes = Vec::new();
-                let result = match reader
+                let result: Result<String, String> = match reader
                     .by_ref()
                     .take(MAX_FRAME + 1)
                     .read_until(b'\n', &mut bytes)
@@ -89,9 +74,30 @@ impl Host {
                     }
                     _ => Err("Invalid or oversized agent frame".into()),
                 };
-                let failed = result.is_err();
-                if send.send(result).is_err() || failed {
-                    break;
+                match result {
+                    Ok(line) => {
+                        let id = serde_json::from_str::<Value>(&line)
+                            .ok()
+                            .and_then(|value| value.get("id").and_then(Value::as_u64));
+                        if let Some(sender) = id.and_then(|id| dispatch.lock().ok()?.remove(&id)) {
+                            let _ = sender.send(Ok(line));
+                        } else {
+                            break;
+                        }
+                    }
+                    Err(error) => {
+                        if let Ok(mut map) = dispatch.lock() {
+                            for (_, sender) in map.drain() {
+                                let _ = sender.send(Err(error.clone()));
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            if let Ok(mut map) = dispatch.lock() {
+                for (_, sender) in map.drain() {
+                    let _ = sender.send(Err("Agent disconnected".into()));
                 }
             }
         });
@@ -101,43 +107,59 @@ impl Host {
             while matches!(stderr.read(&mut buffer), Ok(n) if n > 0) {}
         });
         Ok(Self {
-            child,
-            writes: Some(writes),
-            replies,
-            sequence: 0,
-            stopped: false,
+            child: Mutex::new(child),
+            writes: Mutex::new(Some(writes)),
+            pending,
+            sequence: AtomicU64::new(0),
+            stopped: AtomicBool::new(false),
         })
     }
 
-    pub fn request(&mut self, method: &str, params: Value) -> Result<Value, String> {
+    pub fn request(&self, method: &str, params: Value) -> Result<Value, String> {
         self.exchange(method, params, REQUEST_TIMEOUT)
     }
 
-    fn exchange(
-        &mut self,
-        method: &str,
-        params: Value,
-        timeout: Duration,
-    ) -> Result<Value, String> {
-        if self.stopped {
+    fn exchange(&self, method: &str, params: Value, timeout: Duration) -> Result<Value, String> {
+        if self.stopped.load(Ordering::Acquire) {
             return Err("Agent is stopped; restart the application".into());
         }
-        self.sequence += 1;
+        let sequence = self.sequence.fetch_add(1, Ordering::Relaxed) + 1;
         let mut frame =
-            serde_json::to_vec(&json!({"id": self.sequence, "method": method, "params": params}))
+            serde_json::to_vec(&json!({"id": sequence, "method": method, "params": params}))
                 .map_err(|_| "Invalid request")?;
         if frame.len() as u64 >= MAX_FRAME {
             return Err("Agent request too large".into());
         }
         frame.push(b'\n');
-        let sent = self.writes.as_ref().ok_or("Agent stopped")?.try_send(frame);
+        let (send, reply) = mpsc::sync_channel(1);
+        self.pending
+            .lock()
+            .map_err(|_| "Agent state unavailable")?
+            .insert(sequence, send);
+        let sent = self
+            .writes
+            .lock()
+            .map_err(|_| "Agent state unavailable")?
+            .as_ref()
+            .ok_or("Agent stopped")?
+            .try_send(frame);
         let result = if sent.is_err() {
+            self.pending
+                .lock()
+                .ok()
+                .and_then(|mut map| map.remove(&sequence));
             Err("Agent input unavailable".into())
         } else {
-            match self.replies.recv_timeout(timeout) {
-                Ok(Ok(line)) => protocol::response(&line, self.sequence),
+            match reply.recv_timeout(timeout) {
+                Ok(Ok(line)) => protocol::response(&line, sequence),
                 Ok(Err(error)) => Err(error),
-                Err(_) => Err("Agent disconnected or timed out; restart the application".into()),
+                Err(_) => {
+                    self.pending
+                        .lock()
+                        .ok()
+                        .and_then(|mut map| map.remove(&sequence));
+                    Err("Agent disconnected or timed out; restart the application".into())
+                }
             }
         };
         // A host error is safe to report, but malformed/late replies must never be reused.
@@ -147,14 +169,21 @@ impl Host {
         result
     }
 
-    pub fn shutdown(&mut self) {
-        if !self.stopped {
+    pub fn shutdown(&self) {
+        if !self.stopped.load(Ordering::Acquire) {
             let _ = self.exchange("shutdown", json!({}), Duration::from_secs(2));
-            self.writes.take();
+            self.writes.lock().ok().and_then(|mut writes| writes.take());
             let until = Instant::now() + Duration::from_secs(2);
             while Instant::now() < until {
-                if matches!(self.child.try_wait(), Ok(Some(_))) {
-                    self.stopped = true;
+                if matches!(
+                    self.child
+                        .lock()
+                        .ok()
+                        .and_then(|mut child| child.try_wait().ok())
+                        .flatten(),
+                    Some(_)
+                ) {
+                    self.stopped.store(true, Ordering::Release);
                     return;
                 }
                 thread::sleep(Duration::from_millis(20));
@@ -163,14 +192,30 @@ impl Host {
         }
     }
 
-    fn terminate(&mut self) {
-        self.stopped = true;
-        self.writes.take();
+    fn terminate(&self) {
+        if self.stopped.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        self.writes.lock().ok().and_then(|mut writes| writes.take());
+        if let Ok(mut map) = self.pending.lock() {
+            for (_, sender) in map.drain() {
+                let _ = sender.send(Err("Agent stopped".into()));
+            }
+        }
         // Only our exact owned child is terminated, never unrelated processes.
-        let _ = self.child.kill();
+        if let Ok(mut child) = self.child.lock() {
+            let _ = child.kill();
+        }
         let until = Instant::now() + Duration::from_secs(1);
         while Instant::now() < until {
-            if matches!(self.child.try_wait(), Ok(Some(_))) {
+            if matches!(
+                self.child
+                    .lock()
+                    .ok()
+                    .and_then(|mut child| child.try_wait().ok())
+                    .flatten(),
+                Some(_)
+            ) {
                 break;
             }
             thread::sleep(Duration::from_millis(10));

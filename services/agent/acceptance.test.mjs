@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -68,6 +68,15 @@ async function waitFor(check, label, timeout = 20000) {
   }
   assert.fail(`Timed out waiting for ${label}`);
 }
+async function files(path) {
+  const result = [];
+  for (const entry of await readdir(path, { withFileTypes: true })) {
+    const child = join(path, entry.name);
+    if (entry.isDirectory()) result.push(...await files(child));
+    else result.push(child);
+  }
+  return result;
+}
 async function terminal(controller, task, expected) {
   const state = await waitFor(async () => {
     const state = await controller.request('snapshot');
@@ -77,10 +86,10 @@ async function terminal(controller, task, expected) {
   assert.equal(state.tasks.find(item => item.id === task.id).status, expected, JSON.stringify(state.events.filter(e => e.taskId === task.id)));
   return state;
 }
-async function setup(t) {
+async function setup(t, api = 'openai-completions') {
   // Deliberately fail, rather than skip, when the integration entry point is absent.
-  const [{ startFixture }, { createController }, { runPi }] = await Promise.all([
-    loadFixture(), import('./controller.mjs'), import('../../packages/pi-adapter/index.mjs'),
+  const [{ startFixture }, { createController }, { runPiSdk: runPi }] = await Promise.all([
+    loadFixture(), import('./controller.mjs'), import('../../packages/pi-runtime/sdk-runtime.mjs'),
   ]);
   const root = await mkdtemp(join(tmpdir(), 'moos-acceptance-'));
   let controller; let fixture;
@@ -89,17 +98,25 @@ async function setup(t) {
   const dataDir = join(root, 'data');
   controller = await createController({ dataDir, run: runPi });
   await controller.request('save_provider', { provider: { id: 'fixture', name: 'Local deterministic fixture',
-    baseUrl: fixture.baseUrl, model: 'moos-fixture', api: 'openai-completions' } });
+    baseUrl: fixture.baseUrl, model: 'moos-fixture', api } });
   const projects = []; const conversations = [];
   for (const name of ['alpha', 'beta']) {
     const path = join(root, name); await mkdir(path);
     const project = await controller.request('add_project', { path }); projects.push(project);
     conversations.push(await controller.request('create_conversation', { projectId: project.id }));
   }
-  return { root, fixture, projects, conversations, get controller() { return controller; },
+  return { root, dataDir, fixture, projects, conversations, get controller() { return controller; },
     submit: (index, message) => controller.request('submit', { conversationId: conversations[index].id, message, providerId: 'fixture', apiKey: fixture.apiKey }),
     restart: async () => { await controller.close(); controller = await createController({ dataDir, run: runPi }); } };
 }
+
+test('PI SDK streams the configured responses protocol without a CLI child', { timeout: 30000 }, async t => {
+  const f = await setup(t, 'openai-responses');
+  const task = await f.submit(0, 'MOOS_FIXTURE_RESPONSES');
+  const state = await terminal(f.controller, task, 'succeeded');
+  assert(state.messages.some(message => message.taskId === task.id && message.content === 'Responses SDK ready'));
+  assert(state.events.some(event => event.taskId === task.id && event.type === 'usage'));
+});
 
 test('real PI isolates two projects, attributes tool results and restores history across restart', { timeout: 60000 }, async t => {
   const f = await setup(t);
@@ -127,6 +144,19 @@ test('real PI isolates two projects, attributes tool results and restores histor
   // Reuse the persisted PI session: previous turn tool results must not skip this turn's write.
   await terminal(f.controller, await f.submit(0, 'MOOS_FIXTURE_WRITE AFTER_RESTART'), 'succeeded');
   assert.equal(await readFile(join(f.projects[0].path, 'result.txt'), 'utf8'), 'AFTER_RESTART\n');
+  for (const path of await files(f.dataDir)) assert(!String(await readFile(path)).includes(f.fixture.apiKey), path);
+});
+
+test('PI SDK emits start and end events for every allowed development tool', { timeout: 30000 }, async t => {
+  const f = await setup(t);
+  const task = await f.submit(0, 'MOOS_FIXTURE_TOOLS');
+  const state = await terminal(f.controller, task, 'succeeded');
+  const events = state.events.filter(event => event.taskId === task.id);
+  const expected = ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'];
+  assert.deepEqual(events.filter(event => event.type === 'tool_start').map(event => event.payload.toolName), expected);
+  assert.deepEqual(events.filter(event => event.type === 'tool_end').map(event => event.payload.toolName), expected);
+  assert.equal(await readFile(join(f.projects[0].path, 'all-tools.txt'), 'utf8'), 'after edit\n');
+  assert(events.some(event => event.type === 'tool_update'));
 });
 
 test('cancelling active bash and a same-project queued task leaves the other project running and no child', { timeout: 60000 }, async t => {
@@ -156,4 +186,6 @@ test('cancelling active bash and a same-project queued task leaves the other pro
   await assert.rejects(readFile(join(f.projects[0].path, 'result.txt')), { code: 'ENOENT' });
   assert(!state.events.some(e => e.taskId === queued.id && e.type === 'tool_start'));
   assert(!state.messages.some(m => [hold.id, queued.id].includes(m.taskId) && m.role === 'assistant'));
+  const modelConfig = JSON.parse(await readFile(join(f.dataDir, f.conversations[0].id, 'agent', 'models.json'), 'utf8'));
+  await assert.rejects(fetch(modelConfig.providers.fixture.baseUrl + '/chat/completions'));
 });

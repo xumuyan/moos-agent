@@ -11,7 +11,7 @@ import { StringDecoder } from 'node:string_decoder';
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'cli.js');
 const busy = new Set();
 const BODY_LIMIT = 2 * 1024 * 1024;
-function checkedProvider(p) {
+export function checkedProvider(p) {
   const text = (s, n) => typeof s === 'string' && s.length > 0 && s.length <= n && !/[\x00-\x1f\x7f]/.test(s);
   if (!p || !text(p.id, 80) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(p.id) || !text(p.name, 200) || !text(p.model, 200) || !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$/.test(p.model) || !text(p.baseUrl, 2048) || !['openai-completions', 'openai-responses'].includes(p.api) || !Number.isSafeInteger(p.contextWindow) || p.contextWindow < 1 || p.contextWindow > 10000000 || !Number.isSafeInteger(p.maxTokens) || p.maxTokens < 1 || p.maxTokens > p.contextWindow) throw new Error('Invalid provider configuration');
   let url;
@@ -19,16 +19,16 @@ function checkedProvider(p) {
   if (url.username || url.password || url.search || url.hash || !(url.protocol === 'https:' || (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)))) throw new Error('Invalid provider URL: HTTPS required outside loopback');
   return url.href.replace(/\/$/, '');
 }
-async function privateDir(path) {
+export async function privateDir(path) {
   await mkdir(path, { recursive: true, mode: 0o700 });
   if ((await lstat(path)).isSymbolicLink()) throw new Error('Symlinked adapter directory');
   await chmod(path, 0o700);
 }
-async function privateFile(path, text) {
+export async function privateFile(path, text) {
   try { if ((await lstat(path)).isSymbolicLink()) throw new Error('Symlinked adapter file'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
   await writeFile(path, text, { mode: 0o600 }); await chmod(path, 0o600);
 }
-async function context(cwd) {
+export async function context(cwd) {
   const ancestors = []; let path = cwd;
   for (;;) { ancestors.unshift(path); const parent = dirname(path); if (parent === path) break; path = parent; }
   let instructions = 'Follow applicable AGENTS.md rules (including nested rules before editing). Read PLAN.md and operatelog.md when they exist before working. Preserve project context and report actual results only.\n';
@@ -40,7 +40,7 @@ async function context(cwd) {
   if (Buffer.byteLength(instructions) > 256 * 1024) throw new Error('Project instructions exceed limit');
   return instructions;
 }
-async function proxyFor(provider, baseUrl, apiKey) {
+export async function proxyFor(provider, baseUrl, apiKey) {
   const token = randomBytes(32).toString('hex');
   const path = provider.api === 'openai-responses' ? '/responses' : '/chat/completions';
   const upstreams = new Set();

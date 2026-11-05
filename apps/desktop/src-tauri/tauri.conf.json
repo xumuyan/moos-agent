@@ -23,6 +23,7 @@
     "resources": {
       "../../../services/agent/": "services/agent/",
       "../../../packages/pi-adapter/": "packages/pi-adapter/",
+      "../../../packages/pi-runtime/": "packages/pi-runtime/",
       "../../../.generated/runtime/node_modules/": "node_modules/",
       "../../../.generated/runtime/package.json": "runtime/package.json",
       "../../../.generated/runtime/NODE-LICENSE": "runtime/NODE-LICENSE"

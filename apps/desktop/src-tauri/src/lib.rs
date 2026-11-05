@@ -16,7 +16,7 @@ impl Agent {
         Self { host, credentials }
     }
 
-    pub fn request(&mut self, method: &str, params: Value) -> Result<Value, String> {
+    pub fn request(&self, method: &str, params: Value) -> Result<Value, String> {
         let (mut params, key) = protocol::public_params(method, params)?;
         match method {
             "save_provider" => {
@@ -85,7 +85,7 @@ impl Agent {
         }
     }
 
-    pub fn shutdown(&mut self) {
+    pub fn shutdown(&self) {
         self.host.shutdown();
     }
 }

@@ -1,6 +1,6 @@
 const SERVICE: &str = "dev.moos.agent";
 
-pub trait Credentials: Send {
+pub trait Credentials: Send + Sync {
     fn get(&self, id: &str) -> Result<Option<String>, String>;
     fn set(&self, id: &str, key: &str) -> Result<(), String>;
     fn delete(&self, id: &str) -> Result<(), String>;

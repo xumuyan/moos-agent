@@ -2,23 +2,13 @@ import { createInterface } from 'node:readline';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const diagnostics = process.argv.includes('--diagnostics');
 const directoryArg = process.argv.find(argument => argument.startsWith('--data-dir='));
 const dataDir = directoryArg?.slice('--data-dir='.length) || process.env.MOOS_DATA_DIR || join(homedir(), 'Library', 'Application Support', 'dev.moos.agent');
-const controller = diagnostics ? await (async () => {
-  const { diagnoseProvider } = await import('./provider-diagnostics.mjs');
-  return {
-    request(method, params) {
-      if (!['list_models', 'test_provider'].includes(method)) throw new Error('不支持的诊断请求');
-      return diagnoseProvider(method, params);
-    },
-    close: async () => {},
-  };
-})() : await (async () => {
-  const [{ createController }, { runPi }] = await Promise.all([
-    import('./controller.mjs'), import('../../packages/pi-adapter/index.mjs'),
+const controller = await (async () => {
+  const [{ createController }, { runPiSdk }] = await Promise.all([
+    import('./controller.mjs'), import('../../packages/pi-runtime/sdk-runtime.mjs'),
   ]);
-  return createController({ dataDir, run: runPi });
+  return createController({ dataDir, run: runPiSdk });
 })();
 const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
 let shuttingDown;

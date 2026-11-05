@@ -1,0 +1,59 @@
+{
+  "evidenceId": "E21",
+  "recordedAt": "2026-11-05T18:20:00+08:00",
+  "platform": { "os": "macOS 27.0.1", "architecture": "arm64" },
+  "source": {
+    "state": "pre-commit workspace",
+    "baseCommit": "8b2ef43cb9ce9f48caa5bab67f49184766507ef7",
+    "plannedCommit": "feat(P02.3): migrate product tasks to one PI SDK runtime"
+  },
+  "runtime": {
+    "piVersion": "1.5.0",
+    "integration": "official in-process SDK inside the packaged Node host",
+    "packagedNodeHosts": 1,
+    "perTaskPiCliProcesses": 0,
+    "diagnosticsUsesSharedHost": true,
+    "m01RpcProbeChanged": false
+  },
+  "sdkAcceptance": {
+    "openaiCompletionsStreaming": true,
+    "openaiResponsesStreaming": true,
+    "conversationResumeAfterControllerRestart": true,
+    "differentProjectsConcurrent": true,
+    "canonicalDirectorySerialized": true,
+    "allowedTools": ["read", "write", "edit", "bash", "grep", "find", "ls"],
+    "toolStartUpdateAndEndPersisted": true,
+    "activeToolCancellationStopsOwnedChild": true,
+    "queuedTaskCancellationIsolated": true,
+    "otherProjectContinuesAfterCancellation": true,
+    "perRunAuthenticatedProxyClosed": true,
+    "upstreamCredentialAbsentFromSnapshotAndRuntimeFiles": true
+  },
+  "processAcceptance": {
+    "packagedApp": "apps/desktop/src-tauri/target/release/bundle/macos/Moos.app",
+    "tauriReportedSizeMiB": 230.50,
+    "observedTree": "Moos.app -> one bundled node -> services/agent/main.mjs",
+    "diagnosticSecondHostObserved": false,
+    "piCliOrRpcChildObservedDuringFixtureTask": false,
+    "controlledToolChildObservedDuringHoldTask": true,
+    "normalExitStoppedNodeHost": true,
+    "forcedAppSigkillStoppedNodeHost": true,
+    "forcedAppPid": 57255,
+    "ownedNodePid": 57260
+  },
+  "automatedVerification": {
+    "core": "111/111 passed",
+    "desktopUi": "51/51 passed",
+    "desktopRust": "12/12 passed",
+    "buildApp": "passed"
+  },
+  "limits": {
+    "realChargedProviderTested": false,
+    "activeSdkToolDuringPackagedAppSigkillTested": false,
+    "taskLongerThanTenMinutesTested": false,
+    "longTaskTimeoutFixed": false,
+    "usagePersistenceImplemented": false,
+    "finalPackageSizeOptimized": false,
+    "completeP02Acceptance": false
+  }
+}
