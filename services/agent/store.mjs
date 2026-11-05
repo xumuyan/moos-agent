@@ -31,7 +31,8 @@ export class Store {
         id TEXT PRIMARY KEY, projectId TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
         conversationId TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
         message TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('queued','running','succeeded','failed','cancelled','interrupted')),
-        createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, error TEXT
+        createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, error TEXT,
+        timeoutMs INTEGER NOT NULL DEFAULT 7200000, heartbeatAt TEXT, stage TEXT NOT NULL DEFAULT 'queued', errorCode TEXT
       );
       CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT, taskId TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
@@ -49,7 +50,13 @@ export class Store {
       CREATE INDEX IF NOT EXISTS messages_conversation ON messages(conversationId);
       CREATE INDEX IF NOT EXISTS tasks_conversation ON tasks(conversationId);
       CREATE INDEX IF NOT EXISTS events_conversation ON events(conversationId);
+      CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
+    const taskColumns = new Set(this.#all('PRAGMA table_info(tasks)').map(column => column.name));
+    if (!taskColumns.has('timeoutMs')) this.#db.exec('ALTER TABLE tasks ADD COLUMN timeoutMs INTEGER NOT NULL DEFAULT 7200000');
+    if (!taskColumns.has('heartbeatAt')) this.#db.exec('ALTER TABLE tasks ADD COLUMN heartbeatAt TEXT');
+    if (!taskColumns.has('stage')) this.#db.exec("ALTER TABLE tasks ADD COLUMN stage TEXT NOT NULL DEFAULT 'queued'");
+    if (!taskColumns.has('errorCode')) this.#db.exec('ALTER TABLE tasks ADD COLUMN errorCode TEXT');
   }
   #one(sql, ...params) { return row(this.#db.prepare(sql).get(...params)); }
   #all(sql, ...params) { return this.#db.prepare(sql).all(...params).map(row); }
@@ -124,21 +131,43 @@ export class Store {
     this.#db.prepare('INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?)').run(id, conversationId, taskId, role, content, now());
     return this.#one('SELECT * FROM messages WHERE id = ?', id);
   }
-  createTask({ conversationId, message }) {
+  createTask({ conversationId, message, timeoutMs = 7200000 }) {
     const conversation = this.getConversation(conversationId); text(message, 'message');
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 600000 || timeoutMs > 86400000) throw new Error('Invalid task timeout');
     const id = randomUUID(), time = now();
-    this.#db.prepare('INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?, ?, NULL)')
-      .run(id, conversation.projectId, conversationId, message, 'queued', time, time);
+    this.#db.prepare(`INSERT INTO tasks
+      (id, projectId, conversationId, message, status, createdAt, updatedAt, error, timeoutMs, heartbeatAt, stage, errorCode)
+      VALUES (?, ?, ?, ?, 'queued', ?, ?, NULL, ?, NULL, 'queued', NULL)`)
+      .run(id, conversation.projectId, conversationId, message, time, time, timeoutMs);
     return this.getTask(id);
   }
   listTasks() { return this.#all('SELECT * FROM tasks ORDER BY rowid DESC'); }
   countActiveTasks() { return this.#one("SELECT count(*) AS count FROM tasks WHERE status IN ('queued','running')").count; }
-  updateTask(id, { status, error = null }) {
+  updateTask(id, { status, error = null, errorCode = null, stage = status }) {
     this.getTask(id);
     if (!statuses.has(status)) throw new Error('Invalid status');
     if (error !== null) text(error, 'error', true);
-    this.#db.prepare('UPDATE tasks SET status = ?, error = ?, updatedAt = ? WHERE id = ?').run(status, error, now(), id);
+    if (errorCode !== null) text(errorCode, 'error code');
+    text(stage, 'task stage');
+    const time = now();
+    this.#db.prepare('UPDATE tasks SET status = ?, error = ?, errorCode = ?, stage = ?, heartbeatAt = ?, updatedAt = ? WHERE id = ?')
+      .run(status, error, errorCode, stage, time, time, id);
     return this.getTask(id);
+  }
+  heartbeatTask(id, stage) {
+    const task = this.getTask(id); text(stage, 'task stage');
+    if (task.status !== 'running') return task;
+    const time = now();
+    this.#db.prepare('UPDATE tasks SET heartbeatAt = ?, stage = ?, updatedAt = ? WHERE id = ?').run(time, stage, time, id);
+    return this.getTask(id);
+  }
+  getSetting(key) {
+    text(key, 'setting key');
+    return this.#one('SELECT value FROM settings WHERE key = ?', key)?.value;
+  }
+  setSetting(key, value) {
+    text(key, 'setting key'); text(value, 'setting value', true);
+    this.#db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
   }
   appendEvent(taskId, type, payload) {
     const task = this.getTask(taskId); text(type, 'event type');
@@ -241,8 +270,8 @@ export class Store {
     return this.transaction(() => {
       const tasks = this.#all("SELECT * FROM tasks WHERE status IN ('queued','running') ORDER BY rowid");
       for (const task of tasks) {
-        this.updateTask(task.id, { status: 'interrupted' });
-        this.appendEvent(task.id, 'task_state', { status: 'interrupted' });
+        this.updateTask(task.id, { status: 'interrupted', errorCode: 'host_interrupted', error: '应用或任务宿主中断，任务未自动重放。' });
+        this.appendEvent(task.id, 'task_state', { status: 'interrupted', errorCode: 'host_interrupted', error: '应用或任务宿主中断，任务未自动重放。' });
       }
       return tasks.length;
     });

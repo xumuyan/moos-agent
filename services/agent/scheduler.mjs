@@ -1,3 +1,6 @@
+import { classifyTaskError } from './errors.mjs';
+import { taskTimeout } from './task-policy.mjs';
+
 export class Scheduler {
   #store;
   #run;
@@ -8,28 +11,30 @@ export class Scheduler {
   #paths = new Set();
   #stopped = false;
   #scheduled = false;
+  #heartbeatMs;
 
-  constructor({ store, run, concurrency = 2, onEvent = () => {} }) {
+  constructor({ store, run, concurrency = 2, onEvent = () => {}, heartbeatMs = 15000 }) {
     if (!Number.isSafeInteger(concurrency) || concurrency < 1) throw new Error('Invalid concurrency');
     if (typeof run !== 'function' || typeof onEvent !== 'function') throw new Error('Invalid scheduler callback');
-    this.#store = store; this.#run = run; this.#concurrency = concurrency; this.#onEvent = onEvent;
+    if (!Number.isSafeInteger(heartbeatMs) || heartbeatMs < 1) throw new Error('Invalid heartbeat interval');
+    this.#store = store; this.#run = run; this.#concurrency = concurrency; this.#onEvent = onEvent; this.#heartbeatMs = heartbeatMs;
   }
   #publish(event) {
     try { Promise.resolve(this.#onEvent(event)).catch(() => {}); } catch { /* Observers cannot change task execution. */ }
   }
-  #state(id, status, error) {
-    const payload = error === undefined ? { status } : { status, error };
+  #state(id, status, failure) {
+    const payload = failure === undefined ? { status } : { status, ...failure };
     const event = this.#store.transaction(() => {
       this.#store.updateTask(id, payload);
       return this.#store.appendEvent(id, 'task_state', payload);
     });
     this.#publish(event);
   }
-  submit({ conversationId, message }) {
+  submit({ conversationId, message, timeoutMs }) {
     if (this.#stopped) throw new Error('Scheduler is shut down');
     let event;
     const task = this.#store.transaction(() => {
-      const task = this.#store.createTask({ conversationId, message });
+      const task = this.#store.createTask({ conversationId, message, timeoutMs: taskTimeout(timeoutMs) });
       this.#store.addMessage({ conversationId, taskId: task.id, role: 'user', content: message });
       event = this.#store.appendEvent(task.id, 'task_state', { status: 'queued' });
       return task;
@@ -67,41 +72,54 @@ export class Scheduler {
   }
   async #execute(task, project, conversation, entry) {
     const { signal } = entry.controller;
-    let open = true;
+    let open = true; let stage = 'running'; let heartbeat;
     try {
-      if (signal.aborted) { this.#state(task.id, 'cancelled'); return; }
+      if (signal.aborted) { this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' }); return; }
       this.#state(task.id, 'running');
+      heartbeat = setInterval(() => {
+        if (!open || signal.aborted) return;
+        const current = this.#store.heartbeatTask(task.id, stage);
+        const event = this.#store.appendEvent(task.id, 'task_heartbeat', { stage, heartbeatAt: current.heartbeatAt });
+        this.#publish(event);
+      }, this.#heartbeatMs);
+      heartbeat.unref?.();
       const result = await this.#run({
         task: this.#store.getTask(task.id), project, conversation, signal,
         emit: (type, payload) => {
           if (!open || signal.aborted) return;
           if (type === 'task_state') throw new Error('Task state events are reserved');
+          stage = type.startsWith('tool_') ? 'tool' : type === 'text_delta' || type === 'usage' ? 'model' : stage;
+          this.#store.heartbeatTask(task.id, stage);
           const event = this.#store.appendEvent(task.id, type, payload);
           this.#publish(event);
           return event;
         },
       });
       open = false;
-      if (signal.aborted) { this.#state(task.id, 'cancelled'); return; }
+      if (signal.aborted) { this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' }); return; }
       if (!result || typeof result.text !== 'string') throw new Error('Invalid runner result');
       let event;
       this.#store.transaction(() => {
         this.#store.addMessage({ conversationId: conversation.id, taskId: task.id, role: 'assistant', content: result.text });
-        this.#store.updateTask(task.id, { status: 'succeeded' });
+        this.#store.updateTask(task.id, { status: 'succeeded', stage: 'completed' });
         event = this.#store.appendEvent(task.id, 'task_state', { status: 'succeeded' });
       });
       this.#publish(event);
-    } catch {
+    } catch (error) {
       open = false;
-      this.#state(task.id, signal.aborted ? 'cancelled' : 'failed', signal.aborted ? undefined : 'Task execution failed');
-    } finally { open = false; }
+      if (signal.aborted) this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' });
+      else {
+        const failure = classifyTaskError(error);
+        this.#state(task.id, 'failed', { errorCode: failure.code, error: failure.message, stage: 'failed' });
+      }
+    } finally { open = false; clearInterval(heartbeat); }
   }
   cancel(taskId) {
     const task = this.#store.getTask(taskId);
     const index = this.#queue.indexOf(taskId);
     if (index >= 0) {
       this.#queue.splice(index, 1);
-      this.#state(taskId, 'cancelled');
+      this.#state(taskId, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' });
       this.#schedule();
     } else if (this.#active.has(taskId)) {
       this.#active.get(taskId).controller.abort();

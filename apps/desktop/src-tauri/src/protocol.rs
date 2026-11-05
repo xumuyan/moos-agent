@@ -13,6 +13,7 @@ pub fn allowed_method(method: &str) -> bool {
             | "cancel"
             | "list_models"
             | "test_provider"
+            | "set_task_policy"
     )
 }
 

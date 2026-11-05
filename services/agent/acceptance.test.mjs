@@ -6,6 +6,13 @@ import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const loadFixture = () => import('./fixture.mjs');
+test('PI SDK HTTP idle timeout follows the selected task deadline instead of five minutes', async () => {
+  const { sdkSettings } = await import('../../packages/pi-runtime/sdk-runtime.mjs');
+  assert.equal(sdkSettings(7200000).getHttpIdleTimeoutMs(), 7200000);
+  assert.equal(sdkSettings(86400000).getHttpIdleTimeoutMs(), 86400000);
+  assert.equal(sdkSettings(7200000).getProviderRetrySettings().timeoutMs, 7200000);
+  assert.equal(sdkSettings(86400000).getProviderRetrySettings().timeoutMs, 86400000);
+});
 async function completion(f, messages, key = f.apiKey) {
   const response = await fetch(`${f.baseUrl}/chat/completions`, {
     method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
@@ -86,7 +93,7 @@ async function terminal(controller, task, expected) {
   assert.equal(state.tasks.find(item => item.id === task.id).status, expected, JSON.stringify(state.events.filter(e => e.taskId === task.id)));
   return state;
 }
-async function setup(t, api = 'openai-completions') {
+async function setup(t, api = 'openai-completions', fixtureOptions) {
   // Deliberately fail, rather than skip, when the integration entry point is absent.
   const [{ startFixture }, { createController }, { runPiSdk: runPi }] = await Promise.all([
     loadFixture(), import('./controller.mjs'), import('../../packages/pi-runtime/sdk-runtime.mjs'),
@@ -94,7 +101,7 @@ async function setup(t, api = 'openai-completions') {
   const root = await mkdtemp(join(tmpdir(), 'moos-acceptance-'));
   let controller; let fixture;
   t.after(async () => { try { await controller?.close(); } finally { await fixture?.close(); await rm(root, { recursive: true, force: true }); } });
-  fixture = await startFixture();
+  fixture = await startFixture(fixtureOptions);
   const dataDir = join(root, 'data');
   controller = await createController({ dataDir, run: runPi });
   await controller.request('save_provider', { provider: { id: 'fixture', name: 'Local deterministic fixture',
@@ -116,6 +123,37 @@ test('PI SDK streams the configured responses protocol without a CLI child', { t
   const state = await terminal(f.controller, task, 'succeeded');
   assert(state.messages.some(message => message.taskId === task.id && message.content === 'Responses SDK ready'));
   assert(state.events.some(event => event.taskId === task.id && event.type === 'usage'));
+});
+
+test('two-hour policy carries a long fixture task past an accelerated old boundary', { timeout: 30000 }, async t => {
+  const f = await setup(t, 'openai-completions', { longDelayMs: 100 });
+  const task = await f.submit(0, 'MOOS_FIXTURE_LONG');
+  const state = await terminal(f.controller, task, 'succeeded');
+  const saved = state.tasks.find(item => item.id === task.id);
+  assert.equal(saved.timeoutMs, 7200000);
+  assert(state.messages.some(message => message.taskId === task.id && message.content === '完成 LONG'));
+});
+
+test('provider failures persist a safe explainable code without upstream text', { timeout: 30000 }, async t => {
+  const f = await setup(t);
+  const task = await f.submit(0, 'MOOS_FIXTURE_AUTH_FAIL');
+  const state = await terminal(f.controller, task, 'failed');
+  const saved = state.tasks.find(item => item.id === task.id);
+  assert.equal(saved.errorCode, 'auth');
+  assert.equal(saved.error, '模型服务认证失败，请检查 API 密钥。');
+  assert(!JSON.stringify(state).includes('fixture upstream SECRET detail'));
+});
+
+test('stopping a quiet model request cancels the stream and closes its proxy promptly', { timeout: 30000 }, async t => {
+  const f = await setup(t, 'openai-completions', { longDelayMs: 5000 });
+  const task = await f.submit(0, 'MOOS_FIXTURE_LONG');
+  await waitFor(async () => (await f.controller.request('snapshot')).tasks.find(item => item.id === task.id)?.status === 'running', 'quiet task start');
+  const started = Date.now();
+  await f.controller.request('cancel', { taskId: task.id });
+  await terminal(f.controller, task, 'cancelled');
+  assert(Date.now() - started < 2000);
+  const modelConfig = JSON.parse(await readFile(join(f.dataDir, f.conversations[0].id, 'agent', 'models.json'), 'utf8'));
+  await assert.rejects(fetch(modelConfig.providers.fixture.baseUrl + '/chat/completions'));
 });
 
 test('real PI isolates two projects, attributes tool results and restores history across restart', { timeout: 60000 }, async t => {

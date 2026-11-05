@@ -18,7 +18,7 @@ for (const name of ['sample-a', 'sample-b']) {
   const project = await controller.request('add_project', { path });
   await controller.request('create_conversation', { projectId: project.id, title: '本地验证会话' });
 }
-const allowed = new Set(['snapshot', 'add_project', 'remove_project', 'create_conversation', 'submit', 'cancel', 'save_provider', 'remove_provider', 'list_models', 'test_provider']);
+const allowed = new Set(['snapshot', 'add_project', 'remove_project', 'create_conversation', 'submit', 'cancel', 'save_provider', 'remove_provider', 'list_models', 'test_provider', 'set_task_policy']);
 const server = createServer(async (request, response) => {
   response.setHeader('content-type', 'application/json; charset=utf-8');
   response.setHeader('cache-control', 'no-store');

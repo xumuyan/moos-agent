@@ -102,11 +102,30 @@ test('failures are sanitized, observer failures isolated, late emits ignored', a
   }, { onEvent: () => { throw new Error('observer'); } });
   const task = scheduler.submit({ conversationId: c.id, message: 'go' });
   await until(() => store.getTask(task.id).status === 'failed');
-  assert.equal(store.getTask(task.id).error, 'Task execution failed');
+  assert.equal(store.getTask(task.id).errorCode, 'auth');
+  assert.equal(store.getTask(task.id).error, '模型服务认证失败，请检查 API 密钥。');
   const count = store.listEvents().length;
   late('output', { text: 'too late' });
   assert.equal(store.listEvents().length, count);
-  assert.equal(store.listEvents(task.id).at(-1).payload.error, 'Task execution failed');
+  assert.equal(store.listEvents(task.id).at(-1).payload.errorCode, 'auth');
+});
+
+test('running tasks persist heartbeat and stage without fabricating model output', async t => {
+  const gate = deferred();
+  const { store, scheduler, conversations: [c] } = await fixture(t, async ({ emit }) => {
+    emit('tool_start', { toolName: 'bash' });
+    await gate.promise;
+    return { text: 'done' };
+  }, { heartbeatMs: 5 });
+  const task = scheduler.submit({ conversationId: c.id, message: 'go', timeoutMs: 7200000 });
+  await until(() => store.listEvents(task.id).some(event => event.type === 'task_heartbeat'));
+  const running = store.getTask(task.id);
+  assert.equal(running.timeoutMs, 7200000);
+  assert.equal(running.stage, 'tool');
+  assert.match(running.heartbeatAt, /^\d{4}-/);
+  assert(!store.listEvents(task.id).some(event => event.type === 'text_delta'));
+  gate.resolve();
+  await until(() => store.getTask(task.id).status === 'succeeded');
 });
 
 test('shutdown cancels queued work and bounds waiting for an uncooperative runner', async t => {

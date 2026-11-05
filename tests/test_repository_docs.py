@@ -26,10 +26,12 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('证据：E20', plan)
         self.assertIn('- [x] P02.3 ', plan)
         self.assertIn('证据：E21', plan)
-        for number in range(4, 10):
+        self.assertIn('- [x] P02.4 ', plan)
+        self.assertIn('证据：E22', plan)
+        for number in range(5, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 3)
+        self.assertEqual(p02.count('- [x]'), 4)
         self.assertIn('在线插件市场不在首批范围', p02)
 
     def test_p02_1_records_license_adapter_and_shell_evidence(self):
@@ -81,6 +83,21 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('DiagnosticAgent', main)
         self.assertNotIn('launch_diagnostics', main)
 
+    def test_p02_4_records_bounded_policy_safe_errors_and_actual_long_task(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-long-tasks.json').read_text())
+        self.assertIn('- [x] P02.4 ', plan)
+        self.assertIn('| E22 |', plan)
+        self.assertEqual(evidence['policy']['choicesMs'],
+                         [600000, 1800000, 3600000, 7200000, 21600000, 86400000])
+        self.assertEqual(evidence['policy']['defaultMs'], 7200000)
+        self.assertGreater(evidence['actualLongTask']['durationMs'], 600000)
+        self.assertEqual(evidence['actualLongTask']['status'], 'succeeded')
+        self.assertGreaterEqual(evidence['actualLongTask']['heartbeatCount'], 40)
+        self.assertTrue(evidence['safeErrors']['rawProviderTextAbsent'])
+        self.assertEqual(evidence['packagedGui']['restoredTaskTimeoutMs'], 7200000)
+        self.assertFalse(evidence['limits']['realChargedProviderTested'])
+
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design = (ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md').read_text(encoding='utf-8')
@@ -94,7 +111,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('- [x] P02.1 ', plan)
         self.assertIn('- [x] P02.2 ', plan)
         self.assertIn('- [x] P02.3 ', plan)
-        for number in range(4, 10):
+        self.assertIn('- [x] P02.4 ', plan)
+        for number in range(5, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -102,7 +120,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 3)
+        self.assertEqual(p02.count('- [x]'), 4)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

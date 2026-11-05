@@ -1,0 +1,76 @@
+{
+  "evidenceId": "E22",
+  "recordedAt": "2026-11-05T19:03:00+08:00",
+  "platform": { "os": "macOS 27.0.1", "architecture": "arm64" },
+  "source": {
+    "state": "pre-commit workspace",
+    "baseCommit": "d47ec0bd0d966a5a28f6f6addfc837f4829fea31",
+    "plannedCommit": "fix(P02.4): support bounded long-running tasks"
+  },
+  "policy": {
+    "choicesMs": [600000, 1800000, 3600000, 7200000, 21600000, 86400000],
+    "defaultMs": 7200000,
+    "infiniteAllowed": false,
+    "persistedInSqlite": true,
+    "newTasksCaptureSelectedValue": true
+  },
+  "heartbeatAndRecovery": {
+    "intervalMs": 15000,
+    "heartbeatIsModelOutput": false,
+    "stagePersisted": true,
+    "unfinishedTasksAfterRestart": "interrupted without automatic replay"
+  },
+  "regressionInvestigation": {
+    "failedAttempts": [
+      { "durationMs": 300084, "heartbeatCount": 20, "status": "failed", "errorCode": "timeout" },
+      { "durationMs": 301138, "heartbeatCount": 20, "status": "failed", "errorCode": "timeout" },
+      { "durationMs": 301165, "heartbeatCount": 20, "status": "failed", "errorCode": "timeout" }
+    ],
+    "rootCause": "PI request timeout was extended, but Node fetch still used its five-minute Undici response-header timeout",
+    "fix": "Use a shared Undici dispatcher bounded at 24 hours while each task retains its exact shorter abort deadline"
+  },
+  "actualLongTask": {
+    "provider": "local deterministic fixture; no external model request",
+    "configuredTimeoutMs": 7200000,
+    "startedAt": "2026-11-05T18:52:21.991+08:00",
+    "completedAt": "2026-11-05T19:02:27.123+08:00",
+    "durationMs": 605132,
+    "status": "succeeded",
+    "stage": "completed",
+    "heartbeatCount": 40,
+    "assistantText": "完成 LONG",
+    "errorCode": null,
+    "perRunProxyClosed": true,
+    "piCliOrRpcChildObservedAfterTask": false
+  },
+  "safeErrors": {
+    "codes": ["auth", "quota", "rate_limit", "network", "model_capability", "context_limit", "tool_error", "permission", "cancelled", "timeout", "runtime_exit", "host_interrupted", "protocol", "internal"],
+    "rawProviderTextAbsent": true,
+    "fixtureAuthenticationFailureCode": "auth"
+  },
+  "packagedGui": {
+    "advancedSettingsDisplayedAllSixChoices": true,
+    "initialTaskTimeoutMs": 7200000,
+    "changedTaskTimeoutMs": 21600000,
+    "persistedAcrossRestart": true,
+    "restoredTaskTimeoutMs": 7200000,
+    "tauriReportedSizeMiB": 230.51,
+    "undiciVersionInBundle": "8.12.3"
+  },
+  "automatedVerification": {
+    "core": "120/120 passed after one documented transient full-run failure and a successful final full rerun",
+    "desktopUi": "51/51 passed",
+    "desktopRust": "12/12 passed",
+    "cargoFmt": "passed",
+    "buildApp": "passed"
+  },
+  "limits": {
+    "realChargedProviderTested": false,
+    "historicalM01RpcAdapterTenMinuteLimitChanged": false,
+    "usagePersistenceImplemented": false,
+    "pluginSystemImplemented": false,
+    "nativePtyImplemented": false,
+    "finalPackageSizeOptimized": false,
+    "completeP02Acceptance": false
+  }
+}

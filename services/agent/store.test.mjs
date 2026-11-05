@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, symlink, writeFile, stat, rm, realpath } from 'node:fs/
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Store } from './store.mjs';
+import { DatabaseSync } from 'node:sqlite';
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'moos-store-'));
@@ -26,6 +27,26 @@ test('canonical projects validate directories and deduplicate symlinks including
   await writeFile(join(root, 'file'), 'source');
   await assert.rejects(store.addProject(join(root, 'file')), /directory/i);
   await assert.rejects(store.addProject(join(root, 'missing')), /directory/i);
+});
+
+test('legacy task schema migrates heartbeat, timeout, stage, error code and settings', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'moos-store-migration-'));
+  const dbPath = join(root, 'legacy.sqlite');
+  const db = new DatabaseSync(dbPath);
+  db.exec(`
+    CREATE TABLE projects (id TEXT PRIMARY KEY, name TEXT NOT NULL, path TEXT NOT NULL UNIQUE, createdAt TEXT NOT NULL);
+    CREATE TABLE conversations (id TEXT PRIMARY KEY, projectId TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE, title TEXT NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE tasks (id TEXT PRIMARY KEY, projectId TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE, conversationId TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE, message TEXT NOT NULL, status TEXT NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, error TEXT);
+  `);
+  db.close();
+  const store = new Store({ dbPath });
+  t.after(async () => { store.close(); await rm(root, { recursive: true, force: true }); });
+  const inspection = new DatabaseSync(dbPath);
+  const columns = new Set(inspection.prepare('PRAGMA table_info(tasks)').all().map(column => column.name));
+  inspection.close();
+  for (const name of ['timeoutMs', 'heartbeatAt', 'stage', 'errorCode']) assert(columns.has(name), name);
+  store.setSetting('taskTimeoutMs', '21600000');
+  assert.equal(store.getSetting('taskTimeoutMs'), '21600000');
 });
 
 test('history survives reopening; recovery is explicit and emits terminal events', async t => {

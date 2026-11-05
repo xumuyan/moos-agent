@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AutoComplete, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd';
-import type { Provider } from './types';
+import type { Provider, RuntimeConfig } from './types';
 import { request } from './api';
 import SettingsCenter from './settings/SettingsCenter';
 
 interface DiagnosticResult { ok: boolean; code: string; message: string; elapsedMs: number; models?: string[]; status?: number }
 
 interface Values { id?: string; name: string; baseUrl: string; model: string; api: Provider['api']; apiKey?: string }
-export default function Settings({ providers, onClose, mutate }: { providers: Provider[]; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
+export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000, allowedTaskTimeouts: [600000, 1800000, 3600000, 7200000, 21600000, 86400000] }, onClose, mutate }: { providers: Provider[]; runtime?: RuntimeConfig; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
   const [form] = Form.useForm<Values>();
   const [editing, setEditing] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -96,5 +96,6 @@ export default function Settings({ providers, onClose, mutate }: { providers: Pr
       <Space><Button type="primary" htmlType="submit" loading={busy}>保存服务</Button>{editing && <Button onClick={reset}>取消编辑</Button>}</Space>
     </Form>
   </>;
-  return <SettingsCenter open onClose={close} modelContent={modelContent} />;
+  return <SettingsCenter open onClose={close} modelContent={modelContent} runtime={runtime}
+    onTaskTimeoutChange={taskTimeoutMs => mutate('set_task_policy', { taskTimeoutMs })} />;
 }

@@ -310,3 +310,12 @@
 - 验证结果：推送输出为 `8b2ef43..d8c4c7d  HEAD -> main`；本地 `HEAD` 与 GitHub `main` 均为 `d8c4c7d796ff171fe42d83d5ff335c05c0e6bdd6`。功能、测试及限制仍以同一提交的 E21 和前一条日志为准。
 - 遗留问题：P02.4—P02.9 继续未完成；600 秒上限和长任务通用失败提示是下一批 P02.4 的范围。本条日志补记自身仍需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `d8c4c7d796ff171fe42d83d5ff335c05c0e6bdd6`；本条补记使用唯一提交说明 `docs(P02.3): record SDK runtime delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.3): record SDK runtime delivery$'`。
+
+## 2026-11-05 19:05:22 +08:00｜P02.4：有界长任务、心跳与安全错误分类
+
+- 修改或新增内容：新增六档任务期限策略（10 分钟、30 分钟、1 小时、2 小时、6 小时、24 小时，默认 2 小时且禁止无限）、SQLite `settings` 及任务 `timeoutMs/heartbeatAt/stage/errorCode` 迁移、15 秒存活心跳、重启后 `host_interrupted` 且不自动重放、稳定安全错误码与固定中文提示。正式 PI SDK 任务使用所选期限控制模型请求和外层取消；新增 Undici 8.12.3 直接依赖，将共享响应头/正文传输上限设为产品最大 24 小时，各任务仍由自身更短的截止时间停止。高级设置接入真实配置并显示六档；任务区显示阶段、最近心跳和错误码。新增策略、错误、迁移、心跳、持久化、认证脱敏、安静请求取消和长任务回归测试，新增 E22，PLAN.md 只勾选 P02.4。
+- 遇到的难题：真实本地长任务前三次分别在 300.084、301.138 和 301.165 秒失败，均有 20 次心跳并正确记录 `timeout`，没有伪报成功。第一次只延长 Moos 外层期限后仍触发 PI 默认 5 分钟 HTTP 空闲上限；加入 `httpIdleTimeoutMs` 后第二次复用了修改前已启动的 Node 宿主，重启宿主后的第三次仍失败，排除了模块缓存。检查 PI 会话文件得到安全的本机运行时错误，明确指出 Node fetch 等待响应头的 Undici dispatcher 仍为 5 分钟。另一次最终核心全量回归中，旧 M01 代理的超大请求用例发生单次 `ECONNRESET`，导致当轮 119/120；该用例单独 12/12 通过，之后完整全量重跑 120/120 通过。GUI 中已有历史任务仍显示当时持久化的旧 `Task execution failed`，没有篡改历史记录。
+- 处理方式：先为 PI `SettingsManager` 同时设置 HTTP 空闲期限和 provider 请求期限，再根据会话错误配置一个共享 Undici Agent，使传输层允许到 24 小时；不把传输层设为无限，且保留每任务 AbortController 的精确期限、用户停止和代理关闭。每次修复后重启本次唯一 fixture 宿主，最终用完全新进程重新计时；失败记录全部保留在 E22，不用加速测试替代真实时长。GUI 在打包应用中将 2 小时改为 6 小时，正常退出重启后仍为 6 小时，再恢复 2 小时。验收结束后确认任务专属代理端口关闭、dev 宿主无 PI CLI/RPC 子进程，并只停止本轮 fixture 服务。
+- 验证结果：最终真实本地 fixture 任务从北京时间 18:52:21.991 运行到 19:02:27.123，共 605.132 秒，40 次心跳，状态 `succeeded`、阶段 `completed`、无错误码，助手内容为 `完成 LONG`；结束后代理连接被拒绝且 dev 宿主没有子进程。`npm test` 最终 120/120、`npm run test:desktop-ui` 51/51、`npm run test:desktop-product` 12/12、`cargo fmt --check --manifest-path apps/desktop/src-tauri/Cargo.toml`、`npm run test:docs` 35/35、`npm run build:app` 和 `git diff --check` 通过。Tauri 报告 230.51 MiB，逻辑大小 240626 KiB、磁盘占用 279392 KiB，包内确认 Undici 8.12.3。E22 记录提交前工作区状态及失败到成功的完整脱敏证据。
+- 遗留问题：未调用真实收费 GLM 或 OpenAI 中转站，不能据本地 fixture 推断服务商 10 分钟以上稳定性、额度或费用；Usage/缓存命中/上下文统计、插件、皮肤、原生 PTY、完整 P02.9 和包体优化仍未完成。M01 历史 RPC adapter 继续保留探针的 10 分钟边界，不是正式产品任务入口；P02.5 从真实 usage 持久化开始。既有 UI jsdom `NaN` 高度警告和 875.44 kB chunk 警告未在本批处理。
+- 对应 Git 提交：本批次唯一提交说明 `fix(P02.4): support bounded long-running tasks`；查询命令：`git log --all --oneline --grep='^fix(P02.4): support bounded long-running tasks$'`。完成最终提交、推送和远程核对后再补记实际哈希，不预填未知提交。

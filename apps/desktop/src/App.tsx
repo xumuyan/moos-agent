@@ -133,7 +133,8 @@ export default function App() {
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
       {stream && !saved && <Bubble content={<span className="plain-text">{stream}</span>} />}
       <TaskTrajectory events={tools} />
-      {task.error && <Alert type="error" message={task.error} showIcon />}
+      {task.error && <Alert type="error" message={task.error} description={task.errorCode ? `错误码：${task.errorCode}` : undefined} showIcon />}
+      {isActive(task) && task.heartbeatAt && <p className="muted">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
   };
@@ -183,6 +184,6 @@ export default function App() {
       rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
-    {settings && <Settings providers={data.providers} onClose={() => setSettings(false)} mutate={mutate} />}
+    {settings && <Settings providers={data.providers} runtime={data.runtime ?? emptySnapshot.runtime!} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider>;
 }

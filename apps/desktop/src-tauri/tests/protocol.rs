@@ -14,6 +14,7 @@ fn only_public_controller_commands_are_allowed() {
         "cancel",
         "list_models",
         "test_provider",
+        "set_task_policy",
     ] {
         assert!(allowed_method(method), "{method}");
     }

@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const apiKey = 'moos-local-fixture-test-only';
 const shellQuote = value => `'${value.replaceAll("'", "'\\''")}'`;
@@ -45,7 +46,8 @@ function responsesText(res, text) {
 }
 
 /** Local-only, deterministic OpenAI SSE endpoint. Never contacts a model service. */
-export async function startFixture() {
+export async function startFixture({ longDelayMs = 605000 } = {}) {
+  if (!Number.isSafeInteger(longDelayMs) || longDelayMs < 1 || longDelayMs > 620000) throw new Error('Invalid fixture long delay');
   const server = createServer(async (req, res) => {
     try {
       if (req.headers.authorization !== `Bearer ${apiKey}`) return reply(res, 401, 'Invalid fixture credential');
@@ -84,6 +86,11 @@ export async function startFixture() {
       const lastUser = messages.findLastIndex(message => message.role === 'user');
       if (lastUser < 0) return reply(res, 400, 'Fixture user message required');
       const text = messageText(messages[lastUser].content);
+      if (/\bMOOS_FIXTURE_AUTH_FAIL\b/.test(text)) return reply(res, 401, 'fixture upstream SECRET detail');
+      if (/\bMOOS_FIXTURE_LONG\b/.test(text)) {
+        await delay(longDelayMs);
+        return stream(res, { content: '完成 LONG' }, 'stop');
+      }
       // Match the complete marker token: never accept a safe prefix of shell/path input.
       const match = /\bMOOS_FIXTURE_WRITE\s+([^\s]+)/.exec(text);
       const hold = /\bMOOS_FIXTURE_HOLD\b/.test(text);

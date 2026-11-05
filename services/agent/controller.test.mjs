@@ -41,6 +41,24 @@ test('snapshot bounds persisted multi-project history and exposes scoped pages u
   await assert.rejects(controller.request('snapshot', { conversationId: first.id, before: { events: -1 } }), /cursor/i);
 });
 
+test('task timeout policy persists and is passed to newly submitted tasks', async t => {
+  let received;
+  const { controller, dataDir, submit } = await fixture(t, async context => { received = context.task.timeoutMs; return { text: 'done' }; });
+  assert.equal((await controller.request('snapshot')).runtime.taskTimeoutMs, 7200000);
+  for (const taskTimeoutMs of [0, 1, 600001, 86400001, Infinity, '7200000']) {
+    await assert.rejects(controller.request('set_task_policy', { taskTimeoutMs }), /task timeout/i);
+  }
+  assert.equal((await controller.request('set_task_policy', { taskTimeoutMs: 21600000 })).taskTimeoutMs, 21600000);
+  const task = await submit();
+  await settled(controller, task);
+  assert.equal(received, 21600000);
+  assert.equal((await controller.request('snapshot')).tasks.find(item => item.id === task.id).timeoutMs, 21600000);
+  await controller.close();
+  const reopened = await createController({ dataDir, run: async () => ({ text: 'done' }) });
+  t.after(() => reopened.close());
+  assert.equal((await reopened.request('snapshot')).runtime.taskTimeoutMs, 21600000);
+});
+
 const provider = id => ({ id, baseUrl: 'http://127.0.0.1:9000/v1', model: 'test', api: 'openai-completions' });
 const deferred = () => {
   let resolve;

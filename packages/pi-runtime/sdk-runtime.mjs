@@ -4,9 +4,19 @@ import {
   createAgentSession, createExtensionRuntime, ModelRuntime,
   SessionManager, SettingsManager,
 } from '@earendil-works/pi-coding-agent';
+import { Agent as UndiciAgent, setGlobalDispatcher } from 'undici';
 import { checkedProvider, context, privateDir, privateFile, proxyFor } from '../pi-adapter/index.mjs';
+import { classifyTaskError, TaskFailure } from '../../services/agent/errors.mjs';
+import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-policy.mjs';
 
 const busy = new Set();
+const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
+
+// Node's built-in fetch otherwise aborts while waiting for response headers at
+// five minutes, before PI's request timeout is reached. The shared transport is
+// bounded at the product maximum; each task still has its own shorter abort
+// signal and exact selected deadline.
+setGlobalDispatcher(new UndiciAgent({ headersTimeout: transportTimeoutMs, bodyTimeout: transportTimeoutMs }));
 
 function resourceLoader(instructions) {
   const runtime = createExtensionRuntime();
@@ -25,11 +35,16 @@ function resourceLoader(instructions) {
   };
 }
 
+export function sdkSettings(duration) {
+  return SettingsManager.inMemory({ httpIdleTimeoutMs: taskTimeout(duration),
+    compaction: { enabled: false }, retry: { enabled: false, provider: { timeoutMs: taskTimeout(duration) } } });
+}
+
 function validate({ task, project, conversation, dataDir, apiKey }) {
   if (!conversation || typeof conversation.id !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(conversation.id)) throw new Error('Invalid conversation id');
   const message = typeof task === 'string' ? task : task?.text;
-  const duration = typeof task === 'object' && task.timeoutMs !== undefined ? task.timeoutMs : 600000;
-  if (typeof message !== 'string' || !message.trim() || Buffer.byteLength(message) > 1024 * 1024 || !Number.isInteger(duration) || duration < 1 || duration > 600000) throw new Error('Invalid task or timeout');
+  const duration = taskTimeout(typeof task === 'object' ? task.timeoutMs : undefined);
+  if (typeof message !== 'string' || !message.trim() || Buffer.byteLength(message) > 1024 * 1024) throw new Error('Invalid task');
   if (typeof apiKey !== 'string' || !apiKey || apiKey.length > 16384 || /[\r\n\x00]/.test(apiKey)) throw new Error('Invalid API key');
   if (!project || !isAbsolute(project.path) || !isAbsolute(dataDir)) throw new Error('Absolute project and dataDir required');
   return { message, duration };
@@ -47,10 +62,12 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
   const abort = () => controller.abort();
   signal?.addEventListener('abort', abort, { once: true });
   if (signal?.aborted) abort();
-  const timer = setTimeout(abort, duration);
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, duration);
+  const aborted = () => new TaskFailure(timedOut ? 'timeout' : 'cancelled');
   let proxy; let session; let unsubscribe;
   try {
-    if (controller.signal.aborted) throw new Error('PI task aborted');
+    if (controller.signal.aborted) throw aborted();
     await privateDir(dataDir); await privateDir(root);
     const agentDir = join(root, 'agent');
     await privateDir(agentDir);
@@ -69,7 +86,10 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     ({ session } = await createAgentSession({
       cwd, agentDir, modelRuntime, model, thinkingLevel: 'off',
       resourceLoader: resourceLoader(instructions), sessionManager,
-      settingsManager: SettingsManager.inMemory({ compaction: { enabled: false }, retry: { enabled: false } }),
+      // PI defaults provider requests to a 5-minute idle deadline. Match the
+      // selected bounded task policy so quiet long-running requests are not
+      // terminated before Moos' own task deadline.
+      settingsManager: sdkSettings(duration),
       tools: ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
     }));
     let text = ''; let last;
@@ -89,11 +109,14 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const onAbort = () => { session.clearQueue(); void session.abort(); };
     controller.signal.addEventListener('abort', onAbort, { once: true });
     try {
-      if (controller.signal.aborted) throw new Error('PI task aborted');
+      if (controller.signal.aborted) throw aborted();
       await session.prompt(message);
       await session.waitForIdle();
-      if (controller.signal.aborted || last?.stopReason === 'aborted') throw new Error('PI task aborted');
-      if (!last || last.stopReason !== 'stop') throw new Error(`PI model failed to finish successfully (${last?.stopReason ?? 'missing'})`);
+      if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
+      if (!last || last.stopReason !== 'stop') {
+        const failure = classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`));
+        throw new TaskFailure(failure.code);
+      }
       return { text };
     } finally { controller.signal.removeEventListener('abort', onAbort); }
   } finally {

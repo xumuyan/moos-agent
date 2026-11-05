@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { Store } from './store.mjs';
 import { Scheduler } from './scheduler.mjs';
 import { diagnoseProvider } from './provider-diagnostics.mjs';
+import { ALLOWED_TASK_TIMEOUTS, DEFAULT_TASK_TIMEOUT_MS, taskTimeout } from './task-policy.mjs';
 
 function validateProvider(input) {
   if (!input || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.id ?? '')) throw new Error('模型配置标识无效');
@@ -24,6 +25,9 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
   await mkdir(dataDir, { recursive: true, mode: 0o700 });
   const store = new Store({ dbPath: join(dataDir, 'moos.sqlite') });
   store.interruptUnfinished();
+  let taskTimeoutMs;
+  try { taskTimeoutMs = taskTimeout(Number(store.getSetting('taskTimeoutMs') ?? DEFAULT_TASK_TIMEOUT_MS)); }
+  catch { taskTimeoutMs = DEFAULT_TASK_TIMEOUT_MS; store.setSetting('taskTimeoutMs', String(taskTimeoutMs)); }
   const providerFile = join(dataDir, 'providers.json');
   let providers = [];
   try { providers = JSON.parse(await readFile(providerFile, 'utf8')).map(validateProvider); }
@@ -124,7 +128,8 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
       case 'snapshot': {
         const projects = store.listProjects();
         const conversations = projects.flatMap(project => store.listConversations(project.id));
-        const snapshot = { projects, conversations, ...store.snapshotHistory(params), providers };
+        const snapshot = { projects, conversations, ...store.snapshotHistory(params), providers,
+          runtime: { taskTimeoutMs, allowedTaskTimeouts: ALLOWED_TASK_TIMEOUTS } };
         // Include JSON escaping and UTF-8 bytes, not JS string length. Leave ample
         // headroom for the RPC envelope below the native 4 MiB line limit.
         if (Buffer.byteLength(JSON.stringify(snapshot)) > 1024 * 1024 - 4096) {
@@ -149,13 +154,18 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         await persistProviders(current => current.filter(item => item.id !== providerId));
         return { removed: true };
       }
+      case 'set_task_policy': {
+        taskTimeoutMs = taskTimeout(params.taskTimeoutMs);
+        store.setSetting('taskTimeoutMs', String(taskTimeoutMs));
+        return { taskTimeoutMs, allowedTaskTimeouts: ALLOWED_TASK_TIMEOUTS };
+      }
       case 'submit': {
         const provider = providers.find(item => item.id === params.providerId);
         if (!provider) throw new Error('请先配置模型');
         if (typeof params.message !== 'string' || !params.message.trim() || params.message.length > 100000) throw new Error('任务内容无效');
         if (typeof params.apiKey !== 'string' || !params.apiKey) throw new Error('请先在本机设置模型密钥');
         if (store.countActiveTasks() >= 128) throw new Error('Active task limit reached (128)');
-        const task = scheduler.submit({ conversationId: params.conversationId, message: params.message.trim() });
+        const task = scheduler.submit({ conversationId: params.conversationId, message: params.message.trim(), timeoutMs: taskTimeoutMs });
         configs.set(task.id, { provider: { ...provider }, apiKey: params.apiKey });
         return task;
       }
