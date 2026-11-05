@@ -158,3 +158,12 @@
 - 验证结果：macOS 27.0.1/arm64。`npm test` 12 项通过；`npm run test:desktop-native` 11 项通过，覆盖 SIGTERM、SIGKILL 回退、退出后拒绝新进程、运行中进程清理、完成后移除登记、无关进程隔离、大体积 stderr 和后代输出等待上限；`npm run test:docs` 25 项通过。`npm run build:probe` 与 `npm run verify:probe` 通过，最终报告 recordedAt=2026-11-05T00:08:01.670Z，本地模拟模型 PI 活跃时正常退出后 Node 宿主与真实 PI 子进程均不存在，ZIP SHA-256 为 d1949b1380120b70fea490f66bea812338dedeca1d30e6370a131c76b2630f89。证据对应提交前工作区，见 probes/m01/evidence/desktop-gui-exit.json。
 - 遗留问题：只覆盖正常 Tauri 退出，不覆盖应用被强制终止或崩溃后的清理；多个顽固子进程目前串行等待，最坏退出耗时随数量增加；Retina、跨屏坐标及 M01.8 手机剩余通信仍未验收，M01.7 和 M01 整体保持未完成。真实 GLM/中转站、正式产品任务链和多项目隔离不在本次范围。
 - 对应 Git 提交：本批次唯一提交说明 `fix(M01): clean up runtime children on GUI exit`；查询命令：git log --all --oneline --grep='^fix(M01): clean up runtime children on GUI exit$'。提交并推送后核对远程 HEAD，不预填自身哈希。
+
+## 2026-11-05 08:15:45 +08:00｜M01.7a：GitHub 推送与远程核验
+
+- 修改或新增内容：补记 M01.7a 实现提交的首次推送失败、凭据处理和远程验收结果，不改变运行时实现或阶段完成范围。
+- 遇到的难题：首次 `git push origin main` 返回 HTTP 403，Git 默认凭据身份 xuguopeng 无权写入 xumuyan/moos-agent。
+- 处理方式：保留本地提交，确认 GitHub CLI 活动账号为仓库所有者 xumuyan；仅本次 Git 命令显式使用 `gh auth git-credential` 凭据助手，未修改全局 Git 配置、未强制推送或暴露凭据。
+- 验证结果：实现提交 `eb9609113900654a804fd86ab71291c30e5699e3` 推送成功；`git ls-remote origin refs/heads/main` 与 `git rev-parse HEAD` 均为该哈希，远程 main 与本地 HEAD 一致，工作区在本条文档补记前干净。
+- 遗留问题：M01.7 的崩溃清理、Retina 和跨屏坐标仍未验收，M01 整体未完成；本条只记录远程交付，不扩大 E16 验收范围。
+- 对应 Git 提交：已推送实现提交 `eb9609113900654a804fd86ab71291c30e5699e3`；本条补记使用唯一提交说明 `docs(M01): record GUI exit remote delivery`，查询命令：git log --all --oneline --grep='^docs(M01): record GUI exit remote delivery$'。
