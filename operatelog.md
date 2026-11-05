@@ -264,3 +264,12 @@
 - 验证结果：新增适配器/组件 5/5，最终 `npm run test:desktop-ui` 46/46、`npm test` 109/109、`npm run test:desktop-product` 12/12、`npm run test:desktop-native` 11/11、`npm run test:docs` 32/32、`npm run build:desktop` 和 `git diff --check` 通过。浏览器使用真实 PI 1.5.0 + 本地模拟模型完成 `MOOS_FIXTURE_WRITE P02_SHELL` 的 write/bash 和回复；`MOOS_FIXTURE_HOLD` 运行时切到第二项目显示 1 个后台任务且未取消，返回后停止为 cancelled；设置页成功打开。语义 Shell、侧栏、主区、右栏和输入区各 1 个，无横向溢出，控制台错误/警告 0；截图已人工查看但未提交原始图像，脱敏结果见 E19。既有 jsdom `NaN` 高度警告和 807.33 kB chunk 警告仍存在。
 - 遗留问题：未做宽屏右栏视觉实测、打包 Mac GUI 或生产进程树验收；当前两个 Node 宿主、逐任务 PI RPC spawn、600000ms 上限和通用 `Task execution failed` 未改变。P02.2 的完整三栏交互、三档权限和设置中心，及 P02.3—P02.9 的 SDK、长任务、Usage、插件、皮肤、PTY 和总验收均未完成。browse 的 Bun 安装脚本校验差异需技能维护者更新可信哈希或提供已验证运行时后才能使用该工具。
 - 对应 Git 提交：本批次唯一提交说明 `feat(P02.1): add UI adapter and DSH-style shell`；查询命令：`git log --all --oneline --grep='^feat(P02.1): add UI adapter and DSH-style shell$'`。验证后提交推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 17:34:07 +08:00｜P02.1：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.1 功能提交 `3a4ddec073a92ef5b9e369a6ce2ba9be8630caf1` 快进推送至 GitHub `main`，并核对远程分支哈希；本条只补记远程交付结果，不修改产品代码、测试或验收结论。
+- 遇到的难题：默认 Git 凭据对应的账号无该仓库写权限；沿用已验证的 GitHub CLI 凭据助手执行推送。推送前 `origin/main` 与功能提交的父提交均为 `7fe8cf771d9a8f3db1edfc1e6186a03631b05884`，不存在并发远程提交或重写历史需求。
+- 处理方式：执行 `git fetch origin main` 核对快进关系，再以 GitHub CLI 凭据助手执行 `git push origin HEAD:main`；推送后分别读取本地 `HEAD` 与 `git ls-remote origin refs/heads/main`。
+- 验证结果：推送输出为 `7fe8cf7..3a4ddec  HEAD -> main`；本地 `HEAD` 与 GitHub `main` 均为 `3a4ddec073a92ef5b9e369a6ce2ba9be8630caf1`。功能测试与实际验收范围沿用同一提交内 E19 和前一条日志，不因远程交付扩大。
+- 遗留问题：P02.2—P02.9 仍未完成；browse 技能的本地遥测脚本因全局安装目录中的脚本无执行权限且本机无 Bun 未能写入时间线，不影响 Moos 产品测试，未修改全局工具规避。此日志补记仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `3a4ddec073a92ef5b9e369a6ce2ba9be8630caf1`；本条补记使用唯一提交说明 `docs(P02.1): record shell remote delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.1): record shell remote delivery$'`。
