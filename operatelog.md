@@ -246,3 +246,12 @@
 - 验证结果：最终 `npm run test:docs` 31/31、`npm test` 109/109、`npm run test:desktop-ui` 41/41、`npm run test:desktop-product` 12/12、`npm run build:desktop` 和 `git diff --check` 通过。文档测试两次预期失败均已如实保留在本条：第一次缺少精确 SDK 门禁短语，第二次缺少完整“Tauri 原生 PTY”短语。桌面 UI 仍有既有 jsdom `NaN` 高度警告，生产构建仍有 804.37 kB chunk 警告；本次未启动 GUI 实测，因为范围仅为实施计划和契约修订，不能据此宣称 P02 功能可用。
 - 遗留问题：P02.1—P02.9 全部尚未实施；当前两个正式 Node 宿主、逐任务 PI RPC spawn、600000ms 上限和通用 `Task execution failed` 仍存在。下一批从 P02.1 的第三方清单和失败测试开始，完成并推送前不启动 P02.2/P02.3。真实模型、超过 10 分钟任务、进程树、插件沙箱、皮肤和 PTY 均待对应批次实际验收。
 - 对应 Git 提交：本批次唯一提交说明 `docs(P02): add phased implementation plan`；查询命令：`git log --all --oneline --grep='^docs(P02): add phased implementation plan$'`。验证后提交推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 17:12:09 +08:00｜P02：实施计划 GitHub 远程交付核验
+
+- 修改或新增内容：补记 P02 九批实施计划提交的 GitHub 推送与远程核验结果，不修改实施计划、产品代码或任务完成状态。
+- 遇到的难题：本条未遇到新的推送错误；为避免使用默认无权限 Git 身份，沿用已确认的 GitHub CLI 活动账号完成本次推送。
+- 处理方式：仅对本次推送命令使用 `gh auth git-credential`，未修改全局 Git 配置、未强制推送、未记录原始令牌；推送前确认远程 main 等于本次提交的直接父提交，保证快进。
+- 验证结果：实施计划提交 `e19115627266bc86396c79a5f89934ef4aec0cce` 已快进推送至 GitHub main；`git ls-remote origin refs/heads/main` 与当时本地 HEAD 均为该哈希。该结果只证明计划远程交付，不证明任何 P02 产品功能完成。
+- 遗留问题：P02.1—P02.9 全部未实施；下一步仍从 P02.1 开始。本条日志自身需创建独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送计划提交 `e19115627266bc86396c79a5f89934ef4aec0cce`；本条补记使用唯一提交说明 `docs(P02): record implementation plan delivery`，查询命令：`git log --all --oneline --grep='^docs(P02): record implementation plan delivery$'`。
