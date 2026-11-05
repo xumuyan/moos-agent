@@ -357,3 +357,12 @@
 - 验证结果：代理边界用例复测 1/1，随后 `npm test` 125/125；`npm run test:desktop-ui` 63/63、`npm run test:desktop-product` 12/12、文档 37/37、Rust fmt 与 `git diff --check` 通过，`npm run build:desktop` 及 `npm run build:app` 均通过。Tauri 报告 230.53 MiB，逻辑大小 240647 KiB、磁盘占用 279408 KiB。浏览器 1280×720 实际验收确认：插件停用后输入区贡献消失、重启后恢复；皮肤预览不改根主题，显式应用后刷新恢复，切回默认后输入框可输入 `FOCUS_OK`，无水平溢出；不兼容启动皮肤回退默认且控制台问题为 0。脱敏证据见 E24。
 - 遗留问题：P02.7 的本地 ZIP/文件夹安装、签名/权限/大小校验、第三方沙箱 API 与崩溃处理尚未实现，不能据内置插件推断恶意插件已隔离；P02.8 PTY、P02.9 总验收与包体优化仍未完成。现有 jsdom `NaN` 高度警告及 Vite 917.84 kB 大 chunk 警告未在本批处理。
 - 对应 Git 提交：本批次使用唯一提交说明 `feat(P02.6): add typed UI slots and safe themes`；查询命令：`git log --all --oneline --grep='^feat(P02.6): add typed UI slots and safe themes$'`。完成最终验证后提交、推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 20:41:52 +08:00｜P02.6：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.6 类型化 Slot、受信任内置插件和安全皮肤核心提交 `e3400a60995fa61ebecd55309dd50a6ff1f56661` 快进推送至 GitHub `main`，并补记远程核对结果；不修改产品代码或扩大 E24 验收范围。
+- 遇到的难题：本次没有新的推送错误或远程并发提交；默认系统凭据历史上不具备仓库写权限，因此没有再用已知会失败的默认身份试探。推送前功能提交的父节点和 `origin/main` 均为 `fa60be04b0adaa689ba8567711e4f0455da547cd`。
+- 处理方式：先执行 `git fetch origin main` 并核对快进关系，再仅对本次 push 清空默认 helper 并使用已确认的 GitHub CLI 凭据助手；未修改全局 Git 配置、未强制推送、未输出或记录令牌。
+- 验证结果：推送输出为 `fa60be0..e3400a6  HEAD -> main`；推送后本地 `HEAD`、`origin/main` 与 `git ls-remote origin refs/heads/main` 均为 `e3400a60995fa61ebecd55309dd50a6ff1f56661`。功能测试、实际界面验收与限制仍以该提交内 E24 和前一条日志为准。
+- 遗留问题：P02.7—P02.9 仍未完成；第三方 ZIP/文件夹安装与沙箱、原生 PTY、完整系统验收和包体优化继续按 PLAN.md 推进。本条日志自身仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `e3400a60995fa61ebecd55309dd50a6ff1f56661`；本条补记使用唯一提交说明 `docs(P02.6): record plugin theme delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.6): record plugin theme delivery$'`。
