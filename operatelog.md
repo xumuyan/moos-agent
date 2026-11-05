@@ -338,3 +338,12 @@
 - 验证结果：Completions 的两个 PI 任务产生 6 条记录、96 输入、30 输出、24 缓存读取、20% 命中率和 $0.000720，控制器重启后仍可查；Responses 实测缺缓存字段时为暂无数据、费用 $0.000200。浏览器输入区实际显示 20.0% 和 25/128,000；设置显示 48/15/12 Token、20%、$0.000360 和 3 条，项目筛选后无数据字段正确，导出 JSON 仅含归属与用量字段，临时 fixture 记录清理后为 0。最终 `npm test` 125/125、`npm run test:desktop-ui` 53/53、`npm run test:desktop-product` 12/12、Rust fmt、`npm run build:desktop` 及 `npm run build:app` 通过；Tauri 报告 230.53 MiB，逻辑 240647 KiB、磁盘 279408 KiB。文档测试及最终差异检查在提交前另行执行。
 - 遗留问题：未读取或计费真实 GLM Coding Plan/OpenAI 中转站，不能据 fixture 推断真实服务字段、账单或缓存语义；P02.9 需用用户本机配置补验。插件、皮肤、PTY、完整 P02 和小包目标未完成；现有 jsdom `NaN` 高度与 Vite 大 chunk 警告仍保留。
 - 对应 Git 提交：本批次唯一提交说明 `feat(P02.5): persist and display verified model usage`；查询命令：`git log --all --oneline --grep='^feat(P02.5): persist and display verified model usage$'`。完成验证后提交、推送并核对远程，不预填自身哈希。
+
+## 2026-11-05 19:50:49 +08:00｜P02.5：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.5 可核实用量功能提交 `2ff0c25add23d4bd5be14e15f8b6bd046f16e424` 快进推送至 GitHub `main`，并补记远程核对结果；不修改产品代码或扩大 E23 验收范围。
+- 遇到的难题：首次推送仍命中系统 `osxkeychain` 中无仓库写权限的 `xuguopeng` 凭据，GitHub 返回 HTTP 403。推送前已确认远程无并发提交，功能提交父节点与 `origin/main` 均为 `7d7e2d1e97bd148fbae01b6470d1ace217684c3f`。
+- 处理方式：保留本地提交，核对 GitHub CLI 活动账号为仓库所有者 `xumuyan`；仅对重试的 Git 命令清空系统 helper 并使用 `gh auth git-credential`，未修改全局 Git 配置、未强制推送、未记录原始令牌。
+- 验证结果：推送输出为 `7d7e2d1..2ff0c25  HEAD -> main`；推送后本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 均为 `2ff0c25add23d4bd5be14e15f8b6bd046f16e424`。功能、测试、实际界面验收和限制仍以该提交内 E23 及前一条日志为准。
+- 遗留问题：P02.6—P02.9 仍未完成；真实 GLM/中转站 usage 与账单、插件、皮肤、PTY、完整系统验收和小包目标继续按 PLAN.md 推进。本条远程交付日志自身仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `2ff0c25add23d4bd5be14e15f8b6bd046f16e424`；本条补记使用唯一提交说明 `docs(P02.5): record verified usage delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.5): record verified usage delivery$'`。
