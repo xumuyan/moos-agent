@@ -301,3 +301,12 @@
 - 验证结果：`npm test` 111/111、`npm run test:desktop-ui` 51/51、`npm run test:desktop-product` 12/12 通过；PI SDK 验收包括两个协议、重启续会话、两项目并发、同真实目录串行、七工具事件、运行/排队取消和其他项目隔离。`npm run build:app` 通过，Tauri 报告 230.50 MiB。最终包进程树实际为 App PID 57255 → 唯一 Node PID 57260 → `services/agent/main.mjs`，未出现 `--diagnostics` 或 PI CLI/RPC 子进程；此前本轮本地 fixture HOLD 任务进程检查只观察到受控工具子进程并显示 `NO_PI_CLI_CHILD`。正常退出检查 Node 已退出；最终向 PID 57255 发送 SIGKILL 后 PID 57260 在有界轮询内退出。GUI 已加载最终单宿主包；E21 为脱敏提交前工作区证据。最终文档测试和差异检查在提交前另行执行。
 - 遗留问题：未使用真实收费 GLM/中转站，本地 fixture 不能证明服务商兼容性、额度或费用；最终打包 App 的 SIGKILL 检查时没有活跃 SDK 工具，活跃工具清理由 SDK 取消集成测试覆盖，完整 P02.9 仍需组合实测。固定 600000ms 上限和通用长任务错误属于 P02.4，尚未修复；超过 10 分钟任务、Usage、插件、皮肤、PTY、小包优化均未完成。前端仍有既有 jsdom `NaN` 高度警告和 874.18 kB chunk 警告。
 - 对应 Git 提交：本批次唯一提交说明 `feat(P02.3): migrate product tasks to one PI SDK runtime`；查询命令：`git log --all --oneline --grep='^feat(P02.3): migrate product tasks to one PI SDK runtime$'`。完成最终验证后提交、推送并核对远程，不预填自身哈希。
+
+## 2026-11-05 18:21:23 +08:00｜P02.3：GitHub 远程交付核对
+
+- 修改或新增内容：将 P02.3 单一 SDK 运行时功能提交 `d8c4c7d796ff171fe42d83d5ff335c05c0e6bdd6` 快进推送至 GitHub `main`，并补记远程核对结果；不修改运行时实现或扩大 E21 验收范围。
+- 遇到的难题：默认 Git 凭据仍无仓库写权限；本次远程没有并发提交，推送前本地父提交、`origin/main` 与 `git ls-remote` 均为 `8b2ef43cb9ce9f48caa5bab67f49184766507ef7`。
+- 处理方式：先 fetch 并核对直接父子关系，再仅对本次 push 使用已确认的 GitHub CLI 凭据助手；未修改全局 Git 配置、未强制推送、未输出或记录令牌。
+- 验证结果：推送输出为 `8b2ef43..d8c4c7d  HEAD -> main`；本地 `HEAD` 与 GitHub `main` 均为 `d8c4c7d796ff171fe42d83d5ff335c05c0e6bdd6`。功能、测试及限制仍以同一提交的 E21 和前一条日志为准。
+- 遗留问题：P02.4—P02.9 继续未完成；600 秒上限和长任务通用失败提示是下一批 P02.4 的范围。本条日志补记自身仍需独立提交、推送并再次核对远程。
+- 对应 Git 提交：已推送功能提交 `d8c4c7d796ff171fe42d83d5ff335c05c0e6bdd6`；本条补记使用唯一提交说明 `docs(P02.3): record SDK runtime delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.3): record SDK runtime delivery$'`。
