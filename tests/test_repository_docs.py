@@ -9,6 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_product_chat_evidence_preserves_unverified_real_provider_scope(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        for term in ('P01', 'npm run dev:app', 'npm run build:app', '真实模型未验收',
+                     '本地模拟模型', '同真实目录串行', '手机、原生电脑操作和自动模型路由暂不接入'):
+            self.assertIn(term, plan)
+        self.assertIn('- [ ] M04 接入 GLM Coding Plan', plan)
+        self.assertIn('- [ ] M01 整体验收', plan)
+
+
     def test_permission_routing_evidence_preserves_failed_browser_retest(self):
         report = json.loads((ROOT / 'probes/m01/evidence/desktop-permission-routing.json').read_text())
         self.assertTrue(report['permissionNavigation']['bothClickedInInstalledGUI'])

@@ -13,7 +13,11 @@ await copyFile(join(root, 'package.json'), join(runtime, 'package.json'));
 await copyFile(join(root, 'package-lock.json'), join(runtime, 'package-lock.json'));
 execFileSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
   { cwd: runtime, stdio: 'inherit' });
-await cp(process.execPath, join(binaries, 'node-aarch64-apple-darwin'));
+const appBinaries = join(root, 'apps/desktop/src-tauri/binaries');
+await mkdir(appBinaries, { recursive: true });
+for (const destination of [binaries, appBinaries]) {
+  await cp(process.execPath, join(destination, 'node-aarch64-apple-darwin'));
+}
 const nodeLicense = join(dirname(dirname(process.execPath)), 'LICENSE');
 await copyFile(nodeLicense, join(runtime, 'NODE-LICENSE'));
 execFileSync('xcrun', ['swiftc', '-O', '-target', 'arm64-apple-macosx14.0', join(root, 'probes/m01/native.swift'),

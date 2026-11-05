@@ -2,7 +2,22 @@
 
 ## 范围与状态
 
-当前范围：实施已确认的个人开发助手 MVP。已完成规范及需求规划，当前推进 M01；已创建独立可运行的 Mac/PI 验证探针，尚未创建正式产品工程；已创建独立 uni-app x 手机测试页，验证了安装、启动及 HTTP 健康检查。M01 部分验证通过，整体仍待验收。文件存在、模拟模型或探针通过不能代表产品已完成。
+当前范围：实施已确认的个人开发助手 MVP。2026-11-05 用户调整优先级，暂停 M01 剩余 Retina/跨屏验收，优先实现正式 Mac 桌面的 PI 聊天执行与多项目闭环；M01 保持未完成，不再作为该可独立验证闭环的全量阻塞。正式产品工程已建立，PI 与本地模拟模型的多项目执行子集已验证；原生 GUI 项目/会话重启恢复已验证，钥匙串交互及真实模型未验收，完整产品尚未完成。已有独立 Mac/PI 探针与 uni-app x 手机测试页，手机只验证安装、启动及 HTTP 健康检查。文件存在、模拟模型或探针通过不能代表产品已完成。
+
+本轮优先范围：项目目录管理、多会话与历史、PI 流式聊天和文件/命令工具、默认并发 2 的跨项目调度、同真实目录串行、单任务停止、模型配置及 Mac 钥匙串。手机、原生电脑操作和自动模型路由暂不接入。按 M02/M03/M04 相关子集与 M06 的代码调度子集推进，不提前勾选整个阶段；真实模型须用户在本机填写配置，模拟验收与真实模型验收分别记录。
+
+## P01｜正式桌面 PI 聊天与多项目子集
+
+状态：实现与验收收尾中，不勾选 M02/M03/M04 全阶段。证据对应本批次提交前工作区，最终命令结果及提交关联见操作日志。
+
+- 已建立 `apps/desktop`（Tauri 2 / React / TypeScript / Ant Design X）、`services/agent`（Node SQLite / 调度）、`packages/pi-adapter`（PI 1.5.0 RPC），依赖锁文件已生成。
+- 已验证真实 PI 配合本地模拟模型完成两个临时项目的文件写入和命令校验，项目事件归属、同真实目录串行、跨项目并发 2、运行/排队任务分别取消、取消不影响其他项目、会话续用和重启历史恢复。模拟服务不调用外部模型，不证明 GLM 或中转站能力。
+- 已在浏览器实际提交 UI_A/UI_B、查看工具动作与结果、切换项目、停止 HOLD、验证必填表单和空 localStorage；打包 GUI 已通过添加临时项目、创建会话及正常关闭重启后的 ID/历史恢复，证据为 /tmp/moos-native-accept-6db29f 的 SQLite 与 PID 绑定 AX 报告。钥匙串表单填写受阻，完整原生聊天与钥匙串授权仍待验收，不用浏览器结果替代。
+- 原生桥使用 JSONL 私有管道，Keychain 实现不通过命令行传密钥；上游密钥只在内存代理使用。日志脱敏覆盖跨文本分块的完整密钥，不能据此承诺防止任意编码外传；任意 shell 不是系统文件沙箱。
+- 历史保留在 SQLite，快照以有界分页返回；大行分块读取，避免超过原生 4 MiB 帧上限。界面已在浏览器验证 65 条记录的翻页、返回最新，以及 120200 字节记录的版本绑定分块还原；活跃任务独立返回，不受最近 50 条历史限制。
+- 已成功执行 `npm run build:app`，完整内置 Node/PI 的本地 ad-hoc 签名 Moos.app 约 230 MiB；未公证、未安装到 Applications，不是小包目标或已发布安装包。打包 Node 启动包内服务的 snapshot/shutdown 已通过；不等于打包 GUI 聊天通过。
+- 开发入口：首次 `npm ci`、`npm --prefix apps/desktop ci`、`npm run prepare:runtime`，之后 `npm run dev:app` 自动启动 Vite 与 Tauri，不要同时运行 `dev:desktop`。纯浏览器本地验收另开两个终端运行 `npm run dev:fixture` 与 `npm run dev:desktop`，只允许 fixture，不用其传真实模型密钥。
+- 测试入口：`npm test`、`npm run test:desktop-ui`、`npm run test:desktop-product`、`npm run test:docs`；生产构建 `npm run build:app`。真实模型须在正式 Mac 设置中填写地址、模型 ID、协议和密钥后另行实测，不在聊天收集密钥。
 
 ## 阶段一：基础文件与本地验收
 
@@ -48,7 +63,7 @@ Mac React 界面 → Tauri 原生桥 → 本地任务服务 → PI 适配层 →
 iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端共享协议与状态语义，界面分别实现。
 
 - Tauri Rust 层管理原生能力、系统权限、凭据和运行时生命周期；PI/TypeScript 任务服务以独立进程运行。M01 已选择 RPC 为主接入方式并验证真实 PI 子进程，后续任务服务复用进程隔离边界；不同时维护 SDK 接入。
-- 建议目录：apps/desktop、apps/mobile、services/agent、packages/protocol、packages/pi-adapter；原生桌面工具归桌面原生层。该目录为后续实施方案，当前尚不存在。
+- 产品目录：apps/desktop、services/agent、packages/pi-adapter 正在本轮实施；apps/mobile 与 packages/protocol 仍为后续范围。原生电脑操作暂不接入本轮聊天链路，不以探针代码存在代表产品能力。
 - 本地 SQLite 保存项目、会话、任务、事件和用量；PI 自有会话存储与项目、会话 ID 建立关联，不重复并发写同一 PI 会话文件。数据库库选型在 M02 验证。
 - 核心实体：Project、Conversation、Task、TaskEvent、ProviderConfig、ModelCapability、UsageRecord、PairedDevice。全局模型配置可被项目偏好覆盖，密钥引用与普通配置分开。
 - 任务状态：queued、running、waiting_desktop、succeeded、failed、cancelled、interrupted；每次迁移持久化并发布带 taskId/projectId/eventId 的事件。应用重启将未完成任务标记 interrupted，首版不自动重放有副作用的任务。

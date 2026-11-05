@@ -186,3 +186,14 @@
 - 验证结果：macOS 27.0.1/arm64，`npm test` 16 项、`npm run test:desktop-native` 11 项通过；构建与 `npm run verify:probe -- --desktop-input` 通过，正常/强制 GUI 退出回归也通过。1× 主屏点击 (960,544)，520×232 点窗口输出 520×232 像素；左侧 2× Retina 副屏点击 (-855,591)，同尺寸窗口输出 1040×464 像素，输入均成功。ZIP SHA-256 为 69afbda89b07143f85b70ce9d423ee4f15a175c54dcc291c6e09ab58610f53aa；证据对应提交前工作区。最终文档测试及差异检查以提交前命令输出为准；截图内容未独立像素校验。
 - 遗留问题：原生清晰度、Safari Retina、镜像/旋转/热插拔及其他屏幕排列未验收；坐标数学夹具不是额外硬件证据。M01.7 与 M01 整体保持未完成。截图留在忽略目录，仅提交脱敏 JSON。
 - 对应 Git 提交：本批次唯一提交说明 `test(M01): verify own-window dual-display coordinates`；查询命令：git log --all --oneline --grep='^test(M01): verify own-window dual-display coordinates$'。按仓库规则提交推送后核对远程 HEAD，不预填哈希。
+
+## 2026-11-05 13:21:18 +08:00｜P01：正式桌面 PI 聊天与多项目子集
+
+- 时间说明：此为本批次收尾前读取的北京时间，不代表所有开发和验证的精确时间；证据对应本次提交前工作区。
+- 修改或新增内容：建立正式 Tauri 2 / React / TypeScript / Ant Design X 桌面、SQLite 项目会话任务事件存储、并发 2 与同规范化路径串行调度、真实 PI 1.5.0 RPC 适配、流式聊天和真实工具记录、单任务停止、模型设置与原生 Keychain 桥。增加本地 fixture、端到端验收、原生与界面测试及完整运行时打包入口；同步 PLAN.md 和文档检查。手机、桌面控制、自动模型路由暂缓，保留此前 M01 未完成结论。
+- 遇到的难题：PI 任务字段和模型默认上限不一致；原生检测错误使用未启用的全局对象；流式拆分密钥可能越过逐块脱敏；配置同时写入同一临时文件；关闭超时不能重试；全量历史超过原生 4 MiB 帧会断开；多轮工具记录顺序错误；慢启动使取消测试出现假失败；React 19 需要 Ant Design 官方兼容补丁；原生同名开发/打包进程的 AppleScript 选择发生歧义。
+- 处理方式：先失败测试再最小修复任务映射、流式脱敏、配置串行与失败回滚、共享关闭等待及重试、历史有界分页/大行分块、原生 isTauri IPC 和多轮时间线；取消测试等待真实 PID 并始终清理；使用官方 React 补丁。通过直接 PID 绑定 AX 检查纠正 GUI 身份误判，不把开发窗口中的 fixture 内容归给打包版。所有模型测试仅用本地模拟模型，不读取已有真实模型凭据。
+- 验证结果：主代理最终当前 `npm test` 54/54、`npm run test:docs` 28/28、正式桌面 Rust 8/8、旧探针 Rust 11/11 通过；前端当前 14/14 与 TypeScript/Vite 构建通过（历史分页界面仍在收尾，最终结果另补）。浏览器实际提交 UI_A/UI_B 均产生真实 PI write/bash 和各自结果；HOLD 第二次运行已停止且未添加成功回复；首个 HOLD 在点击停止前已自然完成，不能算作取消证据。表单空值拦截、无 localStorage 数据、当前控制台无错误。`npm run build:app` 成功，包内 Node 的独立 snapshot/shutdown 通过；完整本地包约 230 MiB，磁盘分配约 273 MiB，非最终小包。根及桌面生产依赖 `npm audit --omit=dev --registry=https://registry.npmjs.org --audit-level=high` 均报告 0 漏洞。截图已保存到忽略目录但读取工具未呈现像素，不声称视觉截图独立验收。最终差异检查和后续验收以提交前实际命令为准。
+- 遗留问题：真实模型未验收；用户须在正式应用本机填写模型配置后验证 GLM/中转站。不以本地 fixture 证明服务能力、图片输入或计费。打包 GUI 通过 PID 绑定 AX 操作添加一个自建临时项目和新会话，正常关闭并重启后 SQLite 和 GUI 保留相同 ID，证据 /tmp/moos-native-accept-6db29f/32-sqlite-after-restart.txt 与 33-ui-restored.txt；这不覆盖活跃任务退出。钥匙串表单填写受阻，未成功保存测试模型，不记录为 Keychain 已验收；打包 GUI 完整聊天仍待真实配置实测；本地包为 ad-hoc 签名，未公证或正式安装。前端仍有大 chunk 警告及 jsdom 高度 NaN 警告；不影响已执行测试通过，不隐瞒。任意 shell 不是系统沙箱，脱敏不保证阻止任意编码外传。尚未推送，不提前记录远程成功。
+- 收尾复验：`npm test` 59/59、文档 28/28；`npm --prefix apps/desktop test -- --maxWorkers=1` 23/23；正式 Rust 8/8、探针 Rust 11/11；最终 `npm run build:app` 通过。前端并行执行曾有一项 20 秒超时，单工作进程全量通过，保留该资源竞争限制。原生测试曾因时间戳临时目录冲突失败，加入进程内原子编号后全量重跑通过。新增历史版本变化回归先失败后通过；后端修复活跃任务被历史挤出、可变记录分块混合和元数据失控，任务接纳上限 128。浏览器用自建 fixture 的 65 条历史验证分页/返回最新、120200 字节大行完整还原（内容 40014 字符），没有调用真实模型。真实模型、Keychain 系统交互与完整原生聊天仍未验收。
+- 对应 Git 提交：本批次唯一提交说明 `feat(M02-M04): add multi-project PI desktop chat`；查询命令：git log --all --oneline --grep='^feat(M02-M04): add multi-project PI desktop chat$'。完成验证后按规则提交推送并核对远程 HEAD。

@@ -1,0 +1,10 @@
+import '@testing-library/jest-dom/vitest';
+import { afterEach, vi } from 'vitest';
+import { cleanup } from '@testing-library/react';
+afterEach(cleanup);
+Object.defineProperty(window, 'matchMedia', { writable: true, value: vi.fn().mockImplementation(() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() {} })) });
+globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+const originalGetComputedStyle = window.getComputedStyle;
+window.getComputedStyle = (element) => originalGetComputedStyle(element);
+Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 32 });
