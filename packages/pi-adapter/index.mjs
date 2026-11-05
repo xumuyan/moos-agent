@@ -8,6 +8,30 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
 
+function collectUsage(incoming, queue) {
+  const decoder = new StringDecoder('utf8'); let buffer = '';
+  const consume = chunk => {
+    buffer += chunk;
+    if (buffer.length > 256 * 1024) buffer = buffer.slice(-256 * 1024);
+    let index;
+    while ((index = buffer.indexOf('\n')) !== -1) {
+      const line = buffer.slice(0, index).trim(); buffer = buffer.slice(index + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (!data || data === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(data);
+        const usage = parsed?.usage ?? (parsed?.type === 'response.completed' ? parsed?.response?.usage : undefined);
+        if (usage && typeof usage === 'object' && !Array.isArray(usage)) {
+          queue.push(usage); if (queue.length > 64) queue.shift();
+        }
+      } catch { /* Provider protocol validation remains PI's responsibility. */ }
+    }
+  };
+  incoming.on('data', chunk => consume(decoder.write(chunk)));
+  incoming.on('end', () => consume(decoder.end() + '\n'));
+}
+
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'cli.js');
 const busy = new Set();
 const BODY_LIMIT = 2 * 1024 * 1024;
@@ -44,6 +68,7 @@ export async function proxyFor(provider, baseUrl, apiKey) {
   const token = randomBytes(32).toString('hex');
   const path = provider.api === 'openai-responses' ? '/responses' : '/chat/completions';
   const upstreams = new Set();
+  const usageQueue = [];
   const server = createServer(async (req, res) => {
     req.on('error', () => {}); res.on('error', () => {});
     const reject = status => { res.writeHead(status, { 'content-type': 'application/json', connection: 'close' }); res.end(JSON.stringify({ error: { message: `Proxy rejected request (${status})` } })); req.resume(); };
@@ -66,6 +91,7 @@ export async function proxyFor(provider, baseUrl, apiKey) {
         if (incoming.statusCode < 200 || incoming.statusCode >= 300) { incoming.resume(); return reject(incoming.statusCode >= 400 ? incoming.statusCode : 502); }
         res.writeHead(incoming.statusCode, { 'content-type': incoming.headers['content-type'] || 'text/event-stream', 'cache-control': 'no-store' });
         incoming.on('error', () => res.destroy());
+        collectUsage(incoming, usageQueue);
         incoming.pipe(res);
       });
       upstream.end(body);
@@ -73,7 +99,8 @@ export async function proxyFor(provider, baseUrl, apiKey) {
   });
   server.requestTimeout = 30000; server.headersTimeout = 10000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
-  return { token, baseUrl: `http://127.0.0.1:${server.address().port}/v1`, close: async () => { for (const request of upstreams) request.destroy(); server.closeAllConnections(); await new Promise(r => server.close(r)); } };
+  return { token, baseUrl: `http://127.0.0.1:${server.address().port}/v1`, takeUsage: () => usageQueue.shift(),
+    close: async () => { for (const request of upstreams) request.destroy(); server.closeAllConnections(); await new Promise(r => server.close(r)); } };
 }
 function processRun(child, signal, emit, message) {
   let buffer = ''; const decoder = new StringDecoder('utf8'); const pending = new Map(); let seq = 0; let text = ''; let last;

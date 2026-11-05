@@ -140,12 +140,16 @@ it('clears fetched models and ignores a stale model list after a key change', as
   expect(screen.queryByText(/过期列表/)).not.toBeInTheDocument();
 });
 
-it('omits an empty API key when editing an existing service', async () => {
+it('omits an empty API key and preserves verified pricing when editing an existing service', async () => {
   const mutate = vi.fn().mockResolvedValue(true);
   const user = userEvent.setup();
-  render(<Settings providers={[{ id: 'glm', name: '自定义 GLM', baseUrl: 'https://example.test/v1', model: 'user-model', api: 'openai-completions', hasKey: true }]} onClose={vi.fn()} mutate={mutate} />);
+  const pricing = { version: '2026-11', inputPerMillion: 1, outputPerMillion: 2, cacheReadPerMillion: 0.5 };
+  render(<Settings providers={[{ id: 'glm', name: '自定义 GLM', baseUrl: 'https://example.test/v1', model: 'user-model', api: 'openai-completions', hasKey: true, pricing }]} onClose={vi.fn()} mutate={mutate} />);
   await user.click(screen.getByRole('button', { name: /^编\s*辑$/ }));
   expect(screen.getByLabelText('API 密钥')).toHaveValue('');
+  await user.click(screen.getByText('可选：本地费用估算价格'));
+  expect(screen.getByLabelText('价格版本')).toHaveValue('2026-11');
+  expect(screen.getByLabelText('缓存读取价格')).toHaveValue('0.5');
   await user.click(screen.getByRole('button', { name: '保存服务' }));
-  await waitFor(() => expect(mutate).toHaveBeenCalledWith('save_provider', { provider: { id: 'glm', name: '自定义 GLM', baseUrl: 'https://example.test/v1', model: 'user-model', api: 'openai-completions' } }));
+  await waitFor(() => expect(mutate).toHaveBeenCalledWith('save_provider', { provider: { id: 'glm', name: '自定义 GLM', baseUrl: 'https://example.test/v1', model: 'user-model', api: 'openai-completions', pricing } }));
 });

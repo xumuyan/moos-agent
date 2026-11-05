@@ -49,6 +49,39 @@ test('legacy task schema migrates heartbeat, timeout, stage, error code and sett
   assert.equal(store.getSetting('taskTimeoutMs'), '21600000');
 });
 
+test('usage records aggregate by range and scope, export without prompts, clear and cascade', async t => {
+  const { path, store } = await fixture(t);
+  const project = await store.addProject(path);
+  const conversation = store.createConversation(project.id);
+  const first = store.createTask({ conversationId: conversation.id, message: 'first' });
+  const second = store.createTask({ conversationId: conversation.id, message: 'second' });
+  const base = { providerId: 'provider', model: 'model', projectId: project.id, conversationId: conversation.id,
+    inputTokens: 80, outputTokens: 20, cacheReadTokens: 20, cacheWriteTokens: null,
+    reasoningTokens: null, totalTokens: 120, contextWindow: 1000, costUsd: 0.01,
+    costSource: 'provider', priceVersion: null };
+  store.recordUsage({ ...base, taskId: first.id, createdAt: '2026-11-05T01:00:00.000Z' });
+  store.recordUsage({ ...base, taskId: second.id, inputTokens: 40, outputTokens: 10, cacheReadTokens: null,
+    totalTokens: 50, costUsd: null, costSource: null, createdAt: '2026-11-05T02:00:00.000Z' });
+  const summary = store.usageSummary({ since: '2026-11-05T00:00:00.000Z', providerId: 'provider' });
+  assert.equal(summary.recordCount, 2);
+  assert.equal(summary.inputTokens, 120);
+  assert.equal(summary.cacheReadTokens, null);
+  assert.equal(summary.cacheHitRate, null);
+  assert.equal(summary.costUsd, null);
+  assert.equal(store.latestUsageContexts()[0].conversationId, conversation.id);
+  const exported = store.exportUsage({ limit: 10 });
+  assert.equal(exported.records.length, 2);
+  assert(!JSON.stringify(exported).includes('first'));
+  assert.throws(() => store.usageSummary({ since: 'not-a-date' }), /usage/i);
+  assert.equal(store.clearUsage(), 2);
+  assert.equal(store.usageSummary({}).recordCount, 0);
+  store.recordUsage({ ...base, taskId: first.id });
+  store.updateTask(first.id, { status: 'cancelled' });
+  store.updateTask(second.id, { status: 'cancelled' });
+  store.removeProject(project.id);
+  assert.equal(store.exportUsage({}).records.length, 0);
+});
+
 test('history survives reopening; recovery is explicit and emits terminal events', async t => {
   const { path, dbPath, store } = await fixture(t);
   const p = await store.addProject(path);

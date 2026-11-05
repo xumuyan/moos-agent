@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-11-05T19:40:16+08:00",
+  "scope": "P02.5 verified model usage, cache, context and cost",
+  "implementation": {
+    "source": "provider usage objects captured by the authenticated local model proxy",
+    "persistence": "SQLite usage_records with task, project and conversation ownership",
+    "cacheHitFormula": "cacheReadTokens / (inputTokens + cacheReadTokens)",
+    "missingDataPolicy": "unavailable; never estimated from text or characters",
+    "exportContainsPromptOrCredential": false
+  },
+  "fixtureAcceptance": {
+    "openaiCompletions": {
+      "tasks": 2,
+      "modelRequests": 6,
+      "inputTokens": 96,
+      "outputTokens": 30,
+      "cacheReadTokens": 24,
+      "cacheHitRate": 0.2,
+      "costUsd": 0.00072,
+      "restartPersistenceVerified": true
+    },
+    "openaiResponses": {
+      "records": 1,
+      "cacheFieldReported": false,
+      "cacheHitRate": null,
+      "providerCostUsd": 0.0002
+    },
+    "failedProviderRequestCreatesUsageRecord": false
+  },
+  "browserAcceptance": {
+    "runtime": "PI 1.5.0 with local deterministic fixture",
+    "task": "MOOS_FIXTURE_WRITE UI_USAGE_1",
+    "taskStatus": "succeeded",
+    "composer": { "cacheHitRate": "20.0%", "context": "25 / 128,000" },
+    "settingsToday": {
+      "inputTokens": 48,
+      "outputTokens": 15,
+      "cacheReadTokens": 12,
+      "cacheHitRate": "20.0%",
+      "reasoningTokens": null,
+      "costUsd": 0.00036,
+      "latestContext": "25 / 128,000",
+      "records": 3
+    },
+    "projectFilterVerified": true,
+    "jsonExportVerified": true,
+    "clearVerifiedOnTemporaryFixtureData": true
+  },
+  "automaticTests": {
+    "core": "125/125 passed",
+    "desktopUi": "53/53 passed",
+    "desktopRust": "12/12 passed",
+    "rustfmt": "passed",
+    "desktopBuild": "passed"
+  },
+  "package": { "tauriReportedMiB": 230.53, "logicalKiB": 240647, "allocatedKiB": 279408 },
+  "limits": {
+    "realGlmOrRelayProviderTested": false,
+    "realProviderBillingVerified": false,
+    "configuredPricesAreUserSuppliedNotProviderBills": true,
+    "pluginsThemesAndPtyImplemented": false,
+    "p02Complete": false
+  }
+}

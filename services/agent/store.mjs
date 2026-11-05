@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomUUID, createHash } from 'node:crypto';
 import { realpath, stat } from 'node:fs/promises';
 import { basename } from 'node:path';
+import { summarizeUsage } from './usage.mjs';
 
 const statuses = new Set(['queued', 'running', 'succeeded', 'failed', 'cancelled', 'interrupted']);
 const now = () => new Date().toISOString();
@@ -51,6 +52,19 @@ export class Store {
       CREATE INDEX IF NOT EXISTS tasks_conversation ON tasks(conversationId);
       CREATE INDEX IF NOT EXISTS events_conversation ON events(conversationId);
       CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS usage_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        taskId TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        projectId TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        conversationId TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        providerId TEXT NOT NULL, model TEXT NOT NULL,
+        inputTokens INTEGER NOT NULL, outputTokens INTEGER NOT NULL,
+        cacheReadTokens INTEGER, cacheWriteTokens INTEGER, reasoningTokens INTEGER,
+        totalTokens INTEGER NOT NULL, contextWindow INTEGER,
+        costUsd REAL, costSource TEXT, priceVersion TEXT, createdAt TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS usage_created ON usage_records(createdAt);
+      CREATE INDEX IF NOT EXISTS usage_conversation_created ON usage_records(conversationId, createdAt);
     `);
     const taskColumns = new Set(this.#all('PRAGMA table_info(tasks)').map(column => column.name));
     if (!taskColumns.has('timeoutMs')) this.#db.exec('ALTER TABLE tasks ADD COLUMN timeoutMs INTEGER NOT NULL DEFAULT 7200000');
@@ -168,6 +182,78 @@ export class Store {
   setSetting(key, value) {
     text(key, 'setting key'); text(value, 'setting value', true);
     this.#db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
+  }
+  recordUsage(record) {
+    const task = this.getTask(record.taskId);
+    if (task.projectId !== record.projectId || task.conversationId !== record.conversationId) throw new Error('Invalid usage ownership');
+    text(record.providerId, 'usage provider'); text(record.model, 'usage model');
+    if (record.providerId.length > 80 || record.model.length > 200) throw new Error('Invalid usage identity');
+    const counter = (value, label, optional = false) => {
+      if (optional && value === null) return null;
+      if (!Number.isSafeInteger(value) || value < 0) throw new Error(`Invalid usage ${label}`);
+      return value;
+    };
+    const inputTokens = counter(record.inputTokens, 'input');
+    const outputTokens = counter(record.outputTokens, 'output');
+    const cacheReadTokens = counter(record.cacheReadTokens, 'cache read', true);
+    const cacheWriteTokens = counter(record.cacheWriteTokens, 'cache write', true);
+    const reasoningTokens = counter(record.reasoningTokens, 'reasoning', true);
+    const totalTokens = counter(record.totalTokens, 'total');
+    const contextWindow = counter(record.contextWindow, 'context window', true);
+    const costUsd = record.costUsd === null ? null : record.costUsd;
+    if (costUsd !== null && (typeof costUsd !== 'number' || !Number.isFinite(costUsd) || costUsd < 0)) throw new Error('Invalid usage cost');
+    const costSource = record.costSource === null ? null : text(record.costSource, 'usage cost source');
+    if ((costUsd === null) !== (costSource === null) || (costSource !== null && !['provider', 'configured'].includes(costSource))) throw new Error('Invalid usage cost source');
+    const priceVersion = record.priceVersion === null ? null : text(record.priceVersion, 'usage price version');
+    if (priceVersion?.length > 100) throw new Error('Invalid usage price version');
+    const createdAt = record.createdAt ?? now();
+    if (typeof createdAt !== 'string' || !Number.isFinite(Date.parse(createdAt))) throw new Error('Invalid usage time');
+    const result = this.#db.prepare(`INSERT INTO usage_records
+      (taskId, projectId, conversationId, providerId, model, inputTokens, outputTokens, cacheReadTokens,
+       cacheWriteTokens, reasoningTokens, totalTokens, contextWindow, costUsd, costSource, priceVersion, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      task.id, task.projectId, task.conversationId, record.providerId, record.model,
+      inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, reasoningTokens, totalTokens,
+      contextWindow, costUsd, costSource, priceVersion, createdAt);
+    return this.#one('SELECT * FROM usage_records WHERE id = ?', Number(result.lastInsertRowid));
+  }
+  #usageRows({ since, providerId, model, projectId, conversationId } = {}) {
+    const conditions = [], params = [];
+    if (since !== undefined) {
+      if (typeof since !== 'string' || !Number.isFinite(Date.parse(since))) throw new Error('Invalid usage range');
+      conditions.push('createdAt >= ?'); params.push(since);
+    }
+    for (const [column, value] of Object.entries({ providerId, model, projectId, conversationId })) {
+      if (value === undefined) continue;
+      text(value, `usage ${column}`); conditions.push(`${column} = ?`); params.push(value);
+    }
+    return this.#all(`SELECT * FROM usage_records${conditions.length ? ` WHERE ${conditions.join(' AND ')}` : ''} ORDER BY createdAt, id`, ...params);
+  }
+  usageSummary(filters = {}) {
+    const rows = this.#usageRows(filters);
+    const latest = rows.at(-1);
+    return { ...summarizeUsage(rows), contextTokens: latest?.totalTokens ?? null,
+      contextWindow: latest?.contextWindow ?? null };
+  }
+  latestUsageContexts() {
+    const seen = new Set(), result = [];
+    const rows = this.#all('SELECT * FROM usage_records ORDER BY createdAt DESC, id DESC');
+    for (const record of rows) {
+      if (seen.has(record.conversationId)) continue;
+      seen.add(record.conversationId);
+      const summary = summarizeUsage([record]);
+      result.push({ conversationId: record.conversationId, taskId: record.taskId,
+        totalTokens: record.totalTokens, contextWindow: record.contextWindow, cacheHitRate: summary.cacheHitRate });
+    }
+    return result;
+  }
+  exportUsage({ limit = 4096, ...filters } = {}) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 4096) throw new Error('Invalid usage export limit');
+    const rows = this.#usageRows(filters);
+    return { version: 1, exportedAt: now(), truncated: rows.length > limit, records: rows.slice(-limit) };
+  }
+  clearUsage() {
+    return Number(this.#db.prepare('DELETE FROM usage_records').run().changes);
   }
   appendEvent(taskId, type, payload) {
     const task = this.getTask(taskId); text(type, 'event type');

@@ -80,6 +80,7 @@ export default function App() {
   };
   const project = data.projects.find(p => p.id === projectId);
   const conversation = data.conversations.find(c => c.id === conversationId && c.projectId === projectId);
+  const usage = data.usageContexts?.find(item => item.conversationId === conversationId);
   const workspace = createWorkspaceView(data, { projectId, conversationId });
   const history = useHistory(data, conversation?.id ?? '');
   const tasks = history.visible.tasks.filter(t => t.projectId === projectId && t.conversationId === conversation?.id);
@@ -174,7 +175,7 @@ export default function App() {
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
           <TaskTrajectory events={history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId))} />
         </div>
-        <ComposerDock><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} />
+        <ComposerDock><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
           <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Button type="primary" aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()}>发送任务</Button>} />
           <PermissionMenu />
@@ -184,6 +185,6 @@ export default function App() {
       rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
-    {settings && <Settings providers={data.providers} runtime={data.runtime ?? emptySnapshot.runtime!} onClose={() => setSettings(false)} mutate={mutate} />}
+    {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider>;
 }

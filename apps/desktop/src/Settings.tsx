@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AutoComplete, Button, Form, Input, Popconfirm, Select, Space, Tag } from 'antd';
-import type { Provider, RuntimeConfig } from './types';
+import { Alert, AutoComplete, Button, Form, Input, InputNumber, Popconfirm, Select, Space, Tag } from 'antd';
+import type { Conversation, Project, Provider, ProviderPricing, RuntimeConfig, UsageExport, UsageSummary } from './types';
 import { request } from './api';
 import SettingsCenter from './settings/SettingsCenter';
+import UsageSection from './settings/UsageSection';
 
 interface DiagnosticResult { ok: boolean; code: string; message: string; elapsedMs: number; models?: string[]; status?: number }
 
-interface Values { id?: string; name: string; baseUrl: string; model: string; api: Provider['api']; apiKey?: string }
-export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000, allowedTaskTimeouts: [600000, 1800000, 3600000, 7200000, 21600000, 86400000] }, onClose, mutate }: { providers: Provider[]; runtime?: RuntimeConfig; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
+interface Values { id?: string; name: string; baseUrl: string; model: string; api: Provider['api']; apiKey?: string; pricing?: Partial<ProviderPricing> }
+export default function Settings({ providers, projects = [], conversations = [], runtime = { taskTimeoutMs: 7200000, allowedTaskTimeouts: [600000, 1800000, 3600000, 7200000, 21600000, 86400000] }, onClose, mutate }: { providers: Provider[]; projects?: Project[]; conversations?: Conversation[]; runtime?: RuntimeConfig; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
   const [form] = Form.useForm<Values>();
   const [editing, setEditing] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -66,8 +67,9 @@ export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000
   const save = async (values: Values) => {
     setBusy(true);
     try {
-      const { apiKey, ...provider } = values;
-      const ok = await mutate('save_provider', { provider: { ...provider, id: editing ?? crypto.randomUUID() }, ...(apiKey?.trim() ? { apiKey } : {}) });
+      const { apiKey, pricing, ...provider } = values;
+      const configuredPricing = pricing && Object.values(pricing).some(value => value !== undefined && value !== '') ? pricing : undefined;
+      const ok = await mutate('save_provider', { provider: { ...provider, ...(configuredPricing ? { pricing: configuredPricing } : {}), id: editing ?? crypto.randomUUID() }, ...(apiKey?.trim() ? { apiKey } : {}) });
       if (ok) reset();
     } finally { setBusy(false); }
   };
@@ -75,7 +77,7 @@ export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000
     <Alert type="info" showIcon message="使用你自己的 GLM 或 OpenAI 兼容服务" description="请填写已确认的服务地址、模型 ID 与协议。能力以实际调用为准；密钥仅交给 Mac 后端保存，不存入浏览器。" />
     <div className="provider-list">{providers.map(p => <div className="provider-row" key={p.id}>
       <div><strong>{p.name}</strong><div className="muted">{p.model} · {p.api}</div><Tag>{p.hasKey === undefined ? '密钥由本机管理' : p.hasKey ? '已保存密钥' : '未保存密钥'}</Tag></div>
-      <Space><Button size="small" onClick={() => { invalidate(); setEditing(p.id); form.setFieldsValue({ name: p.name, baseUrl: p.baseUrl, model: p.model, api: p.api, apiKey: '' }); }}>编辑</Button>
+      <Space><Button size="small" onClick={() => { invalidate(); setEditing(p.id); form.setFieldsValue({ name: p.name, baseUrl: p.baseUrl, model: p.model, api: p.api, apiKey: '', pricing: p.pricing }); }}>编辑</Button>
         <Popconfirm title="移除此模型服务？" onConfirm={() => mutate('remove_provider', { providerId: p.id })} okText="移除" cancelText="取消"><Button size="small" danger>移除</Button></Popconfirm>
       </Space>
     </div>)}</div>
@@ -86,6 +88,13 @@ export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000
       <div className="form-columns"><Form.Item name="model" label="模型 ID" rules={[{ required: true, whitespace: true }]}><AutoComplete options={models.map(value => ({ value }))} placeholder="填写准确模型 ID" /></Form.Item>
         <Form.Item name="api" label="API 协议" rules={[{ required: true }]}><Select options={['openai-completions', 'openai-responses'].map(value => ({ value, label: value }))} /></Form.Item></div>
       <Form.Item name="apiKey" label="API 密钥" extra={editing ? '留空保留现有密钥。' : '密钥由本机系统凭据存储管理。'}><Input.Password autoComplete="new-password" placeholder={editing ? '留空不修改' : '输入服务密钥（可选）'} /></Form.Item>
+      <details><summary>可选：本地费用估算价格</summary><p className="muted">单位为 USD / 百万 Token。至少填写价格版本、输入和输出价格；缓存价格缺失时相关任务费用显示“暂无数据”。</p>
+        <Form.Item name={['pricing', 'version']} label="价格版本"><Input placeholder="例如 2026-11" /></Form.Item>
+        <div className="form-columns"><Form.Item name={['pricing', 'inputPerMillion']} label="输入价格"><InputNumber min={0} /></Form.Item>
+          <Form.Item name={['pricing', 'outputPerMillion']} label="输出价格"><InputNumber min={0} /></Form.Item></div>
+        <div className="form-columns"><Form.Item name={['pricing', 'cacheReadPerMillion']} label="缓存读取价格"><InputNumber min={0} /></Form.Item>
+          <Form.Item name={['pricing', 'cacheWritePerMillion']} label="缓存写入价格"><InputNumber min={0} /></Form.Item></div>
+      </details>
       <Space>
         <Button aria-label="获取模型列表" onClick={() => void diagnose('list_models')} disabled={!!pending} loading={pending === 'list_models'}>获取模型列表</Button>
         <Button aria-label="测试模型" onClick={() => void diagnose('test_provider')} disabled={!!pending} loading={pending === 'test_provider'}>测试模型</Button>
@@ -96,6 +105,10 @@ export default function Settings({ providers, runtime = { taskTimeoutMs: 7200000
       <Space><Button type="primary" htmlType="submit" loading={busy}>保存服务</Button>{editing && <Button onClick={reset}>取消编辑</Button>}</Space>
     </Form>
   </>;
-  return <SettingsCenter open onClose={close} modelContent={modelContent} runtime={runtime}
+  const usageContent = <UsageSection providers={providers} projects={projects} conversations={conversations}
+    loadUsage={params => request<UsageSummary>('get_usage', params)}
+    clearUsage={async () => (await request<{ removed: number }>('clear_usage')).removed}
+    exportUsage={() => request<UsageExport>('export_usage')} />;
+  return <SettingsCenter open onClose={close} modelContent={modelContent} usageContent={usageContent} runtime={runtime}
     onTaskTimeoutChange={taskTimeoutMs => mutate('set_task_policy', { taskTimeoutMs })} />;
 }

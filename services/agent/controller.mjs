@@ -4,6 +4,21 @@ import { Store } from './store.mjs';
 import { Scheduler } from './scheduler.mjs';
 import { diagnoseProvider } from './provider-diagnostics.mjs';
 import { ALLOWED_TASK_TIMEOUTS, DEFAULT_TASK_TIMEOUT_MS, taskTimeout } from './task-policy.mjs';
+import { configuredCost } from './usage.mjs';
+
+function validatePricing(input) {
+  if (input === undefined || input === null) return undefined;
+  if (!input || typeof input !== 'object' || typeof input.version !== 'string' || !input.version.trim() || input.version.length > 100) throw new Error('模型价格版本无效');
+  const result = { version: input.version.trim() };
+  for (const key of ['inputPerMillion', 'outputPerMillion', 'cacheReadPerMillion', 'cacheWritePerMillion']) {
+    const value = input[key];
+    if (value === undefined || value === null || value === '') continue;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1000000) throw new Error('模型价格无效');
+    result[key] = value;
+  }
+  if (result.inputPerMillion === undefined || result.outputPerMillion === undefined) throw new Error('模型输入和输出价格必须同时填写');
+  return result;
+}
 
 function validateProvider(input) {
   if (!input || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.id ?? '')) throw new Error('模型配置标识无效');
@@ -15,9 +30,19 @@ function validateProvider(input) {
   }
   if (!['openai-completions', 'openai-responses'].includes(input.api) ||
       typeof input.model !== 'string' || !input.model.trim() || input.model.length > 200) throw new Error('模型或协议无效');
+  const pricing = validatePricing(input.pricing);
   return { id: input.id, name: String(input.name || input.model).slice(0, 100),
     baseUrl: url.href.replace(/\/$/, ''), model: input.model.trim(), api: input.api,
-    contextWindow: 128000, maxTokens: 8192 };
+    contextWindow: 128000, maxTokens: 8192, ...(pricing ? { pricing } : {}) };
+}
+
+function usageSince(range) {
+  const date = new Date();
+  if (range === 'all') return undefined;
+  if (range === 'today') { date.setHours(0, 0, 0, 0); return date.toISOString(); }
+  if (range === '7d') return new Date(Date.now() - 7 * 86400000).toISOString();
+  if (range === '30d') return new Date(Date.now() - 30 * 86400000).toISOString();
+  throw new Error('Invalid usage range');
 }
 
 export async function createController({ dataDir, run, shutdownTimeoutMs = 15000 }) {
@@ -83,6 +108,18 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         const result = await run({ ...options, ...config, dataDir,
           task: { ...options.task, text: options.task.message },
           emit: (type, payload) => {
+            if (type === 'usage') {
+              try {
+                const configured = configuredCost(payload, config.provider.pricing);
+                const costUsd = payload.providerCostUsd ?? configured;
+                const costSource = typeof payload.providerCostUsd === 'number' ? 'provider' : configured !== null ? 'configured' : null;
+                store.recordUsage({ ...payload, taskId: options.task.id, projectId: options.task.projectId,
+                  conversationId: options.task.conversationId, providerId: config.provider.id, model: config.provider.model,
+                  contextWindow: config.provider.contextWindow, costUsd, costSource,
+                  priceVersion: costSource === 'configured' ? config.provider.pricing.version : null });
+                return options.emit(type, { ...payload, costUsd, costSource });
+              } catch { return undefined; }
+            }
             if (type === 'text_delta' && typeof payload?.delta === 'string') {
               const text = trailing + payload.delta;
               // Replace complete keys first; retain only a possible raw key prefix.
@@ -129,6 +166,7 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         const projects = store.listProjects();
         const conversations = projects.flatMap(project => store.listConversations(project.id));
         const snapshot = { projects, conversations, ...store.snapshotHistory(params), providers,
+          usageContexts: store.latestUsageContexts(),
           runtime: { taskTimeoutMs, allowedTaskTimeouts: ALLOWED_TASK_TIMEOUTS } };
         // Include JSON escaping and UTF-8 bytes, not JS string length. Leave ample
         // headroom for the RPC envelope below the native 4 MiB line limit.
@@ -159,6 +197,12 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         store.setSetting('taskTimeoutMs', String(taskTimeoutMs));
         return { taskTimeoutMs, allowedTaskTimeouts: ALLOWED_TASK_TIMEOUTS };
       }
+      case 'get_usage': {
+        const { range = 'today', providerId, model, projectId, conversationId } = params;
+        return { range, ...store.usageSummary({ since: usageSince(range), providerId, model, projectId, conversationId }) };
+      }
+      case 'export_usage': return store.exportUsage({ limit: params.limit });
+      case 'clear_usage': return { removed: store.clearUsage() };
       case 'submit': {
         const provider = providers.find(item => item.id === params.providerId);
         if (!provider) throw new Error('请先配置模型');

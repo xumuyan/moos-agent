@@ -12,14 +12,16 @@ function reply(res, status, message) {
   res.writeHead(status, { 'content-type': 'application/json' });
   res.end(JSON.stringify({ error: { message } }));
 }
-function stream(res, delta, finishReason) {
+function stream(res, delta, finishReason, usage = { prompt_tokens: 20, completion_tokens: 5, total_tokens: 25,
+  prompt_tokens_details: { cached_tokens: 4 }, cost: 0.00012 }) {
   res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
   const id = `chatcmpl-${randomUUID()}`;
   const chunk = (delta, finish_reason) => `data: ${JSON.stringify({ id, object: 'chat.completion.chunk',
     created: 0, model: 'moos-fixture', choices: [{ index: 0, delta, finish_reason }] })}\n\n`;
   res.write(chunk({ role: 'assistant' }, null));
   res.write(chunk(delta, null));
-  res.write(chunk({}, finishReason));
+  res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created: 0, model: 'moos-fixture',
+    choices: [{ index: 0, delta: {}, finish_reason: finishReason }], usage })}\n\n`);
   res.end('data: [DONE]\n\n');
 }
 function tool(res, name, args, turn) {
@@ -31,7 +33,7 @@ function responsesText(res, text) {
   const item = { id: 'msg_fixture', type: 'message', status: 'completed', role: 'assistant',
     content: [{ type: 'output_text', text, annotations: [] }] };
   const response = { id: `resp_${randomUUID()}`, object: 'response', status: 'completed', output: [item],
-    usage: { input_tokens: 10, output_tokens: 2, total_tokens: 12 } };
+    usage: { input_tokens: 10, output_tokens: 2, total_tokens: 12, cost: 0.0002 } };
   const events = [
     { type: 'response.created', response: { ...response, status: 'in_progress', output: [] } },
     { type: 'response.output_item.added', output_index: 0, item: { ...item, content: [] } },

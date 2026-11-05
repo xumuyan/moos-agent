@@ -59,6 +59,29 @@ test('task timeout policy persists and is passed to newly submitted tasks', asyn
   assert.equal((await reopened.request('snapshot')).runtime.taskTimeoutMs, 21600000);
 });
 
+test('valid usage events persist, filter, export and clear without exposing prompts or credentials', async t => {
+  const { controller, submit } = await fixture(t, async ({ emit }) => {
+    emit('usage', { inputTokens: 80, outputTokens: 20, cacheReadTokens: 20, cacheWriteTokens: null,
+      reasoningTokens: null, totalTokens: 120, providerCostUsd: 0.0012 });
+    return { text: 'done' };
+  });
+  const task = await submit('USAGE_SECRET');
+  const state = await settled(controller, task);
+  assert.equal(state.usageContexts[0].totalTokens, 120);
+  assert.equal(state.usageContexts[0].cacheHitRate, 0.2);
+  const summary = await controller.request('get_usage', { range: 'all', providerId: 'test' });
+  assert.equal(summary.recordCount, 1);
+  assert.equal(summary.costUsd, 0.0012);
+  assert.equal(summary.contextWindow, 128000);
+  const exported = await controller.request('export_usage');
+  assert.equal(exported.records.length, 1);
+  assert(!JSON.stringify(exported).includes('Do work'));
+  assert(!JSON.stringify(exported).includes('USAGE_SECRET'));
+  assert.equal((await controller.request('clear_usage')).removed, 1);
+  assert.equal((await controller.request('get_usage', { range: 'all' })).recordCount, 0);
+  await assert.rejects(controller.request('get_usage', { range: 'forever' }), /usage/i);
+});
+
 const provider = id => ({ id, baseUrl: 'http://127.0.0.1:9000/v1', model: 'test', api: 'openai-completions' });
 const deferred = () => {
   let resolve;

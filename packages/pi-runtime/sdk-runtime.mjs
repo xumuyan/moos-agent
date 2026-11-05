@@ -8,6 +8,7 @@ import { Agent as UndiciAgent, setGlobalDispatcher } from 'undici';
 import { checkedProvider, context, privateDir, privateFile, proxyFor } from '../pi-adapter/index.mjs';
 import { classifyTaskError, TaskFailure } from '../../services/agent/errors.mjs';
 import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-policy.mjs';
+import { normalizeUsage } from '../../services/agent/usage.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
@@ -97,7 +98,12 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       if (event.type === 'message_update' && event.assistantMessageEvent?.type === 'text_delta') {
         const delta = event.assistantMessageEvent.delta; text += delta; emit('text_delta', { delta });
       } else if (event.type === 'message_end' && event.message?.role === 'assistant') {
-        last = event.message; if (last.usage) emit('usage', last.usage);
+        last = event.message;
+        const rawUsage = proxy.takeUsage();
+        if (last.usage && rawUsage) {
+          try { emit('usage', normalizeUsage(last.usage, rawUsage)); }
+          catch { /* Missing or malformed provider usage is never estimated. */ }
+        }
       } else if (event.type === 'tool_execution_start') {
         emit('tool_start', { toolCallId: event.toolCallId, toolName: event.toolName, args: event.args });
       } else if (event.type === 'tool_execution_update') {

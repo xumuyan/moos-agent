@@ -328,3 +328,13 @@
 - 验证结果：推送输出为 `d47ec0b..a3f49d3  HEAD -> main`；推送后本地 `HEAD` 与 `git ls-remote origin refs/heads/main` 都是 `a3f49d3c8ed2c378cc7b2f57368d277b4c50e5d0`。功能测试、真实 605.132 秒验收与限制仍以该提交内 E22 和前一条日志为准。
 - 遗留问题：P02.5—P02.9 仍未完成；真实 Usage/缓存/上下文、插件、皮肤、原生 PTY、完整系统验收和包体优化继续按 PLAN.md 推进。本条远程交付日志自身还需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `a3f49d3c8ed2c378cc7b2f57368d277b4c50e5d0`；本条补记使用唯一提交说明 `docs(P02.4): record long-task delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.4): record long-task delivery$'`。
+
+## 2026-11-05 19:40:16 +08:00｜P02.5：可核实 Usage、缓存命中、上下文与费用
+
+- 时间说明：此为最终打包完成后读取的北京时间；开发、失败测试和浏览器验收发生在本条之前，不将整理时间冒充每项操作的精确时间。
+- 修改或新增内容：在严格本地模型代理中从 Completions/Responses SSE 捕获原始 usage，与 PI 规范化计数合并后按 task/project/conversation 归属写入 SQLite `usage_records`；新增时间、服务、项目、会话筛选、JSON 导出与清理命令。输入区显示最新缓存命中率和上下文用量，设置中显示输入/输出/缓存/推理 Token、命中率、费用、上下文和记录数；支持可选用户价格版本，并标记 provider/configured 来源。新增后端、界面、原生协议与文档测试及 E23。
+- 遇到的难题：测试先行首轮后端 24 项中 3 项失败（usage 模块不存在、Store 无方法、快照无 usage），界面 3/3 失败（仍为占位组件）；实现后一个汇总断言因 JavaScript 浮点结果 `0.30000000000000004` 与 `0.3` 严格比较失败，改为误差断言。浏览器首次使用不符合 fixture 契约的中文任务，上游返回错误时 PI 仍产生 0 Token 消息，暴露会将失败请求误记为真实 usage。
+- 处理方式：以服务商原始 usage 字段的存在性作为可用性证据；缓存命中率固定为 `cacheRead / (input + cacheRead)`，任一记录缺缓存或费用字段时汇总显示“暂无数据”，不从文本/字符估算。未捕获到原始 usage 对象时不发出 usage 事件，并给服务失败用例增加零记录回归。费用优先服务商返回值；用户价格仅在所有已报告 Token 类别都有价格时计算，不冒充账单。浏览器改用确定性 `MOOS_FIXTURE_WRITE UI_USAGE_1` 完成真实 PI write/bash 验收。
+- 验证结果：Completions 的两个 PI 任务产生 6 条记录、96 输入、30 输出、24 缓存读取、20% 命中率和 $0.000720，控制器重启后仍可查；Responses 实测缺缓存字段时为暂无数据、费用 $0.000200。浏览器输入区实际显示 20.0% 和 25/128,000；设置显示 48/15/12 Token、20%、$0.000360 和 3 条，项目筛选后无数据字段正确，导出 JSON 仅含归属与用量字段，临时 fixture 记录清理后为 0。最终 `npm test` 125/125、`npm run test:desktop-ui` 53/53、`npm run test:desktop-product` 12/12、Rust fmt、`npm run build:desktop` 及 `npm run build:app` 通过；Tauri 报告 230.53 MiB，逻辑 240647 KiB、磁盘 279408 KiB。文档测试及最终差异检查在提交前另行执行。
+- 遗留问题：未读取或计费真实 GLM Coding Plan/OpenAI 中转站，不能据 fixture 推断真实服务字段、账单或缓存语义；P02.9 需用用户本机配置补验。插件、皮肤、PTY、完整 P02 和小包目标未完成；现有 jsdom `NaN` 高度与 Vite 大 chunk 警告仍保留。
+- 对应 Git 提交：本批次唯一提交说明 `feat(P02.5): persist and display verified model usage`；查询命令：`git log --all --oneline --grep='^feat(P02.5): persist and display verified model usage$'`。完成验证后提交、推送并核对远程，不预填自身哈希。

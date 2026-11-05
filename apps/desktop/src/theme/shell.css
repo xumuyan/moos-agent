@@ -45,6 +45,31 @@
 .settings-content { min-width: 0; max-height: 68vh; overflow: auto; padding: 6px 8px 20px 24px; }
 .settings-content section > h3 { margin-top: 0; font-size: 18px; }
 .settings-content section > p { color: var(--moos-muted); line-height: 1.8; }
+.usage-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.usage-filters label { display: grid; gap: 6px; color: var(--moos-muted); font-size: 11px; }
+.usage-filters select {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--moos-border);
+  border-radius: 7px;
+  background: var(--moos-panel);
+  color: inherit;
+}
+.usage-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.usage-metric { display: grid; gap: 5px; min-width: 0; padding: 13px; border: 1px solid var(--moos-border); border-radius: 9px; background: #f8fafb; }
+.usage-metric span { color: var(--moos-muted); font-size: 10px; }
+.usage-metric strong { overflow-wrap: anywhere; color: #344a57; font-size: 17px; font-variant-numeric: tabular-nums; }
+.usage-metric small { color: #8795a1; font-size: 9px; overflow-wrap: anywhere; }
+.usage-actions { display: flex; gap: 8px; margin-top: 16px; }
+.usage-notice { color: #8a742e; }
+.usage-warning { color: #b45f06; font-weight: 600; }
+.usage-critical { color: #bf2f38; font-weight: 700; }
 .tool-card summary { display: flex; gap: 10px; align-items: center; }
 .tool-card summary .muted { margin-left: auto; }
 

@@ -3,7 +3,6 @@ import { Modal } from 'antd';
 import GeneralSection from './GeneralSection';
 import ModelSection from './ModelSection';
 import PermissionSection from './PermissionSection';
-import UsageSection from './UsageSection';
 import PluginSection from './PluginSection';
 import ThemeSection from './ThemeSection';
 import PrivacySection from './PrivacySection';
@@ -17,14 +16,14 @@ const SECTIONS = [
 ] as const;
 type Section = typeof SECTIONS[number][0];
 
-export default function SettingsCenter({ open, onClose, modelContent, runtime, onTaskTimeoutChange }: {
-  open: boolean; onClose: () => void; modelContent: ReactNode; runtime: RuntimeConfig;
+export default function SettingsCenter({ open, onClose, modelContent, usageContent, runtime, onTaskTimeoutChange }: {
+  open: boolean; onClose: () => void; modelContent: ReactNode; usageContent: ReactNode; runtime: RuntimeConfig;
   onTaskTimeoutChange: (value: number) => Promise<boolean>;
 }) {
   const [active, setActive] = useState<Section>('models');
   const content: Record<Section, ReactNode> = {
     general: <GeneralSection />, models: <ModelSection>{modelContent}</ModelSection>, permissions: <PermissionSection />,
-    usage: <UsageSection />, plugins: <PluginSection />, theme: <ThemeSection />, privacy: <PrivacySection />,
+    usage: usageContent, plugins: <PluginSection />, theme: <ThemeSection />, privacy: <PrivacySection />,
     mobile: <MobileSection />, advanced: <AdvancedSection runtime={runtime} onTaskTimeoutChange={onTaskTimeoutChange} />,
   };
   return <Modal title="设置中心" open={open} onCancel={onClose} footer={null} destroyOnHidden width={860}>

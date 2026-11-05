@@ -123,6 +123,11 @@ test('PI SDK streams the configured responses protocol without a CLI child', { t
   const state = await terminal(f.controller, task, 'succeeded');
   assert(state.messages.some(message => message.taskId === task.id && message.content === 'Responses SDK ready'));
   assert(state.events.some(event => event.taskId === task.id && event.type === 'usage'));
+  const usage = await f.controller.request('get_usage', { range: 'all' });
+  assert.equal(usage.recordCount, 1);
+  assert.equal(usage.cacheReadTokens, null);
+  assert.equal(usage.cacheHitRate, null);
+  assert.equal(usage.costUsd, 0.0002);
 });
 
 test('two-hour policy carries a long fixture task past an accelerated old boundary', { timeout: 30000 }, async t => {
@@ -142,6 +147,7 @@ test('provider failures persist a safe explainable code without upstream text', 
   assert.equal(saved.errorCode, 'auth');
   assert.equal(saved.error, '模型服务认证失败，请检查 API 密钥。');
   assert(!JSON.stringify(state).includes('fixture upstream SECRET detail'));
+  assert.equal((await f.controller.request('get_usage', { range: 'all' })).recordCount, 0);
 });
 
 test('stopping a quiet model request cancels the stream and closes its proxy promptly', { timeout: 30000 }, async t => {
@@ -176,8 +182,14 @@ test('real PI isolates two projects, attributes tool results and restores histor
     assert(before.messages.some(m => m.taskId === tasks[i].id && m.role === 'assistant' && m.content === `完成 ${marker}`));
   }
   assert(!JSON.stringify(before).includes(f.fixture.apiKey));
+  const usage = await f.controller.request('get_usage', { range: 'all' });
+  assert.equal(usage.recordCount, 6);
+  assert.equal(usage.cacheReadTokens, 24);
+  assert.equal(usage.cacheHitRate, 24 / (96 + 24));
+  assert.equal(usage.costUsd, 0.00072);
   await f.restart();
   const restored = await f.controller.request('snapshot');
+  assert.equal((await f.controller.request('get_usage', { range: 'all' })).recordCount, 6);
   for (const key of ['projects', 'conversations', 'messages', 'tasks', 'events', 'providers']) assert.deepEqual(restored[key], before[key]);
   // Reuse the persisted PI session: previous turn tool results must not skip this turn's write.
   await terminal(f.controller, await f.submit(0, 'MOOS_FIXTURE_WRITE AFTER_RESTART'), 'succeeded');

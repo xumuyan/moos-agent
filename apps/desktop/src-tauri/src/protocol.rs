@@ -14,6 +14,9 @@ pub fn allowed_method(method: &str) -> bool {
             | "list_models"
             | "test_provider"
             | "set_task_policy"
+            | "get_usage"
+            | "export_usage"
+            | "clear_usage"
     )
 }
 
