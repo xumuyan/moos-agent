@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import SettingsCenter from './SettingsCenter';
 
 it('navigates all nine truthful settings sections with keyboard-operable controls', async () => {
@@ -19,4 +19,14 @@ it('navigates all nine truthful settings sections with keyboard-operable control
   expect(screen.getByRole('combobox', { name: '单任务运行时长上限' })).toBeInTheDocument();
   expect(screen.getByText('2 小时')).toBeInTheDocument();
   expect(screen.getByText(/心跳不是模型输出/)).toBeInTheDocument();
+});
+
+it('keeps the restyled settings dialog dismissible without changing a setting', async () => {
+  const onClose = vi.fn();
+  const changeTimeout = vi.fn();
+  render(<SettingsCenter open onClose={onClose} modelContent={<div>模型配置</div>}
+    usageContent={<div>用量</div>} runtime={{ taskTimeoutMs: 7200000, allowedTaskTimeouts: [7200000] }} onTaskTimeoutChange={changeTimeout} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+  expect(onClose).toHaveBeenCalledOnce();
+  expect(changeTimeout).not.toHaveBeenCalled();
 });

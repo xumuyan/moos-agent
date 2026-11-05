@@ -31,7 +31,7 @@ export default function SettingsCenter({ open, onClose, modelContent, usageConte
     usage: usageContent, plugins: <PluginSection local={localPlugins} />, theme: <ThemeSection themes={themes} activeId={activeThemeId} onApply={onThemeApply} />, privacy: <PrivacySection />,
     mobile: <MobileSection />, advanced: <AdvancedSection runtime={runtime} onTaskTimeoutChange={onTaskTimeoutChange} />,
   };
-  return <Modal title="设置中心" open={open} onCancel={onClose} footer={null} destroyOnHidden width={860}>
+  return <Modal className="settings-dialog" title="设置中心" open={open} onCancel={onClose} footer={null} destroyOnHidden width={960}>
     <div className="settings-center">
       <nav className="settings-nav" role="tablist" aria-label="设置分区">
         {SECTIONS.map(([key, label]) => <button key={key} role="tab" aria-selected={active === key} onClick={() => setActive(key)}>{label}</button>)}

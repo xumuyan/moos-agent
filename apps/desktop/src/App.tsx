@@ -26,6 +26,7 @@ import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/comma
 import './theme/tokens.css';
 import './theme/shell.css';
 import './style.css';
+import './theme/dsh-alignment.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 export default function App() {
@@ -163,7 +164,7 @@ export default function App() {
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
   };
-  return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#247e7b', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '9', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#f5f7f9', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
+  return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#4d6bfe', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '12', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
     <AppShell
       sidebar={<WorkspaceSidebar>
         <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div><SlotHost slot="sidebar.primary" />

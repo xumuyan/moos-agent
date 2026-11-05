@@ -28,6 +28,10 @@ P02.1 只参考上游公开的模块划分思路，包括工作区/会话导航�
 
 ## 明确排除
 
+### P02 视觉对齐补充（2026-11-05）
+
+用户明确要求主页面与设置页的实际样式接近 DSH。本次另参考本机上游 checkout `47f943859bef60e4160492346772ded9b24f765a` 中 `packages/client/ui-sidebar/src/client/SidebarRoot.module.css` 与 `packages/client/ui-conversation/src/client/skeleton/InputBar.module.css` 的视觉结构（紧凑导航、留白对话、整体圆角输入卡）。这只是额外只读设计参考，不替换原固定来源基线；新增 `apps/desktop/src/theme/dsh-alignment.css` 为独立实现，未复制上游 CSS、字体、素材或组件。具体色彩、尺寸与 Moos 组件适配自行编写。
+
 - 不引入 DeepSeek Harness 的 Electron 桌面壳、Cordis 服务、Profile/Bundle 执行内核或插件市场后端。
 - 不启动 DSH Web Server、Vite Server 或插件 Node Web Server 作为生产依赖。
 - 不使用 DeepSeek Harness、DeepSeek 或其图形资产作为 Moos 产品名称、图标或背书。

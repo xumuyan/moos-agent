@@ -1,0 +1,19 @@
+{
+  "scope": "P02.V1 DSH visual alignment follow-up",
+  "system": "arm64/macOS 27.0.1",
+  "changes": ["compact sidebar", "64px header", "centered conversation", "22px rounded composer card", "neutral default palette and blue accent", "wide settings with navigation sidebar"],
+  "installedPath": "/Applications/Moos.app",
+  "previousAppBackup": "/tmp/moos-before-visual.quLruC/Moos.app",
+  "signatureVerified": true,
+  "gui": {
+    "mainWindowVisuallyInspected": true,
+    "composerCardVisible": true,
+    "existingThemePreserved": true,
+    "settingsInspection": "interrupted twice by user computer control; not completed",
+    "narrowWindowVerified": false,
+    "pixelIdenticalToDsh": false
+  },
+  "tests": { "core": "125 passed", "rust": "17 passed", "settingsRegression": "2 passed", "initialUiRun": "62 passed, 9 failed under concurrent build load", "finalUiRun": "72/72 passed with --maxWorkers=1", "documents": "39/39 passed" },
+  "packageMiB": 230.96,
+  "completeVisualAcceptance": false
+}
