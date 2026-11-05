@@ -270,6 +270,19 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIsNotNone(historical_row)
             self.assertRegex(historical_row.group(0), r'有效签名身份.*0')
 
+    def test_display_evidence_limits_acceptance_to_own_window(self):
+        evidence = json.loads((ROOT / 'probes/m01/evidence/desktop-displays.json').read_text())
+        self.assertEqual(evidence['status'], 'passed')
+        self.assertFalse(evidence['displays']['inputInjected'])
+        self.assertEqual({item['screenScale'] for item in evidence['displayTests']}, {1, 2})
+        for item in evidence['displayTests']:
+            self.assertTrue(item['inputVerified'])
+            self.assertTrue(item['clickVerified'])
+            self.assertEqual(item['captureScale'], item['screenScale'])
+        self.assertTrue(any(item['clickPoint']['x'] < 0 for item in evidence['displayTests']))
+        self.assertTrue(all(value is False for value in evidence['limits'].values()))
+        self.assertIn('- [ ] M01.7 ', (ROOT / 'PLAN.md').read_text())
+
     def test_signing_identity_readiness_is_not_app_install_acceptance(self):
         evidence = json.loads((ROOT / 'probes/m01/evidence/ios-signing-ready.json').read_text())
         signing = evidence['signing']

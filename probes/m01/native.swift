@@ -11,7 +11,48 @@ func emit(_ value: [String: Any], code: Int32 = 0) -> Never {
     exit(code)
 }
 
+func cgPoint(_ point: CGPoint, primaryHeight: CGFloat) -> CGPoint {
+    CGPoint(x: point.x, y: primaryHeight - point.y)
+}
+
+func capturePixels(_ size: CGSize, scale: CGFloat) -> [String: Int] {
+    ["width": Int((size.width * scale).rounded()), "height": Int((size.height * scale).rounded())]
+}
+
+func inputAllowed(active: Bool, key: Bool, editor: Bool) -> Bool {
+    active && key && editor
+}
+
+func screenID(_ screen: NSScreen) -> CGDirectDisplayID {
+    (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! NSNumber).uint32Value
+}
+
 let mode = CommandLine.arguments.dropFirst().first ?? ""
+if mode == "input-focus", CommandLine.arguments.count == 3 {
+    let flags = Array(CommandLine.arguments[2])
+    guard flags.count == 3, flags.allSatisfy({ $0 == "0" || $0 == "1" }) else { exit(2) }
+    emit(["allowed": inputAllowed(active: flags[0] == "1", key: flags[1] == "1", editor: flags[2] == "1"),
+          "inputInjected": false])
+}
+if mode == "displays" {
+    let displays: [[String: Any]] = NSScreen.screens.map { screen in
+        let id = screenID(screen)
+        let bounds = CGDisplayBounds(id)
+        return ["id": id, "isPrimary": id == CGMainDisplayID(), "scale": screen.backingScaleFactor,
+                "x": bounds.minX, "y": bounds.minY, "width": bounds.width, "height": bounds.height]
+    }
+    emit(["displays": displays, "inputInjected": false, "screenshotCaptured": false])
+}
+if mode == "coordinate-plan" {
+    let values = CommandLine.arguments.dropFirst(2).compactMap(Double.init)
+    guard values.count == 6, values.allSatisfy({ $0.isFinite }),
+          values[2] > 0, values[3] > 0, values[3] <= 4,
+          values[4] > 0, values[5] > 0, values[4] <= 16384, values[5] <= 16384 else { exit(2) }
+    let point = cgPoint(CGPoint(x: values[0], y: values[1]), primaryHeight: values[2])
+    emit(["point": ["x": point.x, "y": point.y],
+          "pixels": capturePixels(CGSize(width: values[4], height: values[5]), scale: values[3]),
+          "inputInjected": false, "screenshotCaptured": false])
+}
 let screenGranted = CGPreflightScreenCaptureAccess()
 let inputGranted = AXIsProcessTrusted()
 if mode == "permissions" {
@@ -179,11 +220,13 @@ if mode == "browser-probe" {
                                         emit(["status": "failed", "reason": "test-content-frame-invalid"], code: 1)
                                     }
                                     capture.sourceRect = crop
-                                    capture.width = Int(crop.width * (NSScreen.main?.backingScaleFactor ?? 1))
-                                    capture.height = Int(crop.height * (NSScreen.main?.backingScaleFactor ?? 1))
+                                    let filter = SCContentFilter(desktopIndependentWindow: window)
+                                    let pixels = capturePixels(crop.size, scale: CGFloat(filter.pointPixelScale))
+                                    capture.width = pixels["width"]!
+                                    capture.height = pixels["height"]!
                                     capture.showsCursor = false
                                     let image = try await SCScreenshotManager.captureImage(
-                                        contentFilter: SCContentFilter(desktopIndependentWindow: window), configuration: capture)
+                                        contentFilter: filter, configuration: capture)
                                     guard let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else {
                                         emit(["status": "failed", "reason": "png-encoding-failed"], code: 1)
                                     }
@@ -216,7 +259,15 @@ if mode == "browser-probe" {
 }
 
 // Explicit, bounded desktop self-test. Only our own temporary window is captured.
-if mode != "self-test" || CommandLine.arguments.count != 3 {
+var requestedScreen: NSScreen?
+if mode == "self-test", CommandLine.arguments.count == 5, CommandLine.arguments[3] == "--display" {
+    guard let id = UInt32(CommandLine.arguments[4]),
+          let screen = NSScreen.screens.first(where: { screenID($0) == id }) else {
+        emit(["status": "failed", "reason": "display-not-found", "inputInjected": false], code: 2)
+    }
+    requestedScreen = screen
+}
+if mode != "self-test" || !(CommandLine.arguments.count == 3 || requestedScreen != nil) {
     fputs("Usage: moos-native permissions | self-test <own-window.png>\n", stderr); exit(2)
 }
 if !screenGranted || !inputGranted {
@@ -228,6 +279,10 @@ if #available(macOS 14.0, *) {
     app.setActivationPolicy(.regular)
     let window = NSWindow(contentRect: NSRect(x: 200, y: 200, width: 520, height: 200),
         styleMask: [.titled, .closable], backing: .buffered, defer: false)
+    if let screen = requestedScreen {
+        window.setFrameOrigin(NSPoint(x: screen.visibleFrame.midX - window.frame.width / 2,
+                                      y: screen.visibleFrame.midY - window.frame.height / 2))
+    }
     window.title = "Moos M01 · 桌面输入自测"
     let field = NSTextField(frame: NSRect(x: 30, y: 80, width: 460, height: 32))
     field.placeholderString = "仅向此测试窗口输入"
@@ -242,7 +297,10 @@ if #available(macOS 14.0, *) {
         }
         let fieldRect = window.convertToScreen(field.convert(field.bounds, to: nil))
         let mainHeight = CGDisplayBounds(CGMainDisplayID()).height
-        let point = CGPoint(x: fieldRect.midX, y: mainHeight - fieldRect.midY)
+        let point = cgPoint(CGPoint(x: fieldRect.midX, y: fieldRect.midY), primaryHeight: mainHeight)
+        guard requestedScreen == nil || window.screen.map(screenID) == requestedScreen.map(screenID) else {
+            emit(["status": "blocked", "reason": "target-display-changed"], code: 3)
+        }
         guard let clickDown = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown,
                                       mouseCursorPosition: point, mouseButton: .left),
               let clickUp = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp,
@@ -250,15 +308,15 @@ if #available(macOS 14.0, *) {
             emit(["status": "failed", "reason": "mouse-event-unavailable"], code: 1)
         }
         clickDown.post(tap: .cghidEventTap); clickUp.post(tap: .cghidEventTap)
-        let units = Array("MOOS_M01_INPUT_OK".utf16)
-        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true),
-              let up = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false) else {
-            emit(["status": "failed", "reason": "keyboard-event-unavailable"], code: 1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            guard inputAllowed(active: app.isActive, key: window.isKeyWindow,
+                               editor: field.currentEditor().map { window.firstResponder === $0 } ?? false) else {
+                emit(["status": "blocked", "reason": "probe-input-focus-lost"], code: 3)
+            }
+            let (down, up) = browserEvents(0, text: "MOOS_M01_INPUT_OK")
+            down.post(tap: .cghidEventTap); up.post(tap: .cghidEventTap)
         }
-        down.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
-        up.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
-        down.post(tap: .cghidEventTap); up.post(tap: .cghidEventTap)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             guard field.stringValue == "MOOS_M01_INPUT_OK" else {
                 emit(["status": "failed", "reason": "input-not-received"], code: 1)
             }
@@ -269,11 +327,13 @@ if #available(macOS 14.0, *) {
                         emit(["status": "failed", "reason": "own-window-not-found"], code: 1)
                     }
                     let config = SCStreamConfiguration()
-                    config.width = Int(own.frame.width * (window.screen?.backingScaleFactor ?? 1))
-                    config.height = Int(own.frame.height * (window.screen?.backingScaleFactor ?? 1))
+                    let filter = SCContentFilter(desktopIndependentWindow: own)
+                    let pixels = capturePixels(own.frame.size, scale: CGFloat(filter.pointPixelScale))
+                    config.width = pixels["width"]!
+                    config.height = pixels["height"]!
                     config.showsCursor = false
                     let image = try await SCScreenshotManager.captureImage(
-                        contentFilter: SCContentFilter(desktopIndependentWindow: own), configuration: config)
+                        contentFilter: filter, configuration: config)
                     let bitmap = NSBitmapImageRep(cgImage: image)
                     guard let png = bitmap.representation(using: .png, properties: [:]) else {
                         emit(["status": "failed", "reason": "png-encoding-failed"], code: 1)
@@ -281,7 +341,10 @@ if #available(macOS 14.0, *) {
                     try png.write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
                     emit(["status": "passed", "inputVerified": true, "clickVerified": true, "captureScope": "probe-window-only",
                           "imageWidth": image.width, "imageHeight": image.height,
-                          "screenScale": window.screen?.backingScaleFactor ?? 0])
+                          "screenScale": window.screen!.backingScaleFactor, "displayID": screenID(window.screen!),
+                          "captureScale": filter.pointPixelScale,
+                          "windowWidthPoints": own.frame.width, "windowHeightPoints": own.frame.height,
+                          "clickPoint": ["x": point.x, "y": point.y]])
                 } catch { emit(["status": "failed", "reason": "own-window-capture-failed"], code: 1) }
             }
         }

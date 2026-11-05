@@ -27,6 +27,34 @@ test('native passive permission probe reports status without capture or input',
       assert.equal(events[field], 0, `${field} must not inherit the previous Command modifier`);
     }
     assert.equal(events.inputInjected, false);
+    const displays = JSON.parse(execFileSync(binary, ['displays'], { encoding: 'utf8' }));
+    assert.equal(displays.inputInjected, false);
+    assert.equal(displays.screenshotCaptured, false);
+    assert(displays.displays.length > 0);
+    assert.equal(displays.displays.filter(display => display.isPrimary).length, 1);
+    for (const display of displays.displays) {
+      assert(display.scale >= 1);
+      assert(display.width > 0 && display.height > 0);
+    }
+    for (const [x, y, primaryHeight, scale, width, height, want] of [
+      [200, 300, 1080, 1, 520, 200, { x: 200, y: 780, width: 520, height: 200 }],
+      [-500, 1400, 1080, 2, 520.25, 200.25, { x: -500, y: -320, width: 1041, height: 401 }],
+      [2200, -200, 1080, 2, 520, 200, { x: 2200, y: 1280, width: 1040, height: 400 }],
+    ]) {
+      const plan = JSON.parse(execFileSync(binary,
+        ['coordinate-plan', x, y, primaryHeight, scale, width, height].map(String), { encoding: 'utf8' }));
+      assert.deepEqual(plan.point, { x: want.x, y: want.y });
+      assert.deepEqual(plan.pixels, { width: want.width, height: want.height });
+      assert.equal(plan.inputInjected, false);
+    }
+    for (const flags of ['000', '011', '101', '110', '111']) {
+      const focus = JSON.parse(execFileSync(binary, ['input-focus', flags], { encoding: 'utf8' }));
+      assert.equal(focus.allowed, flags === '111');
+      assert.equal(focus.inputInjected, false);
+    }
+    const missingDisplay = spawnSync(binary, ['self-test', '/tmp/unused.png', '--display', '4294967295'], { encoding: 'utf8' });
+    assert.equal(missingDisplay.status, 2);
+    assert.equal(JSON.parse(missingDisplay.stdout).reason, 'display-not-found');
     const invalid = spawnSync(binary, ['not-a-mode']);
     assert.equal(invalid.status, 2);
     for (const args of [

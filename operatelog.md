@@ -176,3 +176,13 @@
 - 验证结果：macOS 27.0.1/arm64。首次、重新构建后及两轮审查修复后的 `npm run verify:probe` 均通过，最终报告 recordedAt=2026-11-05T01:05:09.538Z；PI 活跃时探针 App 被 SIGKILL 后，App、Node 宿主与真实 PI 子进程均退出。`npm test` 16 项（含 4 项清理回归）、`npm run test:desktop-native` 11 项、`npm run build:probe` 通过；`npm run test:docs` 26 项通过。ZIP SHA-256 为 d2f3f84aac7390591b5681f5c57fb32c34d567d6ef01917261b21f2613c1bb22，证据对应提交前验证脚本工作区。
 - 遗留问题：只覆盖显式 SIGKILL 强制终止，不模拟断电或内核异常；Retina、跨屏坐标仍未验收，M01.7 和 M01 整体保持未完成。真实 GLM/中转站和正式产品任务链不在本次范围。
 - 对应 Git 提交：本批次唯一提交说明 `test(M01): verify GUI crash runtime cleanup`；查询命令：git log --all --oneline --grep='^test(M01): verify GUI crash runtime cleanup$'。提交并推送后核对远程 HEAD，不预填自身哈希。
+
+## 2026-11-05 11:09:02 +08:00｜M01.7c：当前双屏自身窗口坐标有限验收
+
+- 时间说明：此为日志编写前读取的北京时间；打包验收报告时间 2026-11-05T02:58:03.526Z 对应北京时间 10:58:03.526，非日志时间。
+- 修改或新增内容：原生 helper 新增无输入/截图的逐屏报告、坐标计划及输入焦点检查模式；自测支持显式目标屏，将窗口放于目标屏中央。AppKit 到 CG 的全局坐标换算与像素尺寸取整使用共享函数；浏览器和自身窗口捕获使用 SCContentFilter.pointPixelScale。新增 E18、测试并同步计划、规则与探针说明。
+- 遇到的难题：原报告 screenScale=1 仅是当前 NSScreen.main 的值，不能据此断言 Retina 故障；物理分辨率除逻辑点也不一定等于 backing scale（本机内置屏逻辑宽度 1710、物理宽度 2880，但 backing scale 为 2）。独立审查发现旧自测点击后未再次确认输入框焦点、键盘可能继承修饰键；尺寸断言不能证明原生清晰度。
+- 处理方式：先运行新增逐屏、坐标与焦点门禁测试，观察缺少模式时失败，再实现；点击后等待 200ms，重新确认 active/key/field editor 后才通过已有私有事件源输入，失焦停止不抢焦。记录独立 NSScreen scale 和捕获过滤器 scale；缩小验收声明，仅接受自身窗口输入与配置像素尺寸，明确不接受清晰度或 Safari Retina。复审在该有限范围下无阻断问题。未操作 Safari、未覆盖安装版或系统授权。
+- 验证结果：macOS 27.0.1/arm64，`npm test` 16 项、`npm run test:desktop-native` 11 项通过；构建与 `npm run verify:probe -- --desktop-input` 通过，正常/强制 GUI 退出回归也通过。1× 主屏点击 (960,544)，520×232 点窗口输出 520×232 像素；左侧 2× Retina 副屏点击 (-855,591)，同尺寸窗口输出 1040×464 像素，输入均成功。ZIP SHA-256 为 69afbda89b07143f85b70ce9d423ee4f15a175c54dcc291c6e09ab58610f53aa；证据对应提交前工作区。最终文档测试及差异检查以提交前命令输出为准；截图内容未独立像素校验。
+- 遗留问题：原生清晰度、Safari Retina、镜像/旋转/热插拔及其他屏幕排列未验收；坐标数学夹具不是额外硬件证据。M01.7 与 M01 整体保持未完成。截图留在忽略目录，仅提交脱敏 JSON。
+- 对应 Git 提交：本批次唯一提交说明 `test(M01): verify own-window dual-display coordinates`；查询命令：git log --all --oneline --grep='^test(M01): verify own-window dual-display coordinates$'。按仓库规则提交推送后核对远程 HEAD，不预填哈希。

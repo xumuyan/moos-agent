@@ -98,12 +98,32 @@ if (process.argv.includes('--desktop-input')) {
     desktop.screenshotSha256 = createHash('sha256').update(await readFile(screenshot)).digest('hex');
   }
 }
+const displays = JSON.parse(execFileSync(nativeBinary, ['displays'], { encoding: 'utf8' }));
+const displayTests = [];
+if (process.argv.includes('--desktop-input')) {
+  for (const display of displays.displays) {
+    const screenshot = join(artifacts, `display-${display.id}-window.png`);
+    const tested = spawnSync(nativeBinary, ['self-test', screenshot, '--display', String(display.id)],
+      { timeout: 20000, encoding: 'utf8' });
+    assert.equal(tested.status, 0, tested.stderr || tested.stdout || String(tested.error));
+    const report = JSON.parse(tested.stdout);
+    assert.equal(report.displayID, display.id);
+    assert.equal(report.clickVerified, true);
+    assert.equal(report.inputVerified, true);
+    assert.equal(report.screenScale, display.scale);
+    assert.equal(report.captureScale, display.scale);
+    assert.equal(report.imageWidth, Math.round(report.windowWidthPoints * display.scale));
+    assert.equal(report.imageHeight, Math.round(report.windowHeightPoints * display.scale));
+    report.screenshotSha256 = createHash('sha256').update(await readFile(screenshot)).digest('hex');
+    displayTests.push(report);
+  }
+}
 const archive = join(artifacts, 'Moos-M01-arm64.zip');
 execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', app, archive]);
 const report = {
   recordedAt: new Date().toISOString(),
   host: { arch: process.arch, macOS: execFileSync('sw_vers', ['-productVersion'], { encoding: 'utf8' }).trim() },
-  packagedResult: result, desktop, guiCrash,
+  packagedResult: result, desktop, guiCrash, displays, displayTests,
   guiExit: { status: 'passed', exitMode: 'normal Tauri exit while PI was active',
     hostProcessExited: true, piProcessExited: true },
   sizes: { appLogicalBytes: await bytes(app),
@@ -113,7 +133,7 @@ const report = {
     dependenciesLogicalBytes: await bytes(join(app, 'Contents/Resources/runtime/node_modules')) },
   archiveSha256: createHash('sha256').update(await readFile(archive)).digest('hex'),
   limitations: ['local model fixture only', 'iPhone not verified', 'ad-hoc development build, not notarized',
-    'no minimum macOS version or Retina input validation', 'full-runtime baseline, not final package size'],
+    'minimum macOS, Safari Retina capture, rotated/mirrored and hot-plug displays not verified', 'full-runtime baseline, not final package size'],
 };
 await writeFile(join(artifacts, 'report.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

@@ -70,7 +70,7 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 
 ## MVP 开发任务
 
-下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E17；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
+下面 M01—M09 为依赖任务。M01 部分子项已测试，完成证据见下方 E01—E18；其余未实现、未实测。每项的测试和实际验收通过后，必须将对应提交与证据写入日志才能完成。
 
 ### M01｜运行时与平台可行性
 
@@ -83,8 +83,9 @@ iPhone uni-app x → 已认证的局域网接口 → 同一任务服务。两端
 - [x] M01.4 验证 PI 宿主 SIGTERM/SIGKILL 后子进程退出；异常命令正确返回错误。证据：E02。
 - [x] M01.5 在终端授权上下文中完成探针窗口点击、输入和仅该窗口的截图。证据：E04；不代表正常 GUI 启动已获权限。
 - [x] M01.6 验证本机正常 GUI 启动身份的屏幕录制/辅助功能授权、分别撤销与恢复，以及固定本地浏览器输入和页面截图。证据：E13、E14、E15；两项撤销均 blocked 且无截图，恢复后均 passed。仅覆盖当前 arm64/macOS 27.0.1 探针，不代表正式产品或其他系统验收。
-- [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。正常 GUI 退出和 SIGKILL 强制终止子项已通过 E16、E17，尚未覆盖 Retina 与各显示器组合。
+- [ ] M01.7 验证应用退出/崩溃清理整个运行时链、Retina 与跨屏坐标。正常 GUI 退出和 SIGKILL 强制终止子项已通过 E16、E17；E18 补充当前 1× 主屏与左侧 2× Retina 副屏自身窗口点击、输入及配置截图尺寸。原生清晰度、Safari Retina 与其他屏幕排列仍未验收。
 - [x] M01.7a 在打包应用的 PI 请求活跃时触发正常 Tauri 退出，Rust 登记并清理 Node 宿主及真实 PI 子进程，退出后拒绝新进程且不影响无关进程。证据：E16；不代表崩溃清理、Retina 或跨屏验收通过。
+- [x] M01.7c 当前双屏布局的自身窗口坐标与配置像素尺寸验证：1× 主屏及负 x 的 2× Retina 副屏均收到点击和文字；截图为 520×232 与 1040×464 像素。证据：E18；仅包内 helper 终端启动，不代表原生清晰度、安装 GUI 身份或 Safari Retina 验收。
 - [x] M01.7b 在打包应用的 PI 请求活跃时，仅对本次探针进程发送 SIGKILL，现有 Node 父进程看门狗及 PI 关闭链使 Node 宿主与真实 PI 子进程均退出。证据：E17；不代表 Retina 或跨屏验收通过。
 - [x] M01.8a 确认 iPhone 开发者模式、USB 配对和 Mac 有效 Apple Development 签名身份。证据：E08；不是应用安装验收。
 - [x] M01.8b 创建最小 uni-app x 工程，通过自动描述文件生成、基座签名、真机安装和启动。证据：E09。
@@ -119,6 +120,7 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 
 | E15 | 正常 GUI 安装版 cfec622：用户分别关闭/恢复录屏及辅助功能；两次撤销报告 blocked/system-permission-required，撤销项 false、另一项 true，均无本次截图；两次恢复后 URL/标记核验与 1710×936 页面截图通过，最终两项均授权 | probes/m01/evidence/desktop-permission-recovery.json；最终截图已查看，SHA-256 和本地路径已记录；未实测多屏坐标或完整 GUI 崩溃链。提交说明 test(M01): verify GUI permission revocation and recovery |
 | E16 | 2026-11-05：打包应用在本地模拟模型的 PI 请求活跃时触发正常 Tauri 退出；Node 宿主与真实 PI 子进程均退出。原生 11 项测试覆盖 SIGTERM/SIGKILL 回退、退出后拒绝新进程、运行中清理、无关进程隔离、大体积 stderr 及后代占用输出管道；`npm run verify:probe` 通过 | probes/m01/evidence/desktop-gui-exit.json；证据对应提交前工作区，ZIP SHA-256 已记录。仅验证正常退出，不覆盖 GUI 崩溃、Retina 或跨屏坐标，M01.7 保持未完成。提交说明 fix(M01): clean up runtime children on GUI exit |
+| E18 | 2026-11-05：arm64/macOS 27.0.1，重建包内 helper 后终端执行 `npm run verify:probe -- --desktop-input`；1× 主屏和左侧负 x 的 2× Retina 副屏自身窗口点击、输入成功，输出尺寸及捕获过滤器 scale 与逐屏枚举一致 | probes/m01/evidence/desktop-displays.json；提交前工作区，ZIP SHA-256 已记录。只接受自身窗口输入与配置像素尺寸，不证明原生清晰度、Safari Retina、任意排列或 M01.7 整体。提交说明 test(M01): verify own-window dual-display coordinates |
 | E17 | 2026-11-05：重新构建打包应用，在本地模拟模型的 PI 请求活跃时仅 SIGKILL 本次探针 App；App、Node 宿主与真实 PI 子进程均退出，现有 500ms 父进程看门狗及 PI SIGTERM/3 秒 SIGKILL 回退足够，无需修改生产代码。`npm run verify:probe` 通过 | probes/m01/evidence/desktop-gui-crash.json；证据对应提交前验证脚本工作区，ZIP SHA-256 已记录。仅验证本机强制终止路径，不覆盖 Retina 或跨屏坐标，M01.7 保持未完成。提交说明 test(M01): verify GUI crash runtime cleanup |
 
 运行时决策：先保留完整内置基线保障复现；Node 占 119,944,608 字节，PI 生产依赖逻辑体积 114,221,839 字节。M09 前另验证独立、可校验和缓存的运行时分发或依赖裁剪；尚未选择最终小包分发方案，不承诺体积目标。M01 声明编译目标为 macOS 14，只有当前 macOS 27.0.1 实测通过。

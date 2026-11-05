@@ -1,0 +1,86 @@
+{
+  "recordedAt": "2026-11-05T02:58:03.526Z",
+  "system": {
+    "arch": "arm64",
+    "macOS": "27.0.1"
+  },
+  "baseCommit": "7f19f1d4bc3e3cffcb8f11203858e018e95ec16d",
+  "change": "test(M01): verify own-window dual-display coordinates",
+  "evidenceState": "pre-commit working tree; rebuilt packaged helper launched from terminal, not installed GUI identity",
+  "command": "npm run verify:probe -- --desktop-input",
+  "displays": {
+    "displays": [
+      {
+        "height": 1080,
+        "id": 3,
+        "isPrimary": true,
+        "scale": 1,
+        "width": 1920,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "height": 1107,
+        "id": 1,
+        "isPrimary": false,
+        "scale": 2,
+        "width": 1710,
+        "x": -1710,
+        "y": 0
+      }
+    ],
+    "inputInjected": false,
+    "screenshotCaptured": false
+  },
+  "displayTests": [
+    {
+      "captureScale": 1,
+      "captureScope": "probe-window-only",
+      "clickPoint": {
+        "x": 960,
+        "y": 544
+      },
+      "clickVerified": true,
+      "displayID": 3,
+      "imageHeight": 232,
+      "imageWidth": 520,
+      "inputVerified": true,
+      "screenScale": 1,
+      "status": "passed",
+      "windowHeightPoints": 232,
+      "windowWidthPoints": 520,
+      "screenshotSha256": "4cf31ffb88bb2895bcbb1545fc5a72d8cda0d2169ecebc10c2ed4d5633eecbd9"
+    },
+    {
+      "captureScale": 2,
+      "captureScope": "probe-window-only",
+      "clickPoint": {
+        "x": -855,
+        "y": 591
+      },
+      "clickVerified": true,
+      "displayID": 1,
+      "imageHeight": 464,
+      "imageWidth": 1040,
+      "inputVerified": true,
+      "screenScale": 2,
+      "status": "passed",
+      "windowHeightPoints": 232,
+      "windowWidthPoints": 520,
+      "screenshotSha256": "e93d8607a13e726a011493a8f6e16302404e49f338eba84898755911ddf118eb"
+    }
+  ],
+  "archiveSha256": "69afbda89b07143f85b70ce9d423ee4f15a175c54dcc291c6e09ab58610f53aa",
+  "status": "passed",
+  "limits": {
+    "nativeSharpnessVerified": false,
+    "safariRetinaVerified": false,
+    "arbitraryDisplayArrangementsVerified": false,
+    "m01_7Complete": false
+  },
+  "notes": [
+    "Only own-window input and configured pixel dimensions accepted",
+    "Screenshots remain in ignored artifacts/m01; not independently pixel-content validated",
+    "Physical pixel resolution divided by logical bounds is not used as backing scale on scaled Retina displays"
+  ]
+}
