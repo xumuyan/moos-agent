@@ -219,3 +219,12 @@
 - 遗留问题：真实模型未验收，需用户在正式应用填写服务后实测；列表接口不可用不代表推理不可用，短文本成功也不代表工具/图片能力。原有 Keychain 系统授权、完整打包 GUI 聊天及目录选择部分实机验收仍待补验；jsdom NaN 高度和 Vite 大 chunk 警告未处理。
 - 收尾复验：最终 `npm run test:desktop-product` 12/12、`npm test` 109/109、`npm run test:docs` 29/29、旧探针 11/11；`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 41/41，默认 20 秒在高负载下的失败保留，不宣称默认期限全量稳定。`npm run build:app` 通过，TypeScript/Vite 与 Rust release 均成功；包内 Node 以 --diagnostics 处理 missing_key/shutdown 正常退出且未创建任何存储。独立通道测试在本地 HTTP 诊断等待期间，对活跃任务的 snapshot/cancel 均在 1 秒内完成；不替代 Tauri 命令路由及 GUI 退出的端到端验收。设置与隔离补丁均经只读审查，无阻塞问题；路由/双宿主 GUI 退出的自动集成覆盖仍可补充。最终差异和 Rust 格式检查通过，日志修订后再运行文档检查。
 - 对应 Git 提交：本批次唯一提交说明 `feat(M04): add model listing and safe provider diagnostics`；查询命令：git log --all --oneline --grep='^feat(M04): add model listing and safe provider diagnostics$'。验证后提交推送并核对远程，不预填未知哈希。
+
+## 2026-11-05 16:54:03 +08:00｜P02：确认 DSH 风格前端、插件与长任务运行时设计
+
+- 修改或新增内容：新增 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，固定 DeepSeek Harness 参考提交与 MIT 许可边界，设计 Moos UI Adapter、页面和设置结构、三档权限、Token/缓存/费用口径、`plugin.json`、固定 Slot、插件沙箱、皮肤变量、单一隐藏运行时、长任务策略、内置终端及分阶段验收；PLAN.md 新增 P02.1—P02.9，全部保持未完成；文档测试新增“已确认设计不能冒充已实现”的约束。本批次没有修改产品运行时代码，也未宣称页面、插件、长任务或终端已经可用。
+- 遇到的难题：首次文档测试因设计稿写作“单一隐藏的 Moos Agent Runtime”，与测试要求的统一术语“单一隐藏运行时”不一致；随后自查发现测试还要求明确插件包入口名 `plugin.json`。隔离工作区首次执行正式 Rust 测试时，`build.rs` 因尚未准备内置 Node 而退出 101。附加 `cargo fmt --check` 发现历史 M01 探针现有源码与当前 rustfmt 输出不一致。
+- 处理方式：统一设计术语并明确 `plugin.json` 契约；运行仓库已有 `npm run prepare:runtime` 后原样重跑正式 Rust 测试。格式检查只读执行，没有格式化或夹带历史探针变更；该基线问题保留为遗留项。本批次在独立工作树完成，未覆盖原工作区中其他开发者尚未提交的改动。
+- 验证结果：`npm run test:docs` 30/30、`npm test` 109/109、`npm run test:desktop-ui` 41/41、准备运行时后 `npm run test:desktop-product` 12/12、`npm run test:desktop-native` 11/11 均通过；文档设计验收通过，`git diff --check` 通过。桌面 UI 测试仍输出既有 jsdom `NaN` 高度警告但用例通过。首次正式 Rust 测试在环境前置条件缺失时退出 101，补齐运行时后通过；探针 `cargo fmt --check` 未通过，显示的是已有探针格式差异。本批次没有启动产品 GUI 或执行功能实机验收，因为交付范围仅为设计与计划，不能以文档测试替代后续实现验收。
+- 遗留问题：P02.1—P02.9 均待实施；当前逐任务 Node 启动、600000ms 上限和通用 `Task execution failed` 仍存在。PI SDK 单运行时必须先完成会话恢复、并发、取消、工具事件、模型代理与退出清理验证；插件沙箱、皮肤、Token/缓存统计、终端和 DSH 风格页面均未实现。M01 探针 rustfmt 基线差异、桌面 UI jsdom 警告也未在本次范围处理。
+- 对应 Git 提交：本批次唯一提交说明 `docs(P02): define DSH UI and plugin architecture`；查询命令：`git log --all --oneline --grep='^docs(P02): define DSH UI and plugin architecture$'`。提交并推送后核对远程 HEAD，不预填未知哈希。

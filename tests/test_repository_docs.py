@@ -9,6 +9,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_confirmed_dsh_ui_plugin_design_keeps_implementation_unclaimed(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        design_path = ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md'
+        design = design_path.read_text(encoding='utf-8')
+        for term in ('选择性移植 DeepSeek Harness', 'Moos UI Adapter', 'Tauri 2',
+                     'PI SDK', '单一隐藏运行时', 'Token', '缓存命中率',
+                     'plugin.json', '沙箱', 'Tauri 原生 PTY'):
+            self.assertIn(term, design)
+        self.assertIn('fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159', design)
+        self.assertIn('600.0 秒和 600.1 秒', design)
+        self.assertIn('P02｜DSH 风格前端、插件与长任务运行时（设计已确认，未实施）', plan)
+        for number in range(1, 10):
+            self.assertIn(f'- [ ] P02.{number} ', plan)
+        p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
+        self.assertNotIn('- [x]', p02)
+        self.assertIn('在线插件市场不在首批范围', p02)
+
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         for term in ('模型配置诊断', '草稿', '钥匙串', '独立诊断通道', '真实模型未验收'):
