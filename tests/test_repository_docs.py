@@ -9,6 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_user_override_uses_local_private_credentials_without_keychain_migration(self):
+        rules = (ROOT / 'AGENTS.md').read_text()
+        main = (ROOT / 'apps/desktop/src-tauri/src/main.rs').read_text()
+        self.assertIn('2026-11-06', rules)
+        self.assertIn('private/credentials.json', rules)
+        self.assertIn('LocalCredentials::new', main)
+        self.assertNotIn('NativeKeychain', main)
+        self.assertIn('**/credentials.json', (ROOT / '.gitignore').read_text())
+
     def test_latest_ui_installation_keeps_scope_and_source_traceable(self):
         evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-installed-ui.json').read_text())
         self.assertEqual(evidence['installedPath'], '/Applications/Moos.app')

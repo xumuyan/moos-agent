@@ -2,7 +2,7 @@
 
 use moos_desktop::{
     host::{dev_paths, Host},
-    keychain::NativeKeychain,
+    local_credentials::LocalCredentials,
     plugins::{LocalPlugin, PluginManager},
     Agent,
 };
@@ -133,7 +133,9 @@ fn main() {
             };
             let host =
                 Host::launch(&node, &entry, &runtime, &data).map_err(std::io::Error::other)?;
-            app.manage(Arc::new(Agent::new(host, Box::new(NativeKeychain))) as SharedAgent);
+            let credentials =
+                LocalCredentials::new(data.join("private")).map_err(std::io::Error::other)?;
+            app.manage(Arc::new(Agent::new(host, Box::new(credentials))) as SharedAgent);
             app.manage(Arc::new(
                 PluginManager::new(data.join("plugins")).map_err(std::io::Error::other)?,
             ) as SharedPlugins);

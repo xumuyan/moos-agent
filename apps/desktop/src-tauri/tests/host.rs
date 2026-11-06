@@ -1,6 +1,7 @@
 use moos_desktop::{
     host::{dev_paths, Host},
     keychain::Credentials,
+    local_credentials::LocalCredentials,
     Agent,
 };
 use serde_json::json;
@@ -58,8 +59,11 @@ fn real_host_snapshots_and_key_boundary_and_shutdown() {
     let temp = Temp::new();
     let (node, entry, runtime) = dev_paths().unwrap();
     let host = Host::launch(&node, &entry, &runtime, &temp.0).unwrap();
-    let keys = MemoryCredentials::default();
-    let agent = Agent::new(host, Box::new(keys.clone()));
+    let keys = LocalCredentials::new(temp.0.join("private")).unwrap();
+    let agent = Agent::new(
+        host,
+        Box::new(LocalCredentials::new(temp.0.join("private")).unwrap()),
+    );
     assert!(agent.request("snapshot", json!({})).unwrap()["providers"].is_array());
     agent.request("save_provider", json!({"apiKey":"RUST_SECRET_TEST", "provider":{"id":"test", "model":"test", "api":"openai-completions", "baseUrl":"https://example.com/v1"}})).unwrap();
     assert_eq!(

@@ -1,5 +1,6 @@
 pub mod host;
 pub mod keychain;
+pub mod local_credentials;
 pub mod plugins;
 pub mod protocol;
 
@@ -36,7 +37,9 @@ impl Agent {
                                 None => self.credentials.delete(&id),
                             };
                             if rollback.is_err() {
-                                return Err("Provider save failed; credential rollback needs Keychain access".into());
+                                return Err(
+                                    "Provider save failed; local credential rollback failed".into(),
+                                );
                             }
                         }
                         Err(error)
@@ -52,7 +55,7 @@ impl Agent {
                         Ok(key) => key,
                         Err(_) => {
                             return Ok(
-                                serde_json::json!({"ok":false,"code":"keychain","message":"无法读取钥匙串，请解锁或在 macOS 中授权后重试","elapsedMs":0}),
+                                serde_json::json!({"ok":false,"code":"credentials","message":"无法读取本地密钥文件，请检查文件权限或重新保存服务","elapsedMs":0}),
                             )
                         }
                     }

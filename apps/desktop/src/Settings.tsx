@@ -89,7 +89,7 @@ export default function Settings({ providers, projects = [], conversations = [],
       <Form.Item name="baseUrl" label="服务地址" rules={[{ required: true }, { type: 'url', message: '请输入完整的服务 URL' }]}><Input placeholder="填写服务商提供的 URL" /></Form.Item>
       <div className="form-columns"><Form.Item name="model" label="模型 ID" rules={[{ required: true, whitespace: true }]}><AutoComplete options={models.map(value => ({ value }))} placeholder="填写准确模型 ID" /></Form.Item>
         <Form.Item name="api" label="API 协议" rules={[{ required: true }]}><Select options={['openai-completions', 'openai-responses'].map(value => ({ value, label: value }))} /></Form.Item></div>
-      <Form.Item name="apiKey" label="API 密钥" extra={editing ? '留空保留现有密钥。' : '密钥由本机系统凭据存储管理。'}><Input.Password autoComplete="new-password" placeholder={editing ? '留空不修改' : '输入服务密钥（可选）'} /></Form.Item>
+      <Form.Item name="apiKey" label="API 密钥" extra={editing ? '留空保留本地密钥；旧钥匙串密钥需重新输入保存。' : '密钥明文保存在本机私有文件，仅当前用户可读，不再访问钥匙串。'}><Input.Password autoComplete="new-password" placeholder={editing ? '留空不修改' : '输入服务密钥（可选）'} /></Form.Item>
       <details><summary>可选：本地费用估算价格</summary><p className="muted">单位为 USD / 百万 Token。至少填写价格版本、输入和输出价格；缓存价格缺失时相关任务费用显示“暂无数据”。</p>
         <Form.Item name={['pricing', 'version']} label="价格版本"><Input placeholder="例如 2026-11" /></Form.Item>
         <div className="form-columns"><Form.Item name={['pricing', 'inputPerMillion']} label="输入价格"><InputNumber min={0} /></Form.Item>
