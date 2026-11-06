@@ -12,7 +12,7 @@ import AppShell from './layout/AppShell';
 import WorkspaceSidebar from './layout/Sidebar';
 import ProjectRail from './layout/ProjectRail';
 import ConversationPane from './layout/ConversationPane';
-import RightPanel from './layout/RightPanel';
+import MessageContent from './conversation/MessageContent';
 import ComposerDock from './layout/ComposerDock';
 import PermissionMenu from './composer/PermissionMenu';
 import ComposerStatus from './composer/ComposerStatus';
@@ -22,7 +22,6 @@ import { BUILTIN_THEMES } from './themes/builtin';
 import { applyTheme, loadSavedTheme, resetTheme, initializeWorkbenchTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
-import { withoutCodeBlocks } from './conversation/activity';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
 import './theme/tokens.css';
@@ -157,11 +156,11 @@ export default function App() {
     const stream = events.filter(e => e.type === 'text_delta').map(e => typeof e.payload.delta === 'string' ? e.payload.delta : '').join('');
     const tools = events.filter(e => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(e.type));
     return <section className="task-card" key={task.id} aria-label="任务执行记录">
-      <div className="task-heading"><CodeOutlined /><span>任务记录</span><Tag color={isActive(task) ? 'processing' : task.status === 'failed' ? 'error' : 'default'}>{statusLabel(task.status)}</Tag><span className="task-id">{task.id}</span>
+      <div className="task-heading"><span className={`task-status-dot ${isActive(task) ? 'is-running' : ''}`} aria-hidden="true" /><span>{statusLabel(task.status)}</span>
         {isActive(task) && <Button size="small" danger aria-label="停止此任务" onClick={() => void mutateCommand(uiCommands.cancelTask(task.id))}>停止</Button>}
       </div>
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
-      {stream && !saved && <Bubble content={<span className="plain-text">{withoutCodeBlocks(stream)}</span>} />}
+      {stream && !saved && <MessageContent text={stream} />}
       <TaskTrajectory events={tools} finished={!isActive(task)} />
       <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: tools }} />
       {task.error && <Alert type="error" message={task.error} description={task.errorCode ? `错误码：${task.errorCode}` : undefined} showIcon />}
@@ -200,7 +199,7 @@ export default function App() {
             const associated = tasks.filter(task => taskAnchors.get(task.id) === m.id);
             return <Fragment key={m.id}>
               {m.role !== 'user' && associated.map(renderTask)}
-              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div><Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.role === 'assistant' ? withoutCodeBlocks(m.content) : m.content}</span>} /><SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
+              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div>{m.role === 'assistant' ? <MessageContent text={m.content} /> : <Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.content}</span>} />}<SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
               {m.role === 'user' && associated.map(renderTask)}
             </Fragment>;
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
@@ -214,7 +213,6 @@ export default function App() {
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>
         </ComposerDock>
       </ConversationPane>}
-      rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} taskStatus={(active[0] ?? tasks[0])?.status} events={history.visible.events.filter(event => event.projectId === projectId && event.conversationId === conversationId && event.taskId === (active[0] ?? tasks[0])?.id)} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
     {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} themes={themes} localPlugins={localPlugins} onClose={() => setSettings(false)} mutate={mutate} />}

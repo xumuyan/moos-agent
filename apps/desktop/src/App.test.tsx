@@ -23,7 +23,7 @@ beforeEach(() => {
   });
 });
 describe('desktop assistant', () => {
-  it('binds the workbench inspector to the newest task rather than older or foreign changes', async () => {
+  it('removes the right inspector and keeps each turn’s confirmed files in the conversation', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
     state.tasks = ['new', 'old'].map(id => ({ id, projectId: 'p1', conversationId: 'c1', message: id, status: 'succeeded' }));
     state.events = ['new', 'old'].flatMap(id => [
@@ -31,9 +31,13 @@ describe('desktop assistant', () => {
       { id: `${id}-end`, taskId: id, projectId: 'p1', conversationId: 'c1', type: 'tool_end', payload: { toolCallId: id, toolName: 'edit', isError: false } },
     ]);
     render(<App />);
-    const inspector = within(screen.getByRole('region', { name: '本轮修改文件' }));
-    await waitFor(() => expect(inspector.getByText('new.ts')).toBeInTheDocument());
-    expect(inspector.queryByText('old.ts')).not.toBeInTheDocument();
+    await screen.findByText('new.ts');
+    expect(screen.queryByRole('complementary', { name: '上下文面板' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '收起上下文面板' })).not.toBeInTheDocument();
+    const records = screen.getAllByRole('region', { name: '任务执行记录' });
+    expect(within(records[0]).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('new.ts');
+    expect(within(records[0]).queryByText('old.ts')).not.toBeInTheDocument();
+    expect(within(records[1]).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('old.ts');
   });
   it('opens the directory picker and adds its selected path without a text field', async () => {
     const user = userEvent.setup(); render(<App />);
@@ -161,10 +165,11 @@ describe('desktop assistant', () => {
   it('renders streamed text once and never interprets HTML', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
     state.tasks = [{ id: 't1', projectId: 'p1', conversationId: 'c1', message: 'test', status: 'completed' }];
-    state.messages = [{ id: 'a1', role: 'assistant', content: '<img src=x onerror=alert(1)>', conversationId: 'c1', taskId: 't1' }];
-    state.events = [{ id: 'e1', type: 'text_delta', taskId: 't1', projectId: 'p1', conversationId: 'c1', payload: { delta: '<img src=x onerror=alert(1)>' } }];
+    state.messages = [{ id: 'a1', role: 'assistant', content: '完成\n\n<img src=x onerror=alert(1)>', conversationId: 'c1', taskId: 't1' }];
+    state.events = [{ id: 'e1', type: 'text_delta', taskId: 't1', projectId: 'p1', conversationId: 'c1', payload: { delta: '完成\n\n<img src=x onerror=alert(1)>' } }];
     render(<App />);
-    expect(await screen.findAllByText('<img src=x onerror=alert(1)>')).toHaveLength(1);
+    expect(await screen.findAllByText('完成')).toHaveLength(1);
+    expect(screen.queryByText('<img src=x onerror=alert(1)>')).not.toBeInTheDocument();
     expect(document.querySelector('img[src="x"]')).toBeNull();
   });
 });

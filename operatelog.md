@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-06 15:21:26 +08:00｜P02.V2：去掉右栏并整理对话正文
+
+- 修改或新增内容：按用户最新要求，主页面不再挂载右侧变更栏及其收起按钮，对话与输入区居中，逐轮修改文件仍保留在所属任务内。参考 DeepSeek Harness 正文/过程分工及 Markdown 表格模式、OpenCode 官方产品页面和用户此前 Codex 截图；新增共用 MessageContent，让流式/落盘助手正文以段落、标题、列表、表格、行内文件名呈现。重复“任务记录”标题改为短状态，真实错误与停止状态保留；用户输入原文不改。
+- 遇到的难题：原有 HTML 回归用例要求显示标签原文，与新渲染器忽略 HTML 的规则不一致，首次定向运行 12/13，未记通过。更新夹具为普通正文加 HTML，验证正文只出现一次且不产生图片节点；定向 App 11/11、最终全量 82/82。并行测试/编译较慢，完整 UI 用时 292.58 秒，未因等待跳过。
+- 处理方式：引入 react-markdown/remark-gfm 并记录依赖锁；React 节点渲染且 skipHtml，不执行模型 HTML。fenced 与缩进代码省略；图片显示说明，链接显示文字引用，不自动请求媒体或跳离 WebView。保留既有 RightPanel/插件注册边界但主页面不显示；不生成假 diff、行数或测试结论。原工作台选择文档与证据保留为历史，新范围见 `docs/superpowers/specs/2026-11-06-conversation-focus.md`。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 最终 26 文件 82/82；`npm test` 125/125；`npm run test:desktop-product` 20/20；`npm run test:docs` 40/40；`npm run build:desktop`、`npm run build:app` 通过，应用包 231.02 MiB（完整运行时体积优化仍未完成）。Rust 与打包使用现有 stable 工具链及离线 Cargo 缓存。Mac 安装版已查看 1280×820 无右栏布局、居中正文、文件名格式，滚动并展开/收起真实历史的三项短工具动作；未发起新收费模型调用。代码/图片/HTML/表格与逐轮文件隔离由测试覆盖。提交前 `git diff --check` 通过，脱敏证据 `apps/desktop/evidence/p02-conversation-focus.json` 对应本次提交前工作区。
+- 安装与恢复：新包已 ad-hoc 签名、深度严格验证并替换 `/Applications/Moos.app`；旧版留在本机临时目录 `moos-before-conversation-focus.185vhm7h/Moos.app`。不保存用户原始对话截图、密钥或抓包内容。
+- 遗留问题：本次未做窄窗口 resize，标题/列表/表格仅自动夹具验收，真实历史仅覆盖段落/行内引用及工具折叠；引用暂不可点击打开文件。Shell 文件变化、Git 管理、原生终端、右栏插件替代位置仍待后续；历史模型错误不在本轮修复范围。P02.8/P02.9 继续未完成。
+- 对应 Git 提交：唯一说明 `feat(P02.V2): focus conversation without right inspector`；查询 `git log --all --oneline --grep='^feat(P02.V2): focus conversation without right inspector$'`。最终检查后提交、推送 GitHub 并核对远程 HEAD。
+
 ## 2026-11-06 14:50:26 +08:00｜P02.V2：落地用户选定的开发工作台
 
 - 修改或新增内容：用户从三版设计中选择开发工作台，沿用其调整的 20px 窗口圆角。新增真实项目工具栏、紧凑工作区/会话侧栏、暖灰工作台样式与右侧本轮文件变更区；项目切换、添加项目和设置复用已有行为，保留简洁过程、本地密钥与插件 Slot。首次启动按选定方案应用默认配色一次，之后不覆盖用户新选皮肤。新增选择说明、E 脱敏证据及项目工具栏、右栏失败排除、主题迁移和最新任务隔离测试。

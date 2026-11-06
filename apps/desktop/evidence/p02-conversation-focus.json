@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-11-06T15:21:26+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): focus conversation without right inspector",
+  "automaticTests": { "desktopUi": "82/82 passed, 26 files", "core": "125/125 passed", "rustProduct": "20/20 passed", "documents": "40/40 passed" },
+  "build": { "command": "npm run build:app", "result": "passed", "appBundleMiB": 231.02, "signature": "ad-hoc; codesign --verify --deep --strict passed" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820 screenshot",
+    "rightInspectorAndToggleAbsent": true,
+    "centeredConversationAndComposer": true,
+    "paragraphsAndInlineFileReferencesInspected": true,
+    "actualHistoryProcessExpandedAndCollapsed": true,
+    "rawToolPayloadAbsent": true,
+    "newModelRequestSent": false
+  },
+  "limits": ["Heading/list/table rendering tested with fixtures; no new live model task", "No window resize acceptance in this change", "References are text, not file-opening controls", "No Shell diff, native terminal or Git management added", "Historical failure messages remain unchanged"]
+}

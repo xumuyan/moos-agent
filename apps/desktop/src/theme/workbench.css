@@ -17,6 +17,24 @@
 .workbench-shell .topbar { height: 58px; min-height: 58px; border-bottom: 1px solid var(--moos-border); padding-inline: 22px; }
 .workbench-shell .model-select { width: 190px; }
 .workbench-shell .thread { max-width: 780px; }
+.workbench-shell .history-controls { max-width: 780px; }
+.workbench-shell .composer-dock { max-width: 780px; }
+.assistant-content { color: #39362f; font-size: 14px; line-height: 1.85; overflow-wrap: anywhere; }
+.assistant-content > :first-child { margin-top: 0; }
+.assistant-content > :last-child { margin-bottom: 0; }
+.assistant-content p { margin: 0 0 14px; white-space: pre-wrap; }
+.assistant-content h1, .assistant-content h2, .assistant-content h3 { margin: 22px 0 10px; font-size: 16px; font-weight: 600; line-height: 1.5; }
+.assistant-content ul, .assistant-content ol { padding-left: 22px; margin: 10px 0 18px; }
+.assistant-content li { margin-block: 5px; }
+.assistant-content code, .message-reference { border-radius: 4px; background: var(--moos-accent-soft); padding: 1px 5px; font-size: .9em; }
+.assistant-content blockquote { border-left: 2px solid var(--moos-border); margin: 14px 0; padding-left: 14px; color: var(--moos-muted); }
+.assistant-content table { display: block; max-width: 100%; overflow: auto; border-collapse: collapse; margin-block: 16px; font-size: 12px; }
+.assistant-content th, .assistant-content td { border: 1px solid var(--moos-border); padding: 7px 12px; text-align: left; }
+.workbench-shell .task-heading { gap: 7px; margin-bottom: 6px; font-size: 11px; }
+.task-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--moos-muted); }
+.task-status-dot.is-running { background: var(--moos-accent); box-shadow: 0 0 0 3px var(--moos-accent-soft); }
+.workbench-shell .message-user { margin-top: 26px; }
+.workbench-shell .message-assistant { margin-bottom: 30px; }
 .workbench-shell .conversation-area { padding: 26px 28px 10px; }
 .workbench-shell .composer-dock { border-radius: 10px; width: calc(100% - 48px); margin: 14px auto 20px; box-shadow: none; background: var(--moos-panel); }
 .workbench-shell .composer-context { font-size: 10px; }
