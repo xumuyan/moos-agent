@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { activities, changedFiles, withoutCodeBlocks } from './activity';
+import { activities, activityGroups, changedFiles, withoutCodeBlocks } from './activity';
 import type { AgentEvent } from '../types';
 
 const events = [
@@ -17,4 +17,10 @@ it('merges start/end and counts only confirmed successful file changes', () => {
 it('omits completed and still-streaming code blocks while retaining prose', () => {
   expect(withoutCodeBlocks('修改好了\n```ts\nconst secret = 1;\n```\n测试通过')).toBe('修改好了\n（代码内容已省略）\n测试通过');
   expect(withoutCodeBlocks('```js\npartial')).toBe('（代码内容已省略）');
+});
+it('groups consecutive visual families without moving later reads ahead of intervening searches', () => {
+  const rows = ['read', 'ls', 'grep', 'read', 'write', 'edit', 'custom-tool'].map((name, index) => ({ id: String(index), taskId: 't', projectId: 'p', conversationId: 'c', type: 'tool_start', payload: { toolName: name } }));
+  const groups = activityGroups(rows);
+  expect(groups.map(group => group.label)).toEqual(['读取与浏览', '搜索内容', '读取与浏览', '编辑文件', '其他工具']);
+  expect(groups.flatMap(group => group.rows.map(row => row.name))).toEqual(['read', 'ls', 'grep', 'read', 'write', 'edit', 'custom-tool']);
 });

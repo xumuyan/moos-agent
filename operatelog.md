@@ -1,5 +1,17 @@
 # 操作日志
 
+## 2026-11-06 16:21:57 +08:00｜P02.V2：源码参考后的过程入口、工具分组与滚动控制
+
+- 修改或新增内容：用户确认按源码核对结果继续，新增 TurnProcess，将真实状态/操作数量/工具过程/错误详情放进一个入口，运行时展开且单任务停止按钮保持可用，结束默认折叠；删除主会话中独立右上状态与错误开关的挂载。按相邻工具类型分读取浏览、搜索、编辑、命令、其他，保留原始执行顺序与逐项真实状态。新增 ConversationScroll，底部跟随、上翻停跟随、返回最新、较早历史页不拉到底部；手动折叠和内容缩短时尽量恢复仍可见锚点。文件卡片仍在回复后，Shell 统计边界不变。
+- 参考与范围：DSH fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159 的 TurnProcessNodeView/ChatView，以及 OpenCode 21eaa626a37f77d7a8d80fa01997fa7d52506c97 的 BasicTool/tool-renderer/session-timeline；独立适配 React 和 Moos 事件，未引入其运行时，未伪造耗时/模型推理。规范 `docs/superpowers/specs/2026-11-06-process-and-scroll.md`。
+- 处理方式：用单个原生 details 归并状态/工具/错误，按相邻视觉类型分组且不重排；滚动状态与 DOM 生命周期分离，折叠期间保护锚点，ResizeObserver 处理内容变化，用户主动返回后恢复跟随。日志初次缺少本处理字段导致检查失败，补齐字段后重新检查。
+- 遇到的难题：浏览器折叠可先发 scroll 再触发布局观察，导致原锚点被覆盖；加入折叠期间与缩短尚待处理时的保护，并验证预先滚动事件和布局缩短恢复。自定义工具初版使用原名作组标题，与行标题重复；首轮全量 93/95，含历史工具重复匹配及开发中分组约定更新后的旧模块断言不匹配，未作为通过证据。改为“其他工具”后重新启动完整套件。一次根目录 tsc 入口不存在，改用桌面工程实际入口完成类型检查；交付包在最终修正后重新构建，不安装中间版本。
+- 验证结果：最终 `npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 31 文件 95/95；历史/App/新会话与滚动专项 33/33，最终滚动专项 3/3；`npm test` 125/125；`npm run test:desktop-product` 20/20；`npm run test:docs` 40/40；`npm run build:desktop`、桌面 tsc noEmit、桌面目录 `tauri build --bundles app` 通过。Rust 使用现有 stable 工具链与离线 Cargo 缓存，不重建运行时资源。最终应用包 231.02 MiB，完整运行时体积优化仍未完成。`git diff --check` 通过。
+- 实际验收：arm64/macOS 27.0.1 安装版 1280×820 首次加载定位到近期末尾；展开真实历史“已停止 · 2 项操作”后，看到命令组、两项已完成工具动作、Shell 边界和取消错误码同处一入口。展开时可见入口位置保持，上翻出现“返回最新消息”，点击后到末尾且按钮隐藏；再次上翻/返回和收起正常。未发送新收费模型任务；流式增长不抢滚动、历史页切换、读/搜/编辑分组由自动夹具覆盖。底部折叠时因滚动范围缩短发生可见位移，如实保留，不标完全无跳动。脱敏证据 `apps/desktop/evidence/p02-process-scroll.json` 对应本次提交前工作区，无原始对话截图。
+- 安装与恢复：最终包 ad-hoc 签名及深度严格校验通过，已更新 `/Applications/Moos.app`；旧包在本机临时目录 `moos-before-process-scroll.ose_nd0w/Moos.app` 可恢复。
+- 遗留问题：未实现 DSH 完整折叠空白预留/动画系统，无可用可见锚点或内容短于视口时仍受浏览器滚动范围限制；本次未做新任务流式实机调用、较早分页实机或窄屏 resize。历史模型失败、Shell diff、Git 管理、终端等原有待办不变。P02.8/P02.9 继续未整体完成。
+- 对应 Git 提交：唯一说明 `feat(P02.V2): unify process disclosure and add conversation scroll control`；查询 `git log --all --oneline --grep='^feat(P02.V2): unify process disclosure and add conversation scroll control$'`。最终核对后提交、推送 GitHub 并比对远程 HEAD。
+
 ## 2026-11-06 15:56:49 +08:00｜P02.V2：按参考项目重组整轮会话
 
 - 修改或新增内容：用户再次要求参考其他项目的显示方式，本轮将平铺消息/任务改为整轮结构：右侧限宽提问 → Moos 身份/真实状态 → 折叠过程 → 最终正文 → 修改文件清单；每轮轻分隔，身份不重复，停止/失败无最终回复时显示明确空态。新增 ConversationTranscript 与纯分组函数，App 只传当前会话数据和停止命令；保留 Markdown、代码省略、消息/工具 Slot 及统计边界。

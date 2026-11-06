@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-11-06T16:21:57+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): unify process disclosure and add conversation scroll control",
+  "references": { "dsh": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159", "opencode": "21eaa626a37f77d7a8d80fa01997fa7d52506c97", "implementation": "independent React adaptation; no upstream runtime added" },
+  "tests": { "desktopUiFinal": "95/95, 31 files", "core": "125/125", "rustProduct": "20/20", "documents": "40/40", "relatedConversationHistoryAndScroll": "33/33", "scrollFinal": "3/3" },
+  "build": { "frontendAndTypescript": "passed", "finalTauriApp": "passed, 231.02 MiB", "signature": "ad-hoc, deep strict verification passed" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820",
+    "initialLatestTailVisible": true,
+    "unifiedStoppedProcessAndCancelledErrorInspected": true,
+    "actualCommandGroup": "2 actions in existing history",
+    "manualExpansionKeptVisibleHeadingPosition": true,
+    "scrollingUpShowsReturnButton": true,
+    "returnButtonReachedTailAndDisappeared": true,
+    "processRestoredCollapsed": true,
+    "newModelTaskSent": false
+  },
+  "limits": ["Bottom-edge collapse can shift content because scroll range shrinks; no reserved fold space or full DSH animation system", "Live stream growth, older-page switching and read/search/edit grouping use automated fixtures", "No narrow-window resize acceptance", "No raw user screenshots or model credentials stored"]
+}

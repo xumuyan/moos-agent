@@ -18,6 +18,19 @@ export function activityLabel(name: string) {
   return ({ read: '读取文件', write: '写入文件', edit: '修改文件', bash: '运行命令', grep: '搜索内容', find: '查找文件', ls: '查看目录' }[name] ?? name);
 }
 
+export function activityGroups(events: AgentEvent[]) {
+  const groups: { id: string; label: string; rows: ReturnType<typeof activities> }[] = [];
+  for (const row of activities(events)) {
+    const label = ['read', 'ls', 'find'].includes(row.name) ? '读取与浏览'
+      : row.name === 'grep' ? '搜索内容' : ['write', 'edit'].includes(row.name) ? '编辑文件'
+        : row.name === 'bash' ? '运行命令' : '其他工具';
+    const previous = groups.at(-1);
+    if (previous?.label === label) previous.rows.push(row);
+    else groups.push({ id: row.id, label, rows: [row] });
+  }
+  return groups;
+}
+
 export function changedFiles(events: AgentEvent[]) {
   const files = new Map<string, Set<string>>();
   for (const row of activities(events)) {

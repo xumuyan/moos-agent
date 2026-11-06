@@ -3,12 +3,12 @@ import { CodeOutlined } from '@ant-design/icons';
 import { isActive, type AgentEvent, type Message, type Task } from '../types';
 import { SlotHost } from '../plugins/slots';
 import MessageContent from './MessageContent';
-import TaskStatus from './TaskStatus';
-import TaskTrajectory, { TaskFiles } from './TaskTrajectory';
+import TurnProcess from './TurnProcess';
+import { TaskFiles } from './TaskTrajectory';
 import { transcript } from './transcript';
 
 function MessageRow({ message }: { message: Message }) {
-  return <div className={`message message-${message.role}`}>
+  return <div className={`message message-${message.role}`} data-scroll-anchor>
     {message.role === 'assistant' ? <MessageContent text={message.content} /> : <Bubble placement={message.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{message.content}</span>} />}
     <SlotHost slot="conversation.message" context={{ messageId: message.id, role: message.role }} />
   </div>;
@@ -29,9 +29,9 @@ export default function ConversationTranscript({ messages, tasks, events, onStop
     return <section className="conversation-turn" key={task.id} aria-label="任务执行记录">
       <div className="turn-prompts">{prompts.length ? prompts.map(message => <MessageRow key={message.id} message={message} />) : <div className="message message-user"><Bubble placement="end" content={<span className="plain-text">{task.message}</span>} /></div>}</div>
       <div className="assistant-turn">
-        <header className="response-heading"><span className="response-avatar" aria-hidden="true"><CodeOutlined /></span><strong>Moos</strong><TaskStatus task={task} onStop={() => onStop(task.id)} /></header>
+        <header className="response-heading" data-scroll-anchor><span className="response-avatar" aria-hidden="true"><CodeOutlined /></span><strong>Moos</strong></header>
         <div className="response-content">
-          <TaskTrajectory events={turnEvents} finished={!running} includeFiles={false} />
+          <TurnProcess task={task} events={turnEvents} onStop={() => onStop(task.id)} />
           <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: turnEvents.filter(event => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(event.type)) }} />
           {stream && <MessageContent text={stream} />}
           {replies.map(message => <MessageRow key={message.id} message={message} />)}

@@ -13,6 +13,7 @@ import WorkspaceSidebar from './layout/Sidebar';
 import ProjectRail from './layout/ProjectRail';
 import ConversationPane from './layout/ConversationPane';
 import ConversationTranscript from './conversation/ConversationTranscript';
+import ConversationScroll from './conversation/ConversationScroll';
 import ComposerDock from './layout/ComposerDock';
 import PermissionMenu from './composer/PermissionMenu';
 import ComposerStatus from './composer/ComposerStatus';
@@ -174,11 +175,11 @@ export default function App() {
           </Space>
         </header>
         <div className="notice-area">{connectionError && <Alert type="error" showIcon message="无法连接本机服务" description={`${connectionError}。正在自动重连；请检查 Mac 服务是否运行。`} />}{error && <Alert type="error" showIcon closable message={error} onClose={() => setError('')} />}</div>
-        <div className="conversation-area" aria-label="对话内容" aria-live={history.isOlder ? 'off' : 'polite'}>
+        <ConversationScroll viewKey={`${conversationId}:${history.isOlder ? String(history.page?.messages.before) : 'latest'}`} isOlder={history.isOlder}>
           <HistoryControls key={conversation?.id ?? ''} conversationId={conversation?.id ?? ''} page={history.page} isOlder={history.isOlder} loading={history.loading} error={history.error} onOlder={() => void history.loadOlder()} onLatest={history.latest} />
           {!loaded ? <Empty description="正在连接本机服务…" /> : !project ? <div className="welcome"><span className="welcome-icon"><CodeOutlined /></span><span className="eyebrow">MOOS · 本地开发工作空间</span><h2>添加项目，开始开发</h2><p>把想做的事交给助手。<br />在这里查看真实输出、工具动作与执行结果。</p><Button type="primary" icon={<FolderOpenOutlined />} disabled={adding} onClick={() => void addProject()}>选择项目目录</Button><div className="welcome-notes"><span>项目与会话独立管理</span><span>任务可随时停止</span><span>密钥留在 Mac</span></div></div> : !messages.length && !tasks.length ? <div className="welcome"><span className="welcome-icon"><MessageOutlined /></span><h2>{conversation ? '今天想完成什么？' : '为这个项目新建一个会话'}</h2><p>{conversation ? '描述目标、问题或验收要求。提交后将直接执行任务。' : '会话用于保存任务和对话历史。切换会话不影响正在执行的任务。'}</p><code className="project-path">{project.path}</code>{!conversation && <Button onClick={() => void createConversation()} disabled={busy}>创建会话</Button>}</div> : <ConversationTranscript messages={messages} tasks={tasks} events={history.visible.events} onStop={id => void mutateCommand(uiCommands.cancelTask(id))} />}
           <TaskTrajectory events={history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId))} />
-        </div>
+        </ConversationScroll>
         <ComposerDock><SlotHost slot="composer.leading" context={{ projectId, conversationId }} /><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
           <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Tooltip title="发送任务"><Button type="primary" icon={<ArrowUpOutlined />} aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()} /></Tooltip>} />
