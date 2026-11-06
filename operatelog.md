@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-06 15:29:35 +08:00｜P02.V2：会话区间距、状态与输入区整理
+
+- 修改或新增内容：按用户会话区截图收紧消息/任务叠加外边距，去掉用户气泡上重复标签，输入区缩减内边距并换向上箭头发送按钮，保留发送无障碍名称与提示。新增 TaskStatus：失败仅一条短状态，原始错误/错误码通过详情展开；运行中单任务停止行为保留，已停止即使有错误也不改标失败。结束过程默认折叠，竖线仅用于展开动作列表；Shell 统计说明放进过程，若有文件汇总仍明确提示未计命令改动。
+- 遇到的难题：首轮 Rust 检查与运行时重建并行，构建资源 `extend` 暂时不存在，退出失败，未记通过；待 prepare:runtime 完成后独立重跑通过。初次前端构建早于取消状态判定调整，核对压缩资产发现旧判定，重新执行前端构建与 Tauri 打包，最终安装只使用修正版。
+- 处理方式：状态以 task.status 为准，不用 error 文本覆盖真实取消状态；补充含错误的已停止任务用例。详情和过程使用原生 details，保留错误可查与键盘交互；不更改历史数据库、不自动重试真实模型。规范见 `docs/superpowers/specs/2026-11-06-compact-turns.md`，历史证据保持。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 27 文件 85/85，状态/过程定向测试 5/5；`npm test` 125/125；`npm run test:desktop-product` 最终 20/20；`npm run test:docs` 40/40；`npm run build:app` 首轮通过后，修正版本再执行 `npm run build:desktop` 与桌面目录 `tauri build --bundles app` 通过（231.02 MiB）。Rust 使用现有 stable 工具链和离线 Cargo 缓存。`git diff --check` 通过。Mac GUI 1280×820 实际核对更紧凑的历史气泡/状态、无通栏红框、箭头输入按钮；展开并收起真实错误可见原始错误，含错误的停止任务仍显示已停止；展开三项工具动作可见统计边界，收起后说明隐藏。证据 `apps/desktop/evidence/p02-compact-turns.json` 对应本次提交前工作区，不保存原始对话截图。
+- 安装与恢复：最终包已 ad-hoc 签名并通过深度严格校验，更新 `/Applications/Moos.app`；旧包位于本机临时目录 `moos-before-compact-turns.u9z_lmdd/Moos.app` 可恢复。
+- 遗留问题：本轮仅界面整理，历史模型调用失败根因未解决；未发起新收费模型任务。带文件汇总的 Shell 边界由组件夹具覆盖，未做窄屏 resize 验收；完整运行时体积优化、Git、原生终端等原有待办保持不变。P02.8/P02.9 继续未完成。
+- 对应 Git 提交：唯一说明 `feat(P02.V2): compact conversation turns and task feedback`；查询 `git log --all --oneline --grep='^feat(P02.V2): compact conversation turns and task feedback$'`。最终核对后提交推送 GitHub 并比对远程 HEAD。
+
 ## 2026-11-06 15:21:26 +08:00｜P02.V2：去掉右栏并整理对话正文
 
 - 修改或新增内容：按用户最新要求，主页面不再挂载右侧变更栏及其收起按钮，对话与输入区居中，逐轮修改文件仍保留在所属任务内。参考 DeepSeek Harness 正文/过程分工及 Markdown 表格模式、OpenCode 官方产品页面和用户此前 Codex 截图；新增共用 MessageContent，让流式/落盘助手正文以段落、标题、列表、表格、行内文件名呈现。重复“任务记录”标题改为短状态，真实错误与停止状态保留；用户输入原文不改。

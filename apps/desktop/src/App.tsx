@@ -1,10 +1,10 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
 import { Alert, Badge, Button, ConfigProvider, Empty, Modal, Select, Space, Tag, Tooltip } from 'antd';
-import { CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
 import { request } from './api';
-import { emptySnapshot, isActive, statusLabel, type Snapshot, type Task } from './types';
+import { emptySnapshot, isActive, type Snapshot, type Task } from './types';
 import Settings from './Settings';
 import { useHistory } from './useHistory';
 import HistoryControls from './HistoryControls';
@@ -22,6 +22,7 @@ import { BUILTIN_THEMES } from './themes/builtin';
 import { applyTheme, loadSavedTheme, resetTheme, initializeWorkbenchTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
+import TaskStatus from './conversation/TaskStatus';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
 import './theme/tokens.css';
@@ -30,6 +31,7 @@ import './style.css';
 import './theme/dsh-alignment.css';
 import './theme/scrollbars.css';
 import './theme/workbench.css';
+import './theme/conversation.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 export default function App() {
@@ -156,14 +158,11 @@ export default function App() {
     const stream = events.filter(e => e.type === 'text_delta').map(e => typeof e.payload.delta === 'string' ? e.payload.delta : '').join('');
     const tools = events.filter(e => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(e.type));
     return <section className="task-card" key={task.id} aria-label="任务执行记录">
-      <div className="task-heading"><span className={`task-status-dot ${isActive(task) ? 'is-running' : ''}`} aria-hidden="true" /><span>{statusLabel(task.status)}</span>
-        {isActive(task) && <Button size="small" danger aria-label="停止此任务" onClick={() => void mutateCommand(uiCommands.cancelTask(task.id))}>停止</Button>}
-      </div>
+      <TaskStatus task={task} onStop={() => void mutateCommand(uiCommands.cancelTask(task.id))} />
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
       {stream && !saved && <MessageContent text={stream} />}
       <TaskTrajectory events={tools} finished={!isActive(task)} />
       <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: tools }} />
-      {task.error && <Alert type="error" message={task.error} description={task.errorCode ? `错误码：${task.errorCode}` : undefined} showIcon />}
       {isActive(task) && task.heartbeatAt && <p className="muted">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
@@ -207,7 +206,7 @@ export default function App() {
         </div>
         <ComposerDock><SlotHost slot="composer.leading" context={{ projectId, conversationId }} /><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />
           {!providerId && <div className="model-warning"><span>请先在设置中配置模型服务</span><Button size="small" type="link" onClick={() => setSettings(true)}>前往设置</Button></div>}
-          <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Button type="primary" aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()}>发送任务</Button>} />
+          <Sender aria-label="任务内容" value={draft} onChange={value => setDrafts(prev => ({ ...prev, [conversationId]: value }))} disabled={disabled} placeholder={!project ? '先添加一个项目目录' : !conversation ? '新建会话后描述任务' : !providerId ? '配置模型服务后即可提交' : '描述开发任务，Enter 发送，Shift + Enter 换行'} onSubmit={() => void submit()} actions={() => <Tooltip title="发送任务"><Button type="primary" icon={<ArrowUpOutlined />} aria-label="发送任务" disabled={disabled || !draft.trim()} loading={busy} onClick={() => void submit()} /></Tooltip>} />
           <PermissionMenu />
           <SlotHost slot="composer.trailing" context={{ projectId, conversationId }} />
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>

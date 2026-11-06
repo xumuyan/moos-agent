@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-11-06T15:29:35+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): compact conversation turns and task feedback",
+  "tests": { "desktopUi": "85/85, 27 files", "core": "125/125", "rustProduct": "20/20 after resource preparation completed", "documents": "40/40", "targetedStatusAndTrajectory": "5/5" },
+  "build": { "frontend": "passed", "finalTauriApp": "passed, 231.02 MiB", "signature": "ad-hoc, deep strict verification passed" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820",
+    "compactTurnsAndArrowSenderInspected": true,
+    "wideRedTaskAlertAbsent": true,
+    "actualErrorDetailExpandedThenCollapsed": true,
+    "stoppedTaskWithErrorStillStopped": true,
+    "actualThreeActionProcessExpandedThenCollapsed": true,
+    "shellCaveatVisibleInsideExpandedProcess": true,
+    "newModelRequestSent": false
+  },
+  "limits": ["History model failures are not repaired by this presentation change", "File summary caveat uses component fixtures", "No narrow window resize acceptance", "No screenshot or raw user conversation stored in this evidence"]
+}

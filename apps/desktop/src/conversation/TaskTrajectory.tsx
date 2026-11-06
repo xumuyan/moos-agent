@@ -13,11 +13,12 @@ export default function TaskTrajectory({ events, finished = false }: { events: A
         <span>{activityLabel(row.name)}{row.path ? ` · ${row.path}` : ''}</span>
         <small>{row.failed ? '失败' : row.done ? '已完成' : finished ? '结果未记录' : '进行中'}</small>
       </div>)}</div>
+      {finished && rows.some(row => row.name === 'bash') && <p className="activity-note">文件清单仅统计成功的写入与编辑工具；命令产生的文件改动未统计。</p>}
     </details>
     {finished && files.length > 0 && <section className="changed-files" aria-label="修改文件汇总">
       <strong>已修改 {files.length} 个文件</strong>
       {files.map(file => <div className="changed-file" key={file.path}><span>{file.path}</span><small>{file.description}</small></div>)}
     </section>}
-    {finished && rows.some(row => row.name === 'bash') && <p className="activity-note">文件清单仅统计成功的写入与编辑工具；命令产生的文件改动未统计。</p>}
+    {finished && files.length > 0 && rows.some(row => row.name === 'bash') && <p className="activity-note">文件清单不含命令产生的改动。</p>}
   </section>;
 }

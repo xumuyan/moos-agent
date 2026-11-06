@@ -1,0 +1,27 @@
+/* Compact turns: prompt → status/process → answer, without stacked card margins. */
+.workbench-shell .thread > .message { margin: 0; }
+.workbench-shell .thread > .message-user { margin: 20px 0 8px; }
+.workbench-shell .message-user .message-label { display: none; }
+.workbench-shell .message-user .ant-bubble-content { padding: 10px 14px; }
+.workbench-shell .thread > .task-card { margin: 0 0 18px; padding: 4px 0; }
+.workbench-shell .thread > .message-assistant { margin: 0 0 20px; }
+.workbench-shell .message-assistant .message-label { margin-bottom: 6px; font-size: 11px; }
+.turn-status { margin-bottom: 5px; color: var(--moos-muted); font-size: 12px; }
+.turn-status-line { display: flex; align-items: center; gap: 7px; min-height: 22px; }
+.turn-status-line .ant-btn { height: 22px; font-size: 11px; }
+.turn-status-failed { color: #ab554c; }
+.turn-status-failed .task-status-dot { background: currentColor; }
+.turn-error-details { margin: 3px 0 0 12px; font-size: 11px; color: var(--moos-muted); }
+.turn-error-details > summary { cursor: pointer; width: fit-content; }
+.turn-error-details p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; }
+.workbench-shell .activity-history { border-left: 0; padding-left: 0; }
+.workbench-shell .activity-history > summary { padding: 4px 0; width: fit-content; }
+.workbench-shell .activity-list { border-left: 1px solid var(--moos-border); margin: 5px 0 8px 3px; padding: 4px 0 4px 12px; gap: 6px; }
+.workbench-shell .activity-note { margin: 5px 0 0; line-height: 1.6; }
+.workbench-shell .changed-files { margin-top: 8px; }
+.workbench-shell .composer-dock { padding: 10px 14px 8px; margin-top: 8px; margin-bottom: 14px; border-radius: 16px; }
+.workbench-shell .composer-context { padding-bottom: 6px; }
+.workbench-shell .composer .ant-sender-input { min-height: 40px; font-size: 14px !important; }
+.workbench-shell .composer .ant-sender-actions-list .ant-btn { width: 30px; min-width: 30px; height: 30px; padding: 0; border-radius: 50%; }
+.workbench-shell .permission-control { margin-top: 4px; gap: 8px; }
+.workbench-shell .composer-footnote { margin-top: 4px; }
