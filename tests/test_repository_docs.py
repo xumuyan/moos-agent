@@ -608,5 +608,31 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, spec)
 
 
+    def test_gui_stability_evidence_keeps_remaining_acceptance_open(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('- [ ] P02.9 ', plan)
+        self.assertIn('| E28 |', plan)
+        report = json.loads((ROOT / 'apps/desktop/evidence/p02-gui-stability.json').read_text())
+        self.assertEqual(report['gui']['shortTaskCount'], 20)
+        self.assertGreater(report['gui']['longElapsedMs'], 600000)
+        self.assertEqual(report['gui']['longHeartbeats'], 40)
+        self.assertEqual(report['installedAppSigkill']['remainingPids'], [])
+        self.assertTrue(report['installedAppSigkill']['unrelatedSurvived'])
+        self.assertTrue(report['installedAppSigkill']['proxyClosed'])
+        self.assertTrue(report['build']['allRegularFilesMatch'])
+        self.assertTrue(report['plugins']['crashFixtureUninstalledWithUserActionTimeConfirmation'])
+        self.assertFalse(report['realProvider']['requestSent'])
+        self.assertFalse(report['realProvider']['usageVerified'])
+        self.assertFalse(report['plugins']['themeAppliedMarkerOnFallbackSynchronized'])
+        followup = report['realProviderFollowup']
+        self.assertTrue(followup['requestSucceeded'])
+        self.assertEqual(followup['inputTokens'], 208)
+        self.assertEqual(followup['outputTokens'], 8)
+        self.assertEqual(followup['cacheReadTokens'], 25856)
+        self.assertIsNone(followup['costUsd'])
+        self.assertFalse(followup['glmVerified'])
+        self.assertFalse(followup['billingReconciled'])
+
+
 if __name__ == '__main__':
     unittest.main()

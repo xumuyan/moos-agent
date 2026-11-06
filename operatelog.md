@@ -551,3 +551,28 @@
 - 实际验收：显式旧安装包ef5ab6b内置Node/PI SDK，在自己的临时数据中完成20个连续写文件/bash验证任务且host71194不变；alpha长任务605114ms成功、40次心跳，与beta任务并行；模型取消104ms、工具取消107ms、同目录排队取消及正常shutdown通过。显式新版Release包再跑20任务/取消/正常退出通过，短延迟模式明确longVerified=false。另一次只强退本轮wrapper71972，host71973及工具71978于115ms内退出、临时代理关闭。上述是实际打包运行时/原生进程验收，不能当作GUI App强退或真实服务用量。私有报告 `/tmp/moos-p029-evidence-20261106/`；公开脱敏证据 `apps/desktop/evidence/p02-owner-death.json` 不含假模型用量冒充账单。
 - 遗留问题：GUI临时服务凭据补存待用户操作，20任务/十分钟/组合App强退、真实模型usage、插件完整组合和最终安装版仍需补验；P02.9保持未完成。主动setsid/disown分离daemon不覆盖，guardian不是OS沙箱；不增加Node/Web服务，每活跃PTY有一个无窗口原生守护进程。当前用户石墨主题、真实云桥服务及其密钥均未修改。
 - 对应 Git 提交：唯一说明 `fix(P02.9): reap native PTY children after owner death`；查询 `git log --all --oneline --grep='^fix(P02.9): reap native PTY children after owner death$'`。验证后提交并推送GitHub main，核对远程，不预填自身哈希。
+
+
+## 2026-11-06 22:53:46 +08:00｜P02.9：安装 GUI 连续任务、长任务及强退验收
+
+- 时间说明：此为本轮整理北京时间，证据对应3cfa473产品及唯一提交说明 `test(P02.9): record installed GUI stability and crash cleanup` 的文档工作区；不把整理时刻当成每个操作时间。
+- 修改或新增内容：新增脱敏GUI稳定性与崩溃清理证据及文档契约测试，PLAN追加E28与剩余项，保留E27当时失败和受阻记录。更新 `/Applications/Moos.app` 为3cfa473签名包，15387项常规文件逐个哈希与构建一致。仅清理用户明确即时确认的dev.moos.fixture-crash测试包及其私有配置，其余两个夹具停用、石墨皮肤恢复。
+- 遇到的难题：临时服务初次仅有元数据、提交缺密钥；用户重新补存后才真正启动GUI任务。连续任务循环遇到用户同时操作保护，暂停并刷新真实AX状态，确认第11项完成后从第12项继续，没有重复提交。现有云桥真实服务也缺可用本地密钥，短请求在本地被拒，未发收费调用；未读取凭据文件。皮肤停用后视觉回退正常，但“已应用”标记未同步；云桥错误提示跨项目残留。
+- 处理方式：所有GUI任务由真实输入框提交，明确选择P029本地模型，不用stdio脚本冒充GUI。alpha长任务期间beta连续写入与bash校验20次，两种停止只作用当前会话。原生强退用只读进程树核对准确App身份与子进程归属，仅SIGKILL该App，观察已登记Node、工具、PTY及守护；保留独立sleep作不误杀证据。卸载先展示最终确认、获用户答复后重新核对同一插件并执行。云桥已打开编辑页，请用户本机补存，agent不代输真实密钥。
+- 验证结果：本轮文档契约新增一项；完整核心、UI、原生及文档回归命令分别为 `npm test`、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`、stable离线工具链 `npm run test:desktop-product`、`npm run test:docs`，结果完成后核对再提交。产品构建沿用已通过3cfa473，ad-hoc签名deep/strict通过，安装程序SHA256 `de1368c679cad45c861ef53a232191a010f8cb8b9f7976aa246f3060251b8ec1`。
+- 实际验收：arm64/macOS27.0.1、1280×820。GUI20个写文件任务成功，最终result.txt为GUI_P029_20；alpha从22:36:26至22:46:31耗时605304ms成功，40次心跳。模型等待取消与真实工具79521取消退出通过，alpha继续；host64417保持，后半段201次采样最大1个host。新版App81509/Node81518/guardian81634/shell81633/终端sleep81668/SDK工具81814于实际AppSIGKILL后105ms内全退出，一项本地代理端口关闭、无关sleep仍存活。重启任务最终cancelled而非成功，终端空白不重放；只读核对无新任务。插件Worker通知/启停通过，皮肤停用视觉回退，恢复石墨；崩溃夹具经确认卸载后在列表消失。
+- 体积与证据：Tauri报告.app231.27MiB；签名常规文件逻辑246243362字节，磁盘284448KiB，Node119228096字节，现有完整内置运行时首启无额外下载，未产DMG、未做全新用户安装。脱敏证据 `apps/desktop/evidence/p02-gui-stability.json`；本机私有目录 `/tmp/moos-p029-evidence-20261106/`，截图不上传。安装前备份 `moos-before-owner-death-60p4s331/Moos.app` 位于本机临时目录。201次进程采样不能声称连续Dock instrumentation。
+- 遗留问题：P02.9继续未完成，真实云桥usage等待用户补存密钥，GLM组合/账单、皮肤回退已应用标记、跨项目错误残留、全新安装与小包继续保留待办；主动分离daemon不覆盖。临时项目和服务保留供补验，未修改用户项目文件，不记录密钥、公开测试凭据或原始模型载荷。
+- 对应 Git 提交：唯一说明 `test(P02.9): record installed GUI stability and crash cleanup`；查询 `git log --all --oneline --grep='^test(P02.9): record installed GUI stability and crash cleanup$'`。全部适用检查通过后提交并推送GitHub main，核对远程，不预填自身哈希。
+
+
+## 2026-11-07 07:43:14 +08:00｜P02.9：云桥真实用量补验及历史更正
+
+- 修改或新增内容：在本次尚未提交的E28证据、PLAN及文档契约测试追加真实云桥验收结果；保留此前缺密钥失败历史。对应产品3cfa473，文档工作区关联唯一提交说明 `test(P02.9): record installed GUI stability and crash cleanup`。
+- 遇到的难题：用户保存真实凭据后首次GUI输入中文约束未完整进入，实际只发送标记，模型随后执行了只读命令；点击停止时首轮已完成，不能声称已取消该任务。前一夜完整UI回归日志没有最终完成结果，不能据过程输出认定通过，早上重新运行。
+- 处理方式：没有读取用户凭据；以英文完整提示重新输入并核对UI消息，限制不调用工具、不读取修改文件，第二轮准确返回标记。真实服务记录和本地fixture用量分开，只读核对当前两个验收任务及usage，不导出原始工具载荷。
+- 验证结果：安装GUI最终请求2807ms成功，回复P029_REAL_OK，无工具；SQLite服务商Usage为输入208、输出8、缓存读取25856、总26072、上下文上限128000，费用字段null。设置用量页显示实际输入/输出/缓存及暂无费用，不用字符估算。首次请求只读工具和额外token如实保留，不算无工具验收。
+- 遗留问题：真实云桥凭据阻塞解除，但GLM与账单对账未验证，P02.9仍未完成；皮肤回退已应用标记和跨项目错误残留继续待修正。全部回归完成后补记结果再提交推送。
+- 对应 Git 提交：唯一说明 `test(P02.9): record installed GUI stability and crash cleanup`；查询 `git log --all --oneline --grep='^test(P02.9): record installed GUI stability and crash cleanup$'`。
+
+- 本轮最终回归补记（2026-11-07）：`npm test`137/137、stable离线`npm run test:desktop-product`27/27、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`120/120、`npm run test:docs`43/43全部通过，`git diff --check`通过；原有jsdom NaN height警告保留。证据和日志仅追加本轮事实，不扩大P02.9完成范围。

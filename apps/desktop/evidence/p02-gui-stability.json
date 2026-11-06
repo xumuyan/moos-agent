@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "date": "2026-11-06",
+  "platform": "arm64/macOS 27.0.1",
+  "sourceCommit": "3cfa4730535541da6f8b53c25f1be54ef6f40aed",
+  "scope": "P02.9 Mac installed GUI fixture acceptance; real provider still blocked",
+  "gui": {
+    "twentyConsecutiveWriteAndBashTasksSucceeded": true,
+    "shortTaskCount": 20,
+    "lastFileMarker": "GUI_P029_20",
+    "longElapsedMs": 605304,
+    "longHeartbeats": 40,
+    "longSucceeded": true,
+    "otherProjectShortTasksDuringLong": true,
+    "modelWaitCancellation": true,
+    "toolCancellation": true,
+    "cancelledToolExited": true,
+    "hostPidDuringTwentyTasks": 64417,
+    "sampledHostPidCount": 1,
+    "monitorSamples": 201,
+    "maxSampledHosts": 1,
+    "observedExtraNodeWindow": false,
+    "continuousDockInstrumentation": false
+  },
+  "installedAppSigkill": {
+    "appPid": 81509,
+    "ownedPids": [
+      81509,
+      81518,
+      81634,
+      81633,
+      81668,
+      81814
+    ],
+    "remainingPids": [],
+    "elapsedMs": 105,
+    "proxyPortsTested": 1,
+    "proxyClosed": true,
+    "unrelatedSurvived": true
+  },
+  "relaunch": {
+    "tasksNotReplayed": true,
+    "nativeTerminalEmpty": true,
+    "inFlightTaskFinalStatus": "cancelled",
+    "statusNotSucceeded": true
+  },
+  "plugins": {
+    "crashFixtureRemainedDisabledAfterAttempt": true,
+    "uiEnableNotificationDisableVerified": true,
+    "activeThemeDisableVisuallyFallsBack": true,
+    "themeAppliedMarkerOnFallbackSynchronized": false,
+    "graphiteRestored": true,
+    "crashFixtureUninstalledWithUserActionTimeConfirmation": true,
+    "otherTwoFixturesLeftDisabled": true,
+    "newInstallUpgradeNotRepeatedThisRound": true
+  },
+  "build": {
+    "builtLogicalBytes": 246243362,
+    "nodeBytes": 119228096,
+    "builtDiskKiB": 284448,
+    "binarySha256": "de1368c679cad45c861ef53a232191a010f8cb8b9f7976aa246f3060251b8ec1",
+    "allRegularFilesMatch": true,
+    "files": 15387,
+    "sha256": "de1368c679cad45c861ef53a232191a010f8cb8b9f7976aa246f3060251b8ec1",
+    "normalOldAppAndRuntimeExited": true,
+    "tauriReportedMiB": 231.27,
+    "runtimeExtraDownloadBytes": 0,
+    "firstLaunch": "Existing full bundled Node/PI runtime; existing local configuration; fresh install not tested",
+    "dmgProduced": false,
+    "backup": "/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-owner-death-60p4s331/Moos.app"
+  },
+  "realProvider": {
+    "attempted": "existing cloud provider, short text only",
+    "requestSent": false,
+    "blockedReason": "Provider has no API key; save its credential first",
+    "usageVerified": false,
+    "credentialsReadByAgent": false
+  },
+  "remaining": [
+    "real model usage and provider comparison",
+    "theme fallback applied marker",
+    "global provider error persists across project switch",
+    "fresh install and small package target",
+    "detached daemon boundary"
+  ],
+  "privateEvidenceDirectory": "/tmp/moos-p029-evidence-20261106",
+  "realProviderFollowup": {
+    "date": "2026-11-07",
+    "model": "gpt-6-sol",
+    "protocol": "openai-responses",
+    "requestSucceeded": true,
+    "elapsedMs": 2807,
+    "reply": "P029_REAL_OK",
+    "inputTokens": 208,
+    "outputTokens": 8,
+    "cacheReadTokens": 25856,
+    "totalTokens": 26072,
+    "contextWindow": 128000,
+    "costUsd": null,
+    "toolsInFinalRequest": 0,
+    "firstAttemptInputIncomplete": true,
+    "firstAttemptReadOnlyToolsOccurred": true,
+    "firstAttemptFinishedBeforeStopRequest": true,
+    "credentialsEnteredByUser": true,
+    "credentialsReadByAgent": false,
+    "billingReconciled": false,
+    "glmVerified": false
+  }
+}
