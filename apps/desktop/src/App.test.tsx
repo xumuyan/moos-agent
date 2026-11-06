@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { request } from './api';
@@ -23,6 +23,18 @@ beforeEach(() => {
   });
 });
 describe('desktop assistant', () => {
+  it('binds the workbench inspector to the newest task rather than older or foreign changes', async () => {
+    state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
+    state.tasks = ['new', 'old'].map(id => ({ id, projectId: 'p1', conversationId: 'c1', message: id, status: 'succeeded' }));
+    state.events = ['new', 'old'].flatMap(id => [
+      { id: `${id}-start`, taskId: id, projectId: 'p1', conversationId: 'c1', type: 'tool_start', payload: { toolCallId: id, toolName: 'edit', args: { path: `${id}.ts` } } },
+      { id: `${id}-end`, taskId: id, projectId: 'p1', conversationId: 'c1', type: 'tool_end', payload: { toolCallId: id, toolName: 'edit', isError: false } },
+    ]);
+    render(<App />);
+    const inspector = within(screen.getByRole('region', { name: '本轮修改文件' }));
+    await waitFor(() => expect(inspector.getByText('new.ts')).toBeInTheDocument());
+    expect(inspector.queryByText('old.ts')).not.toBeInTheDocument();
+  });
   it('opens the directory picker and adds its selected path without a text field', async () => {
     const user = userEvent.setup(); render(<App />);
     await screen.findByText('添加项目，开始开发');

@@ -10,6 +10,7 @@ import { useHistory } from './useHistory';
 import HistoryControls from './HistoryControls';
 import AppShell from './layout/AppShell';
 import WorkspaceSidebar from './layout/Sidebar';
+import ProjectRail from './layout/ProjectRail';
 import ConversationPane from './layout/ConversationPane';
 import RightPanel from './layout/RightPanel';
 import ComposerDock from './layout/ComposerDock';
@@ -18,7 +19,7 @@ import ComposerStatus from './composer/ComposerStatus';
 import { createBuiltinPluginRegistry } from './builtin-plugins/insights';
 import { PluginProvider, SlotHost } from './plugins/slots';
 import { BUILTIN_THEMES } from './themes/builtin';
-import { applyTheme, loadSavedTheme, resetTheme, THEME_STORAGE_KEY } from './themes/loader';
+import { applyTheme, loadSavedTheme, resetTheme, initializeWorkbenchTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
 import { withoutCodeBlocks } from './conversation/activity';
@@ -29,6 +30,7 @@ import './theme/shell.css';
 import './style.css';
 import './theme/dsh-alignment.css';
 import './theme/scrollbars.css';
+import './theme/workbench.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 export default function App() {
@@ -70,6 +72,7 @@ export default function App() {
   const themes = [...BUILTIN_THEMES, ...localPlugins.themes];
   useEffect(() => {
     if (!localPlugins.loaded) return;
+    initializeWorkbenchTheme();
     // Development-only browser acceptance fixture; production builds remove this branch.
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('theme-fixture') === 'incompatible') localStorage.setItem(THEME_STORAGE_KEY, 'incompatible-fixture');
     setThemeId(loadSavedTheme(themes));
@@ -166,10 +169,11 @@ export default function App() {
       {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
     </section>;
   };
-  return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#4d6bfe', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '12', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
+  return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#96734e', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '10', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#fcfbf8', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
     <AppShell
+      rail={<ProjectRail projects={data.projects} selectedId={projectId} onSelect={setProjectId} onAdd={() => void addProject()} onSettings={() => setSettings(true)} adding={adding} />}
       sidebar={<WorkspaceSidebar>
-        <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>Moos<span>开发助手</span></strong><Tag>本地</Tag></div><SlotHost slot="sidebar.primary" />
+        <div className="brand"><span className="brand-icon"><CodeOutlined /></span><strong>{project?.name ?? 'Moos'}<span>开发助手</span></strong><Tag>本地</Tag></div><SlotHost slot="sidebar.primary" />
         <div className="section-label">工作空间<Button type="text" size="small" icon={<PlusOutlined />} aria-label="添加项目" disabled={adding} onClick={() => void addProject()} /></div>
         <nav className="projects" aria-label="项目列表">{workspace.projects.map(p => {
           const running = p.runningTasks;
@@ -210,7 +214,7 @@ export default function App() {
           <div className="composer-footnote">任务在本机执行 · 输出以实际执行结果为准</div>
         </ComposerDock>
       </ConversationPane>}
-      rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} />}
+      rightPanel={<RightPanel projectName={project?.name} projectPath={project?.path} activeTasks={active.length} taskStatus={(active[0] ?? tasks[0])?.status} events={history.visible.events.filter(event => event.projectId === projectId && event.conversationId === conversationId && event.taskId === (active[0] ?? tasks[0])?.id)} />}
     />
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
     {settings && <Settings providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} themes={themes} localPlugins={localPlugins} onClose={() => setSettings(false)} mutate={mutate} />}

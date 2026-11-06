@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-11-06T14:50:26+08:00",
+  "selectedDesign": "开发工作台",
+  "selectedWindowRadiusPx": 20,
+  "structure": ["project rail", "workspace and sessions", "conversation", "current task changes"],
+  "changesSource": "current conversation active task, otherwise first task in newest-first history page; successful write/edit only",
+  "automaticTests": { "desktopUi": "80/80 passed", "core": "125/125 passed", "rust": "20/20 passed", "documents": "40/40 passed" },
+  "gui": { "system": "arm64/macOS 27.0.1", "installedPath": "/Applications/Moos.app", "mainLayoutInspected": true, "rightPanelCollapseRestore": true, "railSettingsOpened": true, "settingsVisuallyInspected": true, "newestTaskEmptyChangesDisplayedTruthfully": true, "narrowWindowActuallyTested": false },
+  "theme": { "initialSelectedPaletteMigration": "once; clears former theme selection", "laterThemeChoicesPreservedByTest": true },
+  "limits": ["Shell modifications not counted", "no fabricated line counts or test results", "no native PTY implemented", "not a pixel-identical OpenCode copy"]
+}

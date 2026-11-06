@@ -1,0 +1,41 @@
+/* Approved “开发工作台” direction, including the selected 20px window radius. */
+:root { --moos-accent: #96734e; --moos-accent-soft: #ece7df; --moos-border: #e4e0d8; --moos-panel: #fcfbf8; --moos-sidebar: #f1efe9; --moos-muted: #89847b; --moos-radius: 10px; --moos-right-panel-width: 248px; }
+.workbench-shell { border-radius: 20px; overflow: hidden; min-width: 640px; }
+.project-rail { display: flex; flex: none; flex-direction: column; align-items: center; width: 54px; padding: 20px 6px 14px; gap: 14px; background: var(--moos-sidebar); border-right: 1px solid var(--moos-border); }
+.rail-brand { display: grid; place-items: center; width: 34px; height: 34px; color: var(--moos-accent); font-size: 22px; margin-bottom: 12px; }
+.rail-project { width: 34px; height: 34px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--moos-muted); font-size: 13px; }
+.rail-project:hover { background: var(--moos-accent-soft); }
+.rail-project.selected { background: var(--moos-panel); color: var(--moos-accent); border-color: var(--moos-border); font-weight: 600; }
+.rail-spacer { flex: 1; }
+.workbench-shell .sidebar.workspace-sidebar { width: 190px; padding: 24px 10px 14px; background: var(--moos-sidebar); }
+.workbench-shell .brand { padding: 0 10px 24px; }
+.workbench-shell .brand-icon, .workbench-shell .brand .ant-tag { display: none; }
+.workbench-shell .brand strong { font-size: 17px; letter-spacing: -.4px; }
+.workbench-shell .section-label { padding: 8px; font-size: 11px; }
+.workbench-shell .project-button, .workbench-shell .conversation-button { font-size: 12px; padding: 9px 8px; }
+.workbench-shell .project-item.selected, .workbench-shell .conversation-button.selected { background: var(--moos-accent-soft); }
+.workbench-shell .topbar { height: 58px; min-height: 58px; border-bottom: 1px solid var(--moos-border); padding-inline: 22px; }
+.workbench-shell .model-select { width: 190px; }
+.workbench-shell .thread { max-width: 780px; }
+.workbench-shell .conversation-area { padding: 26px 28px 10px; }
+.workbench-shell .composer-dock { border-radius: 10px; width: calc(100% - 48px); margin: 14px auto 20px; box-shadow: none; background: var(--moos-panel); }
+.workbench-shell .composer-context { font-size: 10px; }
+.workbench-shell .message-user .ant-bubble-content { background: var(--moos-accent-soft); border-radius: 10px; }
+.workbench-shell .activity-history { border-left: 2px solid var(--moos-accent); padding-left: 12px; }
+.workbench-shell .task-card { border: 0; border-radius: 0; padding: 6px 0; background: transparent; }
+.workbench-shell .task-id { display: none; }
+.workbench-shell .changed-files { border-radius: 10px; }
+.workbench-shell .right-panel { width: var(--moos-right-panel-width); background: var(--moos-panel); padding: 28px 18px; }
+.workbench-shell .right-panel.collapsed { width: 38px; padding-inline: 4px; }
+.workbench-shell .right-panel-heading { gap: 4px; padding-bottom: 16px; }
+.workbench-shell .right-panel-heading .eyebrow { color: #5e594f; font-size: 12px; letter-spacing: 0; }
+.workbench-shell .right-panel-heading strong { font-size: 22px; font-weight: 500; }
+.workbench-shell .right-panel-heading .muted { font-size: 11px; }
+.workbench-changes { padding-block: 10px; }
+.workbench-file { padding: 13px 0; border-bottom: 1px solid var(--moos-border); display: grid; gap: 5px; }
+.workbench-file > span { font-size: 12px; overflow-wrap: anywhere; }
+.workbench-file > small { color: var(--moos-muted); font-size: 11px; }
+.workbench-shell .context-summary dt, .workbench-shell .context-summary dd { font-size: 10px; }
+.settings-dialog .ant-modal-content { border-radius: 20px; }
+@media (max-width: 1180px) { .workbench-shell .right-panel { display: none; } }
+@media (max-width: 900px) { .workbench-shell .sidebar.workspace-sidebar { width: 160px; } .workbench-shell .model-select { width: 155px; } .workbench-shell .conversation-area { padding-inline: 18px; } .workbench-shell .composer-dock { width: calc(100% - 30px); } .workbench-shell .topbar { padding-inline: 16px; } }
