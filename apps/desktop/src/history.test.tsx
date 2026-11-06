@@ -110,8 +110,8 @@ it('rejects a changed revision without displaying a mixed record', async () => {
 it('shows events whose task lies on a different independent page', async () => {
   bridge.mockResolvedValue({ ...snapshot(), messages: [], events: [{ id: 70, taskId: 'outside-page', conversationId: 'c1', projectId: 'p1', type: 'tool_end', payload: { name: '独立事件工具', result: '真实工具结果' } }] });
   render(<App />);
-  expect(await screen.findByText(/独立事件工具/, { selector: 'summary' })).toBeInTheDocument();
-  expect(screen.getByText(/真实工具结果/)).toBeInTheDocument();
+  expect(await screen.findByText(/独立事件工具/)).toBeInTheDocument();
+  expect(screen.queryByText(/真实工具结果/)).not.toBeInTheDocument();
 });
 
 it('reports invalid chunks instead of presenting partial JSON as a complete record', async () => {

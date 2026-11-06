@@ -1,4 +1,16 @@
 /* Moos implementation of the approved DSH visual direction. */
+.activity-history { color: var(--moos-muted); font-size: 12px; }
+.activity-history > summary { cursor: pointer; padding: 6px 0; }
+.activity-list { display: grid; gap: 8px; padding: 8px 0; }
+.activity-row { display: flex; gap: 8px; align-items: baseline; }
+.activity-row > span:nth-child(2) { flex: 1; overflow-wrap: anywhere; }
+.activity-row small { white-space: nowrap; font-size: 10px; }
+.changed-files { border: 1px solid var(--moos-border); border-radius: 12px; margin-top: 12px; overflow: hidden; }
+.changed-files > strong { display: block; padding: 12px 14px; font-size: 13px; font-weight: 500; }
+.changed-file { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--moos-border); font-size: 12px; }
+.changed-file > span { overflow-wrap: anywhere; }
+.changed-file > small { color: var(--moos-muted); flex: none; }
+.activity-note { color: var(--moos-muted); font-size: 10px; }
 :root {
   --moos-accent: #4d6bfe;
   --moos-accent-soft: #eef0ff;

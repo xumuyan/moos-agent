@@ -21,6 +21,7 @@ import { BUILTIN_THEMES } from './themes/builtin';
 import { applyTheme, loadSavedTheme, resetTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
+import { withoutCodeBlocks } from './conversation/activity';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
 import './theme/tokens.css';
@@ -157,8 +158,8 @@ export default function App() {
         {isActive(task) && <Button size="small" danger aria-label="停止此任务" onClick={() => void mutateCommand(uiCommands.cancelTask(task.id))}>停止</Button>}
       </div>
       {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
-      {stream && !saved && <Bubble content={<span className="plain-text">{stream}</span>} />}
-      <TaskTrajectory events={tools} />
+      {stream && !saved && <Bubble content={<span className="plain-text">{withoutCodeBlocks(stream)}</span>} />}
+      <TaskTrajectory events={tools} finished={!isActive(task)} />
       <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: tools }} />
       {task.error && <Alert type="error" message={task.error} description={task.errorCode ? `错误码：${task.errorCode}` : undefined} showIcon />}
       {isActive(task) && task.heartbeatAt && <p className="muted">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
@@ -195,7 +196,7 @@ export default function App() {
             const associated = tasks.filter(task => taskAnchors.get(task.id) === m.id);
             return <Fragment key={m.id}>
               {m.role !== 'user' && associated.map(renderTask)}
-              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div><Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.content}</span>} /><SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
+              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div><Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.role === 'assistant' ? withoutCodeBlocks(m.content) : m.content}</span>} /><SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
               {m.role === 'user' && associated.map(renderTask)}
             </Fragment>;
           })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
