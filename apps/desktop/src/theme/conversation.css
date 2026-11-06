@@ -27,20 +27,12 @@
 .workbench-shell .composer-footnote { margin-top: 4px; }
 
 /* One response group per turn, following the reference products' transcript hierarchy. */
-.grouped-transcript .conversation-turn { padding: 20px 0 24px; }
-.grouped-transcript .conversation-turn + .conversation-turn { border-top: 1px solid var(--moos-border); }
-.grouped-transcript .turn-prompts { margin-bottom: 20px; }
+.grouped-transcript .conversation-turn { padding: 16px 0; }
+.grouped-transcript .turn-prompts { margin-bottom: 14px; }
 .grouped-transcript .message { margin: 0 0 12px; }
 .grouped-transcript .message-user { display: flex; flex-direction: column; align-items: flex-end; margin: 0; }
 .grouped-transcript .message-user > .ant-bubble { max-width: 78%; }
-.response-heading { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; min-width: 0; }
-.response-avatar { display: grid; place-items: center; flex: none; width: 22px; height: 22px; color: var(--moos-accent); background: var(--moos-accent-soft); border-radius: 6px; font-size: 13px; }
-.response-heading > strong { font-size: 12px; font-weight: 600; line-height: 22px; }
-.response-heading > .turn-status { margin: 0 0 0 auto; max-width: 65%; text-align: right; }
-.response-heading .turn-status-line { justify-content: flex-end; font-size: 11px; }
-.response-heading .turn-error-details { text-align: left; margin-left: 0; }
-.response-heading .turn-error-details > summary { margin-left: auto; }
-.response-content { padding-left: 32px; }
+.response-content { padding-left: 0; }
 .response-content > .task-trajectory { margin-bottom: 14px; }
 .response-content .activity-history { background: color-mix(in srgb, var(--moos-accent-soft) 45%, transparent); border: 1px solid var(--moos-border); border-radius: 8px; padding: 3px 11px; }
 .response-content .activity-history > summary { width: 100%; }
@@ -54,7 +46,7 @@
 .conversation-flow { display: flex; flex-direction: column; flex: none; min-height: 100%; }
 .return-to-latest { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); border: 1px solid var(--moos-border); border-radius: 18px; padding: 7px 13px; background: var(--moos-panel); color: var(--moos-accent); box-shadow: 0 2px 8px #00000009; font-size: 12px; }
 .turn-process { margin: 0 0 14px; color: var(--moos-muted); font-size: 12px; }
-.turn-process-control { display: flex; align-items: flex-start; gap: 8px; border-bottom: 1px solid var(--moos-border); }
+.turn-process-control { display: flex; align-items: flex-start; gap: 8px; }
 .turn-process-control > details { flex: 1; min-width: 0; }
 .turn-process summary, .process-static { min-height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 0 7px; }
 .turn-process summary { cursor: pointer; list-style: none; }

@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-06 16:31:51 +08:00｜P02.V2：移除会话重复 Moos 标识并核对安装版
+
+- 修改或新增内容：用户要求会话左侧不要 Moos，并澄清“没有修改痕迹”指页面样式看起来未变。删除每轮助手名称及图标 DOM，移除 32px 头像缩进，过程/正文/文件清单统一左对齐；缩减轮间距离并移除重复边线。结束任务不再补写“当前记录中没有最终回复”，真实失败/停止/完成状态和原始错误仍可查，运行中等待提示保留。更新组件测试、范围说明和 PLAN，历史证据不改写。
+- 遇到的难题：之前保留了整体配色和侧栏，更新集中在过程逻辑与消息结构，用户感知变化有限；同时需排查是否实际打开旧安装版。原身份行删除后若只隐藏名称，仍会遗留头像占位，故同时删除 DOM 与相关缩进样式。
+- 处理方式：修改前通过进程路径及原生窗口确认当前 `/Applications/Moos.app` 已显示上轮合并入口；本轮重新打包、替换、重开，再比对安装主程序与构建包 SHA256 完全一致。移除的是会话作者标识，窗口应用名称、项目栏和已选配色保留，范围见 `docs/superpowers/specs/2026-11-06-unbranded-conversation.md`。未修改用户对话数据库及模型输出。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 31 文件 95/95；`npm test` 125/125；`npm run test:desktop-product` 20/20；`npm run test:docs` 40/40；`npm run build:desktop` 与桌面目录 `tauri build --bundles app` 通过，应用包 231.02 MiB，Rust 使用现有 stable 工具链和离线缓存。`git diff --check` 通过。Mac GUI 1280×820 实际历史中每轮 Moos 名称/图标消失，真实状态保留且无重复无回复说明；展开/收起真实两项命令及取消详情正常，向上滚动看到原有助手正文与过程同列左对齐。组件验证真实回复、文件卡片顺序/归属及停止路由保留。未发起新收费模型任务。
+- 安装与证据：新包已 ad-hoc 签名、深度严格校验，安装与构建包主程序哈希一致；旧包留在本机临时目录 `moos-before-unbranded-chat.5ueae5jr/Moos.app`。已重新打开安装版并停留在有正文的历史位置方便用户查看。脱敏证据 `apps/desktop/evidence/p02-unbranded-conversation.json` 对应本次提交前工作区，不保存原始对话截图。
+- 遗留问题：本次聚焦会话显示，不宣称全应用换肤；未做窄窗口 resize 或新任务实机调用，文件卡片以夹具验收。底部折叠受滚动范围限制的已知边界、Git/终端/Shell diff 等既有待办保持不变。P02.8/P02.9 继续未整体完成。
+- 对应 Git 提交：唯一说明 `style(P02.V2): remove repeated assistant identity from conversation`；查询 `git log --all --oneline --grep='^style(P02.V2): remove repeated assistant identity from conversation$'`。最终核对后提交、推送 GitHub 并比对远程 HEAD。
+
 ## 2026-11-06 16:21:57 +08:00｜P02.V2：源码参考后的过程入口、工具分组与滚动控制
 
 - 修改或新增内容：用户确认按源码核对结果继续，新增 TurnProcess，将真实状态/操作数量/工具过程/错误详情放进一个入口，运行时展开且单任务停止按钮保持可用，结束默认折叠；删除主会话中独立右上状态与错误开关的挂载。按相邻工具类型分读取浏览、搜索、编辑、命令、其他，保留原始执行顺序与逐项真实状态。新增 ConversationScroll，底部跟随、上翻停跟随、返回最新、较早历史页不拉到底部；手动折叠和内容缩短时尽量恢复仍可见锚点。文件卡片仍在回复后，Shell 统计边界不变。

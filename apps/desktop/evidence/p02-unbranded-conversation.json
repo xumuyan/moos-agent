@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-11-06T16:31:51+08:00",
+  "state": "pre-commit workspace; style(P02.V2): remove repeated assistant identity from conversation",
+  "tests": { "desktopUi": "95/95, 31 files", "core": "125/125", "rustProduct": "20/20", "documents": "40/40" },
+  "build": { "frontendAndTauri": "passed, 231.02 MiB", "signature": "ad-hoc, deep strict verification passed", "installedBinaryMatchesBuiltBundle": true, "binarySha256": "044b59f2905653a952f52feab628e49d6bf08200c46fdf77e618f879e18651d8" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820",
+    "runningExecutablePathVerified": true,
+    "assistantNamesAndAvatarsAbsentFromTranscript": true,
+    "bodyAndProcessLeftAlignmentInspected": true,
+    "repeatedNoReplyTextAbsent": true,
+    "actualStoppedProcessExpandedAndCollapsed": true,
+    "savedAssistantProseStillVisible": true,
+    "newModelTaskSent": false
+  },
+  "limits": ["Application window name, project rail and selected theme remain", "File-summary preservation covered by fixtures", "No narrow-window resize acceptance", "Previous bottom-collapse scroll-range limitation remains", "No raw conversation screenshots stored"]
+}

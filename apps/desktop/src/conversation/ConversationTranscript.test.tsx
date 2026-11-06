@@ -24,7 +24,8 @@ it('puts process, answer and confirmed file summary in one response with files l
   const files = within(turn).getByRole('region', { name: '修改文件汇总' });
   expect(process.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(answer.compareDocumentPosition(files) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(screen.getAllByText('Moos')).toHaveLength(1);
+  expect(screen.queryByText('Moos')).not.toBeInTheDocument();
+  expect(turn.querySelector('.response-heading, .response-avatar')).toBeNull();
   expect(files).toHaveTextContent('src/chat.tsx');
   expect(screen.queryByText('foreign.ts')).not.toBeInTheDocument();
   const slots = vi.mocked(SlotHost).mock.calls.map(([props]) => props);
@@ -35,7 +36,8 @@ it('keeps cancelled turns readable and routes stop to the correct task', async (
   const stop = vi.fn();
   const { rerender } = render(<ConversationTranscript messages={[]} tasks={[{ ...task, status: 'cancelled' }]} events={[]} onStop={stop} />);
   expect(screen.getByText('调整会话')).toBeVisible();
-  expect(screen.getByText('任务已停止，当前记录中没有最终回复。')).toBeVisible();
+  expect(screen.getByRole('status')).toHaveTextContent('已停止');
+  expect(screen.queryByText(/当前记录中没有最终回复/)).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: '修改文件汇总' })).not.toBeInTheDocument();
   expect(screen.queryByText('已完成')).not.toBeInTheDocument();
   rerender(<ConversationTranscript messages={[]} tasks={[{ ...task, status: 'running' }]} events={[]} onStop={stop} />);

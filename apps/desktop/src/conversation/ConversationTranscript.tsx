@@ -1,5 +1,4 @@
 import { Bubble } from '@ant-design/x';
-import { CodeOutlined } from '@ant-design/icons';
 import { isActive, type AgentEvent, type Message, type Task } from '../types';
 import { SlotHost } from '../plugins/slots';
 import MessageContent from './MessageContent';
@@ -29,13 +28,12 @@ export default function ConversationTranscript({ messages, tasks, events, onStop
     return <section className="conversation-turn" key={task.id} aria-label="任务执行记录">
       <div className="turn-prompts">{prompts.length ? prompts.map(message => <MessageRow key={message.id} message={message} />) : <div className="message message-user"><Bubble placement="end" content={<span className="plain-text">{task.message}</span>} /></div>}</div>
       <div className="assistant-turn">
-        <header className="response-heading" data-scroll-anchor><span className="response-avatar" aria-hidden="true"><CodeOutlined /></span><strong>Moos</strong></header>
         <div className="response-content">
           <TurnProcess task={task} events={turnEvents} onStop={() => onStop(task.id)} />
           <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: turnEvents.filter(event => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(event.type)) }} />
           {stream && <MessageContent text={stream} />}
           {replies.map(message => <MessageRow key={message.id} message={message} />)}
-          {!stream && !saved && <p className="turn-empty-reply">{running ? '正在处理你的任务…' : task.status === 'failed' ? '本轮未完成，当前记录中没有最终回复。' : task.status === 'cancelled' ? '任务已停止，当前记录中没有最终回复。' : '当前记录中没有最终回复。'}</p>}
+          {running && !stream && !saved && <p className="turn-empty-reply">正在处理你的任务…</p>}
           <TaskFiles events={turnEvents} finished={!running} />
           {running && task.heartbeatAt && <p className="turn-heartbeat">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
         </div>
