@@ -262,3 +262,46 @@ test('invalid IDs and cross-conversation messages fail safely without partial wr
   assert.throws(() => store.updateTask(task.id, { status: 'bogus' }), /status/i);
   assert.deepEqual(store.listMessages(other.id), []);
 });
+
+test('task timeline loads more than a snapshot page in order with bounded public records', async t => {
+  const { path, store } = await fixture(t);
+  const p = await store.addProject(path), c = store.createConversation(p.id);
+  const task = store.createTask({ conversationId: c.id, message: 'timeline' });
+  for (let i = 0; i < 450; i++) store.appendEvent(task.id, 'text_delta', { delta: `段${i}`, omit: 'private' });
+  let after = 0, all = [], pages = 0;
+  for (;;) {
+    const page = store.taskTimeline({ conversationId: c.id, taskTimeline: { taskId: task.id, after } });
+    assert.equal(page.version, 1); assert(page.events.length <= 200);
+    assert(Buffer.byteLength(JSON.stringify(page)) < 100 * 1024);
+    assert(page.nextAfter > after); pages++;
+    all.push(...page.events); after = page.nextAfter;
+    if (!page.hasMore) break;
+  }
+  assert.equal(pages, 3); assert.equal(all.length, 450);
+  assert.deepEqual(all.map(event => event.payload.delta), Array.from({ length: 450 }, (_, i) => `段${i}`));
+  assert(!JSON.stringify(all).includes('private'));
+});
+
+test('task timeline rejects cross-conversation tasks and foreign or invalid cursors', async t => {
+  const { path, store } = await fixture(t);
+  const p = await store.addProject(path), c = store.createConversation(p.id), other = store.createConversation(p.id);
+  const task = store.createTask({ conversationId: c.id, message: 'one' });
+  const foreign = store.createTask({ conversationId: other.id, message: 'other' });
+  const cursor = store.appendEvent(foreign.id, 'text_delta', { delta: 'foreign' }).id;
+  assert.throws(() => store.taskTimeline({ conversationId: other.id, taskTimeline: { taskId: task.id } }), /conversation/);
+  for (const after of [-1, 0.5, cursor, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => store.taskTimeline({ conversationId: c.id, taskTimeline: { taskId: task.id, after } }), /cursor/);
+  }
+});
+
+test('oversize timeline rows are explicitly limited without blocking cursor progress', async t => {
+  const { path, store } = await fixture(t);
+  const p = await store.addProject(path), c = store.createConversation(p.id);
+  const task = store.createTask({ conversationId: c.id, message: 'large' });
+  store.appendEvent(task.id, 'tool_start', { toolCallId: 'w', toolName: 'write', args: { content: 'x'.repeat(150000) } });
+  const end = store.appendEvent(task.id, 'tool_end', { toolCallId: 'w', toolName: 'write', isError: false });
+  const page = store.taskTimeline({ conversationId: c.id, taskTimeline: { taskId: task.id } });
+  assert.equal(page.limited, true); assert.equal(page.hasMore, false);
+  assert.equal(page.nextAfter, end.id); assert.equal(page.events.length, 1);
+  assert(Buffer.byteLength(JSON.stringify(page)) < 100 * 1024);
+});

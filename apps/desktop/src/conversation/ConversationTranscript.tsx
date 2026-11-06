@@ -12,8 +12,8 @@ function MessageRow({ message }: { message: Message }) {
   </div>;
 }
 
-export default function ConversationTranscript({ messages, tasks, events, onStop }: {
-  messages: Message[]; tasks: Task[]; events: AgentEvent[]; onStop: (id: string) => void;
+export default function ConversationTranscript({ messages, tasks, events, onStop, loadProcess = true }: {
+  messages: Message[]; tasks: Task[]; events: AgentEvent[]; onStop: (id: string) => void; loadProcess?: boolean;
 }) {
   return <div className="thread grouped-transcript">{transcript(messages, tasks).map(item => {
     if (item.kind === 'message') return <MessageRow message={item.message} key={`message:${item.message.id}`} />;
@@ -23,11 +23,12 @@ export default function ConversationTranscript({ messages, tasks, events, onStop
     const replies = turnMessages.filter(message => message.role !== 'user');
     const savedReplies = replies.filter(message => message.role === 'assistant');
     const running = isActive(task);
-    return <section className="conversation-turn" key={task.id} aria-label="任务执行记录">
+    const compact = !running && ['failed', 'cancelled', 'interrupted'].includes(task.status) && savedReplies.length === 0;
+    return <section className={`conversation-turn ${compact ? 'is-incomplete' : ''}`} key={task.id} aria-label="任务执行记录">
       <div className="turn-prompts">{prompts.length ? prompts.map(message => <MessageRow key={message.id} message={message} />) : <div className="message message-user"><Bubble placement="end" content={<span className="plain-text">{task.message}</span>} /></div>}</div>
       <div className="assistant-turn">
         <div className="response-content">
-          <TurnTimeline task={task} events={turnEvents} savedText={savedReplies.length ? savedReplies.map(message => message.content).join('') : undefined} onStop={() => onStop(task.id)}
+          <TurnTimeline task={task} events={turnEvents} savedText={savedReplies.length ? savedReplies.map(message => message.content).join('') : undefined} onStop={() => onStop(task.id)} timelineMode={loadProcess ? tasks.slice(0, 8).some(row => row.id === task.id) ? 'auto' : 'manual' : 'off'}
             messageSlots={savedReplies.map(message => <SlotHost key={message.id} slot="conversation.message" context={{ messageId: message.id, role: message.role }} />)} />
           <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: turnEvents.filter(event => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(event.type)) }} />
           {replies.filter(message => message.role !== 'assistant').map(message => <MessageRow key={message.id} message={message} />)}

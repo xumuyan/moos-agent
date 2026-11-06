@@ -504,3 +504,15 @@
 - 验证结果：推送输出为 `8057037..bdd0f39  HEAD -> main`；本地 HEAD 与 `git ls-remote origin refs/heads/main` 均为 `bdd0f39530ecdf04c72179b6018df4a939751db7`。功能、测试、GUI 验收和限制仍以该提交内 E25 及前一条日志为准。
 - 遗留问题：P02.8 原生 PTY 和 P02.9 完整组合验收仍未完成；在线市场、第三方原生插件、硬内存配额和小包优化不因本次推送变为已实现。本条远程交付日志自身仍需独立提交、推送并再次核对远程。
 - 对应 Git 提交：已推送功能提交 `bdd0f39530ecdf04c72179b6018df4a939751db7`；本条补记使用唯一提交说明 `docs(P02.7): record local plugin delivery`，查询命令：`git log --all --oneline --grep='^docs(P02.7): record local plugin delivery$'`。
+
+## 2026-11-06 19:35:40 +08:00｜P02.V2：会话细节复核、历史还原与补载稳定性
+
+- 时间说明：此为验收后整理的北京时间，不冒充每一步的精确操作时刻；证据对应唯一提交说明 `fix(P02.V2): restore task history and refine conversation details` 的提交前工作区。
+- 修改或新增内容：以原生 Mac 窗口截图对照用户 Codex 参考，缩小无结果的失败/停止轮次间距，增强工具卡片边界、字号、状态和类型图标；命令显示固定安全摘要，长路径保留提示；文件卡片保留三项预览、更多展开收起，移除只有文件清单时顶部额外留白。新增 taskTimeline v1 只读视图，复用 snapshot，按任务/会话验证归属和游标；分页返回公开文字与工具元数据，不返回代码、原始输出及命令参数。新增后端与前端回归、规范和脱敏证据 `apps/desktop/evidence/p02-detail-audit.json`，同步 PLAN。
+- 遇到的难题：旧界面只收到末尾50条事件，导致历史修改文件消失、公开说明混入最终回复，单改CSS无效。新增夹具在全量UI首轮106/107与串行回归首轮107/108中误把普通snapshot当作taskTimeline，读取缺失参数失败。更关键的是仅补间距的候选包重启实际出现服务中断：八轮同时加载历史会挤满原生宿主有界写队列；此前候选启动通过不能代替最终重启验收。
+- 处理方式：按任务索引每页最多扫描200行，公开数据96KiB，单条原始payload超过128KiB时不物化，标记部分并推进游标；客户端最近八轮自动、其他按展开加载，每批32页、每轮10000条/2MiB，增量去重、迟到隔离、错误重试和部分标记。所有轮次共用串行读取队列，错误或卸载仍释放，补充并发上限1及失败释放测试。两个夹具均先区分普通snapshot，保留边界断言；最终文档检查曾因新日志“对应 Git 提交”字段缺空格39/40，补齐规定字段后重新检查；不弱化产品校验，不修改用户数据库或发送收费任务。
+- 验证结果：核心 `npm test` 130/130；Rust `npm run test:desktop-product` 20/20（现有stable离线工具链）；文档 `npm run test:docs` 40/40。首个完整UI回归修正夹具后107/107；串行读取新增测试后，夹具修正后的最终 `npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 34文件108/108。`npm run build:desktop`、Tauri `build --config apps/desktop/src-tauri/tauri.conf.json --bundles app` 通过，最终231.03MiB；ad-hoc签名及deep/strict校验通过，安装主程序SHA256 `2ec45db8df3b21c64028202efedecab5b33dd24d1073bddeac6369d5adff3323` 与构建包一致，内置timeline-view模块也与源码一致。
+- 实际验收：arm64/macOS27.0.1、1280×820，真实旧任务分别恢复9/5/2个确认修改文件；九文件默认3项→全部9项→收回3项通过；旧完成任务已将前面的公开说明和最终回复分开，停止任务的说明/工具/说明按时间交错，嵌套工具独立展开，git diff安全摘要和各项失败/完成状态可见。串行最终包安装启动及正常退出重开均回到待命，历史重新加载、输入可用，最终进程App31813→内置Node31820，无新增Web服务。保留原背景、无每轮Moos作者标识。最终包更新到 `/Applications/Moos.app`，用户可直接查看当前展开的历史过程。
+- 证据与恢复：本机私有截图与审查笔记 `/tmp/moos-detail-audit-20261106/`（目录0700、文件0600），修改前01/02、最终文件05/过程06；仅脱敏结论进入Git。最初旧版备份 `moos-before-detail-audit.u337tpxr/Moos.app`，最终串行版安装前候选备份 `moos-before-detail-serial.k4zusyzc/Moos.app`，均在本机临时目录，截图未上传。当前构建的Vite大chunk和jsdom NaN高度既有警告保留。
+- 遗留问题：未新发真实模型任务，未做窄屏resize或完整屏幕阅读器验收；超限历史只显示部分且明确提示，不能宣称任意长度已完整加载。Shell文件变化、任务级diff行数、查看变更和撤销尚未接入；底部折叠仍受剩余滚动范围限制。P02.8/P02.9保持未完成。该UI子集验收不代表MVP整体验收。
+- 对应 Git 提交：唯一说明 `fix(P02.V2): restore task history and refine conversation details`；查询 `git log --all --oneline --grep='^fix(P02.V2): restore task history and refine conversation details$'`。最终验证后提交、推送GitHub main并核对远程，不预填自身哈希。

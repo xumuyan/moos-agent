@@ -51,6 +51,7 @@ it('previews three confirmed files and expands the remainder without fabricated 
   expect(screen.queryByText('src/4.ts')).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: /再显示 2 个文件/ }));
   expect(screen.getByText('src/4.ts')).toBeVisible();
+  expect(screen.getByText('src/4.ts')).toHaveAttribute('title', 'src/4.ts');
   await userEvent.click(screen.getByRole('button', { name: /收起文件列表/ }));
   expect(screen.queryByText('src/4.ts')).not.toBeInTheDocument();
 });

@@ -3,6 +3,7 @@ import { randomUUID, createHash } from 'node:crypto';
 import { realpath, stat } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { summarizeUsage } from './usage.mjs';
+import { timelinePayload } from './timeline-view.mjs';
 
 const statuses = new Set(['queued', 'running', 'succeeded', 'failed', 'cancelled', 'interrupted']);
 const now = () => new Date().toISOString();
@@ -272,6 +273,35 @@ export class Store {
       ? this.#all('SELECT * FROM events WHERE id > ? ORDER BY id', after)
       : this.#all('SELECT * FROM events WHERE taskId = ? AND id > ? ORDER BY id', taskId, after);
     return events.map(event => ({ ...event, payload: JSON.parse(event.payload) }));
+  }
+  taskTimeline({ conversationId, taskTimeline } = {}) {
+    this.getConversation(conversationId);
+    const task = this.getTask(taskTimeline?.taskId);
+    if (task.conversationId !== conversationId) throw new Error('Task not found in conversation');
+    const after = taskTimeline.after ?? 0;
+    if (!Number.isSafeInteger(after) || after < 0) throw new Error('Invalid task timeline cursor');
+    if (after && !this.#one('SELECT id FROM events WHERE taskId = ? AND id = ?', task.id, after)) throw new Error('Invalid task timeline cursor');
+    const rows = this.#all(`SELECT id, type, createdAt,
+      CASE WHEN length(CAST(payload AS BLOB)) <= 131072 THEN payload ELSE NULL END AS payload
+      FROM events WHERE taskId = ? AND id > ? ORDER BY id LIMIT 201`, task.id, after);
+    const events = [];
+    let nextAfter = after, limited = false, bytes = 0, processed = 0;
+    for (const source of rows.slice(0, 200)) {
+      if (source.payload === null) { limited = true; nextAfter = source.id; processed++; continue; }
+      let payload;
+      try { payload = timelinePayload(source.type, JSON.parse(source.payload)); }
+      catch { limited = true; nextAfter = source.id; processed++; continue; }
+      if (payload !== undefined) {
+        const event = { id: String(source.id), taskId: task.id, projectId: task.projectId, conversationId, type: source.type, createdAt: source.createdAt, payload };
+        const size = Buffer.byteLength(JSON.stringify(event));
+        if (size > 96 * 1024) { limited = true; nextAfter = source.id; processed++; continue; }
+        if (bytes + size > 96 * 1024) break;
+        events.push(event); bytes += size;
+      }
+      nextAfter = source.id; processed++;
+    }
+    return { version: 1, taskId: task.id, projectId: task.projectId, conversationId,
+      events, nextAfter, hasMore: rows.length > processed, limited };
   }
   // Transport views only: persisted history and the runner's full-history APIs stay intact.
   snapshotHistory({ conversationId, before = {}, historyRow } = {}) {

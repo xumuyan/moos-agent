@@ -6,6 +6,20 @@ import { join } from 'node:path';
 import { createController } from './controller.mjs';
 import { Store } from './store.mjs';
 
+test('existing snapshot command provides a task-scoped timeline without provider metadata', async t => {
+  const { controller, dataDir } = await fixture(t, async () => ({ text: 'done' }));
+  const db = new Store({ dbPath: join(dataDir, 'moos.sqlite') });
+  t.after(() => db.close());
+  const snapshot = await controller.request('snapshot');
+  const c = snapshot.conversations[0];
+  const task = db.createTask({ conversationId: c.id, message: 'read' });
+  db.appendEvent(task.id, 'text_delta', { delta: '公开文字' });
+  const result = await controller.request('snapshot', { conversationId: c.id, taskTimeline: { taskId: task.id } });
+  assert.equal(result.taskTimeline.events[0].payload.delta, '公开文字');
+  assert.equal(result.providers, undefined);
+  assert.equal(result.taskTimeline.taskId, task.id);
+});
+
 test('snapshot bounds persisted multi-project history and exposes scoped pages using the existing method', async t => {
   const { controller, dataDir } = await fixture(t, async () => ({ text: 'done' }));
   const db = new Store({ dbPath: join(dataDir, 'moos.sqlite') });

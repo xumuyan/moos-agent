@@ -1,7 +1,7 @@
 import type { AgentEvent } from '../types';
 
 export function activities(events: AgentEvent[]) {
-  const rows = new Map<string, { id: string; name: string; path: string; done: boolean; failed: boolean }>();
+  const rows = new Map<string, { id: string; name: string; path: string; commandLabel: string; done: boolean; failed: boolean }>();
   for (const event of events) {
     if (!['tool_start', 'tool_end'].includes(event.type)) continue;
     const key = String(event.payload.toolCallId ?? event.id);
@@ -9,6 +9,7 @@ export function activities(events: AgentEvent[]) {
     const args = event.payload.args as Record<string, unknown> | undefined;
     rows.set(key, { id: key, name: String(event.payload.toolName ?? event.payload.name ?? previous?.name ?? '工具'),
       path: typeof args?.path === 'string' ? args.path : previous?.path ?? '',
+      commandLabel: typeof event.payload.commandLabel === 'string' && event.payload.commandLabel.length <= 50 ? event.payload.commandLabel : previous?.commandLabel ?? '',
       done: event.type === 'tool_end', failed: event.payload.isError === true });
   }
   return [...rows.values()];

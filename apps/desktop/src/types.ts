@@ -3,6 +3,7 @@ export interface Conversation { id: string; projectId: string; title: string }
 export interface Message { id: string; conversationId: string; taskId?: string; role: string; content: string }
 export interface Task { id: string; projectId: string; conversationId: string; message: string; status: string; error?: string; errorCode?: string; timeoutMs?: number; heartbeatAt?: string; stage?: string; createdAt?: string; updatedAt?: string }
 export interface AgentEvent { id: string; taskId: string; projectId: string; conversationId: string; type: string; payload: Record<string, unknown> }
+export interface TaskTimelinePage { version: 1; taskId: string; projectId: string; conversationId: string; events: AgentEvent[]; nextAfter: number; hasMore: boolean; limited: boolean }
 export interface ProviderPricing { version: string; inputPerMillion: number; outputPerMillion: number; cacheReadPerMillion?: number; cacheWritePerMillion?: number }
 export interface Provider { id: string; name: string; baseUrl: string; model: string; api: 'openai-completions' | 'openai-responses'; hasKey?: boolean; pricing?: ProviderPricing }
 export interface UsageContext { conversationId: string; taskId: string; totalTokens: number; contextWindow: number | null; cacheHitRate: number | null }

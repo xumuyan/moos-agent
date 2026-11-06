@@ -163,6 +163,7 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
     if (closed || closing) throw new Error('任务服务已关闭');
     switch (method) {
       case 'snapshot': {
+        if (params.taskTimeline) return { taskTimeline: store.taskTimeline(params) };
         const projects = store.listProjects();
         const conversations = projects.flatMap(project => store.listConversations(project.id));
         const snapshot = { projects, conversations, ...store.snapshotHistory(params), providers,

@@ -17,7 +17,7 @@ it('puts process, answer and confirmed file summary in one response with files l
     { id: 'u', conversationId: 'c', taskId: 't', role: 'user', content: '调整会话' },
     { id: 'a', conversationId: 'c', taskId: 't', role: 'assistant', content: '会话已调整。' },
   ];
-  render(<ConversationTranscript messages={messages} tasks={[task]} events={events} onStop={vi.fn()} />);
+  render(<ConversationTranscript loadProcess={false} messages={messages} tasks={[task]} events={events} onStop={vi.fn()} />);
   const turn = screen.getByRole('region', { name: '任务执行记录' });
   const process = within(turn).getByRole('region', { name: '实际工具轨迹' });
   const answer = screen.getByText('会话已调整。');
@@ -34,13 +34,13 @@ it('puts process, answer and confirmed file summary in one response with files l
 });
 it('keeps cancelled turns readable and routes stop to the correct task', async () => {
   const stop = vi.fn();
-  const { rerender } = render(<ConversationTranscript messages={[]} tasks={[{ ...task, status: 'cancelled' }]} events={[]} onStop={stop} />);
+  const { rerender } = render(<ConversationTranscript loadProcess={false} messages={[]} tasks={[{ ...task, status: 'cancelled' }]} events={[]} onStop={stop} />);
   expect(screen.getByText('调整会话')).toBeVisible();
   expect(screen.getByRole('status')).toHaveTextContent('已停止');
   expect(screen.queryByText(/当前记录中没有最终回复/)).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: '修改文件汇总' })).not.toBeInTheDocument();
   expect(screen.queryByText('已完成')).not.toBeInTheDocument();
-  rerender(<ConversationTranscript messages={[]} tasks={[{ ...task, status: 'running' }]} events={[]} onStop={stop} />);
+  rerender(<ConversationTranscript loadProcess={false} messages={[]} tasks={[{ ...task, status: 'running' }]} events={[]} onStop={stop} />);
   await userEvent.click(screen.getByRole('button', { name: '停止此任务' }));
   expect(stop).toHaveBeenCalledWith('t');
 });

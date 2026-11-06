@@ -1,6 +1,6 @@
 import type { AgentEvent } from '../types';
 import { useState } from 'react';
-import { FileTextOutlined } from '@ant-design/icons';
+import { DownOutlined, FileTextOutlined } from '@ant-design/icons';
 import { activities, activityGroups, activityLabel, changedFiles } from './activity';
 
 export function ActivityList({ events, finished }: { events: AgentEvent[]; finished: boolean }) {
@@ -24,8 +24,8 @@ export function TaskFiles({ events, finished = false }: { events: AgentEvent[]; 
   return <>
     <section className="changed-files" aria-label="修改文件汇总" data-scroll-anchor>
       <strong><FileTextOutlined aria-hidden /> 已修改 {files.length} 个文件</strong>
-      {(expanded ? files : files.slice(0, 3)).map(file => <div className="changed-file" key={file.path}><span>{file.path}</span><small>{file.description}</small></div>)}
-      {files.length > 3 && <button className="changed-files-more" data-preserve-scroll aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? '收起文件列表' : `再显示 ${files.length - 3} 个文件`} <span aria-hidden>⌄</span></button>}
+      {(expanded ? files : files.slice(0, 3)).map(file => <div className="changed-file" key={file.path}><span title={file.path}>{file.path}</span><small>{file.description}</small></div>)}
+      {files.length > 3 && <button className="changed-files-more" data-preserve-scroll aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? '收起文件列表' : `再显示 ${files.length - 3} 个文件`} <DownOutlined aria-hidden /></button>}
     </section>
     {activities(events).some(row => row.name === 'bash') && <p className="activity-note">文件清单不含命令产生的改动。</p>}
   </>;

@@ -1,0 +1,57 @@
+{
+  "recordedAt": "2026-11-06T19:35:04+08:00",
+  "state": "pre-commit workspace; fix(P02.V2): restore task history and refine conversation details",
+  "reference": "user Codex cards/layout only; retain existing background",
+  "findings": [
+    "Incomplete historical event pages hid process and file changes",
+    "Empty terminal turns had excess spacing and faint labels",
+    "Concurrent task-history reads filled native write queue during final-candidate restart"
+  ],
+  "implementation": {
+    "view": "taskTimeline v1 via snapshot; ownership/cursor checked",
+    "page": "200 scanned rows / 96KiB public data; oversized records skipped with limited flag",
+    "client": "8 automatic turns, older manual; shared serial reader; 32 pages per batch, 10000 events/2MiB per turn",
+    "redaction": "fixed command names only; no command arguments/code/raw tool results"
+  },
+  "tests": {
+    "core": "130/130",
+    "desktopUiFinal": "108/108, 34 files; npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000",
+    "rustProduct": "20/20",
+    "documents": "40/40",
+    "uiFailures": "First full run 106/107 and serial-regression run 107/108: mocks assumed ordinary snapshot had taskTimeline; fixed mock routing. 107/107 passed before serial reader; serial reader targeted 6/6 passed in final run."
+  },
+  "build": {
+    "binarySha256": "2ec45db8df3b21c64028202efedecab5b33dd24d1073bddeac6369d5adff3323",
+    "backup": "/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-detail-serial.k4zusyzc/Moos.app",
+    "bundleMiB": 231.03,
+    "serviceMatches": true,
+    "frontend": "passed",
+    "signature": "ad-hoc, deep strict verified",
+    "installedBinaryMatchesBuild": true
+  },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "viewport": "1280x820",
+    "installed": "/Applications/Moos.app",
+    "historicalFileCounts": [
+      9,
+      5,
+      2
+    ],
+    "nineFileExpandAndCollapse": true,
+    "chronologicalNarrationToolsAndFinalReply": true,
+    "nestedToolDisclosureAndSafeGitDiffLabel": true,
+    "fileOnlyTopGapRemoved": true,
+    "serialReaderLaunchAndNormalQuitRelaunch": "both ready; historical files restored; one bundled Node child",
+    "newPaidTaskSubmitted": false,
+    "backgroundRetainedAndReplyBrandAbsent": true
+  },
+  "evidenceLocalOnly": "/tmp/moos-detail-audit-20261106 (01-before.png, 02-before-tools.png, 05-final-files.png, 06-final-process.png, review.md); private screenshots not committed",
+  "limits": [
+    "No new live provider task or narrow resize / full screenreader audit",
+    "Bounded history; partial/oversized pages marked",
+    "Shell changes, task-wide diff line totals, diff viewer and undo unavailable",
+    "Existing bottom-collapse scroll-range constraint remains",
+    "P02.8/P02.9 remain incomplete"
+  ]
+}
