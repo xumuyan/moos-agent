@@ -539,3 +539,15 @@
 - 体积与恢复：Tauri报告.app231.26MiB；签名后常规文件逻辑总和246226786字节，安装实际磁盘284432KiB，内置Node119228096字节；本轮未产DMG/ZIP，不用空壳替代完整体积。首启继续使用已有完整内置Node/PI，无额外运行时下载；开发依赖下载量未单独计量。初装前备份 `/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-pty.49zsudj1/Moos.app`，最后措辞包前备份 `/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-pty-delivery.eqat7_4l/Moos.app`。Vite大chunk与jsdom NaN高度既有警告仍保留。
 - 遗留问题：仅本机Mac终端通过；Windows和iPhone终端未接入。无OS文件沙箱，Shell cd到其他目录不由所选项目目录锁覆盖；主动setsid/disown守护进程及App SIGKILL属P02.9剩余验收，不能把正常退出当强制退出。输出不持久化，重启不重放；原生Git管理仍按D01排期。P02.9完整组合、真实服务usage/账单与小包优化仍未完成。
 - 对应 Git 提交：唯一说明 `feat(P02.8): add trusted native PTY terminal plugin`；查询 `git log --all --oneline --grep='^feat(P02.8): add trusted native PTY terminal plugin$'`。最终检查后提交、推送GitHub main并比较远程，不预填自身哈希。
+
+
+## 2026-11-06 22:25:46 +08:00｜P02.9 部分验收：PTY 强退清理
+
+- 时间说明：此为本轮整理北京时间，证据对应唯一提交说明 `fix(P02.9): reap native PTY children after owner death` 的提交前工作区；不把整理时刻当成各测试的精确时间。
+- 修改或新增内容：为原生PTY增加同一Rust二进制的无窗口guardian模式，保留master描述符并监听父控制管道EOF；以shell启动身份、SID和后代归属限定清理，握手2秒超时失败关闭并释放目录锁。正常关闭/自然退出回收guardian。新增真实所属进程SIGKILL、启动失败及无效模式回归；新增显式安装包stdio验收脚本及其请求协议测试、分层证据E27与规范，同步PLAN但不勾选P02.9。
+- 遇到的难题：旧版正常退出清理通过不代表SIGKILL可清理，新增原生回归实际发现shell/长命令残留，首轮失败并仅清理夹具自身进程。安装GUI临时模型元数据已保存，用户表示保存后再次提交仍被后端拒绝“Provider has no API key”，不能据元数据或口头结果宣称长任务已启动。
+- 处理方式：在Tauri初始化前分派无窗口模式，duplicated FD仅在子进程pre_exec清除CLOEXEC；保留master避免UI死亡先造成终端分离，EOF后复核身份再清理。新增脚本使用独立临时数据与本地假模型，不读取用户密钥文件，不打印原始上游错误；SDK/stdio与GUI证据分开记录。已在GUI打开已保存临时服务的编辑表单，请用户重新输入公开测试串并保存，工具不代输凭据。
+- 验证结果：`npm test`137/137；`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`120/120；stable离线工具链`npm run test:desktop-product`27/27；`MOOS_PTY_GUARDIAN_TEST_BINARY=<Release bundle binary> cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --test pty`6/6，真实PTY所属进程强退后shell/长命令退出、无关进程保留、启动失败释放租约。TypeScript/Vite/Tauri build通过，报告.app231.27MiB；当前未替换安装版，不宣称已交付新GUI包。文档首轮41/42因新条目时区写为+0800，改为规定+08:00后42/42；`git diff --check`通过。
+- 实际验收：显式旧安装包ef5ab6b内置Node/PI SDK，在自己的临时数据中完成20个连续写文件/bash验证任务且host71194不变；alpha长任务605114ms成功、40次心跳，与beta任务并行；模型取消104ms、工具取消107ms、同目录排队取消及正常shutdown通过。显式新版Release包再跑20任务/取消/正常退出通过，短延迟模式明确longVerified=false。另一次只强退本轮wrapper71972，host71973及工具71978于115ms内退出、临时代理关闭。上述是实际打包运行时/原生进程验收，不能当作GUI App强退或真实服务用量。私有报告 `/tmp/moos-p029-evidence-20261106/`；公开脱敏证据 `apps/desktop/evidence/p02-owner-death.json` 不含假模型用量冒充账单。
+- 遗留问题：GUI临时服务凭据补存待用户操作，20任务/十分钟/组合App强退、真实模型usage、插件完整组合和最终安装版仍需补验；P02.9保持未完成。主动setsid/disown分离daemon不覆盖，guardian不是OS沙箱；不增加Node/Web服务，每活跃PTY有一个无窗口原生守护进程。当前用户石墨主题、真实云桥服务及其密钥均未修改。
+- 对应 Git 提交：唯一说明 `fix(P02.9): reap native PTY children after owner death`；查询 `git log --all --oneline --grep='^fix(P02.9): reap native PTY children after owner death$'`。验证后提交并推送GitHub main，核对远程，不预填自身哈希。

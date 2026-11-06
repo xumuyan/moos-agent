@@ -31,7 +31,12 @@ fn setup() -> (tempfile::TempDir, Arc<Locks>, TerminalManager) {
         root: root.path().canonicalize().unwrap(),
         leased: Mutex::new(HashSet::new()),
     });
-    let manager = TerminalManager::new(locks.clone());
+    let manager = TerminalManager::new(
+        locks.clone(),
+        std::env::var_os("MOOS_PTY_GUARDIAN_TEST_BINARY")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from(env!("CARGO_BIN_EXE_moos-desktop"))),
+    );
     (root, locks, manager)
 }
 fn params(s: &Value) -> Value {
@@ -205,4 +210,104 @@ fn rejects_unknown_projects_and_limits_per_project_tabs() {
     assert!(m.request("open", json!({"projectId":"a"})).is_err());
     m.close_project(None).unwrap();
     assert!(locks.leased.lock().unwrap().is_empty());
+}
+
+#[test]
+fn native_owner_death_cleans_attached_pty_shell_and_foreground_command() {
+    const CHILD_REPORT: &str = "MOOS_PTY_OWNER_CHILD_REPORT";
+    if let Some(path) = std::env::var_os(CHILD_REPORT) {
+        let (_root, locks, manager) = setup();
+        let session = manager.request("open", json!({"projectId":"a"})).unwrap();
+        let pid_file = locks.root.join("foreground.pid");
+        write(
+            &manager,
+            &session,
+            &format!(
+                "sleep 120 & print -r -- $! > '{}'; wait\r",
+                pid_file.display()
+            ),
+        );
+        let until = Instant::now() + Duration::from_secs(3);
+        while !pid_file.exists() {
+            assert!(Instant::now() < until);
+            thread::sleep(Duration::from_millis(20));
+        }
+        let command: u32 = std::fs::read_to_string(pid_file)
+            .unwrap()
+            .trim()
+            .parse()
+            .unwrap();
+        std::fs::write(
+            path,
+            json!({"shell":session["pid"],"command":command}).to_string(),
+        )
+        .unwrap();
+        loop {
+            thread::park();
+        }
+    }
+    let root = tempfile::tempdir().unwrap();
+    let report_path = root.path().join("owned.json");
+    let mut owner = Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "native_owner_death_cleans_attached_pty_shell_and_foreground_command",
+            "--nocapture",
+        ])
+        .env(CHILD_REPORT, &report_path)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+    let until = Instant::now() + Duration::from_secs(5);
+    while !report_path.exists() {
+        if Instant::now() >= until {
+            let _ = owner.kill();
+            let _ = owner.wait();
+            panic!("PTY owner did not start");
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    let report: Value = serde_json::from_slice(&std::fs::read(report_path).unwrap()).unwrap();
+    let shell = report["shell"].as_u64().unwrap() as u32;
+    let command = report["command"].as_u64().unwrap() as u32;
+    assert!(alive(shell) && alive(command));
+    owner.kill().unwrap();
+    owner.wait().unwrap();
+    let until = Instant::now() + Duration::from_secs(5);
+    while (alive(shell) || alive(command)) && Instant::now() < until {
+        thread::sleep(Duration::from_millis(20));
+    }
+    let gone = !alive(shell) && !alive(command);
+    // Failed acceptance still cleans only the exact fixture-owned processes.
+    if !gone {
+        unsafe {
+            libc::kill(command as i32, libc::SIGKILL);
+            libc::kill(shell as i32, libc::SIGKILL);
+        }
+    }
+    assert!(gone, "PTY processes survived abrupt owner death");
+}
+
+#[test]
+fn guardian_startup_failure_releases_lease_and_invalid_mode_cannot_target_processes() {
+    let root = tempfile::tempdir().unwrap();
+    let locks = Arc::new(Locks {
+        root: root.path().canonicalize().unwrap(),
+        leased: Mutex::new(HashSet::new()),
+    });
+    let manager = TerminalManager::new(locks.clone(), root.path().join("missing-guardian"));
+    assert!(manager.request("open", json!({"projectId":"a"})).is_err());
+    assert!(locks.leased.lock().unwrap().is_empty());
+    let mut unrelated = Command::new("/bin/sleep").arg("30").spawn().unwrap();
+    let status = Command::new(env!("CARGO_BIN_EXE_moos-desktop"))
+        .args(["--moos-pty-guardian", "0", "1", "1"])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .unwrap();
+    assert_eq!(status.code(), Some(2));
+    assert!(unrelated.try_wait().unwrap().is_none());
+    unrelated.kill().unwrap();
+    unrelated.wait().unwrap();
 }

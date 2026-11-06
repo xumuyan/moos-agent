@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "date": "2026-11-06",
+  "platform": "arm64/macOS 27.0.1",
+  "scope": "P02.9 partial: packaged runtime and native PTY owner-death; GUI and real provider incomplete",
+  "runtimeBaselineCommit": "ef5ab6bcb9a4e89bd11b97c8da0b5e2a55ab10c3",
+  "packagedRuntime": {
+    "shortTasks": 20,
+    "stableHostPid": 71194,
+    "longElapsedMs": 605114,
+    "heartbeats": 40,
+    "modelCancelMs": 104,
+    "toolCancelMs": 107,
+    "queuedCancelled": true,
+    "otherProjectContinued": true,
+    "normalShutdown": true,
+    "fixtureUsageOnly": true
+  },
+  "packagedRuntimeOwnerDeath": {
+    "hostAndToolExited": true,
+    "proxyClosed": true,
+    "elapsedMs": 115,
+    "guiAppKilled": false
+  },
+  "nativePty": {
+    "baselineOwnerDeathRegressionFailed": true,
+    "debugSuitePassed": 6,
+    "releaseGuardianSuitePassed": 6,
+    "ownedShellAndAttachedCommandExited": true,
+    "unrelatedProcessPreserved": true,
+    "startupFailureReleasesLease": true,
+    "invalidModeRefused": true
+  },
+  "remaining": {
+    "guiLongTaskVerified": false,
+    "guiTwentyTasksVerified": false,
+    "guiCombinedAppSigkillVerified": false,
+    "realProviderUsageVerified": false,
+    "finalInstalledBundleVerified": false,
+    "detachedDaemonsCovered": false
+  },
+  "guiAttempt": {
+    "temporaryProviderMetadataSaved": true,
+    "submitRejectedBeforeTaskCreation": "Provider has no API key; save its credential first",
+    "credentialHandoffPending": true
+  },
+  "evidencePrivateDirectory": "/tmp/moos-p029-evidence-20261106/",
+  "checks": {
+    "coreTestsPassed": 137,
+    "uiTestsPassed": 120,
+    "nativeTestsPassed": 27,
+    "docsTestsPassed": 42,
+    "tauriReportedSizeMiB": 231.27,
+    "releaseBundleRuntimeTwentyTasksPassed": true
+  }
+}

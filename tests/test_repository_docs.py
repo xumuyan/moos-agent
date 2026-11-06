@@ -591,5 +591,22 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(text, spec)
 
 
+    def test_owner_death_evidence_does_not_claim_gui_or_real_usage(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('- [ ] P02.9 ', plan)
+        self.assertIn('| E27 |', plan)
+        report = json.loads((ROOT / 'apps/desktop/evidence/p02-owner-death.json').read_text())
+        self.assertEqual(report['packagedRuntime']['shortTasks'], 20)
+        self.assertGreater(report['packagedRuntime']['longElapsedMs'], 600000)
+        self.assertTrue(report['packagedRuntime']['fixtureUsageOnly'])
+        self.assertFalse(report['packagedRuntimeOwnerDeath']['guiAppKilled'])
+        self.assertFalse(report['remaining']['detachedDaemonsCovered'])
+        self.assertFalse(report['remaining']['realProviderUsageVerified'])
+        self.assertEqual(report['nativePty']['releaseGuardianSuitePassed'], 6)
+        spec = (ROOT / 'docs/superpowers/specs/2026-11-06-pty-owner-death.md').read_text()
+        for term in ('CLOEXEC', 'SID', '目录锁', '不能代替', 'P02.9'):
+            self.assertIn(term, spec)
+
+
 if __name__ == '__main__':
     unittest.main()

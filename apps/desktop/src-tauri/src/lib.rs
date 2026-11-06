@@ -4,6 +4,7 @@ pub mod local_credentials;
 pub mod plugins;
 pub mod protocol;
 pub mod pty;
+pub mod pty_guardian;
 
 use host::Host;
 use keychain::Credentials;

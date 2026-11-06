@@ -138,6 +138,10 @@ async fn set_local_plugin_config(
 }
 
 fn main() {
+    if let Some(code) = moos_desktop::pty_guardian::from_args(&std::env::args().collect::<Vec<_>>())
+    {
+        std::process::exit(code);
+    }
     let app = tauri::Builder::default()
         .setup(|app| {
             let data = app.path().app_data_dir()?;
@@ -157,9 +161,10 @@ fn main() {
             let credentials =
                 LocalCredentials::new(data.join("private")).map_err(std::io::Error::other)?;
             let agent = Arc::new(Agent::new(host, Box::new(credentials))) as SharedAgent;
-            app.manage(
-                Arc::new(moos_desktop::pty::TerminalManager::new(agent.clone())) as SharedTerminals,
-            );
+            app.manage(Arc::new(moos_desktop::pty::TerminalManager::new(
+                agent.clone(),
+                std::env::current_exe()?,
+            )) as SharedTerminals);
             app.manage(agent);
             app.manage(Arc::new(
                 PluginManager::new(data.join("plugins")).map_err(std::io::Error::other)?,

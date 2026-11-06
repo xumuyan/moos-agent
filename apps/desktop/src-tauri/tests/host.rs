@@ -331,7 +331,10 @@ fn native_terminal_and_agent_tasks_share_the_real_controller_workspace_lock() {
         .request("create_conversation", json!({"projectId":project["id"]}))
         .unwrap();
     agent.request("save_provider",json!({"apiKey":"NO_NETWORK_TEST_KEY","provider":{"id":"fixture","model":"fixture","api":"openai-completions","baseUrl":"https://example.com/v1"}})).unwrap();
-    let manager = TerminalManager::new(agent.clone());
+    let manager = TerminalManager::new(
+        agent.clone(),
+        std::path::PathBuf::from(env!("CARGO_BIN_EXE_moos-desktop")),
+    );
     let shell = manager
         .request("open", json!({"projectId":project["id"]}))
         .unwrap();

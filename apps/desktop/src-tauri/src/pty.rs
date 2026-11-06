@@ -1,4 +1,5 @@
 //! Trusted built-in integration only. No generic shell command or environment API.
+use crate::pty_guardian::Guardian;
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use serde_json::{json, Value};
 use std::{
@@ -39,6 +40,7 @@ struct Session {
     released: AtomicBool,
     locks: Arc<dyn WorkspaceLocks>,
     _rc: tempfile::TempDir,
+    guardian: Mutex<Guardian>,
 }
 impl Session {
     fn release(&self) {
@@ -113,12 +115,13 @@ impl Session {
             }
         }
         self.output.lock().unwrap().ended = true;
+        self.guardian.lock().unwrap().stop();
         self.release();
         Ok(())
     }
 }
 #[cfg(unix)]
-fn descendants(root: u32) -> Vec<u32> {
+pub(crate) fn descendants(root: u32) -> Vec<u32> {
     let output = std::process::Command::new("/bin/ps")
         .args(["-axo", "pid=,ppid="])
         .output();
@@ -149,14 +152,16 @@ fn descendants(root: u32) -> Vec<u32> {
 }
 
 pub struct TerminalManager {
+    guardian_program: PathBuf,
     sessions: Mutex<HashMap<String, Arc<Session>>>,
     sequence: AtomicU64,
     locks: Arc<dyn WorkspaceLocks>,
     shutting_down: AtomicBool,
 }
 impl TerminalManager {
-    pub fn new(locks: Arc<dyn WorkspaceLocks>) -> Self {
+    pub fn new(locks: Arc<dyn WorkspaceLocks>, guardian_program: PathBuf) -> Self {
         Self {
+            guardian_program,
             sessions: Mutex::new(HashMap::new()),
             sequence: AtomicU64::new(0),
             locks,
@@ -231,11 +236,26 @@ impl TerminalManager {
                 cmd.env("HOME", home);
             }
             cmd.env("ZDOTDIR", rc.path());
-            let child = pair
+            let mut child = pair
                 .slave
                 .spawn_command(cmd)
                 .map_err(|_| "无法启动项目 shell")?;
             let pid = child.process_id().ok_or("终端未返回进程标识")?;
+            #[cfg(unix)]
+            let guardian = match Guardian::launch(
+                &self.guardian_program,
+                read_fd.ok_or("终端描述符不可用")?,
+                pid,
+            ) {
+                Ok(guardian) => guardian,
+                Err(error) => {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(error);
+                }
+            };
+            #[cfg(not(unix))]
+            let guardian: Guardian = return Err("当前仅验证Mac守护".into());
             drop(pair.slave);
             let session = Arc::new(Session {
                 id: id.clone(),
@@ -256,6 +276,7 @@ impl TerminalManager {
                 released: AtomicBool::new(false),
                 locks: self.locks.clone(),
                 _rc: rc,
+                guardian: Mutex::new(guardian),
             });
             let stream = session.clone();
             thread::spawn(move || {
@@ -310,6 +331,7 @@ impl TerminalManager {
                         out.code = Some(status.exit_code());
                         drop(out);
                         waiter.closed.store(true, Ordering::Release);
+                        waiter.guardian.lock().unwrap().stop();
                         waiter.release();
                         break;
                     }
