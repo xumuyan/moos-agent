@@ -305,3 +305,23 @@ test('oversize timeline rows are explicitly limited without blocking cursor prog
   assert.equal(page.nextAfter, end.id); assert.equal(page.events.length, 1);
   assert(Buffer.byteLength(JSON.stringify(page)) < 100 * 1024);
 });
+
+test('conversation rename is persistent, scoped, bounded and preserves task history', async t => {
+  const { store, path, root, dbPath } = await fixture(t);
+  const p = await store.addProject(path), other = await store.addProject(root);
+  const c = store.createConversation(p.id, '旧名称');
+  const task = store.createTask({ conversationId: c.id, message: 'keep running' });
+  const message = store.addMessage({ conversationId: c.id, taskId: task.id, role: 'user', content: 'history' });
+  const renamed = store.renameConversation({ projectId: p.id, conversationId: c.id, title: '  新名称  ' });
+  assert.deepEqual(renamed, { ...c, title: '新名称' });
+  for (const title of ['', '   ', 'x'.repeat(201), 'bad\nname', 'bad\0name', null]) {
+    assert.throws(() => store.renameConversation({ projectId: p.id, conversationId: c.id, title }), /title/i);
+  }
+  assert.throws(() => store.renameConversation({ projectId: other.id, conversationId: c.id, title: 'foreign' }), /project/i);
+  assert.throws(() => store.renameConversation({ projectId: p.id, conversationId: 'missing', title: 'missing' }), /Conversation/);
+  assert.equal(store.getTask(task.id).status, 'queued');
+  assert.equal(store.listMessages(c.id)[0].id, message.id);
+  const reopened = new Store({ dbPath });
+  try { assert.equal(reopened.getConversation(c.id).title, '新名称'); }
+  finally { reopened.close(); }
+});

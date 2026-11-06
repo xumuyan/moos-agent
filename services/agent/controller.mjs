@@ -183,6 +183,7 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
         store.removeProject(params.projectId);
         return { removed: true };
       case 'create_conversation': return store.createConversation(params.projectId, params.title);
+      case 'rename_conversation': return store.renameConversation(params);
       case 'save_provider': {
         const provider = validateProvider(params.provider);
         await persistProviders(current => [...current.filter(item => item.id !== provider.id), provider]);

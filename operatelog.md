@@ -516,3 +516,14 @@
 - 证据与恢复：本机私有截图与审查笔记 `/tmp/moos-detail-audit-20261106/`（目录0700、文件0600），修改前01/02、最终文件05/过程06；仅脱敏结论进入Git。最初旧版备份 `moos-before-detail-audit.u337tpxr/Moos.app`，最终串行版安装前候选备份 `moos-before-detail-serial.k4zusyzc/Moos.app`，均在本机临时目录，截图未上传。当前构建的Vite大chunk和jsdom NaN高度既有警告保留。
 - 遗留问题：未新发真实模型任务，未做窄屏resize或完整屏幕阅读器验收；超限历史只显示部分且明确提示，不能宣称任意长度已完整加载。Shell文件变化、任务级diff行数、查看变更和撤销尚未接入；底部折叠仍受剩余滚动范围限制。P02.8/P02.9保持未完成。该UI子集验收不代表MVP整体验收。
 - 对应 Git 提交：唯一说明 `fix(P02.V2): restore task history and refine conversation details`；查询 `git log --all --oneline --grep='^fix(P02.V2): restore task history and refine conversation details$'`。最终验证后提交、推送GitHub main并核对远程，不预填自身哈希。
+
+## 2026-11-06 19:50:24 +08:00｜P02.V2：会话重命名、移除重复入口与插件核对
+
+- 时间说明：此为本轮整理北京时间；对应唯一提交说明 `feat(P02.V2): rename conversations and simplify sidebar controls` 的提交前工作区，不将整理时刻当作每个操作的精确时间。
+- 修改或新增内容：会话行增加鼠标移入/键盘聚焦可见的重命名按钮；弹窗预填、保存/Enter提交、取消、非空与200字符限制、控制字符校验、失败保留重试、保存中防重复和切项目关闭。新增类型化UI命令、原生方法白名单、控制器及SQLite按projectId/conversationId归属校验的改名操作，只更新title并检查元数据预算。移除sidebar-footer重复设置按钮，最左ProjectRail设置入口和原有Slot保留；新增组件/后端/集成测试及设计说明，同步PLAN。
+- 遇到的难题：会话列表原来整行都是按钮，直接放编辑按钮会造成嵌套交互；数据层没有改名命令。全量UI首轮110/112，两项失败分别为新集成断言在改名弹窗退出前查找设置dialog，以及旧测试用宽泛“开发会话”匹配同时命中了新重命名按钮。插件是否生效不能只看注册代码。
+- 处理方式：拆出ConversationList，以同级选择按钮和编辑按钮保持键盘语义；后端只更新现有会话，不创建新会话、不重启任务或改归属。测试明确等待改名弹窗消失，再断言设置的插件tab实际出现；旧会话选择断言改为准确名称。保留插件注册、声明式Worker、sidebar.footer等插槽，原生安装版实际停用/恢复内置插件并查看输入区贡献变化。
+- 验证结果：定向后端29/29、组件与适配5/5；`npm test`132/132；离线stable工具链 `npm run test:desktop-product`20/20；最终 `npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`35文件112/112；`npm run test:docs`40/40；`git diff --check`通过。`npm run build:desktop`、Tauri `build --config apps/desktop/src-tauri/tauri.conf.json --bundles app`、Rust fmt通过，包231.03MiB，ad-hoc签名deep/strict验证通过，安装主程序SHA256 `e4cd4e96171681239f28db2346890d4f9cca8fac5ce134ccffc84d7c7c201ea1` 与构建包一致，内置Store与源码一致。
+- 实际验收：arm64/macOS27.0.1、1280×820，在 `/Applications/Moos.app` 将已有会话临时改名，列表和顶栏即时同步；正常退出重开仍保留，随后通过同一UI恢复原名。最左设置入口正常，底部重复入口消失；停用“用量口径助手”后输入区“用量只读取服务商返回值”与设置Slot贡献消失，再启用后恢复，验收结束保持原启用状态。浅海/石墨预览颜色分别呈现，未应用预览，原背景保持；既有三个本地验收包仍停用，未新增安装或扩大权限，未发送付费模型任务。证据 `apps/desktop/evidence/p02-conversation-rename.json`；私有重启截图仅本机 `/tmp/moos-rename-acceptance-20261106/`，不进入Git。
+- 遗留问题：本轮实际插件验收限内置开关和皮肤预览；第三方安装/升级/异常隔离与皮肤应用持久化沿用E25历史证据及本轮自动回归，不声称所有插件都已实测。用户此前移除的右栏不挂载，因此该区域插件贡献不显示；任意主页面替换、原生插件、PTY及P02.8/P02.9尚未完成。Vite大chunk与jsdom NaN高度既有警告仍存在。安装前旧版备份 `/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-rename.0e93ensv/Moos.app`。
+- 对应 Git 提交：唯一说明 `feat(P02.V2): rename conversations and simplify sidebar controls`；查询 `git log --all --oneline --grep='^feat(P02.V2): rename conversations and simplify sidebar controls$'`。验证后提交并推送GitHub main，核对远程，不预填自身哈希。

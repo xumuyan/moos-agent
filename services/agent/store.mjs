@@ -90,8 +90,9 @@ export class Store {
   getConversation(id) { return this.#required('conversations', id, 'Conversation'); }
   getTask(id) { return this.#required('tasks', id, 'Task'); }
   listProjects() { return this.#all('SELECT * FROM projects ORDER BY rowid'); }
-  #checkMetadataBudget(collection, candidate) {
+  #checkMetadataBudget(collection, candidate, replaceId) {
     const metadata = { projects: this.listProjects(), conversations: this.#all('SELECT * FROM conversations ORDER BY rowid') };
+    if (replaceId) metadata[collection] = metadata[collection].filter(item => item.id !== replaceId);
     metadata[collection].push(candidate);
     if (Buffer.byteLength(JSON.stringify(metadata)) > 192 * 1024) throw new Error('Metadata budget limit reached');
   }
@@ -132,6 +133,16 @@ export class Store {
     this.#checkMetadataBudget('conversations', { id, projectId, title, createdAt: now() });
     this.#db.prepare('INSERT INTO conversations VALUES (?, ?, ?, ?)').run(id, projectId, title, now());
     return this.getConversation(id);
+  }
+  renameConversation({ projectId, conversationId, title }) {
+    const conversation = this.getConversation(conversationId);
+    if (conversation.projectId !== projectId) throw new Error('Conversation not found in project');
+    text(title, 'title');
+    title = title.trim();
+    if (title.length > 200 || /[\u0000-\u001f\u007f]/.test(title)) throw new Error('Invalid title');
+    this.#checkMetadataBudget('conversations', { ...conversation, title }, conversationId);
+    this.#db.prepare('UPDATE conversations SET title = ? WHERE id = ?').run(title, conversationId);
+    return this.getConversation(conversationId);
   }
   listMessages(conversationId) {
     this.getConversation(conversationId);

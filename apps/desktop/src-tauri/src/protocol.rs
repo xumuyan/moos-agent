@@ -9,6 +9,7 @@ pub fn allowed_method(method: &str) -> bool {
             | "add_project"
             | "remove_project"
             | "create_conversation"
+            | "rename_conversation"
             | "submit"
             | "cancel"
             | "list_models"

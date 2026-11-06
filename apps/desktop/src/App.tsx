@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Sender } from '@ant-design/x';
 import { Alert, Badge, Button, ConfigProvider, Empty, Modal, Select, Space, Tag, Tooltip } from 'antd';
-import { ArrowUpOutlined, CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
 import { request } from './api';
 import { emptySnapshot, isActive, type Snapshot } from './types';
@@ -10,6 +10,7 @@ import { useHistory } from './useHistory';
 import HistoryControls from './HistoryControls';
 import AppShell from './layout/AppShell';
 import WorkspaceSidebar from './layout/Sidebar';
+import ConversationList from './layout/ConversationList';
 import ProjectRail from './layout/ProjectRail';
 import ConversationPane from './layout/ConversationPane';
 import ConversationTranscript from './conversation/ConversationTranscript';
@@ -165,8 +166,8 @@ export default function App() {
           </div>;
         })}{loaded && !data.projects.length && <p className="sidebar-hint">添加本地目录，将任务与历史按项目隔离。</p>}</nav>
         <div className="section-label">会话历史<Button type="text" size="small" icon={<PlusOutlined />} aria-label="新建会话" disabled={!project || busy || !!connectionError} onClick={() => void createConversation()} /></div>
-        <nav className="conversations" aria-label="会话历史">{workspace.conversations.map(c => <button key={c.id} aria-label={c.title} className={`conversation-button ${c.selected ? 'selected' : ''}`} onClick={() => setConversationId(c.id)}><MessageOutlined /><span>{c.title}</span>{c.running && <Badge status="processing" />}</button>)}{project && !workspace.conversations.length && <p className="sidebar-hint">暂无会话，点击 + 新建。</p>}</nav>
-        <div className="sidebar-footer"><SlotHost slot="sidebar.footer" /><span>切换项目不会停止任务</span><Button icon={<SettingOutlined />} onClick={() => setSettings(true)}>设置</Button></div>
+        <ConversationList items={workspace.conversations} projectId={projectId} disabled={!!connectionError || !loaded} onSelect={setConversationId} onRename={(id, title) => mutateCommand(uiCommands.renameConversation(projectId, id, title))} />
+        <div className="sidebar-footer"><SlotHost slot="sidebar.footer" /><span>切换项目不会停止任务</span></div>
       </WorkspaceSidebar>}
       conversation={<ConversationPane>
         <header className="topbar"><div className="heading"><span className="eyebrow">开发工作台</span><h1>{conversation?.title ?? project?.name ?? '你的下一个想法，从这里开始'}</h1></div><SlotHost slot="conversation.header" context={{ projectId, conversationId }} />

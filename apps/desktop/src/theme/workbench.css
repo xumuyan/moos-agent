@@ -14,6 +14,12 @@
 .workbench-shell .section-label { padding: 8px; font-size: 11px; }
 .workbench-shell .project-button, .workbench-shell .conversation-button { font-size: 12px; padding: 9px 8px; }
 .workbench-shell .project-item.selected, .workbench-shell .conversation-button.selected { background: var(--moos-accent-soft); }
+.workbench-shell .conversation-item { display: flex; align-items: center; border-radius: 7px; margin: 3px 0; }
+.workbench-shell .conversation-item.selected { background: var(--moos-accent-soft); }
+.workbench-shell .conversation-item .conversation-button { flex: 1; width: 0; margin: 0; background: transparent; box-shadow: none; }
+.workbench-shell .conversation-rename { flex: none; color: var(--moos-muted); opacity: 0; }
+.workbench-shell .conversation-item:hover .conversation-rename, .workbench-shell .conversation-item:focus-within .conversation-rename { opacity: 1; }
+.workbench-shell .conversation-item:hover { background: var(--moos-accent-soft); }
 .workbench-shell .topbar { height: 58px; min-height: 58px; border-bottom: 1px solid var(--moos-border); padding-inline: 22px; }
 .workbench-shell .model-select { width: 190px; }
 .workbench-shell .thread { max-width: 780px; }

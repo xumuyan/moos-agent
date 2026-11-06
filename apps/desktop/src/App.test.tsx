@@ -17,12 +17,26 @@ beforeEach(() => {
     if (method === 'pick_directory') return '/work/project';
     if (method === 'add_project') { state.projects.push(project); return project; }
     if (method === 'create_conversation') { state.conversations.push(conversation); return conversation; }
+    if (method === 'rename_conversation') { state.conversations = state.conversations.map(item => (item as { id: string }).id === params.conversationId ? { ...(item as object), title: params.title } : item); return {}; }
     if (method === 'submit') { state.tasks.push({ id: 't1', projectId: 'p1', conversationId: params.conversationId, message: params.message, status: 'running' }); return { id: 't1' }; }
     if (method === 'cancel') { state.tasks = []; return {}; }
     return {};
   });
 });
 describe('desktop assistant', () => {
+  it('updates the chat heading after rename and retains the rail settings entry only', async () => {
+    state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
+    const user = userEvent.setup(); render(<App />);
+    await user.click(await screen.findByRole('button', { name: '重命名会话 开发会话' }));
+    const input = screen.getByRole('textbox', { name: '会话名称' });
+    await user.clear(input); await user.type(input, '登录修复{Enter}');
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('登录修复'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(bridge).toHaveBeenCalledWith('rename_conversation', { projectId: 'p1', conversationId: 'c1', title: '登录修复' });
+    expect(screen.queryByRole('button', { name: 'setting 设置' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '打开设置中心' }));
+    await screen.findByRole('tab', { name: '插件' });
+  });
   it('removes the right inspector and keeps each turn’s confirmed files in the conversation', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
     state.tasks = ['new', 'old'].map(id => ({ id, projectId: 'p1', conversationId: 'c1', message: id, status: 'succeeded' }));
@@ -142,7 +156,7 @@ describe('desktop assistant', () => {
     await user.click(screen.getByRole('button', { name: '添加项目' }));
     await screen.findByRole('button', { name: '工作项目' });
     await user.click(screen.getByRole('button', { name: '新建会话' }));
-    await screen.findByRole('button', { name: /开发会话/ });
+    await screen.findByRole('button', { name: '开发会话' });
     await user.type(screen.getByRole('textbox', { name: '任务内容' }), '检查项目');
     await user.click(screen.getByRole('button', { name: '发送任务' }));
     await waitFor(() => expect(bridge).toHaveBeenCalledWith('submit', { conversationId: 'c1', message: '检查项目', providerId: 'm1' }));

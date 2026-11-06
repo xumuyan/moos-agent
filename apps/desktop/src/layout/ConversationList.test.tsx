@@ -1,0 +1,42 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { expect, it, vi } from 'vitest';
+import ConversationList from './ConversationList';
+const items = [{ id: 'c1', title: '新会话', selected: true, running: true }];
+it('renames a running chat without selecting it and trims the title', async () => {
+  const onSelect = vi.fn(), onRename = vi.fn(async () => true), user = userEvent.setup();
+  render(<ConversationList items={items} projectId="p1" disabled={false} onSelect={onSelect} onRename={onRename} />);
+  await user.click(screen.getByRole('button', { name: '重命名会话 新会话' }));
+  const input = screen.getByRole('textbox', { name: '会话名称' });
+  await user.clear(input); await user.type(input, '  修复登录  {Enter}');
+  await waitFor(() => expect(onRename).toHaveBeenCalledWith('c1', '修复登录'));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(onSelect).not.toHaveBeenCalled();
+});
+it('keeps failed edits for retry, rejects blank titles, and cancels without writing', async () => {
+  const onRename = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true), user = userEvent.setup();
+  render(<ConversationList items={items} projectId="p1" disabled={false} onSelect={vi.fn()} onRename={onRename} />);
+  await user.click(screen.getByRole('button', { name: '重命名会话 新会话' }));
+  const input = screen.getByRole('textbox', { name: '会话名称' });
+  await user.clear(input); await user.type(input, '   ');
+  expect(screen.getByRole('button', { name: /保\s*存/ })).toBeDisabled();
+  await user.clear(input); await user.type(input, '修复');
+  await user.click(screen.getByRole('button', { name: /保\s*存/ }));
+  await screen.findByText('重命名失败，请重试。');
+  expect(input).toHaveValue('修复');
+  await user.click(screen.getByRole('button', { name: /保\s*存/ }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  await user.click(screen.getByRole('button', { name: '重命名会话 新会话' }));
+  await user.click(screen.getByRole('button', { name: /取\s*消/ }));
+  expect(onRename).toHaveBeenCalledTimes(2);
+});
+it('closes the editor on project change and disables writes while disconnected', async () => {
+  const onRename = vi.fn(), user = userEvent.setup();
+  const props = { items, projectId: 'p1', disabled: false, onSelect: vi.fn(), onRename };
+  const { rerender } = render(<ConversationList {...props} />);
+  await user.click(screen.getByRole('button', { name: '重命名会话 新会话' }));
+  rerender(<ConversationList {...props} projectId="p2" disabled />);
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.getByRole('button', { name: '重命名会话 新会话' })).toBeDisabled();
+  expect(onRename).not.toHaveBeenCalled();
+});

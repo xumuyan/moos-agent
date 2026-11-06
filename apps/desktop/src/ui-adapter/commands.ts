@@ -1,7 +1,7 @@
 type Bridge = (method: string, params?: Record<string, unknown>) => Promise<unknown>;
 
 const METHODS = new Set([
-  'pick_directory', 'add_project', 'remove_project', 'create_conversation',
+  'pick_directory', 'add_project', 'remove_project', 'create_conversation', 'rename_conversation',
   'submit', 'cancel', 'history_page', 'history_row',
 ]);
 const SENSITIVE = /^(api[-_]?key|authorization|password|secret|token)$/i;
@@ -18,6 +18,7 @@ export const uiCommands = {
   addProject: (path: string) => command('add_project', { path }),
   removeProject: (projectId: string) => command('remove_project', { projectId }),
   createConversation: (projectId: string, title: string) => command('create_conversation', { projectId, title }),
+  renameConversation: (projectId: string, conversationId: string, title: string) => command('rename_conversation', { projectId, conversationId, title }),
   submit: (conversationId: string, message: string, providerId: string) => command('submit', { conversationId, message, providerId }),
   cancelTask: (taskId: string) => command('cancel', { taskId }),
 };

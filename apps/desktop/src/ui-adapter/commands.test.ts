@@ -6,8 +6,10 @@ describe('UI command adapter', () => {
     const bridge = vi.fn(async () => ({ id: 'ok' }));
     await executeUiCommand(bridge, uiCommands.addProject('/work/project'));
     await executeUiCommand(bridge, uiCommands.cancelTask('task-1'));
+    await executeUiCommand(bridge, uiCommands.renameConversation('p1', 'c1', '修复登录'));
     expect(bridge).toHaveBeenNthCalledWith(1, 'add_project', { path: '/work/project' });
     expect(bridge).toHaveBeenNthCalledWith(2, 'cancel', { taskId: 'task-1' });
+    expect(bridge).toHaveBeenNthCalledWith(3, 'rename_conversation', { projectId: 'p1', conversationId: 'c1', title: '修复登录' });
   });
 
   it('rejects arbitrary methods and credential-shaped parameters at runtime', async () => {

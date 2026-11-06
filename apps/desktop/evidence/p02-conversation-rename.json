@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-11-06T19:50:24+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): rename conversations and simplify sidebar controls",
+  "tests": {
+    "targetedBackend": "29/29",
+    "targetedUi": "5/5",
+    "core": "132/132",
+    "desktopUiFinal": "112/112, 35 files; npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000",
+    "rustProduct": "20/20",
+    "documents": "40/40",
+    "initialUiFailure": "110/112: ambiguous legacy button selector and modal transition/accessibility query; corrected selectors and awaited close; full rerun passed"
+  },
+  "build": {
+    "binarySha256": "e4cd4e96171681239f28db2346890d4f9cca8fac5ce134ccffc84d7c7c201ea1",
+    "backup": "/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-rename.0e93ensv/Moos.app",
+    "serviceMatches": true,
+    "bundleMiB": 231.03,
+    "signature": "ad-hoc, deep strict verified",
+    "frontend": "passed",
+    "installedBinaryMatchesBuiltBundle": true
+  },
+  "gui": {
+    "system": "arm64/macOS27.0.1",
+    "viewport": "1280x820",
+    "installed": "/Applications/Moos.app",
+    "rename": "Existing chat temporarily renamed via row pencil; sidebar and heading updated; normal quit/relaunch retained name; original name restored through UI",
+    "settings": "Duplicate sidebar-footer settings button absent; rail settings opens working settings center",
+    "plugin": "Builtin usage insights disabled: composer note disappears; enabled again: note and settings contribution return; initial enabled state restored",
+    "theme": "Shallow sea and graphite preview render distinctly without applying; original app background retained",
+    "localPackages": "Three previously installed acceptance packages remain disabled; no new installation or permission change",
+    "newPaidTaskSubmitted": false
+  },
+  "localEvidenceOnly": "/tmp/moos-rename-acceptance-20261106/rename-after-restart.png; not committed",
+  "limits": [
+    "Plugin verification this round uses builtin enable/disable and theme preview; third-party installation and application persistence retain previous E25 evidence plus automated regression",
+    "Removed inspector remains unmounted; contributions targeting an unmounted region are not displayed",
+    "No new paid-model task; no mobile or Windows acceptance"
+  ]
+}

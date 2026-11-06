@@ -334,3 +334,13 @@ test('controller keeps credentials out of snapshots and disk and restores projec
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('renaming through controller is visible in snapshot without creating a new conversation', async t => {
+  const { controller } = await fixture(t, async () => ({ text: 'done' }));
+  const before = await controller.request('snapshot');
+  const c = before.conversations[0];
+  await controller.request('rename_conversation', { projectId: c.projectId, conversationId: c.id, title: '开发任务' });
+  const after = await controller.request('snapshot');
+  assert.equal(after.conversations.length, before.conversations.length);
+  assert.equal(after.conversations.find(item => item.id === c.id).title, '开发任务');
+});

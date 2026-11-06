@@ -10,6 +10,7 @@ fn only_public_controller_commands_are_allowed() {
         "add_project",
         "remove_project",
         "create_conversation",
+        "rename_conversation",
         "submit",
         "cancel",
         "list_models",
