@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 import TaskTrajectory from './TaskTrajectory';
+import { TaskFiles } from './TaskTrajectory';
+import userEvent from '@testing-library/user-event';
 
 it('shows compact real activity without raw payloads', () => {
   render(<TaskTrajectory events={[
@@ -37,4 +39,18 @@ it('keeps shell-only caveats inside the process disclosure while file summaries 
     { ...base, id: '4', type: 'tool_end', payload: { toolCallId: 'w', toolName: 'write' } },
   ]} />);
   expect(screen.getByText('文件清单不含命令产生的改动。')).toBeVisible();
+});
+it('previews three confirmed files and expands the remainder without fabricated diff controls', async () => {
+  const base = { taskId: 't', projectId: 'p', conversationId: 'c' };
+  const events = Array.from({ length: 5 }, (_, index) => [
+    { ...base, id: `${index}s`, type: 'tool_start', payload: { toolCallId: String(index), toolName: 'write', args: { path: `src/${index}.ts` } } },
+    { ...base, id: `${index}e`, type: 'tool_end', payload: { toolCallId: String(index), toolName: 'write' } },
+  ]).flat();
+  render(<TaskFiles finished events={events} />);
+  expect(screen.getByText('已修改 5 个文件')).toBeVisible();
+  expect(screen.queryByText('src/4.ts')).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /再显示 2 个文件/ }));
+  expect(screen.getByText('src/4.ts')).toBeVisible();
+  await userEvent.click(screen.getByRole('button', { name: /收起文件列表/ }));
+  expect(screen.queryByText('src/4.ts')).not.toBeInTheDocument();
 });

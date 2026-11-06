@@ -1,0 +1,43 @@
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { expect, it, vi } from 'vitest';
+import TurnTimeline, { taskDuration } from './TurnTimeline';
+import type { AgentEvent, Task } from '../types';
+const task: Task = { id: 't', projectId: 'p', conversationId: 'c', message: '修复', status: 'succeeded', createdAt: '2026-11-06T00:00:00Z', updatedAt: '2026-11-06T00:01:05Z' };
+const event = (id: string, type: string, payload: Record<string, unknown>): AgentEvent => ({ id, type, payload, taskId: 't', projectId: 'p', conversationId: 'c' });
+const events = [event('1', 'text_delta', { delta: '先检查文件。' }), event('2', 'tool_start', { toolCallId: 'w', toolName: 'edit', args: { path: 'src/app.ts', newText: 'secret-code' } }), event('3', 'tool_end', { toolCallId: 'w', toolName: 'edit', isError: false }), event('4', 'text_delta', { delta: '修复完成。' })];
+it('folds process independently from final reply and files, and expands the chronological cards', async () => {
+  render(<TurnTimeline task={task} events={events} savedText="先检查文件。修复完成。" onStop={vi.fn()} />);
+  expect(screen.getByRole('status')).toHaveTextContent('用时 1分5秒');
+  expect(screen.getByText('先检查文件。')).not.toBeVisible();
+  const result = screen.getByRole('region', { name: '本轮结果' });
+  expect(within(result).getByText('修复完成。')).toBeVisible();
+  expect(within(result).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('src/app.ts');
+  await userEvent.click(screen.getByText('用时 1分5秒'));
+  expect(screen.getByText('先检查文件。')).toBeVisible();
+  await userEvent.click(screen.getByText('编辑了文件'));
+  expect(screen.getByText('修改文件')).toBeVisible();
+  expect(screen.getAllByText('修复完成。')).toHaveLength(1);
+  expect(screen.queryByText(/secret-code/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /撤销|查看变更/ })).not.toBeInTheDocument();
+});
+it('keeps live narration visible and routes stop without inventing a duration or final reply', async () => {
+  const stop = vi.fn();
+  render(<TurnTimeline task={{ ...task, status: 'running' }} events={events.slice(0, 2)} onStop={stop} />);
+  expect(screen.getByText('先检查文件。')).toBeVisible();
+  expect(screen.getByText('编辑文件')).toBeVisible();
+  expect(screen.queryByText('编辑了文件')).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: '停止此任务' }));
+  expect(stop).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('region', { name: '本轮结果' })).not.toBeInTheDocument();
+  expect(screen.queryByText(/用时/)).not.toBeInTheDocument();
+  expect(taskDuration({ ...task, updatedAt: 'invalid' })).toBeUndefined();
+  expect(taskDuration({ ...task, updatedAt: '2025-01-01T00:00:00Z' })).toBeUndefined();
+});
+it('does not describe a failed edit as completed or count it as a modified file', async () => {
+  render(<TurnTimeline task={{ ...task, status: 'failed' }} events={[events[1], { ...events[2], payload: { ...events[2].payload, isError: true } }]} onStop={vi.fn()} />);
+  await userEvent.click(screen.getByRole('alert'));
+  expect(screen.getByText('编辑文件')).toBeVisible();
+  expect(screen.queryByText('编辑了文件')).not.toBeInTheDocument();
+  expect(screen.queryByRole('region', { name: '修改文件汇总' })).not.toBeInTheDocument();
+});

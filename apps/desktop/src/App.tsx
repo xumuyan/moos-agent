@@ -32,6 +32,7 @@ import './theme/dsh-alignment.css';
 import './theme/scrollbars.css';
 import './theme/workbench.css';
 import './theme/conversation.css';
+import './theme/codex-cards.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 export default function App() {

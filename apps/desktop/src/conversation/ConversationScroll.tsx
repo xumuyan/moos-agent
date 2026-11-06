@@ -52,7 +52,7 @@ export default function ConversationScroll({ children, viewKey, isOlder }: { chi
   }, [viewKey, isOlder]);
 
   const beforeDisclosure = (target: EventTarget) => {
-    if (!(target instanceof Element) || !target.closest('summary')) return;
+    if (!(target instanceof Element) || !target.closest('summary, [data-preserve-scroll]')) return;
     const node = viewport.current!;
     saved.current = anchors(node);
     folding.current = true;

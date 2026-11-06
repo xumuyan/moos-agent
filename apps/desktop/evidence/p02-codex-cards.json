@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-11-06T16:56:51+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): adopt Codex reference conversation cards",
+  "userSelection": "cards, layout and disclosures only; retain existing background",
+  "tests": { "desktopUiFinal": "102/102, 33 files", "core": "125/125", "rustProduct": "20/20", "documents": "40/40", "initialTargeted": "22/22", "finalStateAndFileCases": "10/10" },
+  "build": { "frontendAndTypescript": "passed", "finalTauriApp": "passed, 231.02 MiB", "signature": "ad-hoc, deep strict verification passed", "installedBinaryMatchesBuiltBundle": true, "finalBinarySha256": "4c19b246a9d54538a0d167ffeff28b278c2be67ab1a79e98c756bb3f770f1c81" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820",
+    "realHistoricalDurationDisplayed": true,
+    "realSavedReplyInRoundedResultCard": true,
+    "nestedToolCardExpandedAndCollapsedOnInitialCandidate": true,
+    "actualCommandRows": 2,
+    "finalCandidateReplyCardRecheckedAfterStateWordingFix": true,
+    "backgroundRetainedAndAssistantBrandAbsent": true,
+    "newModelTaskSent": false
+  },
+  "limits": ["Chronological interleaving and five-file expansion use automated fixtures; existing visible history lacks complete event text and confirmed file writes", "Incomplete event pages fall back to the complete persisted reply", "No task-wide diff line totals, undo or diff viewer implemented", "Duration includes queue time and uses real task timestamps", "Existing bottom-collapse scroll range limit remains", "No narrow-window resize or fresh live provider acceptance", "No raw user conversation screenshots stored"]
+}
