@@ -180,8 +180,12 @@ export async function createController({ dataDir, run, shutdownTimeoutMs = 15000
       case 'test_provider': return diagnoseProvider(method, params);
       case 'add_project': return store.addProject(params.path);
       case 'remove_project':
+        if (scheduler.hasTerminal(params.projectId)) throw new Error('Project has active terminals');
         store.removeProject(params.projectId);
         return { removed: true };
+      // Native-only coordination; excluded from the WebView method allowlist.
+      case 'terminal_acquire': return scheduler.reserveTerminal(params.projectId, params.sessionId);
+      case 'terminal_release': scheduler.releaseTerminal(params.sessionId); return { ok: true };
       case 'create_conversation': return store.createConversation(params.projectId, params.title);
       case 'rename_conversation': return store.renameConversation(params);
       case 'save_provider': {

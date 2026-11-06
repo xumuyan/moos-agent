@@ -9,6 +9,7 @@ export class Scheduler {
   #queue = [];
   #active = new Map();
   #paths = new Set();
+  #terminals = new Map();
   #stopped = false;
   #scheduled = false;
   #heartbeatMs;
@@ -53,7 +54,8 @@ export class Scheduler {
     while (!this.#stopped && this.#active.size < this.#concurrency) {
       const index = this.#queue.findIndex(id => {
         const task = this.#store.getTask(id);
-        return !this.#paths.has(this.#store.getProject(task.projectId).path);
+        const path = this.#store.getProject(task.projectId).path;
+        return !this.#paths.has(path) && ![...this.#terminals.values()].some(lease => lease.path === path);
       });
       if (index < 0) return;
       const [id] = this.#queue.splice(index, 1);
@@ -128,6 +130,15 @@ export class Scheduler {
     }
     return this.#store.getTask(taskId);
   }
+  reserveTerminal(projectId, id) {
+    if (this.#stopped || typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(id) || this.#terminals.has(id) || this.#terminals.size >= 8) return { ok: false, code: 'unavailable' };
+    const project = this.#store.getProject(projectId);
+    if (this.#paths.has(project.path) || this.#queue.some(id => this.#store.getTask(id).projectId === projectId)) return { ok: false, code: 'workspace_busy' };
+    this.#terminals.set(id, { projectId, path: project.path });
+    return { ok: true, path: project.path };
+  }
+  releaseTerminal(id) { this.#terminals.delete(id); this.#schedule(); }
+  hasTerminal(projectId) { return [...this.#terminals.values()].some(lease => lease.projectId === projectId); }
   async shutdown({ timeoutMs = 1000 } = {}) {
     if (!Number.isFinite(timeoutMs) || timeoutMs < 0) throw new Error('Invalid shutdown timeout');
     this.#stopped = true;

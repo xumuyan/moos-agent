@@ -21,6 +21,7 @@
     "macOS": { "minimumSystemVersion": "14.0" },
     "externalBin": ["binaries/node"],
     "resources": {
+      "../../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
       "../../../services/agent/": "services/agent/",
       "../../../packages/pi-adapter/": "packages/pi-adapter/",
       "../../../packages/pi-runtime/": "packages/pi-runtime/",

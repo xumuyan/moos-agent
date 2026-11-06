@@ -53,10 +53,10 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('证据：E24', plan)
         self.assertIn('- [x] P02.7 ', plan)
         self.assertIn('证据：E25', plan)
-        for number in range(8, 10):
+        for number in range(9, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 7)
+        self.assertEqual(p02.count('- [x]'), 8)
         self.assertIn('在线插件市场不在首批范围', p02)
 
     def test_p02_1_records_license_adapter_and_shell_evidence(self):
@@ -214,7 +214,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('- [x] P02.5 ', plan)
         self.assertIn('- [x] P02.6 ', plan)
         self.assertIn('- [x] P02.7 ', plan)
-        for number in range(8, 10):
+        for number in range(9, 10):
             self.assertIn(f'- [ ] P02.{number} ', plan)
         for term in ('测试先行', 'SDK 单运行时可行性门禁',
                      'SDK 验证通过以前不得删除已验证的 RPC 路径',
@@ -222,7 +222,7 @@ class RepositoryDocsTests(unittest.TestCase):
                      'Tauri 原生 PTY', 'npm run build:app', 'git diff --check'):
             self.assertIn(term, implementation)
         p02 = plan.split('## P02｜', 1)[1].split('## P01｜', 1)[0]
-        self.assertEqual(p02.count('- [x]'), 7)
+        self.assertEqual(p02.count('- [x]'), 8)
 
     def test_provider_diagnostics_keep_acceptance_scope_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
@@ -568,6 +568,27 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['guiBrowserVerified'])
         self.assertFalse(report['observedPermissions']['screenCaptureGranted'])
         self.assertFalse(report['observedPermissions']['accessibilityGranted'])
+
+
+    def test_native_terminal_boundaries_and_bundled_license_are_recorded(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('- [x] P02.8 ', plan)
+        self.assertIn('- [ ] P02.9 ', plan)
+        report = json.loads((ROOT / 'apps/desktop/evidence/p02-native-terminal.json').read_text())
+        for field in ('normalQuitOwnedProcessesGone', 'projectRemovalOtherProjectSurvives',
+                      'twoTabsOutputIsolated', 'interruptAndContinue', 'relaunchDoesNotReplayCommands'):
+            self.assertTrue(report['gui'][field])
+        self.assertFalse(report['gui']['newPaidTaskSubmitted'])
+        self.assertEqual(report['boundaries']['perProjectTabs'], 4)
+        self.assertTrue(report['build']['allRegularFilesMatchBuiltBundle'])
+        config = json.loads((ROOT / 'apps/desktop/src-tauri/tauri.conf.json').read_text())
+        self.assertEqual(config['bundle']['resources']['../../../THIRD_PARTY_NOTICES.md'], 'THIRD_PARTY_NOTICES.md')
+        notices = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text()
+        for text in ('portable-pty 0.9.0', '@xterm/xterm 6.0.0', '2018 Wez Furlong', 'The xterm.js authors'):
+            self.assertIn(text, notices)
+        spec = (ROOT / 'docs/superpowers/specs/2026-11-06-native-terminal.md').read_text()
+        for text in ('1MiB', '4个', '8个', '不自动重放', '目录锁', '强制SIGKILL', 'P02.9'):
+            self.assertIn(text, spec)
 
 
 if __name__ == '__main__':

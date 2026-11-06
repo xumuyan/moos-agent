@@ -25,3 +25,10 @@ describe('plugin manifest', () => {
     expect(() => validatePluginManifest({ ...local, entry: '../main.js' }, { local: true })).toThrow(/entry/i);
   });
 });
+
+it('reserves the native integration manifest for the exact built-in terminal only',()=>{
+  const value={id:'dev.moos.terminal',name:'Terminal',version:'1.0.0',type:'integration',moosVersion:'^0.1.0',entry:'builtin:terminal',slots:['composer.leading'],permissions:['ui:slots']};
+  expect(validatePluginManifest(value).type).toBe('integration');
+  expect(()=>validatePluginManifest(value,{local:true})).toThrow();
+  expect(()=>validatePluginManifest({...value,id:'dev.other.terminal'})).toThrow();
+});

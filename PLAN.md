@@ -10,7 +10,7 @@
 
 ## P02｜DSH 风格前端、插件与长任务运行时（实施中）
 
-用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。P02.1—P02.7 已按 E19—E25 实施并验收，P02.8—P02.9 仍未完成：
+用户已确认采用“选择性移植 DeepSeek Harness 原版前端 + Moos UI Adapter”的方案。只复用布局、样式、交互组件和 Slot 设计思想，不引入 DSH Electron、Cordis 后端、Profile 内核、Node Web Server 或官方品牌；正式产品继续使用 Tauri 2、Moos 数据层、SQLite 和 PI。完整设计见 `docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md`，实施计划见 `docs/superpowers/plans/2026-11-05-dsh-ui-plugin-implementation.md`，上游核对基线固定为 `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`。P02.1—P02.8 已按 E19—E26 实施并验收，P02.9 整体验收仍未完成：
 
 - [x] P02.1 建立第三方来源清单、许可证归属、Moos UI Adapter 契约和 DSH 风格静态页面骨架。证据：E19。
 - [x] P02.2 移植三栏布局、工作区/会话、对话/轨迹、输入区、三档权限、完整设置中心和右侧面板。证据：E20。
@@ -19,12 +19,14 @@
 - [x] P02.5 持久化模型服务实际返回的 usage，输入区显示最新缓存命中/上下文，设置支持时间、服务、项目和会话筛选及 Token、缓存、费用、导出/清理；缺失字段显示“暂无数据”，不按字符估算。证据：E23。
 - [x] P02.6 实现 10 个类型化固定 Slot、受信任内置 UI 插件的注册/停用/清理/错误隔离，以及白名单 Token、固定区域样式、有界静态资源、隔离预览、显式应用持久化和失败回退。证据：E24。
 - [x] P02.7 实现本地 ZIP/文件夹插件安装、清单校验、版本化声明式 Worker 沙箱 API、权限、启停、原子升级/失败回滚、卸载、崩溃/超时/洪水/失联隔离和插件私有数据保留或清理。在线插件市场不在首批范围。证据：E25。
-- [ ] P02.8 增加受信任的内置终端插件，使用 Tauri 原生 PTY，不增加 Node Web Server；Git 管理继续按 D01 单独排期。
+- [x] P02.8 受信任内置 Tauri 原生 PTY 终端插件：对话下方展开、多标签、输入/输出/resize/Ctrl+C、项目目录租约、关闭/插件停用/项目移除/正常退出清理与恢复显示已验证，不增加 Node Web Server；重启不重放命令，分离守护进程及 App SIGKILL 留在 P02.9，Git 管理按 D01 单独排期。证据：E26。
 - [ ] P02.9 完成自动测试与 Mac GUI 实测：连续任务无 Node/Dock 闪烁、超过 10 分钟任务、进程树、停止/崩溃清理、真实模型 usage、插件越权拒绝、皮肤恢复、打包和完整落盘体积。
 
-依赖：P01 已有正式产品子集；P02.1—P02.7 已完成来源/许可、适配契约、页面体验、SDK 单一运行时、有界长任务、可核实 usage、内置 Slot/皮肤核心和本地低权限插件生命周期。剩余受阻原因：P02.8—P02.9 尚未实现，原生 PTY 与完整 P02 系统验收均未通过；真实 GLM/中转站 usage 及账单仍待用户本机配置后在 P02.9 补验。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用本地 fixture 推断任意第三方代码都安全，也不得把 Worker 看门狗描述为操作系统级硬内存配额。
+依赖：P01 已有正式产品子集；P02.1—P02.8 已完成来源/许可、适配契约、页面体验、SDK 单一运行时、有界长任务、可核实 usage、内置 Slot/皮肤核心、本地低权限插件生命周期及受信任原生 PTY。剩余受阻原因：P02.9 完整组合验收尚未通过，尤其 App SIGKILL/分离进程与真实服务组合仍需补验；真实 GLM/中转站 usage 及账单仍待用户本机配置后在 P02.9 补验。解除条件：逐项实现并完成对应自动测试、真实 GUI/进程验收和证据记录后才能勾选；不得用本地 fixture 推断任意第三方代码都安全，也不得把 Worker 看门狗描述为操作系统级硬内存配额。
 
 #### P02 本轮证据
+
+2026-11-06 P02.8进入实现验收：受信任内置终端位于对话下方composer.leading，portable-pty/xterm原生PTY、多标签与项目目录租约；私有锁协调不向第三方Worker开放。规范见 `docs/superpowers/specs/2026-11-06-native-terminal.md`。UI120/核心134/Rust25/文档41、打包及Mac GUI已通过，证据E26；应用重启不重放命令，任意分离守护进程/强制终止与完整P02.9仍待实测。
 
 2026-11-06 会话管理补充：按用户要求增加会话重命名（SQLite只更新名称，保持任务/历史/归属），移除侧栏底部重复设置按钮，保留最左设置入口及原有插件Slot；范围见 `docs/superpowers/specs/2026-11-06-conversation-rename.md`。名称边界/项目隔离/持久化、UI失败重试与标题同步已覆盖；Mac安装版改名并正常重启保持、恢复原名、最左设置入口、内置插件停用/恢复及皮肤预览实测通过。核心132/UI112/Rust20/文档40通过，证据 `apps/desktop/evidence/p02-conversation-rename.json`；不据此扩大插件权限或勾选P02.8/P02.9。
 
@@ -63,6 +65,7 @@
 | E23 | 2026-11-05，arm64/macOS 27.0.1、PI 1.5.0；从认证本地模型代理捕获服务商原始 usage，按任务/项目/会话归属持久化 SQLite。Completions 的 2 个真实 PI 工具任务共 6 次模型请求，96 输入、30 输出、24 缓存读取、20% 命中率和 $0.000720，重启仍可查；Responses 缺缓存字段时命中率为暂无数据，保留服务商返回的 $0.000200。浏览器实际完成 `UI_USAGE_1` 的 write/bash，输入区显示 20.0% 和 25/128,000，设置页核对 48/15/12 Token、20%、$0.000360 及 3 条记录，项目筛选、JSON 导出和临时数据清理均通过。核心 125/125、UI 53/53、Rust 12/12、rustfmt 和打包通过；脱敏证据 `apps/desktop/evidence/p02-verified-usage.json` | 仅使用本地确定性 fixture，未读取或计费真实 GLM/中转站；用户配置价格只是可追溯估算，不冒充服务商账单。插件、皮肤、PTY、P02.9 真实服务组合验收及小包目标未完成。包为 230.53 MiB，逻辑大小 240647 KiB、磁盘占用 279408 KiB。提交说明 `feat(P02.5): persist and display verified model usage` |
 | E24 | 2026-11-05，arm64/macOS 27.0.1；新增 10 个设计固定 Slot、严格内置 manifest/版本/权限校验、重复 ID 拒绝、可重复撤销、停用监听清理、PluginBoundary 异常隔离和 3 次错误自动停用。内置 `dev.moos.usage-insights` 实际占用 3 个 Slot，浏览器停用时输入区贡献立即消失，启用后恢复。皮肤只接受白名单 Token、固定区域属性与打包/有界栅格静态图片；浏览器预览“石墨”未改根主题，显式应用后刷新恢复，切回默认后输入框仍可聚焦输入；1280×720 无横向溢出。开发验收入口实际注入不兼容皮肤，自动回退默认且控制台问题 0。UI 63/63、核心 125/125、Rust 12/12、rustfmt 与打包通过；脱敏证据 `apps/desktop/evidence/p02-plugin-theme-core.json` | 只实现受信任内置 UI 插件与皮肤核心，未实现本地 ZIP/文件夹安装、第三方沙箱 API、在线市场或 PTY；不能据内置注册表推断恶意插件已隔离。开发失败皮肤参数由 `import.meta.env.DEV` 限定，生产构建不开启该路径。包为 230.53 MiB，逻辑 240647 KiB、磁盘 279408 KiB。提交说明 `feat(P02.6): add typed UI slots and safe themes` |
 | E25 | 2026-11-05，arm64/macOS 27.0.1；Rust 本地插件仓库以临时目录校验并原子换名，限制 256 文件/5 MiB 总量/1 MiB 单文件，拒绝路径穿越、链接、执行位、原生魔数、脚本入口、压缩炸弹和不兼容清单。UI 插件只在独立 Blob Worker 中运行，经随机令牌和版本化消息 API 输出有界声明式 UI；DOM/Tauri、网络、浏览器持久化、嵌套 Worker、动态导入不可用，主线程限制消息大小/速率、启动/渲染期限并以健康看门狗处理失联。打包 GUI 实际完成文件夹与 ZIP 安装、默认停用、启停、通知、固定 Slot、1.0.0→1.1.0 升级保留启用、可执行入口升级拒绝且旧版保留、崩溃后自动停用；本地薄荷皮肤实际应用并在重启后保持，验收后恢复默认且三个测试包均停用。进程树仍为 `Moos.app → 一个内置 node → main.mjs`，插件未增加 Node/Web 服务。生命周期后端自动测试覆盖卸载保留/清除私有配置及状态写入失败回滚。最终核心 125/125、UI 71/71、Rust 17/17、文档 38/38、rustfmt、打包和差异检查通过；脱敏证据 `apps/desktop/evidence/p02-local-plugins.json` | Worker 有消息、时间、健康和入口体积边界，但浏览器不提供可核实的单 Worker 硬内存配额；异常终止或失联会停用，不能声称具备操作系统级内存隔离。GUI 未点击最终破坏性卸载确认，卸载/回滚/配置清理由真实 Rust 临时目录测试和前端生命周期测试覆盖；验收包保留为默认停用。在线市场、第三方原生插件、PTY 与完整 P02.9 未实现。包为 230.94 MiB，逻辑 241067 KiB、磁盘 279828 KiB。提交说明 `feat(P02.7): install sandboxed local UI plugins` |
+| E26 | 2026-11-06，arm64/macOS27.0.1；受信任内置终端在对话下方按需展开，原生portable-pty与xterm、每项目4/全局8标签、1MiB有界输出及私有目录租约。真实PTY测试验证环境隔离、中文、resize、退出码、超限、后代/无关进程及真实Node调度锁。安装GUI实测1280×820→1920×988的stty16×101→18×101并恢复窗口、两标签分流、Ctrl+C继续、单标签关闭、停用插件清理shell/长命令、移除临时项目保留另一项目shell、正常退出App/Node/shell/长命令全退出，重启无重放、真实exit7。最终措辞包再验证启动/新建/关闭与自动释放提示，保留已有石墨皮肤，未发收费任务。核心134/UI120/Rust25/文档41通过；证据apps/desktop/evidence/p02-native-terminal.json；唯一提交说明feat(P02.8): add trusted native PTY terminal plugin | 仅本机Mac；无OS文件沙箱，cd到其他目录不由所选项目锁覆盖。主动分离守护进程、App SIGKILL及完整P02.9尚未验收，不扩大第三方原生权限。终端输出不持久化、重启不重放。Tauri报告231.26MiB；签名.app常规文件逻辑246226786字节，实际284432KiB，Node119228096字节；首启无额外运行时下载，未产DMG/ZIP，开发依赖下载未单独计量。 |
 
 ## P01｜正式桌面 PI 聊天与多项目子集
 

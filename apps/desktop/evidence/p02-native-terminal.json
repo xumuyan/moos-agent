@@ -1,0 +1,173 @@
+{
+  "recordedAt": "2026-11-06T21:46:21+08:00",
+  "state": "pre-commit workspace; feat(P02.8): add trusted native PTY terminal plugin",
+  "scope": "Trusted built-in Mac terminal below conversation; no right panel or added Node/Web server",
+  "tests": {
+    "core": {
+      "command": "npm test",
+      "passed": 134
+    },
+    "ui": {
+      "command": "npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000",
+      "files": 38,
+      "passed": 120
+    },
+    "native": {
+      "command": "npm run test:desktop-product (stable/offline)",
+      "passed": 25
+    },
+    "documents": {
+      "command": "npm run test:docs",
+      "passed": 41
+    },
+    "targetedNative": 4,
+    "targetedUi": 14,
+    "scheduler": 8
+  },
+  "build": {
+    "binarySha256": "7925e8e2a192d4d10617230aff3736d909416612fba9feb62c9ebf256f88c536",
+    "backup": "/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-pty.49zsudj1/Moos.app",
+    "serviceMatches": true,
+    "noticesBundled": true,
+    "bundleMiB": 231.26,
+    "regularFileLogicalBytes": 246226786,
+    "installedDiskKiB": 284432,
+    "bundledNodeBytes": 119228096,
+    "runtimeDownload": "unchanged bundled Node/PI baseline; no additional runtime download",
+    "firstLaunch": "Open /Applications/Moos.app, choose registered project, expand terminal, create tab",
+    "finalBackup": "/var/folders/m0/6hs353nj5_j8nrjdyxk40z2c0000gn/T/moos-before-pty-delivery.eqat7_4l/Moos.app",
+    "allRegularFilesMatchBuiltBundle": true
+  },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "sizes": [
+      "1280x820",
+      "1920x988",
+      "1280x820 restored"
+    ],
+    "ptySizeBefore": [
+      16,
+      101
+    ],
+    "ptySizeAfterZoom": [
+      18,
+      101
+    ],
+    "registeredCwdAndChineseInput": true,
+    "twoTabsOutputIsolated": true,
+    "interruptAndContinue": true,
+    "singleCloseOtherTabSurvives": true,
+    "pluginDisableOwnedShellAndCommandGone": true,
+    "projectRemovalOtherProjectSurvives": true,
+    "normalQuitOwnedProcessesGone": true,
+    "relaunchDoesNotReplayCommands": true,
+    "realExitCode": 7,
+    "existingGraphiteThemeRetained": true,
+    "temporaryProjectRecordRemoved": true,
+    "newPaidTaskSubmitted": false,
+    "candidateFullFlowBinarySha256": "fa8f2398cd739db0e67f7a8595c1c1821df677985044bea7b092c04961ab1366",
+    "finalWordingOnlyPackageRechecked": "Launched, ready; created real shell, corrected natural-exit lock wording visible, closed acceptance tab, empty panel and no held project lock"
+  },
+  "ownedProcessChecks": {
+    "singleClose": {
+      "59036": false,
+      "59240": true
+    },
+    "beforeDisable": [
+      {
+        "pid": 58817,
+        "ppid": 1,
+        "comm": "/Applications/Moos.app/Contents/MacOS/moos-desktop"
+      },
+      {
+        "pid": 58834,
+        "ppid": 58817,
+        "comm": "/Applications/Moos.app/Contents/MacOS/node"
+      },
+      {
+        "pid": 59464,
+        "ppid": 59240,
+        "comm": "sleep"
+      }
+    ],
+    "afterDisable": {
+      "59240": false,
+      "59464": false,
+      "58817": true,
+      "58834": true
+    },
+    "beforeRemove": [
+      {
+        "pid": 59878,
+        "ppid": 58817,
+        "comm": "/bin/zsh"
+      },
+      {
+        "pid": 59904,
+        "ppid": 59878,
+        "comm": "sleep"
+      },
+      {
+        "pid": 59978,
+        "ppid": 58817,
+        "comm": "/bin/zsh"
+      }
+    ],
+    "afterRemove": {
+      "59878": false,
+      "59904": false,
+      "59978": true,
+      "58817": true,
+      "58834": true
+    },
+    "beforeQuitWhileHidden": [
+      {
+        "pid": 58817,
+        "ppid": 1,
+        "comm": "/Applications/Moos.app/Contents/MacOS/moos-desktop"
+      },
+      {
+        "pid": 58834,
+        "ppid": 58817,
+        "comm": "/Applications/Moos.app/Contents/MacOS/node"
+      },
+      {
+        "pid": 59978,
+        "ppid": 58817,
+        "comm": "/bin/zsh"
+      },
+      {
+        "pid": 60210,
+        "ppid": 59978,
+        "comm": "sleep"
+      }
+    ],
+    "afterNormalQuit": {
+      "58817": false,
+      "58834": false,
+      "59978": false,
+      "60210": false
+    }
+  },
+  "boundaries": {
+    "perProjectTabs": 4,
+    "totalTabs": 8,
+    "outputBytesPerTab": 1048576,
+    "readBytes": 16384,
+    "writeBytes": 4096,
+    "pendingInputBytes": 65536,
+    "writeDeadlineMs": 250,
+    "shell": "/bin/zsh -f; cleared environment and temporary ZDOTDIR",
+    "coordination": "private native-only leases share canonical scheduler locks; serialized native lease calls",
+    "thirdParty": "Exact built-in integration ID/entry only; local Worker native access remains denied"
+  },
+  "evidence": "Private local screenshots /tmp/moos-pty-acceptance-20261106/01-resize.png, 02-interrupt.png, 03-tabs.png, 04-exit-code.png, 05-final-installed.png; not committed",
+  "limits": [
+    "Only arm64/macOS27.0.1 actually verified; no Windows/iPhone terminal integration",
+    "No OS file sandbox; arbitrary shell cd outside selected project is outside its directory lock",
+    "Normal close handles owned shell, foreground group and traceable descendants; arbitrary detached daemons and SIGKILL App remain P02.9",
+    "No persisted raw terminal output or automatic command replay after restart",
+    "No fresh paid provider tasks; P02.9 full combination acceptance remains incomplete",
+    "No DMG/ZIP produced; report app bundle, regular-file logical bytes and installed disk separately; development dependency download volume not separately measured"
+  ]
+}

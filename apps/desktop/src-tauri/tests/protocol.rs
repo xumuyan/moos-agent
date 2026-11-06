@@ -30,6 +30,9 @@ fn only_public_controller_commands_are_allowed() {
         "get_api_key",
         "",
         "constructor",
+        "terminal_acquire",
+        "terminal_release",
+        "terminal_request",
     ] {
         assert!(!allowed_method(method), "{method}");
     }

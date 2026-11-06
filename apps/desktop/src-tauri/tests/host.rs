@@ -313,3 +313,51 @@ fn malformed_host_reply_invalidates_connection() {
         .unwrap_err()
         .contains("stopped"));
 }
+
+#[cfg(target_os = "macos")]
+#[test]
+fn native_terminal_and_agent_tasks_share_the_real_controller_workspace_lock() {
+    use moos_desktop::pty::TerminalManager;
+    let temp = Temp::new();
+    let (node, entry, runtime) = dev_paths().unwrap();
+    let agent = Arc::new(Agent::new(
+        Host::launch(&node, &entry, &runtime, &temp.0).unwrap(),
+        Box::new(MemoryCredentials::default()),
+    ));
+    let project = agent
+        .request("add_project", json!({"path":temp.0}))
+        .unwrap();
+    let conversation = agent
+        .request("create_conversation", json!({"projectId":project["id"]}))
+        .unwrap();
+    agent.request("save_provider",json!({"apiKey":"NO_NETWORK_TEST_KEY","provider":{"id":"fixture","model":"fixture","api":"openai-completions","baseUrl":"https://example.com/v1"}})).unwrap();
+    let manager = TerminalManager::new(agent.clone());
+    let shell = manager
+        .request("open", json!({"projectId":project["id"]}))
+        .unwrap();
+    assert_eq!(
+        std::fs::canonicalize(shell["cwd"].as_str().unwrap()).unwrap(),
+        temp.0.canonicalize().unwrap()
+    );
+    let task=agent.request("submit",json!({"conversationId":conversation["id"],"message":"queued only; never call model","providerId":"fixture"})).unwrap();
+    let snapshot = agent.request("snapshot", json!({})).unwrap();
+    assert!(snapshot["tasks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|t| t["id"] == task["id"] && t["status"] == "queued"));
+    assert!(agent
+        .request("remove_project", json!({"projectId":project["id"]}))
+        .is_err());
+    agent
+        .request("cancel", json!({"taskId":task["id"]}))
+        .unwrap();
+    manager
+        .close_project(Some(project["id"].as_str().unwrap()))
+        .unwrap();
+    agent
+        .request("remove_project", json!({"projectId":project["id"]}))
+        .unwrap();
+    agent.shutdown();
+    manager.shutdown();
+}

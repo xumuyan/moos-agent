@@ -12,21 +12,42 @@ use tauri::{Manager, State};
 
 type SharedAgent = Arc<Agent>;
 type SharedPlugins = Arc<PluginManager>;
+type SharedTerminals = Arc<moos_desktop::pty::TerminalManager>;
 
 #[tauri::command]
 async fn agent_request(
     method: String,
     params: Value,
     state: State<'_, SharedAgent>,
+    terminals: State<'_, SharedTerminals>,
 ) -> Result<Value, String> {
     // Never block the WebView/main event loop with stdio or Keychain operations.
     if !moos_desktop::protocol::allowed_method(&method) {
         return Err("Invalid agent request".into());
     }
     let agent = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || agent.request(&method, params))
+    let terminals = terminals.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        if method == "remove_project" {
+            let project = params["projectId"].as_str().ok_or("项目标识无效")?;
+            terminals.close_project(Some(project))?;
+        }
+        agent.request(&method, params)
+    })
+    .await
+    .map_err(|_| "Agent request interrupted".to_owned())?
+}
+
+#[tauri::command]
+async fn terminal_request(
+    action: String,
+    params: Value,
+    state: State<'_, SharedTerminals>,
+) -> Result<Value, String> {
+    let terminals = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || terminals.request(&action, params))
         .await
-        .map_err(|_| "Agent request interrupted".to_owned())?
+        .map_err(|_| "终端请求中断".to_owned())?
 }
 
 #[tauri::command]
@@ -135,7 +156,11 @@ fn main() {
                 Host::launch(&node, &entry, &runtime, &data).map_err(std::io::Error::other)?;
             let credentials =
                 LocalCredentials::new(data.join("private")).map_err(std::io::Error::other)?;
-            app.manage(Arc::new(Agent::new(host, Box::new(credentials))) as SharedAgent);
+            let agent = Arc::new(Agent::new(host, Box::new(credentials))) as SharedAgent;
+            app.manage(
+                Arc::new(moos_desktop::pty::TerminalManager::new(agent.clone())) as SharedTerminals,
+            );
+            app.manage(agent);
             app.manage(Arc::new(
                 PluginManager::new(data.join("plugins")).map_err(std::io::Error::other)?,
             ) as SharedPlugins);
@@ -143,6 +168,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             agent_request,
+            terminal_request,
             pick_directory,
             pick_plugin_zip,
             pick_plugin_folder,
@@ -160,6 +186,10 @@ fn main() {
         if matches!(event, tauri::RunEvent::Exit) {
             if let Some(agent) = app.try_state::<SharedAgent>() {
                 agent.shutdown();
+            }
+            // Stop queued tasks before releasing terminal locks during app exit.
+            if let Some(terminals) = app.try_state::<SharedTerminals>() {
+                terminals.shutdown();
             }
         }
     });

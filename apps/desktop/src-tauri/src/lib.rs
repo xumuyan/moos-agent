@@ -3,6 +3,7 @@ pub mod keychain;
 pub mod local_credentials;
 pub mod plugins;
 pub mod protocol;
+pub mod pty;
 
 use host::Host;
 use keychain::Credentials;
@@ -11,11 +12,44 @@ use serde_json::Value;
 pub struct Agent {
     host: Host,
     credentials: Box<dyn Credentials>,
+    terminal_coordination: std::sync::Mutex<()>,
+}
+
+impl pty::WorkspaceLocks for Agent {
+    fn acquire(&self, project: &str, session: &str) -> Result<std::path::PathBuf, String> {
+        let _serial = self
+            .terminal_coordination
+            .lock()
+            .map_err(|_| "终端协调不可用")?;
+        let result = self.host.request(
+            "terminal_acquire",
+            serde_json::json!({"projectId":project,"sessionId":session}),
+        )?;
+        if result["ok"] != true {
+            return Err("项目正被任务占用或终端额度已满，请等待任务完成或先停止任务".into());
+        }
+        result["path"]
+            .as_str()
+            .map(std::path::PathBuf::from)
+            .ok_or("项目目录不可用".into())
+    }
+    fn release(&self, session: &str) {
+        let Ok(_serial) = self.terminal_coordination.lock() else {
+            return;
+        };
+        let _ = self
+            .host
+            .request("terminal_release", serde_json::json!({"sessionId":session}));
+    }
 }
 
 impl Agent {
     pub fn new(host: Host, credentials: Box<dyn Credentials>) -> Self {
-        Self { host, credentials }
+        Self {
+            host,
+            credentials,
+            terminal_coordination: std::sync::Mutex::new(()),
+        }
     }
 
     pub fn request(&self, method: &str, params: Value) -> Result<Value, String> {

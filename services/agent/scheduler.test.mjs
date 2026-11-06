@@ -145,3 +145,32 @@ test('shutdown cancels queued work and bounds waiting for an uncooperative runne
   assert.equal((await scheduler.shutdown()).drained, true);
   assert.equal(store.getTask(task.id).status, 'cancelled');
 });
+
+test('native terminal leases share canonical task locks until every tab closes', async t => {
+  const ran = [];
+  const { scheduler, store, conversations: [a, b] } = await fixture(t, async ({ task }) => { ran.push(task.id); return { text: 'done' }; });
+  assert.equal(scheduler.reserveTerminal(a.projectId, 'tab1').ok, true);
+  assert.equal(scheduler.reserveTerminal(a.projectId, 'tab2').ok, true);
+  assert.equal(scheduler.reserveTerminal(a.projectId, 'tab2').ok, false);
+  const first = scheduler.submit({ conversationId: a.id, message: 'wait for terminal' });
+  const second = scheduler.submit({ conversationId: b.id, message: 'other project' });
+  await until(() => store.getTask(second.id).status === 'succeeded');
+  assert.equal(store.getTask(first.id).status, 'queued');
+  assert.equal(scheduler.reserveTerminal(a.projectId, 'tab3').code, 'workspace_busy');
+  scheduler.releaseTerminal('tab1'); await turn();
+  assert.equal(store.getTask(first.id).status, 'queued');
+  scheduler.releaseTerminal('tab2');
+  await until(() => store.getTask(first.id).status === 'succeeded');
+  assert.deepEqual(ran, [second.id, first.id]);
+});
+
+test('active task prevents acquiring a terminal and shutdown prevents new leases', async t => {
+  const gate = deferred();
+  const { scheduler, store, conversations: [c] } = await fixture(t, async () => { await gate.promise; return { text: 'done' }; });
+  const task = scheduler.submit({ conversationId: c.id, message: 'work' });
+  await until(() => store.getTask(task.id).status === 'running');
+  assert.equal(scheduler.reserveTerminal(c.projectId, 'new').code, 'workspace_busy');
+  gate.resolve(); await until(() => store.getTask(task.id).status === 'succeeded');
+  await scheduler.shutdown();
+  assert.equal(scheduler.reserveTerminal(c.projectId, 'late').ok, false);
+});

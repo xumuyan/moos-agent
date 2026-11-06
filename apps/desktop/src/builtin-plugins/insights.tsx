@@ -1,8 +1,10 @@
 import { Tag } from 'antd';
 import { createPluginRegistry } from '../plugins/registry';
+import { registerTerminalPlugin } from './terminal';
 
 export function createBuiltinPluginRegistry() {
   const registry = createPluginRegistry();
+  registerTerminalPlugin(registry);
   registry.register({ id: 'dev.moos.usage-insights', name: '用量口径助手', version: '1.0.0', type: 'ui',
     moosVersion: '^0.1.0', entry: 'builtin:usage-insights', slots: ['composer.trailing', 'settings.section', 'usage.metric'], permissions: ['ui:slots', 'theme:read'] }, [
     { slot: 'composer.trailing', render: () => <span className="plugin-composer-note">用量只读取服务商返回值</span> },
