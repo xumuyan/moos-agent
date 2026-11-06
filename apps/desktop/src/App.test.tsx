@@ -109,7 +109,9 @@ describe('desktop assistant', () => {
       expect(records).toHaveLength(2);
       expect(records[0]).toHaveTextContent('first-tool');
       expect(records[1]).toHaveTextContent('second-tool');
-      before(prompt1, records[0]); before(records[0], answer1); before(answer1, prompt2); before(prompt2, records[1]); before(records[0], records[1]);
+      const process1 = within(records[0]).getByRole('region', { name: '实际工具轨迹' });
+      const process2 = within(records[1]).getByRole('region', { name: '实际工具轨迹' });
+      before(prompt1, process1); before(process1, answer1); before(answer1, prompt2); before(prompt2, process2); before(records[0], records[1]);
       before(prompt2, answer2);
     };
     assertOrder();

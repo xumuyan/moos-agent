@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-11-06T15:56:49+08:00",
+  "state": "pre-commit workspace; feat(P02.V2): group conversation turns around assistant responses",
+  "tests": { "desktopUi": "89/89, 29 files", "core": "125/125", "rustProduct": "20/20", "documents": "40/40", "targetedAppAndConversation": "18/18", "newGroupingAndSlotChecks": "4/4" },
+  "build": { "frontend": "passed", "typescript": "passed", "tauriApp": "passed, 231.02 MiB", "signature": "ad-hoc, deep strict verification passed" },
+  "gui": {
+    "system": "arm64/macOS 27.0.1",
+    "installedPath": "/Applications/Moos.app",
+    "viewport": "1280x820",
+    "turnSeparatorsAndAssistantIdentityInspected": true,
+    "statusGroupedWithReply": true,
+    "stoppedTurnWithoutFinalReplyInspected": true,
+    "actualProcessExpandedAndRestored": true,
+    "actualCancelledErrorCodeExpandedAndRestored": true,
+    "rightPanelAbsent": true,
+    "newModelTaskSent": false
+  },
+  "limits": ["Final-reply then changed-file order uses fixtures; existing live history has no confirmed write/edit changes", "No narrow window resize acceptance", "OpenCode GitHub directory browse failed; no claim of exact source transplantation", "No new runtime process, retry, diff or undo feature added", "No raw user conversation screenshot stored"]
+}

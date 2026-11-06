@@ -147,6 +147,7 @@ class RepositoryDocsTests(unittest.TestCase):
                 'apps/desktop/src/layout/RightPanel.tsx',
                 'apps/desktop/src/settings/SettingsCenter.tsx',
                 'apps/desktop/src/settings/UsageSection.tsx',
+                'apps/desktop/src/conversation/ConversationTranscript.tsx',
             )
         )
         self.assertIn('- [x] P02.6 ', plan)

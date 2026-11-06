@@ -1,10 +1,10 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { Bubble, Sender } from '@ant-design/x';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Sender } from '@ant-design/x';
 import { Alert, Badge, Button, ConfigProvider, Empty, Modal, Select, Space, Tag, Tooltip } from 'antd';
 import { ArrowUpOutlined, CodeOutlined, DeleteOutlined, FolderOpenOutlined, MessageOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
 import { request } from './api';
-import { emptySnapshot, isActive, type Snapshot, type Task } from './types';
+import { emptySnapshot, isActive, type Snapshot } from './types';
 import Settings from './Settings';
 import { useHistory } from './useHistory';
 import HistoryControls from './HistoryControls';
@@ -12,7 +12,7 @@ import AppShell from './layout/AppShell';
 import WorkspaceSidebar from './layout/Sidebar';
 import ProjectRail from './layout/ProjectRail';
 import ConversationPane from './layout/ConversationPane';
-import MessageContent from './conversation/MessageContent';
+import ConversationTranscript from './conversation/ConversationTranscript';
 import ComposerDock from './layout/ComposerDock';
 import PermissionMenu from './composer/PermissionMenu';
 import ComposerStatus from './composer/ComposerStatus';
@@ -22,7 +22,6 @@ import { BUILTIN_THEMES } from './themes/builtin';
 import { applyTheme, loadSavedTheme, resetTheme, initializeWorkbenchTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
-import TaskStatus from './conversation/TaskStatus';
 import { createWorkspaceView } from './ui-adapter/snapshot';
 import { executeUiCommand, uiCommands, type UiCommand } from './ui-adapter/commands';
 import './theme/tokens.css';
@@ -109,8 +108,6 @@ export default function App() {
   // Controls always use recent state, even while the user browses an older page.
   const active = history.recent.tasks.filter(t => t.projectId === projectId && t.conversationId === conversation?.id && isActive(t));
   const messages = history.visible.messages.filter(m => m.conversationId === conversation?.id);
-  // Anchor execution to the first associated message, not the task snapshot order.
-  const taskAnchors = new Map(tasks.map(task => [task.id, messages.find(m => m.taskId === task.id)?.id]));
   const draft = drafts[conversationId] ?? '';
   const disabled = !project || !conversation || !providerId || !!connectionError || busy || active.length > 0;
   const activeTheme = themes.find(theme => theme.id === themeId);
@@ -152,21 +149,6 @@ export default function App() {
     } catch (e) { setError(errorText(e)); }
     finally { setBusy(false); }
   };
-  const renderTask = (task: Task) => {
-    const events = history.visible.events.filter(e => e.taskId === task.id && e.conversationId === conversationId && e.projectId === projectId);
-    const saved = messages.some(m => m.taskId === task.id && m.role === 'assistant');
-    const stream = events.filter(e => e.type === 'text_delta').map(e => typeof e.payload.delta === 'string' ? e.payload.delta : '').join('');
-    const tools = events.filter(e => ['tool_start', 'tool_end', 'tool_update', 'task_state'].includes(e.type));
-    return <section className="task-card" key={task.id} aria-label="任务执行记录">
-      <TaskStatus task={task} onStop={() => void mutateCommand(uiCommands.cancelTask(task.id))} />
-      {!messages.some(m => m.taskId === task.id && m.role === 'user') && <div className="task-prompt">{task.message}</div>}
-      {stream && !saved && <MessageContent text={stream} />}
-      <TaskTrajectory events={tools} finished={!isActive(task)} />
-      <SlotHost slot="conversation.tool" context={{ taskId: task.id, events: tools }} />
-      {isActive(task) && task.heartbeatAt && <p className="muted">阶段：{task.stage ?? 'running'} · 最近心跳：{new Date(task.heartbeatAt).toLocaleTimeString()}</p>}
-      {isActive(task) && !stream && tools.length === 0 && <p className="muted">等待执行事件；尚未收到模型输出。</p>}
-    </section>;
-  };
   return <PluginProvider registry={pluginRegistry}><ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: activeTheme?.tokens.accent ?? '#96734e', borderRadius: Number.parseInt(activeTheme?.tokens.radius ?? '10', 10), colorBgLayout: activeTheme?.tokens.panel ?? '#fcfbf8', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' } }}>
     <AppShell
       rail={<ProjectRail projects={data.projects} selectedId={projectId} onSelect={setProjectId} onAdd={() => void addProject()} onSettings={() => setSettings(true)} adding={adding} />}
@@ -194,14 +176,7 @@ export default function App() {
         <div className="notice-area">{connectionError && <Alert type="error" showIcon message="无法连接本机服务" description={`${connectionError}。正在自动重连；请检查 Mac 服务是否运行。`} />}{error && <Alert type="error" showIcon closable message={error} onClose={() => setError('')} />}</div>
         <div className="conversation-area" aria-label="对话内容" aria-live={history.isOlder ? 'off' : 'polite'}>
           <HistoryControls key={conversation?.id ?? ''} conversationId={conversation?.id ?? ''} page={history.page} isOlder={history.isOlder} loading={history.loading} error={history.error} onOlder={() => void history.loadOlder()} onLatest={history.latest} />
-          {!loaded ? <Empty description="正在连接本机服务…" /> : !project ? <div className="welcome"><span className="welcome-icon"><CodeOutlined /></span><span className="eyebrow">MOOS · 本地开发工作空间</span><h2>添加项目，开始开发</h2><p>把想做的事交给助手。<br />在这里查看真实输出、工具动作与执行结果。</p><Button type="primary" icon={<FolderOpenOutlined />} disabled={adding} onClick={() => void addProject()}>选择项目目录</Button><div className="welcome-notes"><span>项目与会话独立管理</span><span>任务可随时停止</span><span>密钥留在 Mac</span></div></div> : !messages.length && !tasks.length ? <div className="welcome"><span className="welcome-icon"><MessageOutlined /></span><h2>{conversation ? '今天想完成什么？' : '为这个项目新建一个会话'}</h2><p>{conversation ? '描述目标、问题或验收要求。提交后将直接执行任务。' : '会话用于保存任务和对话历史。切换会话不影响正在执行的任务。'}</p><code className="project-path">{project.path}</code>{!conversation && <Button onClick={() => void createConversation()} disabled={busy}>创建会话</Button>}</div> : <div className="thread">{messages.map(m => {
-            const associated = tasks.filter(task => taskAnchors.get(task.id) === m.id);
-            return <Fragment key={m.id}>
-              {m.role !== 'user' && associated.map(renderTask)}
-              <div className={`message message-${m.role}`}><div className="message-label">{m.role === 'user' ? '你' : m.role === 'assistant' ? 'Moos' : m.role}</div>{m.role === 'assistant' ? <MessageContent text={m.content} /> : <Bubble placement={m.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{m.content}</span>} />}<SlotHost slot="conversation.message" context={{ messageId: m.id, role: m.role }} /></div>
-              {m.role === 'user' && associated.map(renderTask)}
-            </Fragment>;
-          })}{tasks.filter(task => !taskAnchors.get(task.id)).map(renderTask)}</div>}
+          {!loaded ? <Empty description="正在连接本机服务…" /> : !project ? <div className="welcome"><span className="welcome-icon"><CodeOutlined /></span><span className="eyebrow">MOOS · 本地开发工作空间</span><h2>添加项目，开始开发</h2><p>把想做的事交给助手。<br />在这里查看真实输出、工具动作与执行结果。</p><Button type="primary" icon={<FolderOpenOutlined />} disabled={adding} onClick={() => void addProject()}>选择项目目录</Button><div className="welcome-notes"><span>项目与会话独立管理</span><span>任务可随时停止</span><span>密钥留在 Mac</span></div></div> : !messages.length && !tasks.length ? <div className="welcome"><span className="welcome-icon"><MessageOutlined /></span><h2>{conversation ? '今天想完成什么？' : '为这个项目新建一个会话'}</h2><p>{conversation ? '描述目标、问题或验收要求。提交后将直接执行任务。' : '会话用于保存任务和对话历史。切换会话不影响正在执行的任务。'}</p><code className="project-path">{project.path}</code>{!conversation && <Button onClick={() => void createConversation()} disabled={busy}>创建会话</Button>}</div> : <ConversationTranscript messages={messages} tasks={tasks} events={history.visible.events} onStop={id => void mutateCommand(uiCommands.cancelTask(id))} />}
           <TaskTrajectory events={history.visible.events.filter(e => e.conversationId === conversation?.id && e.projectId === projectId && !tasks.some(t => t.id === e.taskId))} />
         </div>
         <ComposerDock><SlotHost slot="composer.leading" context={{ projectId, conversationId }} /><ComposerStatus projectName={project?.name} backgroundTasks={workspace.backgroundTaskCount} usage={usage} />

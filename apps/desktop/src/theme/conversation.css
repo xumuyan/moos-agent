@@ -25,3 +25,26 @@
 .workbench-shell .composer .ant-sender-actions-list .ant-btn { width: 30px; min-width: 30px; height: 30px; padding: 0; border-radius: 50%; }
 .workbench-shell .permission-control { margin-top: 4px; gap: 8px; }
 .workbench-shell .composer-footnote { margin-top: 4px; }
+
+/* One response group per turn, following the reference products' transcript hierarchy. */
+.grouped-transcript .conversation-turn { padding: 20px 0 24px; }
+.grouped-transcript .conversation-turn + .conversation-turn { border-top: 1px solid var(--moos-border); }
+.grouped-transcript .turn-prompts { margin-bottom: 20px; }
+.grouped-transcript .message { margin: 0 0 12px; }
+.grouped-transcript .message-user { display: flex; flex-direction: column; align-items: flex-end; margin: 0; }
+.grouped-transcript .message-user > .ant-bubble { max-width: 78%; }
+.response-heading { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; min-width: 0; }
+.response-avatar { display: grid; place-items: center; flex: none; width: 22px; height: 22px; color: var(--moos-accent); background: var(--moos-accent-soft); border-radius: 6px; font-size: 13px; }
+.response-heading > strong { font-size: 12px; font-weight: 600; line-height: 22px; }
+.response-heading > .turn-status { margin: 0 0 0 auto; max-width: 65%; text-align: right; }
+.response-heading .turn-status-line { justify-content: flex-end; font-size: 11px; }
+.response-heading .turn-error-details { text-align: left; margin-left: 0; }
+.response-heading .turn-error-details > summary { margin-left: auto; }
+.response-content { padding-left: 32px; }
+.response-content > .task-trajectory { margin-bottom: 14px; }
+.response-content .activity-history { background: color-mix(in srgb, var(--moos-accent-soft) 45%, transparent); border: 1px solid var(--moos-border); border-radius: 8px; padding: 3px 11px; }
+.response-content .activity-history > summary { width: 100%; }
+.response-content .changed-files { margin-top: 16px; }
+.turn-empty-reply { font-size: 13px; color: var(--moos-muted); margin: 4px 0 0; line-height: 1.8; }
+.turn-heartbeat { font-size: 10px; color: var(--moos-muted); margin: 8px 0; }
+@media (max-width: 900px) { .response-content { padding-left: 0; } .grouped-transcript .message-user > .ant-bubble { max-width: 92%; } }
