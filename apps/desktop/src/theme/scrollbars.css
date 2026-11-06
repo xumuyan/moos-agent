@@ -1,0 +1,31 @@
+/* Keep the gutter fixed: reveal paint on hover without reflowing content. */
+:where(.app-shell, .settings-dialog, .ant-dropdown) * {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+:where(.app-shell, .settings-dialog, .ant-dropdown) *:hover,
+:where(.app-shell, .settings-dialog, .ant-dropdown) *:focus-visible {
+  scrollbar-color: #a5a5b080 transparent;
+}
+:where(.app-shell, .settings-dialog, .ant-dropdown) *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+:where(.app-shell, .settings-dialog, .ant-dropdown) *::-webkit-scrollbar-track,
+:where(.app-shell, .settings-dialog, .ant-dropdown) *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+:where(.app-shell, .settings-dialog, .ant-dropdown) *::-webkit-scrollbar-thumb {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+:where(.app-shell, .settings-dialog, .ant-dropdown) *:hover::-webkit-scrollbar-thumb,
+:where(.app-shell, .settings-dialog, .ant-dropdown) *:focus-visible::-webkit-scrollbar-thumb {
+  background-color: #a5a5b080;
+}
+@media (hover: none), (forced-colors: active) {
+  :where(.app-shell, .settings-dialog, .ant-dropdown) * { scrollbar-color: auto; }
+  :where(.app-shell, .settings-dialog, .ant-dropdown) *::-webkit-scrollbar-thumb { background-color: #a5a5b0; }
+}

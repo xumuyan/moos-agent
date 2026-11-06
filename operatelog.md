@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-06 13:40:43 +08:00｜P02.V1：滚动条悬停显示
+
+- 修改或新增内容：新增 `scrollbars.css` 统一处理对话、侧栏、设置和下拉区域；默认透明、悬停或直接键盘聚焦显示，WebKit 与标准 scrollbar-color 均覆盖，尺寸保持固定。补充测试与计划验收说明。
+- 遇到的难题：CSS 在 jsdom 测试中默认不加载；第一版按 import.meta.url 读文件得到非 file URL，第二版 raw 导入仍被 CSS 禁用配置转为空串，两次定向测试均失败，未记为通过。
+- 处理方式：测试改用 Vitest 桌面工程 cwd 下的真实 CSS 文件验证透明/悬停/可访问性边界及无 overflow hidden；保留触摸与强制颜色回退。构建后重新 ad-hoc 签名、严格验证并更新 Applications，旧包可从 `/tmp/moos-before-scroll.AIjqQl/Moos.app` 恢复。
+- 验证结果：完整桌面 `npm --prefix apps/desktop test -- --maxWorkers=1` 73/73；`npm test` 125/125，Rust 产品 17/17，打包通过 230.96 MiB。Mac GUI 对话区鼠标移入（x1028,y380）显示滑块，移出至侧栏（x100,y450）隐藏；滚动一页内容正确变化，未见布局跳动。文档检查和 git diff --check 在提交前执行。证据对应提交前工作区，仅记录脱敏结果，不保存历史对话屏幕。
+- 遗留问题：未逐一制造所有设置页和下拉框的溢出；共用样式覆盖，实测范围仅为 Mac 对话区。P02.V1 其他待验收项及 P02.8 保持原状态。
+- 对应 Git 提交：唯一说明 `style(P02.V1): reveal scrollbars on hover`，查询：`git log --all --oneline --grep='^style(P02.V1): reveal scrollbars on hover$'`。完成后推送并核对远程哈希。
+
 ## 2026-11-05 23:34:05 +08:00｜P02.V1：主页面与设置的 DSH 视觉对齐
 
 - 修改或新增内容：用户澄清“没有变”指样式差异，优先调整实际主界面；新增独立视觉样式，压缩侧栏/顶栏、居中对话、整体 22px 圆角输入卡、中性默认底色及蓝紫强调、宽设置导航。保留已有皮肤和业务状态，新增设置关闭回归、来源补充和脱敏验收证据。

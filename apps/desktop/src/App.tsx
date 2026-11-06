@@ -27,6 +27,7 @@ import './theme/tokens.css';
 import './theme/shell.css';
 import './style.css';
 import './theme/dsh-alignment.css';
+import './theme/scrollbars.css';
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 export default function App() {
