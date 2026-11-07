@@ -1,0 +1,30 @@
+{
+  "id": "E36",
+  "dateBeijing": "2026-11-07",
+  "machine": { "os": "macOS 27.0.1", "arch": "arm64", "windowPixels": "1280x820" },
+  "runtime": {
+    "app": "Original DeepSeek Harness Desktop 0.2.2-rc.1",
+    "signedBundleVerification": "codesign --verify --deep --strict passed",
+    "skinCenter": "@linxin666/dsh-client-ui-skin-center@0.4.5",
+    "sourceRevision": "85047d9cacb375f20bc8fabee4b3829fdfe47128",
+    "skinVersion": "maid-atelier 0.3.2",
+    "fileCount": 25,
+    "fileTreeSha256": "09ec4463c11bc81046781f4701a75a40039d9a9c89c10faae52d2007b1eaa087",
+    "manifestSha256": "7596a704bce65006381d27417d4c12bb09d7e5ede038a6f486cfa58e62314aa5",
+    "hooksSha256": "3b321e74b9fa7c1c859a589c56b86aeb833150718e63461b39b7f4e880c7fd30",
+    "installedRegistryMatchedBothHashes": true,
+    "diskUsageKiB": { "reusedOriginalApp": 1042528, "localProbeStateAtMeasurement": 23136 }
+  },
+  "acceptance": [
+    "Before commit: launched init from empty probe state, quit, installed original ZIP with probe.py, and opened with probe.py open.",
+    "Original skin center listed Abyssal Maid Atelier. Preview changed native window title to 深海女仆工坊 · DeepSeek Harness, and exit preview restored DeepSeek Harness.",
+    "Apply marked the skin active; native workbench displayed palace art, both characters, lace composer and script-mounted top and bottom trims.",
+    "Collapsing and reopening the original sidebar repositioned the characters and trim; the workspace tree returned when expanded.",
+    "After normal quit and probe.py open, the active id and hook-provided window title were restored."
+  ],
+  "notVerified": [
+    "Pixel equality with the web try-on, visibility of the sidebar mascot in every layout, and all animation states including model-driven animations.",
+    "General third-party skin or function plugin compatibility, market one-click install, and independent app packaging.",
+    "Moos PI integration, live model requests and non-Mac platforms."
+  ]
+}

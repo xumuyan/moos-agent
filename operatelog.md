@@ -748,3 +748,13 @@
 - 实际验收与工作区状态：本提交前同一产品工作区构建，macOS 27.0.1 arm64、1280×820。按固定源码的 `skins/maid-atelier` 原目录生成外包 ZIP，逐文件原字节一致。实机直接选择 ZIP 安装深海女仆工坊 0.3.2，自动启用并应用包内 WebP。重启恢复，停用回退，再启用并切回后留为当前皮肤。签名 deep/strict 通过，15388 项常规文件哈希与构建一致。主程序 SHA256 `124c96ec31eb052269ea72a86172aa4b05e2303f2d2ba4083e2061dd2dab9781`，`.app` 232.50 MiB。脱敏证据 `apps/desktop/evidence/p03-dsh-skin-import.json`，私有截图 `/tmp/moos-p040-acceptance/`。
 - 遗留问题：静态兼容未包含原版角色挂件、自由 CSS、视频及脚本动效。Cordis 运行时功能插件和旧版包需 DSH 环境。此次 macOS GUI 验收选 ZIP，文件夹由原生测试覆盖。未验收其他平台。
 - 对应 Git 提交：唯一说明 `feat(P03.10): install original DSH v2 static skins`。可用 `git log --all --oneline --grep='^feat(P03.10): install original DSH v2 static skins$'` 查询。提交后推送 GitHub main，并核对完整 HEAD。
+
+## 2026-11-07 18:36:12 +08:00｜P03.11 Electron + DSH 原版皮肤独立验证
+
+- 修改或新增内容：新增独立验证启动器、复跑说明、原包校验测试和 E36 脱敏证据。调用原版 Electron 桌面及其 Host，使用 DSH CLI 安装原版皮肤中心，将经过逐文件校验的原 ZIP 放入独立 DSH 配置。保持正式 Moos 应用、Tauri 和 PI 接线不变。
+- 遇到的难题：DSH 的 desktop profile 必须由原版 App 首次初始化且退出后才能安装。皮肤中心 0.4.4 能渲染静态原包，但内建审核表中的 hooks SHA256 与这份原包不符。仅凭看见双角色无法证明脚本运行，因为原补丁 CSS 也含回退角色层。
+- 处理方式：选用 npm 正式发布的 0.4.5，与固定源码 85047d9 中原包的清单和 hooks SHA256 完全匹配。保持上游字节校验，不修改白名单、不复制第三方素材入库。启动器隔离 DSH_HOME 和 Electron userData，不输出可能含私有启动参数的宿主日志。
+- 验证结果：原包探针 unittest 4/4；`npm test` 137/137；`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=120000 --hookTimeout=60000` 57 文件、175/175；`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --offline -- --test-threads=1` 30/30；`npm run test:docs` 52/52。核心、前端、原生记录在 `/tmp/moos-p0311-*.log`。
+- 实际验收与工作区状态：本提交前的启动器在 macOS 27.0.1 arm64、1280×820 从空探针配置完成 init、install、open。原生窗口试穿标题变成「深海女仆工坊 · DeepSeek Harness」，退出试穿后恢复；应用后实见双女仆、宫殿、蕾丝输入框、脚本上下边饰，收放侧栏时重新布局，正常退出重启后恢复。原版 App deep/strict 签名检查通过。复用 App 的磁盘占用 1042528 KiB，本次独立配置采样 23136 KiB，不是新安装包大小。证据 `probes/dsh-electron-skin/evidence.json`。
+- 遗留问题：未对网页试穿做逐像素比对，未覆盖 Q 版角色在各布局中的可见性和全部动画，尤其未提交模型任务验证运行态。只验收这一份皮肤原包；市场一键安装、其他插件、独立打包、PI 接入与其他系统均未验收。待具备可复现的相应场景后分别验证。
+- 对应 Git 提交：唯一说明 `feat(P03.11): verify original DSH skins in isolated Electron`，用 `git log --all --oneline --grep='^feat(P03.11): verify original DSH skins in isolated Electron$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
