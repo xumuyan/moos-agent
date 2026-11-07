@@ -1,0 +1,49 @@
+{
+  "evidence": "E67",
+  "dateBeijing": "2026-11-08",
+  "platform": "macOS 27.0.1 arm64",
+  "installedPath": "/Applications/Moos.app",
+  "guiAcceptancePath": "/Applications/Moos-PI-Acceptance.app",
+  "build": "build-PmnxIL",
+  "sourceCommit": "7498d12d180eccf371f832317d028150ef61e877",
+  "bundleId": "dev.moos.agent.electron",
+  "appVersion": "0.1.0",
+  "piVersion": "1.5.0",
+  "bundle": {
+    "strictDeepSignatureVerified": true,
+    "signatureType": "ad-hoc",
+    "allRegularFilesAndSymlinksMatch": true,
+    "regularFiles": 32027,
+    "symlinks": 22,
+    "executableSha256": "82e795da1abd2b01c445f62d9fba7f9dbc7cc995767d29cd1e48b6f1e883cb94",
+    "localZipBytes": 225787332,
+    "localZipIntegrityVerified": true,
+    "logicalFileBytes": 617047242,
+    "diskAllocatedKiB": 692276,
+    "runtimeBundled": true
+  },
+  "acceptance": {
+    "launchFromInstalledPathVerified": true,
+    "sameBundleRestoredToInstalledPath": true,
+    "isolatedUserData": true,
+    "modelSelection": "auto",
+    "onlineModel": "glm-5.3",
+    "successfulTools": ["write", "bash"],
+    "fileSha256": "ef46e8525d71af5d14420e54a30035eede42d7b84f9a93777fdc6ef631eddb37",
+    "taskStatus": "succeeded",
+    "usageEvents": 3,
+    "totalTokens": 3585,
+    "appHostAndHelpersExited": true,
+    "sameConversationReopened": true,
+    "taskCountAfterRestart": 1,
+    "defaultInstalledExtensions": ["@linxin666/dsh-client-ui-skin-center"],
+    "addPluginEntryVisible": true
+  },
+  "limits": {
+    "notarized": false,
+    "thirdPartyDistributionVerified": false,
+    "cleanMacVerified": false,
+    "networkDownloadBytesMeasured": false,
+    "uninstallVerified": false
+  }
+}

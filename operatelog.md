@@ -1077,3 +1077,13 @@
 - 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<验收包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 复跑 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 59/59，Git 差异检查通过。
 - 遗留问题：单对合成样本，两边运行时工具、提示及权限实现各自保留，原版包含标题请求，缓存和线上负载未控制。差值限本次任务。正式安装、真实大型项目及多轮重复样本另验。
 - 对应 Git 提交：唯一说明 `test(P03.13): compare five-file live desktop task`，用 `git log --all --oneline --grep='^test(P03.13): compare five-file live desktop task$'` 查询。
+
+## 2026-11-08 04:57:28 +08:00｜P03.13.8 安装 Moos Electron 到本机
+
+- 修改或新增内容：将当前 Moos Electron 构建安装到 `/Applications/Moos.app`。新增 E67 安装记录、体积测量及文档回归，本轮无运行时代码变更。
+- 遇到的难题：应用路径仍有旧 Tauri 标识的电脑操作缓存，直接定位 `/Applications/Moos.app` 时无法找到新窗口。启动进程和系统应用注册均已确认使用 Electron 标识。
+- 处理方式：复制前后分别严格验签，并逐项比对 32,027 个常规文件与 22 个符号链接。先从正式路径启动并核对主进程和随包 Host，再临时为同一应用包使用唯一安装路径完成原生界面验收，退出后恢复正式路径并再次验签。模型凭据使用隔离配置，验收结束清理临时凭据。保留原应用数据。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，用 `build-PmnxIL`（运行时代码 `7498d12`、PI 1.5.0）。真实 GLM-5.3 经 PI 写入指定文件和执行 Node 校验，文件字节准确，任务成功，SQLite 三条线上用量事件。插件页仅有已启用的皮肤中心及添加入口。正常退出后主进程、Host 和辅助进程停止，重启并打开原会话仍显示任务成功和文件变更，任务数为一。验收后应用位于正式安装路径。ZIP 完整性检查通过，压缩体积 225,787,332 字节，应用逻辑文件 617,047,242 字节，磁盘分配 692,276 KiB。证据 `apps/desktop/evidence/p03-pi-electron-installation.json`。
+- 验证结果：`codesign --verify --deep --strict`、`unzip -tq`、`git diff --check` 通过；`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。
+- 遗留问题：本机包为 ad-hoc 签名。正式 Apple 签名和公证、第三方分发范围、干净 Mac 的首次下载流量与卸载另验。正常用户配置的模型服务需在 Moos 内单独设置。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify installed Moos Electron with live PI`，用 `git log --all --oneline --grep='^test(P03.13): verify installed Moos Electron with live PI$'` 查询。

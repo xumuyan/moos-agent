@@ -943,6 +943,36 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['limits']['cacheControlled'])
         self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
 
+    def test_pi_electron_installation_distinguishes_local_acceptance_from_distribution(self):
+        evidence = ROOT / 'apps/desktop/evidence/p03-pi-electron-installation.json'
+        report = json.loads(evidence.read_text())
+        self.assertIn('| E67 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['installedPath'], '/Applications/Moos.app')
+        self.assertNotEqual(report['guiAcceptancePath'], report['installedPath'])
+        self.assertEqual(report['bundleId'], 'dev.moos.agent.electron')
+        self.assertRegex(report['sourceCommit'], r'^[0-9a-f]{40}$')
+        bundle = report['bundle']
+        self.assertEqual(bundle['signatureType'], 'ad-hoc')
+        self.assertTrue(bundle['strictDeepSignatureVerified'])
+        self.assertTrue(bundle['allRegularFilesAndSymlinksMatch'])
+        self.assertTrue(bundle['localZipIntegrityVerified'])
+        self.assertTrue(bundle['runtimeBundled'])
+        self.assertLess(bundle['localZipBytes'], bundle['logicalFileBytes'])
+        self.assertLess(bundle['logicalFileBytes'], bundle['diskAllocatedKiB'] * 1024)
+        acceptance = report['acceptance']
+        self.assertTrue(acceptance['launchFromInstalledPathVerified'])
+        self.assertTrue(acceptance['sameBundleRestoredToInstalledPath'])
+        self.assertTrue(acceptance['isolatedUserData'])
+        self.assertEqual(acceptance['onlineModel'], 'glm-5.3')
+        self.assertEqual(acceptance['successfulTools'], ['write', 'bash'])
+        self.assertEqual(acceptance['taskStatus'], 'succeeded')
+        self.assertTrue(acceptance['appHostAndHelpersExited'])
+        self.assertTrue(acceptance['sameConversationReopened'])
+        self.assertEqual(acceptance['taskCountAfterRestart'], 1)
+        self.assertEqual(acceptance['defaultInstalledExtensions'], ['@linxin666/dsh-client-ui-skin-center'])
+        self.assertTrue(acceptance['addPluginEntryVisible'])
+        self.assertTrue(all(value is False for value in report['limits'].values()))
+
 
 if __name__ == '__main__':
     unittest.main()
