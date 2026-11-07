@@ -6,11 +6,37 @@ import test from 'node:test';
 import { checkedProvider } from '../../packages/pi-adapter/index.mjs';
 import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from '../../services/agent/fixture.mjs';
+import { diagnoseProvider } from '../../services/agent/provider-diagnostics.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { Store } from '../../services/agent/store.mjs';
 import { piModels } from './plugin/pi-models.js';
 import { createPiAdapter } from './plugin/pi-route.js';
 import { createPiTasks } from './plugin/pi-tasks.js';
+
+test('model settings test drafts safely without saving or forwarding a saved key to another address', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'moos-model-diagnostic-'));
+  let requests = 0;
+  const fixture = await startFixture({ onModelRequest() { requests++; } });
+  t.after(async () => { await fixture.close(); await rm(dir, { recursive: true, force: true }); });
+  const models = piModels(dir, checkedProvider);
+  const draft = { id: '', model: 'fixture', api: 'openai-responses', baseUrl: fixture.baseUrl, apiKey: fixture.apiKey };
+  assert.equal((await models.testConnection(draft, diagnoseProvider)).code, 'ok');
+  assert.deepEqual(await models.list(), []);
+  await models.save({ ...draft, id: 'saved' });
+  const saved = { ...(await models.resolve('saved')), apiKey: '' };
+  const result = await models.testConnection(saved, diagnoseProvider);
+  assert.equal(result.status, 200);
+  assert.equal(result.code, 'ok');
+  assert.equal(requests, 2);
+  const moved = await models.testConnection({ ...saved, baseUrl: fixture.baseUrl + '/elsewhere' }, diagnoseProvider);
+  assert.equal(moved.code, 'missing_key');
+  assert.equal(requests, 2);
+  const invalid = await models.testConnection({ ...saved, apiKey: 'deliberately-invalid-key' }, diagnoseProvider);
+  assert.equal(invalid.code, 'auth');
+  assert.equal(invalid.status, 401);
+  assert.doesNotMatch(JSON.stringify(result) + JSON.stringify(invalid), /fixture-test-only|deliberately-invalid/);
+  assert.equal(await models.credential(saved), fixture.apiKey);
+});
 
 test('a configured desktop profile runs arbitrary workspace text through PI with native High', async t => {
   const data = await mkdtemp(join(tmpdir(), 'moos-pi-models-'));

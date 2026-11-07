@@ -97,8 +97,10 @@ export async function diagnoseProvider(method, params = {}) {
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
   try {
     const provider = params.provider;
+    const glmReasoning = provider.service === 'glm' && /^glm-5\.[23](?:$|[-:])/i.test(provider.model);
     const body = method === 'list_models' ? undefined : JSON.stringify(provider.api === 'openai-completions'
-      ? { model: provider.model.trim(), messages: [{ role: 'user', content: 'Reply OK' }], max_tokens: 16, stream: false }
+      ? { model: provider.model.trim(), messages: [{ role: 'user', content: 'Reply OK' }],
+          max_tokens: glmReasoning ? 256 : 16, ...(glmReasoning ? { reasoning_effort: 'low' } : {}), stream: false }
       : { model: provider.model.trim(), input: 'Reply OK', max_output_tokens: 16, stream: false });
     const response = await fetch(url, { method: body ? 'POST' : 'GET',
       headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json', ...(body ? { 'content-type': 'application/json' } : {}) },

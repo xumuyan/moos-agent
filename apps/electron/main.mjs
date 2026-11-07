@@ -18,7 +18,7 @@ let host;
 let hostStopped = false;
 let modelWindow;
 
-function installModelSettings(resources, models) {
+function installModelSettings(resources, models, diagnoseProvider) {
   const assets = join(resources, 'app');
   function senderAllowed(event) {
     if (!modelWindow || event.sender !== modelWindow.webContents || event.senderFrame !== event.sender.mainFrame) {
@@ -32,6 +32,10 @@ function installModelSettings(resources, models) {
   ipcMain.handle('moos:models:save', (event, profile) => {
     senderAllowed(event);
     return models.save(profile);
+  });
+  ipcMain.handle('moos:models:test', (event, profile) => {
+    senderAllowed(event);
+    return models.testConnection(profile, diagnoseProvider);
   });
   return () => {
     if (modelWindow) { modelWindow.focus(); return; }
@@ -109,11 +113,12 @@ async function launch() {
     },
   });
   const address = await host.ready;
-  const [{ checkedProvider }, { timelinePayload }] = await Promise.all([
+  const [{ checkedProvider }, { timelinePayload }, { diagnoseProvider }] = await Promise.all([
     import(pathToFileURL(join(piRuntime, 'packages/pi-adapter/index.mjs')).href),
     import(pathToFileURL(join(piRuntime, 'services/agent/timeline-view.mjs')).href),
+    import(pathToFileURL(join(piRuntime, 'services/agent/provider-diagnostics.mjs')).href),
   ]);
-  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider));
+  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider), diagnoseProvider);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'Moos', submenu: [
       { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: openModelSettings },

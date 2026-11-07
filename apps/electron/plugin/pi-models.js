@@ -97,6 +97,18 @@ export function piModels(data, checkedProvider) {
     return entry.apiKey;
   }
 
+  async function testConnection(input, diagnoseProvider) {
+    let provider;
+    try {
+      provider = validate({ ...input, id: input?.id || 'diagnostic', name: input?.name || input?.model });
+    } catch {
+      return diagnoseProvider('test_provider');
+    }
+    const apiKey = input.apiKey === '' || input.apiKey === undefined
+      ? await credential(provider).catch(() => undefined) : input.apiKey;
+    return diagnoseProvider('test_provider', { provider, apiKey });
+  }
+
   async function replace(path, value) {
     const temporary = path + '.' + randomUUID();
     try {
@@ -129,5 +141,5 @@ export function piModels(data, checkedProvider) {
     return pending;
   }
 
-  return { list, resolve, plan, credential, save };
+  return { list, resolve, plan, credential, save, testConnection };
 }

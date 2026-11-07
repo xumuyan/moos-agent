@@ -61,6 +61,20 @@ for (const api of ['openai-completions', 'openai-responses']) {
   });
 }
 
+test('GLM reasoning diagnostics leave room for a visible answer while staying bounded', async t => {
+  let payload;
+  const f = await setup(t, async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    payload = JSON.parse(body);
+    json(res, 200, chat);
+  });
+  result(await f.request('test_provider', { provider: { ...f.provider, service: 'glm', model: 'glm-5.3' } }), 'ok');
+  assert.equal(payload.reasoning_effort, 'low');
+  assert.equal(payload.max_tokens, 256);
+  assert.equal(payload.stream, false);
+});
+
 test('list requires neither model, id nor name, deduplicates and bounds IDs and scrubs exact keys', async t => {
   const f = await setup(t, (req, res) => {
     assert.equal(req.method, 'GET'); assert.equal(req.url, '/nested/v1/models');

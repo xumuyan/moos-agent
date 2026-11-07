@@ -1047,3 +1047,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用验收包 CLI 27/27，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57。验收包严格深度签名及 Git 差异检查通过。
 - 遗留问题：本轮完整构建受本机磁盘空间限制，验收用已更新资源的开发包。桌面文件选择后发送图片的完整交互未实测。能力开关依赖先完成服务验证，未实现一键测试。下一轮如需再次查看旧图，须重新附加。
 - 对应 Git 提交：唯一说明 `feat(P03.13): route verified image input through PI`，用 `git log --all --oneline --grep='^feat(P03.13): route verified image input through PI$'` 查询。
+
+## 2026-11-08 04:24:18 +08:00｜P03.13.5 Electron 模型连接诊断
+
+- 修改或新增内容：在「Moos → 模型服务…」添加「测试连接」，使用当前表单检测服务地址、认证及模型文本响应，显示脱敏结果、HTTP 状态及耗时。编辑表单或切换配置后忽略旧结果。诊断不保存配置、不写会话历史。
+- 遇到的难题：GLM-5.3 的 16 Token 短请求返回 HTTP 200，但只生成推理内容，缺少可见答案。首轮完整测试和构建还遇到磁盘写满，且构建默认位置没有安装固定版本的 DSH。
+- 处理方式：GLM 5.2 和 5.3 的连接探针使用低推理档和 256 Token 上限，继续要求有效的可见文本。复用现有超时、响应大小和错误脱敏逻辑。只有配置 ID 和规范化服务地址匹配时才沿用已保存密钥。清理八份未运行且未被验收记录引用的可重建旧包后，显式指定本地固定版 DSH 并重新构建，复跑受影响的测试。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，从源码全新构建并严格验签的 `build-PmnxIL`，用隔离配置从原生菜单打开模型服务窗口。真实 GPT-6.1 Sol 中转显示验证成功、HTTP 200、3498 毫秒；真实 GLM-5.3 Coding Plan 显示验证成功、HTTP 200、1218 毫秒；本机受控错误密钥显示「模型密钥无效或已失效」、HTTP 401、69 毫秒。证据为桌面无障碍树读数，未记录密钥或响应正文。
+- 验证结果：`MOOS_ELECTRON_DSH_APP=<本地固定版应用> node apps/electron/prepare-local.mjs` 与 `codesign --verify --deep --strict` 成功；`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> node --test apps/electron/*.test.mjs` 28/28，`npm test` 138/138，`npm run test:desktop-ui` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57，Git 差异检查通过。
+- 遗留问题：短文本诊断单次耗时不能用于 PI 执行性能比较。真实套餐认证和额度异常、设置中心统一入口、桌面图片从选择到发送的完整交互仍待分项验收。
+- 对应 Git 提交：唯一说明 `feat(P03.13): test model connections from Electron settings`，用 `git log --all --oneline --grep='^feat(P03.13): test model connections from Electron settings$'` 查询。

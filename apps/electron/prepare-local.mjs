@@ -105,6 +105,7 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
     'packages/pi-runtime/repair-routing.mjs', 'packages/pi-runtime/session-fork.mjs', 'packages/pi-adapter/index.mjs',
     'services/agent/store.mjs', 'services/agent/scheduler.mjs',
     'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
+    'services/agent/provider-diagnostics.mjs',
     'services/agent/usage.mjs']) {
     const destination = join(runtime, file);
     await mkdir(dirname(destination), { recursive: true });
