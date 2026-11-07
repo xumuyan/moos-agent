@@ -893,3 +893,14 @@
 - 停止与失败：本地验收任务实际启动 Bash，点击停止后进程退出，界面显示已停止，命令行显示结果未记录。随后同会话提交认证失败样例，界面显示模型服务认证失败与 AUTHENTICATION，未回显上游正文。
 - 遗留问题：Git 摘要覆盖 Git 可见文件与扫描限额内的文件。非 Git 命令和取消时的未核实改动不计入；旧轮次没有当前映射，分支继承、长任务和完整重试入口仍待验。
 - 对应 Git 提交：唯一说明 `feat(P03.13): show PI actions and workspace changes`，用 `git log --all --oneline --grep='^feat(P03.13): show PI actions and workspace changes$'` 查询。
+
+## 2026-11-08 01:41:11 +08:00｜P03.13.5 自动备用与两轮修复升级
+
+- 修改或新增内容：Moos 自动模式保持 GLM 优先。配置有备用时，首选服务在输出或运行工具前遇到额度、限流或网络错误可切换一次。已识别验证命令在首次失败后，若两次成功的文件修改后重测仍得到同一失败，使用 High/XHigh 的已配置中转模型继续当前 PI 会话。记录模型切换原因及各请求实际服务、模型和窗口。
+- 遇到的难题：429 可能是限流或额度不足，上游错误正文可能含敏感信息。服务切换时重新提交已经执行工具的任务会重复改动。两轮修复的计数需要区分并行验证、没有修复的重复失败、不同失败和缺失依赖。原生 PTY 全量首次运行时复现结束状态与租约释放的时序断言。
+- 处理方式：代理只识别有限的状态和结构化额度码，丢弃上游错误正文。早期备用从同一 PI 历史检查点继续，手动模式、认证失败及已产出回复或执行工具后不自动重放。修复升级发生在下一次模型请求前，携带前面的工具结果，按验证启动时的修改状态计数。空闲后以单线程完整复跑原生测试通过。
+- 回归复查：后续一次全量测试中，超限请求上传偶发 `ECONNRESET`，本地定向复现。旧代理在返回 413 后立即关闭连接，客户端可能仍在写请求。代理现在返回 413 并丢弃剩余数据，保留原大小上限。新增定长和分块请求覆盖，旧行为未通过新断言，修复后定向连续通过 12 次。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 18/18，`npm test` 最终复跑 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。使用缓存中的固定版 DSH 重打包为 `build-SHK15Q`，构建、深度严格签名及 Git 差异检查通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 用 `build-0VzjCj`，本地受控主路由依次执行失败测试、修复、失败测试、修复、失败测试。随后同一会话切换至线上 GPT-6.1 Sol。实际五次请求均为 High、HTTP 200，第一条已带失败结果和第二次修复，使用原有中转配置，核对线上模型写入验收文件的字节和原修复文件保留。界面展开过程显示升级原因，线上用量事件合计 28,717 Token。`build-xbQRqQ` 本地复验自动模式识别额度错误并完成备用请求，手动固定主模型时同一错误显示 QUOTA，仅记录一次切换。最后的代理上传边界修正通过实际回环 HTTP 请求复验，并在 `build-SHK15Q` 核对打包文件与源码一致。
+- 遗留问题：主路由故障来自可控样例，未主动制造真实账户欠费。修复升级覆盖已识别验证命令及稳定失败输出，其他命令和依赖异常不会据此升级。模型请求与工具次数上限配置、长任务、视觉和完整重试入口按原计划推进。脱敏日志见 `/tmp/moos-routing-*.log`。
+- 对应 Git 提交：唯一说明 `feat(P03.13): route PI fallback and repair escalation`，用 `git log --all --oneline --grep='^feat(P03.13): route PI fallback and repair escalation$'` 查询。

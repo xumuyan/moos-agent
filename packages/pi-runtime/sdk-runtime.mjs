@@ -10,6 +10,7 @@ import { classifyTaskError, TaskFailure } from '../../services/agent/errors.mjs'
 import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-policy.mjs';
 import { normalizeUsage } from '../../services/agent/usage.mjs';
 import { workspaceTools } from './tool-policy.mjs';
+import { repairRouting } from './repair-routing.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
@@ -53,7 +54,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   const cwd = await realpath(project.path);
@@ -67,77 +68,123 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; abort(); }, duration);
   const aborted = () => new TaskFailure(timedOut ? 'timeout' : 'cancelled');
-  let proxy; let session; let unsubscribe;
+  const routes = new Map();
+  let session; let unsubscribe;
   try {
     if (controller.signal.aborted) throw aborted();
     await privateDir(dataDir); await privateDir(root);
     const agentDir = join(root, 'agent');
     await privateDir(agentDir);
     const instructions = await context(cwd);
-    proxy = await proxyFor(provider, upstream, apiKey);
     const modelsPath = join(agentDir, 'models.json');
-    const thinkingLevel = provider.thinkingLevel ?? 'off';
-    const reasoning = thinkingLevel !== 'off' || provider.service === 'glm';
-    await privateFile(modelsPath, JSON.stringify({ providers: { [provider.id]: {
-      baseUrl: proxy.baseUrl, api: provider.api, authHeader: true,
-      ...(provider.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
-      models: [{ id: provider.model, name: provider.name, reasoning, input: ['text'],
-        ...(thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
-        contextWindow: provider.contextWindow, maxTokens: provider.maxTokens,
-        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
-    } } }));
+    const configs = {};
+    async function add(profile, baseUrl, key) {
+      const proxy = await proxyFor(profile, baseUrl, key);
+      const thinkingLevel = profile.thinkingLevel ?? 'off';
+      routes.set(profile.id, { profile, proxy, thinkingLevel });
+      configs[profile.id] = {
+        baseUrl: proxy.baseUrl, api: profile.api, authHeader: true,
+        ...(profile.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
+        models: [{ id: profile.model, name: profile.name, reasoning: thinkingLevel !== 'off' || profile.service === 'glm', input: ['text'],
+          ...(thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
+          contextWindow: profile.contextWindow, maxTokens: profile.maxTokens,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
+      };
+    }
+    await add(provider, upstream, apiKey);
+    if (routing?.backup && routing.backup.provider.id !== provider.id) {
+      validate({ task, project, conversation, dataDir, apiKey: routing.backup.apiKey });
+      await add(routing.backup.provider, checkedProvider(routing.backup.provider), routing.backup.apiKey);
+    }
+    await privateFile(modelsPath, JSON.stringify({ providers: configs }));
     const modelRuntime = await ModelRuntime.create({ authPath: join(agentDir, 'auth.json'), modelsPath, refreshOnCreate: false });
-    await modelRuntime.setRuntimeApiKey(provider.id, proxy.token);
-    const model = modelRuntime.getModel(provider.id, provider.model);
-    if (!model) throw new Error('PI SDK model unavailable');
+    for (const [id, entry] of routes) {
+      await modelRuntime.setRuntimeApiKey(id, entry.proxy.token);
+      entry.model = modelRuntime.getModel(id, entry.profile.model);
+      if (!entry.model) throw new Error('PI SDK model unavailable');
+    }
     const sessionManager = SessionManager.continueRecent(cwd, root);
-    const customTools = permissions && workspaceTools(cwd, permissions);
-    ({ session } = await createAgentSession({
-      cwd, agentDir, modelRuntime, model, thinkingLevel,
-      resourceLoader: resourceLoader(instructions), sessionManager,
-      // PI defaults provider requests to a 5-minute idle deadline. Match the
-      // selected bounded task policy so quiet long-running requests are not
-      // terminated before Moos' own task deadline.
-      settingsManager: sdkSettings(duration),
-      tools: customTools?.map(tool => tool.name) ?? ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
-      customTools,
-    }));
-    let text = ''; let last;
-    unsubscribe = session.subscribe(event => {
-      if (event.type === 'message_update' && event.assistantMessageEvent?.type === 'text_delta') {
-        const delta = event.assistantMessageEvent.delta; text += delta; emit('text_delta', { delta });
-      } else if (event.type === 'message_end' && event.message?.role === 'assistant') {
-        last = event.message;
-        const rawUsage = proxy.takeUsage();
-        if (last.usage && rawUsage) {
-          try { emit('usage', normalizeUsage(last.usage, rawUsage)); }
-          catch { /* Missing or malformed provider usage is never estimated. */ }
-        }
-      } else if (event.type === 'tool_execution_start') {
-        emit('tool_start', { toolCallId: event.toolCallId, toolName: event.toolName, args: event.args });
-      } else if (event.type === 'tool_execution_update') {
-        emit('tool_update', { toolCallId: event.toolCallId, partialResult: event.partialResult });
-      } else if (event.type === 'tool_execution_end') {
-        emit('tool_end', { toolCallId: event.toolCallId, toolName: event.toolName, result: event.result, isError: event.isError });
+    const primary = routes.get(provider.id);
+    const backup = routes.get(routing?.backup?.provider.id);
+    const repair = backup && routing.backup.repair ? repairRouting() : undefined;
+    let active = primary;
+    let text = ''; let last; let progressed = false;
+    const switched = (reason) => {
+      active = backup;
+      emit('model_route', { from: primary.profile.name, to: backup.profile.name, reason });
+    };
+    async function createSession() {
+      const customTools = permissions && workspaceTools(cwd, permissions);
+      ({ session } = await createAgentSession({
+        cwd, agentDir, modelRuntime, model: active.model, thinkingLevel: active.thinkingLevel,
+        resourceLoader: resourceLoader(instructions), sessionManager,
+        settingsManager: sdkSettings(duration),
+        tools: customTools?.map(tool => tool.name) ?? ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
+        customTools,
+      }));
+      if (repair && active === primary) {
+        const prepare = session.agent.prepareRequest;
+        session.agent.prepareRequest = async (request, requestSignal) => {
+          const update = await prepare?.(request, requestSignal);
+          if (!repair.ready() || active !== primary || requestSignal?.aborted) return update;
+          await session.setModel(backup.model);
+          session.setThinkingLevel(backup.thinkingLevel);
+          switched('repair');
+          return { ...update, model: backup.model, thinkingLevel: session.thinkingLevel };
+        };
       }
-    });
-    const onAbort = () => { session.clearQueue(); void session.abort(); };
+      unsubscribe = session.subscribe(event => {
+        if (active === primary) repair?.event(event);
+        if (event.type === 'message_update' && event.assistantMessageEvent?.type === 'text_delta') {
+          const delta = event.assistantMessageEvent.delta; text += delta; progressed ||= Boolean(delta);
+          emit('text_delta', { delta });
+        } else if (event.type === 'message_end' && event.message?.role === 'assistant') {
+          last = event.message;
+          const used = routes.get(last.provider) ?? active;
+          const rawUsage = used.proxy.takeUsage();
+          if (last.usage && rawUsage) {
+            try {
+              emit('usage', { ...normalizeUsage(last.usage, rawUsage), providerId: used.profile.id,
+                model: used.profile.model, contextWindow: used.profile.contextWindow });
+            } catch { /* Missing or malformed provider usage is never estimated. */ }
+          }
+        } else if (event.type === 'tool_execution_start') {
+          progressed = true;
+          emit('tool_start', { toolCallId: event.toolCallId, toolName: event.toolName, args: event.args });
+        } else if (event.type === 'tool_execution_update') {
+          emit('tool_update', { toolCallId: event.toolCallId, partialResult: event.partialResult });
+        } else if (event.type === 'tool_execution_end') {
+          emit('tool_end', { toolCallId: event.toolCallId, toolName: event.toolName, result: event.result, isError: event.isError });
+        }
+      });
+    }
+    const onAbort = () => { session?.clearQueue(); void session?.abort(); };
     controller.signal.addEventListener('abort', onAbort, { once: true });
     try {
-      if (controller.signal.aborted) throw aborted();
-      await session.prompt(message);
-      await session.waitForIdle();
-      if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
-      if (!last || last.stopReason !== 'stop') {
-        const failure = classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`));
-        throw new TaskFailure(failure.code);
+      const checkpoint = sessionManager.getLeafId();
+      for (;;) {
+        await createSession();
+        if (controller.signal.aborted) throw aborted();
+        last = undefined;
+        await session.prompt(message);
+        await session.waitForIdle();
+        if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
+        if (last?.stopReason === 'stop') return { text };
+        const code = active.proxy.failure() ??
+          classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`)).code;
+        if (!backup || active !== primary || progressed || !['rate_limit', 'quota', 'network'].includes(code)) {
+          throw new TaskFailure(code);
+        }
+        unsubscribe?.(); session.dispose(); session = undefined; unsubscribe = undefined;
+        if (checkpoint === null) sessionManager.resetLeaf();
+        else sessionManager.branch(checkpoint);
+        switched(code);
       }
-      return { text };
     } finally { controller.signal.removeEventListener('abort', onAbort); }
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', abort);
     unsubscribe?.(); session?.dispose();
-    if (proxy) await proxy.close();
+    await Promise.all([...routes.values()].map(entry => entry.proxy.close()));
     busy.delete(root); busy.delete(cwd);
   }
 }

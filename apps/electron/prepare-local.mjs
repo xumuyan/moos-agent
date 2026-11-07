@@ -101,7 +101,8 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
   for (const file of ['package.json', 'package-lock.json']) await cp(join(repo, file), join(runtime, file));
   execFileSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
     { cwd: runtime, stdio: 'inherit' });
-  for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/tool-policy.mjs', 'packages/pi-adapter/index.mjs',
+  for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/tool-policy.mjs',
+    'packages/pi-runtime/repair-routing.mjs', 'packages/pi-adapter/index.mjs',
     'services/agent/store.mjs', 'services/agent/scheduler.mjs',
     'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
     'services/agent/usage.mjs']) {

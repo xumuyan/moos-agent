@@ -38,7 +38,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   });
   let closing;
 
-  async function open({ sessionId, turnStartSeq, cwd, input, signal, permissions, provider }) {
+  async function open({ sessionId, turnStartSeq, cwd, input, signal, permissions, provider, backup }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)) throw new Error('Invalid PI task');
@@ -67,7 +67,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
         store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
       }
     } });
-    contextByTask.set(task.id, { permissions, provider });
+    contextByTask.set(task.id, { permissions, provider, backup });
     const pending = [];
     const settled = Promise.withResolvers();
     let done = false;

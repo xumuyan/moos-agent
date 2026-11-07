@@ -47,10 +47,12 @@ export async function apply(ctx) {
     async run(options) {
       const provider = fixtureProvider ?? options.provider;
       const apiKey = fixture?.apiKey ?? await models.credential(provider);
-      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
-        emit: (type, payload) => options.emit(type, type === 'usage'
-          ? { ...payload, contextWindow: provider.contextWindow } : payload),
-      });
+      let backup;
+      if (models && options.backup) {
+        const key = await models.credential(options.backup.provider).catch(() => undefined);
+        if (key) backup = { ...options.backup, apiKey: key };
+      }
+      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'), routing: { backup } });
     },
   });
   try {

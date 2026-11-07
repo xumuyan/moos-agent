@@ -69,11 +69,16 @@ export function createPiTurnReader(dbPath, timelinePayload) {
         SELECT payload FROM events WHERE taskId = ? AND type = 'workspace_changes' ORDER BY id DESC LIMIT 1
       `).get(task.id);
       const changes = snapshot ? JSON.parse(snapshot.payload) : undefined;
+      const route = db.prepare(`
+        SELECT json_extract(payload, '$.from') AS previous, json_extract(payload, '$.to') AS current,
+          json_extract(payload, '$.reason') AS reason
+        FROM events WHERE taskId = ? AND type = 'model_route' ORDER BY id DESC LIMIT 1
+      `).get(task.id);
       const confirmed = new Map(changes?.files.map(file => [file.path, file.summary]));
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([
         ...[...files].map(([path, operations]) => [path, [...operations].join('、')]), ...confirmed,
       ]);
-      return { status: task.status, actions: [...actions.values()], limited: events.length > 400,
+      return { status: task.status, actions: [...actions.values()], route, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
         files: [...mergedFiles].map(([path, summary]) => ({ path, summary })) };
     },

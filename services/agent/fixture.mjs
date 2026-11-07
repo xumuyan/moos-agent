@@ -48,7 +48,7 @@ function responsesText(res, text) {
 }
 
 /** Local-only, deterministic OpenAI SSE endpoint. Never contacts a model service. */
-export async function startFixture({ longDelayMs = 605000, desktopPolicy = false, onModelRequest } = {}) {
+export async function startFixture({ longDelayMs = 605000, desktopPolicy = false, onModelRequest, routingTest = false } = {}) {
   if (!Number.isSafeInteger(longDelayMs) || longDelayMs < 1 || longDelayMs > 620000) throw new Error('Invalid fixture long delay');
   const server = createServer(async (req, res) => {
     try {
@@ -79,6 +79,10 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
         }
       }
       if (req.url === '/v1/responses') {
+        if (routingTest && input.stream === true && JSON.stringify(input.input).includes('MOOS_ROUTE_')) {
+          if (JSON.stringify(input.input).includes('MOOS_ROUTE_BOTH')) return reply(res, 503, 'backup unavailable');
+          return responsesText(res, 'Backup PI route ready');
+        }
         if (input.stream === true && JSON.stringify(input.input).includes('MOOS_FIXTURE_RESPONSES')) {
           return responsesText(res, 'Responses SDK ready');
         }
@@ -89,6 +93,27 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       const lastUser = messages.findLastIndex(message => message.role === 'user');
       if (lastUser < 0) return reply(res, 400, 'Fixture user message required');
       const text = messageText(messages[lastUser].content);
+      if (routingTest && text.includes('MOOS_ROUTE_')) {
+        const calls = messages.slice(lastUser + 1).filter(message => message.role === 'assistant')
+          .flatMap(message => message.tool_calls ?? []);
+        if (text.includes('MOOS_ROUTE_QUOTA')) {
+          res.writeHead(429, { 'content-type': 'application/json' });
+          return res.end(JSON.stringify({ error: { code: 'insufficient_quota', message: 'private upstream detail' } }));
+        }
+        if (text.includes('MOOS_ROUTE_AUTH')) return reply(res, 401, 'private upstream detail');
+        if (text.includes('MOOS_ROUTE_BOTH')) return reply(res, 429, 'primary unavailable');
+        if (text.includes('MOOS_ROUTE_AFTER_TOOL')) {
+          return calls.length ? reply(res, 429, 'fixture rate limit')
+            : tool(res, 'write', { path: 'once.txt', content: 'written once\n' }, 1);
+        }
+        if (text.includes('MOOS_ROUTE_REPAIR')) {
+          const index = calls.length;
+          if (index >= 5) return reply(res, 500, 'expected repair upgrade before another primary request');
+          return index % 2 === 0
+            ? tool(res, 'bash', { command: '/bin/bash test.sh' }, index + 1)
+            : tool(res, 'write', { path: 'repair.txt', content: 'repair ' + index + '\n' }, index + 1);
+        }
+      }
       if (/\bMOOS_FIXTURE_AUTH_FAIL\b/.test(text)) return reply(res, 401, 'fixture upstream SECRET detail');
       if (/\bMOOS_FIXTURE_RATE_LIMIT\b/.test(text)) return reply(res, 429, 'fixture rate limit');
       if (/\bMOOS_FIXTURE_LONG\b/.test(text)) {

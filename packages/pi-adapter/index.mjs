@@ -69,26 +69,77 @@ export async function proxyFor(provider, baseUrl, apiKey) {
   const path = provider.api === 'openai-responses' ? '/responses' : '/chat/completions';
   const upstreams = new Set();
   const usageQueue = [];
+  let failure;
   const server = createServer(async (req, res) => {
     req.on('error', () => {}); res.on('error', () => {});
-    const reject = status => { res.writeHead(status, { 'content-type': 'application/json', connection: 'close' }); res.end(JSON.stringify({ error: { message: `Proxy rejected request (${status})` } })); req.resume(); };
+    const reject = status => {
+      const headers = { 'content-type': 'application/json' };
+      // Drain oversize uploads without resetting the connection while the client writes.
+      if (status !== 413) headers.connection = 'close';
+      res.writeHead(status, headers);
+      res.end(JSON.stringify({ error: { message: `Proxy rejected request (${status})` } }));
+      req.resume();
+    };
     if (req.headers.authorization !== `Bearer ${token}`) return reject(401);
     if (req.url !== '/v1' + path || req.method !== 'POST' || req.headers.origin) return reject(404);
     if (Number(req.headers['content-length']) > BODY_LIMIT) return reject(413);
     let length = 0; const chunks = [];
     try {
-      for await (const chunk of req) { length += chunk.length; if (length > BODY_LIMIT) { reject(413); return; } chunks.push(chunk); }
+      for await (const chunk of req.iterator({ destroyOnReturn: false })) {
+        length += chunk.length;
+        if (length > BODY_LIMIT) {
+          reject(413);
+          return;
+        }
+        chunks.push(chunk);
+      }
       const body = Buffer.concat(chunks);
       JSON.parse(body.toString('utf8'));
+      failure = undefined;
       const target = new URL(baseUrl + path);
       const upstream = (target.protocol === 'https:' ? httpsRequest : httpRequest)(target, { method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', 'content-length': body.length, accept: 'text/event-stream' } });
       upstreams.add(upstream);
       res.on('close', () => upstream.destroy());
       upstream.on('close', () => upstreams.delete(upstream));
-      upstream.on('error', () => { if (!res.headersSent) reject(502); else res.destroy(); });
+      upstream.on('error', () => {
+        failure = 'network';
+        if (!res.headersSent) reject(502); else res.destroy();
+      });
       upstream.on('response', incoming => {
         // Never forward provider error payloads: they may echo authentication headers.
-        if (incoming.statusCode < 200 || incoming.statusCode >= 300) { incoming.resume(); return reject(incoming.statusCode >= 400 ? incoming.statusCode : 502); }
+        if (incoming.statusCode < 200 || incoming.statusCode >= 300) {
+          const status = incoming.statusCode;
+          if (status === 429 || status === 402) {
+            failure = status === 402 ? 'quota' : 'rate_limit';
+            const chunks = [];
+            let bytes = 0;
+            let finished = false;
+            const finish = () => {
+              if (finished) return;
+              finished = true;
+              clearTimeout(timer);
+              try {
+                const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+                if (value?.error?.code === 'insufficient_quota' || value?.error?.type === 'insufficient_quota') failure = 'quota';
+              } catch { /* Only a recognized code refines the status. */ }
+              if (!res.destroyed) reject(status);
+            };
+            const timer = setTimeout(finish, 1000);
+            incoming.on('data', chunk => {
+              bytes += chunk.length;
+              if (bytes <= 8192) chunks.push(chunk);
+              else finish();
+            });
+            incoming.once('end', finish);
+            incoming.once('error', finish);
+            incoming.once('close', finish);
+            return;
+          }
+          if (status === 401 || status === 403) failure = 'auth';
+          else if (status >= 500 || status === 408) failure = 'network';
+          incoming.resume();
+          return reject(status >= 400 ? status : 502);
+        }
         res.writeHead(incoming.statusCode, { 'content-type': incoming.headers['content-type'] || 'text/event-stream', 'cache-control': 'no-store' });
         incoming.on('error', () => res.destroy());
         collectUsage(incoming, usageQueue);
@@ -100,6 +151,7 @@ export async function proxyFor(provider, baseUrl, apiKey) {
   server.requestTimeout = 30000; server.headersTimeout = 10000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   return { token, baseUrl: `http://127.0.0.1:${server.address().port}/v1`, takeUsage: () => usageQueue.shift(),
+    failure: () => failure,
     close: async () => { for (const request of upstreams) request.destroy(); server.closeAllConnections(); await new Promise(r => server.close(r)); } };
 }
 function processRun(child, signal, emit, message) {

@@ -86,11 +86,14 @@ window.__ModuleLoader__.load({
     const actionStates = { running: '进行中', done: '已完成', failed: '失败', unrecorded: '结果未记录' };
     const turnStates = { queued: '排队中', running: '正在执行', succeeded: '已完成', failed: '失败',
       cancelled: '已停止', interrupted: '已中断' };
+    const routeReasons = { repair: '两轮修复后验证仍失败', rate_limit: '模型服务限流', quota: '模型服务额度不足', network: '模型服务连接失败' };
 
     function PiProcess({ data }) {
-      if (!data?.actions.length) return null;
+      if (!data || (!data.actions.length && !data.route)) return null;
       return createElement('details', { 'data-moos-pi-process': '' },
         createElement('summary', null, '执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]),
+        data.route ? createElement('p', { 'data-moos-model-route': '' },
+          data.route.previous, ' → ', data.route.current, ' · ', routeReasons[data.route.reason]) : null,
         createElement('ul', null, data.actions.map((action, index) =>
           createElement('li', { key: index },
             createElement('span', null, action.label),
@@ -105,7 +108,7 @@ window.__ModuleLoader__.load({
 
     function PiTurnTail({ sessionId, turn }) {
       const data = usePiTurn(sessionId, turn.start?.seq);
-      if (!data || (!data.actions.length && !data.files.length)) return null;
+      if (!data || (!data.actions.length && !data.files.length && !data.route)) return null;
       return createElement('div', { 'data-moos-pi-turn': '' },
         createElement(PiProcess, { data }),
         data.files.length ? createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },

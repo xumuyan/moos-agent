@@ -71,12 +71,12 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       return;
     }
 
-    let provider;
+    let plan;
     if (models) {
       try {
-        provider = await models.resolve(request.model);
-        if (!provider) { yield selectionRequired; return; }
-        await models.credential(provider);
+        plan = await models.plan(request.model);
+        if (!plan.provider) { yield selectionRequired; return; }
+        await models.credential(plan.provider);
       } catch { yield selectionRequired; return; }
     }
     let task;
@@ -84,7 +84,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
         input: user.content.map(part => part.text).join('\n').trim(),
-        signal, permissions: getPermissions?.(sessionId), provider });
+        signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '无法启动 PI 任务，请检查工作区和会话状态' } } } : rejected;

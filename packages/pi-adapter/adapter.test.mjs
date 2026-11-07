@@ -101,6 +101,7 @@ test('proxy enforces authentication, exact paths, body cap and no CORS', { timeo
   const f = await fixture(t, async (req, res) => { count++; await body(req); res.writeHead(200, { 'content-type': 'text/event-stream' }); res.write(': wait\n\n'); started(); });
   const { runPi } = await load(); const c = new AbortController();
   const result = runPi({ ...f, signal: c.signal }); const rejected = assert.rejects(result, /abort/i);
+  t.after(async () => { c.abort(); await rejected; });
   await active;
   const config = JSON.parse(await readFile(join(f.dataDir, f.conversation.id, 'agent', 'models.json'), 'utf8'));
   const { baseUrl, apiKey } = config.providers[f.provider.id];
@@ -108,7 +109,18 @@ test('proxy enforces authentication, exact paths, body cap and no CORS', { timeo
   const unauth = await fetch(baseUrl + '/chat/completions', { method: 'POST', body: '{}' });
   assert.equal(unauth.status, 401); assert.equal(unauth.headers.get('access-control-allow-origin'), null);
   for (const path of ['/responses', '/chat/completions?x=1', '/other']) assert.equal((await fetch(baseUrl + path, { method: 'POST', headers, body: '{}' })).status, 404);
-  assert.equal((await fetch(baseUrl + '/chat/completions', { method: 'POST', headers, body: 'x'.repeat(2 * 1024 * 1024 + 1) })).status, 413);
+  const endpoint = baseUrl + '/chat/completions';
+  const oversized = 'x'.repeat(2 * 1024 * 1024 + 1);
+  const declared = await fetch(endpoint, { method: 'POST', headers, body: oversized });
+  assert.equal(declared.status, 413);
+  assert.notEqual(declared.headers.get('connection'), 'close');
+  await declared.text();
+  const chunked = await fetch(endpoint, {
+    method: 'POST', headers, duplex: 'half',
+    body: (async function* () { yield Buffer.from(oversized); yield Buffer.from('tail'); })(),
+  });
+  assert.equal(chunked.status, 413);
+  await chunked.text();
   assert.equal(count, 1);
   c.abort(); await rejected;
 });

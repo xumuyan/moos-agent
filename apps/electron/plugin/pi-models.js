@@ -50,11 +50,25 @@ export function piModels(data, checkedProvider) {
     return [...profiles.values()];
   }
 
-  async function resolve(id) {
-    const profiles = await list();
+  function select(profiles, id) {
     return id === 'auto'
       ? profiles.find(profile => profile.service === 'glm') ?? profiles[0]
       : profiles.find(profile => profile.id === id);
+  }
+
+  async function resolve(id) { return select(await list(), id); }
+
+  async function plan(id) {
+    const profiles = await list();
+    const provider = select(profiles, id);
+    if (!provider || id !== 'auto') return { provider };
+    const alternatives = profiles.filter(item => item.id !== provider.id &&
+      (item.baseUrl !== provider.baseUrl || item.model !== provider.model));
+    const strong = alternatives.find(item => item.service === 'openai' && item.thinkingLevel === 'xhigh')
+      ?? alternatives.find(item => item.service === 'openai' && item.thinkingLevel === 'high');
+    const backup = strong ?? alternatives[0];
+    return { provider, backup: backup && { provider: backup, repair: Boolean(strong) &&
+      (provider.thinkingLevel !== 'xhigh' && (provider.thinkingLevel !== 'high' || strong.thinkingLevel === 'xhigh')) } };
   }
 
   async function credentials() {
@@ -114,5 +128,5 @@ export function piModels(data, checkedProvider) {
     return pending;
   }
 
-  return { list, resolve, credential, save };
+  return { list, resolve, plan, credential, save };
 }

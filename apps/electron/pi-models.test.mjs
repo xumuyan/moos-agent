@@ -27,6 +27,9 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   await models.save({ id: 'glm', name: 'GLM', model: 'mock-glm', baseUrl: fixture.baseUrl,
     service: 'glm', api: 'openai-completions', apiKey: fixture.apiKey });
   assert.equal((await models.resolve('auto')).id, 'glm');
+  assert.equal((await models.plan('auto')).backup.provider.id, 'relay');
+  assert.equal((await models.plan('auto')).backup.repair, true);
+  assert.equal((await models.plan('glm')).backup, undefined);
   const relay = await models.resolve('relay');
   assert.equal(await models.credential(relay), fixture.apiKey);
   const moved = { ...relay, baseUrl: fixture.baseUrl + '/another-service' };
