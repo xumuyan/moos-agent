@@ -986,3 +986,14 @@
 - 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 24/24，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 55/55。开发包构建、严格深度签名及 Git 差异检查通过。
 - 遗留问题：这次按需安装验证覆盖一个普通界面插件，未来选定的执行类插件仍须核对其入口及 PI 兼容性。本机开发包和独立发行仍分开验收。脱敏日志见 `/tmp/moos-optional-only-*.log`。
 - 对应 Git 提交：唯一说明 `fix(P03.13): remove default legacy plugin offers and runners`，用 `git log --all --oneline --grep='^fix(P03.13): remove default legacy plugin offers and runners$'` 查询。
+
+## 2026-11-08 03:27:51 +08:00｜P03.13.5 两轮线上桌面对照
+
+- 修改或新增内容：新增 E58 结构化对照记录及对应文档检查。首轮复用 E55 三文件任务，第二轮在同一会话追加严格筛选参数、降序和同分排序。两轮均在各自任务完成后执行独立验收，再进入下一轮。
+- 遇到的难题：原版的标题请求和首个任务请求并行，HTTP 响应顺序可与提交顺序不同。首次报告按日志到达顺序逐项对齐导致校验失败。首次外部校验脚本使用了 zsh 的保留变量名，重命名后重新执行。
+- 处理方式：按中继请求编号匹配响应和用量，按实际轮次分开汇总。先运行 Moos 再运行原版，与 E55 顺序相反。双方使用同一原始任务文本、后续指令、Git 基线、模型服务和权限档位，工作区和数据目录独立。
+- 实际验收与工作区状态：提交前使用 macOS 27.0.1 arm64 的 Moos `build-qwtMKg`（`c5ff9a8`，Electron 44.7.0、PI SDK 1.5.0）与原版 DSH 0.2.2-rc.1。两边的四个任务均在真实桌面窗口提交，按各自原会话续聊，保留第一轮文件和上下文。线上实际均为 GPT-6.1 Sol High 与 HTTP 200。两边均只修改指定三个文件，每轮会话内运行 `npm test` 且无需审批。外部 `npm test` 的 Moos / 原版首轮为 10/10 与 10/10，次轮为 18/18 与 17/17；首轮独立验收各 5/5，次轮独立验收各 9/9。每轮外部 `git diff --check` 通过。
+- 对照结果：Moos / 原版首轮请求耗时 85.43 / 104.44 秒、55,545 / 140,849 Token。次轮 62.80 / 76.10 秒、50,295 / 151,600 Token。合计 148.23 / 180.54 秒，12 / 17 次请求，服务返回 105,840 / 292,449 Token，其中缓存输入 76,032 / 266,496。首个文字或工具参数响应，首轮 Moos / 原版 3.05 / 2.85 秒，次轮 3.20 / 3.90 秒。原版统计含标题请求。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 24/24，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。Moos 包严格深度签名和仓库 Git 差异检查通过。
+- 遗留问题：这是同一个小型项目的一对两轮会话。统计不含人工验收等待，缓存及两边的系统提示、工具集有差异，服务总 Token 不是实际费用。复杂项目和更长上下文仍需另行取样。脱敏结果见 `apps/desktop/evidence/p03-pi-desktop-multiturn.json`。
+- 对应 Git 提交：唯一说明 `test(P03.13): compare two-turn online desktop tasks`，用 `git log --all --oneline --grep='^test(P03.13): compare two-turn online desktop tasks$'` 查询。

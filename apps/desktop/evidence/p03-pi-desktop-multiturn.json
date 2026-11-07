@@ -1,0 +1,181 @@
+{
+  "evidence": "E58",
+  "dateBeijing": "2026-11-08",
+  "moosRevision": "c5ff9a873eef8e7a8bfe90bb5dd3f5799df5fbe9",
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "electron": "44.7.0",
+    "piSdk": "1.5.0",
+    "originalDsh": "0.2.2-rc.1"
+  },
+  "mode": "electron-gui",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "sameEndpointAndCredential": true,
+  "permissionLabel": "工作区内修改",
+  "runOrder": [
+    "moos",
+    "dsh"
+  ],
+  "allowedFiles": [
+    "parse-count.mjs",
+    "summary.mjs",
+    "summary.test.mjs"
+  ],
+  "limits": {
+    "pairedSamples": 1,
+    "cacheControlled": false,
+    "sameToolsetAndSystemPrompt": false,
+    "includesDshTitleRequest": true,
+    "supportsGeneralSpeedClaim": false
+  },
+  "moos": {
+    "sameSession": true,
+    "rounds": [
+      {
+        "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+        "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+        "requests": 8,
+        "http200": 8,
+        "firstActionMs": 3049,
+        "requestSpanMs": 85428,
+        "inputTokens": 52320,
+        "outputTokens": 3225,
+        "totalTokens": 55545,
+        "cacheReadTokens": 45440,
+        "firstRequestToolResults": 0,
+        "changedFiles": [
+          "parse-count.mjs",
+          "summary.mjs",
+          "summary.test.mjs"
+        ],
+        "diffSha256": "8bfdec154d4dc028fc0bbc2abe09621e1de4e5e4991e7e2d7e4995f41c6450a3",
+        "projectTests": {
+          "passed": 10,
+          "failed": 0,
+          "exit": 0
+        },
+        "baselineIndependentTests": {
+          "passed": 5,
+          "failed": 0,
+          "exit": 0
+        },
+        "taskStatus": "succeeded",
+        "npmTestPassedInApp": true,
+        "approvalRequests": 0
+      },
+      {
+        "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+        "promptSha256": "3028193f5ddf26ce101d16f41f5e9d2f4505c48cac4514b8f3e52e944bba2832",
+        "requests": 4,
+        "http200": 4,
+        "firstActionMs": 3197,
+        "requestSpanMs": 62799,
+        "inputTokens": 47599,
+        "outputTokens": 2696,
+        "totalTokens": 50295,
+        "cacheReadTokens": 30592,
+        "firstRequestToolResults": 7,
+        "changedFiles": [
+          "parse-count.mjs",
+          "summary.mjs",
+          "summary.test.mjs"
+        ],
+        "diffSha256": "feecce396bfa0633cd2d9beff229aff841d22a419b0edeca64f4d0575f279de6",
+        "projectTests": {
+          "passed": 18,
+          "failed": 0,
+          "exit": 0
+        },
+        "baselineIndependentTests": {
+          "passed": 5,
+          "failed": 0,
+          "exit": 0
+        },
+        "optionsIndependentTests": {
+          "passed": 4,
+          "failed": 0,
+          "exit": 0
+        },
+        "taskStatus": "succeeded",
+        "npmTestPassedInApp": true,
+        "approvalRequests": 0
+      }
+    ]
+  },
+  "dsh": {
+    "sameSession": true,
+    "rounds": [
+      {
+        "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+        "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+        "requests": 10,
+        "http200": 10,
+        "firstActionMs": 2854,
+        "requestSpanMs": 104440,
+        "inputTokens": 137278,
+        "outputTokens": 3571,
+        "totalTokens": 140849,
+        "cacheReadTokens": 121856,
+        "firstRequestToolResults": 0,
+        "changedFiles": [
+          "parse-count.mjs",
+          "summary.mjs",
+          "summary.test.mjs"
+        ],
+        "diffSha256": "101bfdd3af88751adc4111e3114902692bb9e25c4d76b9e879b12e4302bffd65",
+        "projectTests": {
+          "passed": 10,
+          "failed": 0,
+          "exit": 0
+        },
+        "baselineIndependentTests": {
+          "passed": 5,
+          "failed": 0,
+          "exit": 0
+        },
+        "taskStatus": "completed",
+        "npmTestPassedInApp": true,
+        "approvalRequests": 0
+      },
+      {
+        "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+        "promptSha256": "3028193f5ddf26ce101d16f41f5e9d2f4505c48cac4514b8f3e52e944bba2832",
+        "requests": 7,
+        "http200": 7,
+        "firstActionMs": 3901,
+        "requestSpanMs": 76096,
+        "inputTokens": 148848,
+        "outputTokens": 2752,
+        "totalTokens": 151600,
+        "cacheReadTokens": 144640,
+        "firstRequestToolResults": 11,
+        "changedFiles": [
+          "parse-count.mjs",
+          "summary.mjs",
+          "summary.test.mjs"
+        ],
+        "diffSha256": "682ea3619401a7b9694e9b18ec7154a05c419001e1ea9e82974f429ab09d4b80",
+        "projectTests": {
+          "passed": 17,
+          "failed": 0,
+          "exit": 0
+        },
+        "baselineIndependentTests": {
+          "passed": 5,
+          "failed": 0,
+          "exit": 0
+        },
+        "optionsIndependentTests": {
+          "passed": 4,
+          "failed": 0,
+          "exit": 0
+        },
+        "taskStatus": "completed",
+        "npmTestPassedInApp": true,
+        "approvalRequests": 0
+      }
+    ]
+  }
+}

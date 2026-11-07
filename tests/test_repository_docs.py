@@ -825,5 +825,38 @@ class RepositoryDocsTests(unittest.TestCase):
             })
 
 
+    def test_pi_desktop_multiturn_comparison_records_each_round(self):
+        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-multiturn.json').read_text())
+        reference = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-benchmark.json').read_text())
+        self.assertIn('| E58 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['runOrder'], list(reversed(reference['runOrder'])))
+        for field in ('model', 'effort', 'permissionLabel', 'sameEndpointAndCredential'):
+            self.assertEqual(report[field], reference[field])
+        self.assertEqual(report['mode'], 'electron-gui')
+        self.assertFalse(report['limits']['cacheControlled'])
+        self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
+        for name, status in (('moos', 'succeeded'), ('dsh', 'completed')):
+            side = report[name]
+            self.assertTrue(side['sameSession'])
+            initial, followup = side['rounds']
+            self.assertEqual(initial['promptSha256'], reference[name]['promptSha256'])
+            self.assertNotEqual(initial['promptSha256'], followup['promptSha256'])
+            self.assertNotEqual(initial['diffSha256'], followup['diffSha256'])
+            for turn in side['rounds']:
+                self.assertEqual(turn['taskStatus'], status)
+                self.assertEqual(turn['baselineTree'], reference[name]['baselineTree'])
+                self.assertEqual(turn['changedFiles'], report['allowedFiles'])
+                self.assertGreater(turn['requests'], 0)
+                self.assertEqual(turn['http200'], turn['requests'])
+                self.assertLess(turn['firstActionMs'], turn['requestSpanMs'])
+                self.assertEqual(turn['totalTokens'], turn['inputTokens'] + turn['outputTokens'])
+                self.assertTrue(turn['npmTestPassedInApp'])
+                self.assertEqual(turn['approvalRequests'], 0)
+                self.assertEqual(turn['projectTests']['exit'], 0)
+                self.assertEqual(turn['baselineIndependentTests'], {'passed': 5, 'failed': 0, 'exit': 0})
+            self.assertEqual(followup['optionsIndependentTests'], {'passed': 4, 'failed': 0, 'exit': 0})
+        self.assertEqual(report['moos']['rounds'][1]['promptSha256'], report['dsh']['rounds'][1]['promptSha256'])
+
+
 if __name__ == '__main__':
     unittest.main()
