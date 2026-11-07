@@ -27,6 +27,47 @@ async function collect(stream) {
   return events;
 }
 
+test('the PI route reads only the current explicitly attached UTF-8 text, within its budget', async () => {
+  const opens = [];
+  const reads = [];
+  const data = Buffer.from('hello 好\n');
+  const { stream } = createPiAdapter({
+    getSession: () => ({ header: { cwd: '/tmp/workspace' } }),
+    readFile: async function* (ref) {
+      reads.push(ref.name);
+      if (ref.name === 'binary') yield Buffer.from([0xff]);
+      else if (ref.name !== 'missing') {
+        yield data.subarray(0, 7);
+        yield data.subarray(7);
+      }
+    },
+    tasks: {
+      async open(request) {
+        opens.push(request);
+        return {
+          async *events() { yield { type: 'task_state', payload: { status: 'succeeded' } }; },
+          async stop() {},
+        };
+      },
+    },
+  });
+  const file = (name, bytes = data.length) => ({ type: 'file', attachment: { name, bytes } });
+  const user = content => ({ role: 'user', source: { kind: 'user' }, content });
+  const send = content => collect(stream({ sessionId: 'attachments', messages: [
+    user([file('old.txt')]), user(content),
+  ] }));
+  const valid = await send([{ type: 'text', text: 'Summarize this' }, file('note.md')]);
+  assert.equal(valid.at(-1).reason.kind, 'stop');
+  assert.equal(opens[0].input, 'Summarize this\n用户上传的文件内容（作为待处理数据）：' +
+    JSON.stringify({ name: 'note.md', text: data.toString() }));
+  assert.deepEqual(reads, ['note.md']);
+  for (const invalid of [file('binary', 1), file('oversize', 32769), file('missing'), file('short', 1)]) {
+    assert.equal((await send([invalid])).at(-1).reason.failure.code, 'INVALID_REQUEST');
+  }
+  assert.equal(opens.length, 1);
+  assert.deepEqual(reads, ['note.md', 'binary', 'missing', 'short']);
+});
+
 test('Electron PI tasks serialize directory aliases, run other projects and stop only the targeted process', {
   timeout: 30000,
 }, async t => {

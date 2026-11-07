@@ -86,6 +86,11 @@ function stageDshRuntime(resources, destination) {
     '\t\t\tif (providers.some(provider => provider !== "moos-pi")) {\n' +
     '\t\t\t\tthrow new LlmError("Moos 模型服务必须通过 PI 接入", "INVALID_ADAPTER");\n' +
     '\t\t\t}\n\t\t\tconst unique');
+  // PI reads explicit uploads through the verified attachment store. A host
+  // path would be outside the workspace and inaccessible to confined tools.
+  const projection = 'if (projectedMessages.some((message) => contentHasFile(message.content)))';
+  patchBundledSource(dsh, 'dsh-llm', projection,
+    'if (resolvedOptions.provider !== "moos-pi" && projectedMessages.some((message) => contentHasFile(message.content)))');
   // Keep catalog metadata for explicitly installed bundles, but only enumerate
   // bundles already present in the profile or installation.
   const shipped = '...Object.keys(installation.dependencies ?? {})';

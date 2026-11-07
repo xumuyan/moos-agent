@@ -1017,3 +1017,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 25/25，`npm test` 最终 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。完整构建、严格深度签名和 Git 差异检查通过。
 - 遗留问题：队列验收覆盖本机的三条指令，未实测运行中编辑队列后退出重启。线上逐轮续聊已有 E58，尚无线上运行中追加的独立性能样本。脱敏日志见 `/tmp/moos-queue-*.log`。
 - 对应 Git 提交：唯一说明 `fix(P03.13): queue every busy-session message for PI`，用 `git log --all --oneline --grep='^fix(P03.13): queue every busy-session message for PI$'` 查询。
+
+## 2026-11-08 03:54:00 +08:00｜P03.13.3 将上传的文本附件送入 PI
+
+- 修改或新增内容：随包 Host 为 Moos PI 路由保留原版附件引用，通过原版内容校验流读取当前用户消息明确附带的 UTF-8 文件。每条消息最多 8 个文件，合计 32 KiB。文件名和正文作为单独的文本数据交给 PI。内部插件版本升至 0.1.16。
+- 遇到的难题：原版会先把文件转成应用数据目录的路径说明，默认权限下 PI 无法读取该位置。旧包回归只能得到路径说明，未得到附件正文。首次构建与核心回归均因本机磁盘空间不足遇到 ENOSPC。
+- 处理方式：PI 通过既有附件存储获取并校验文件长度与内容，沿用工作区权限。无效 UTF-8、非文本控制字符、读失败及超限附件在任务创建前返回明确错误。测试覆盖当前消息隔离、分块解码、缺失或超量数据，以及真实包内投影和附件存储。磁盘空间恢复后重新构建并复跑核心套件。
+- 实际验收与工作区状态：提交前使用 macOS 27.0.1 arm64 的 `build-MtEX3a`。验收程序从随包 DSH 附件存储保存合成文本，通过同包的 Host 模型运行时、PI 调度和 SDK 提交，只读权限下真实 GPT-6.1 Sol High 以一次 HTTP 200 响应返回精确标记。SQLite 任务成功，工具调用数为零。未使用用户文件。
+- 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 27/27，`npm test` 最终 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。完整构建、深度严格签名及 Git 差异检查通过。
+- 遗留问题：验收覆盖随包执行链和一份合成文本。桌面选择文件的交互以及图片、二进制和更大附件需分项验收。脱敏结果见 `/tmp/moos-attachment-online.log`。
+- 对应 Git 提交：唯一说明 `feat(P03.13): send verified text attachments through PI`，用 `git log --all --oneline --grep='^feat(P03.13): send verified text attachments through PI$'` 查询。

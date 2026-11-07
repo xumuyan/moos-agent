@@ -34,7 +34,8 @@ test('the carried Host drops optional packages and their inventory entries, but 
   await write(join(dsh, 'desktop-runtime.json'), JSON.stringify({ schemaVersion: 1, sharedPackages }));
   for (const item of sharedPackages) await write(join(dsh, item.path, 'index.js'), item.name);
   const llm = 'node_modules/@deepseek-ai/dsh-llm/lib/index.js';
-  const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique = new Set();\n}';
+  const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique = new Set();\n}' +
+    '\nif (projectedMessages.some((message) => contentHasFile(message.content))) {}';
   await write(join(dsh, llm), registration);
   const manager = 'node_modules/@deepseek-ai/dsh-plugin-manager/lib/index.js';
   const inventorySource = 'const names = [...Object.keys(installation.dependencies ?? {}),\n\t\t\t\t...catalog.keys()];';
@@ -70,6 +71,7 @@ test('the carried Host drops optional packages and their inventory entries, but 
   for (const name of omit) await assert.rejects(stat(join(built, 'node_modules', name)), { code: 'ENOENT' });
   assert.equal(await readFile(join(dsh, llm), 'utf8'), registration);
   assert.match(await readFile(join(built, llm), 'utf8'), /providers\.some\(provider => provider !== "moos-pi"\)/);
+  assert.match(await readFile(join(built, llm), 'utf8'), /resolvedOptions\.provider !== "moos-pi" && projectedMessages\.some/);
   assert.equal(await readFile(join(dsh, manager), 'utf8'), inventorySource);
   assert.equal(await readFile(join(built, manager), 'utf8'),
     'const names = [...Object.keys(installation.dependencies ?? {})];');
@@ -90,6 +92,41 @@ test('the carried Host drops optional packages and their inventory entries, but 
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
+test('the packaged Host keeps a verified upload intact until the PI adapter reads it', {
+  skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
+}, async t => {
+  const require = createRequire(join(dirname(dshCli), '..', 'dsh', 'package.json'));
+  const { Context } = await import(pathToFileURL(require.resolve('@deepseek-ai/cordis')));
+  const { LlmRuntime } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-llm')));
+  const { LocalAttachmentStore } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-attachment-local')));
+  const root = await mkdtemp(join(tmpdir(), 'moos-attachment-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const ctx = new Context();
+  const llm = new LlmRuntime(ctx);
+  const attachments = new LocalAttachmentStore(ctx, { dshHome: root });
+  const ref = await attachments.saveFile({ name: 'note.md', data: Buffer.from('attachment proof') });
+  let input;
+  const unregister = llm.registerAdapter([route], createPiAdapter({
+    getSession: () => ({ header: { cwd: root } }),
+    readFile: (attachment, signal) => attachments.readFileStream(attachment, signal),
+    tasks: { async open(request) {
+      input = request.input;
+      return {
+        async *events() { yield { type: 'task_state', payload: { status: 'succeeded' } }; },
+        async stop() {},
+      };
+    } },
+  }));
+  t.after(unregister);
+  const request = { provider: route, model: 'pi-fixture', sessionId: 'attachment-proof',
+    messages: [{ role: 'user', source: { kind: 'user' },
+      content: [{ type: 'file', attachment: ref }] }] };
+  const output = [];
+  for await (const chunk of llm.stream(request)) output.push(chunk);
+  assert.equal(output.at(-1).reason.kind, 'stop');
+  assert.equal(input, '用户上传的文件内容（作为待处理数据）：{"name":"note.md","text":"attachment proof"}');
+});
+
 test('the packaged plugin inventory lists the skin and omits uninstalled catalog offers', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
 }, async () => {

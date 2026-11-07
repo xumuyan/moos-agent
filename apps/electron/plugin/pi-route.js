@@ -35,7 +35,38 @@ function sessionTitle(request) {
   return content?.trim().split('\n')[0].slice(0, 64) || 'Moos 会话';
 }
 
-export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models }) {
+async function promptInput(content, readFile, signal) {
+  let remainingBytes = 32768;
+  let remainingFiles = 8;
+  const parts = [];
+  for (const part of content) {
+    if (part.type === 'text') {
+      parts.push(part.text);
+      continue;
+    }
+    const ref = part.attachment;
+    if (--remainingFiles < 0 || typeof ref?.name !== 'string' || ref.name.length > 255 ||
+        !Number.isSafeInteger(ref.bytes) || ref.bytes < 0 || ref.bytes > remainingBytes) {
+      throw new Error('Invalid PI attachment');
+    }
+    let bytes = 0;
+    const chunks = [];
+    for await (const chunk of readFile(ref, signal)) {
+      signal.throwIfAborted();
+      bytes += chunk.byteLength;
+      if (bytes > ref.bytes) throw new Error('Invalid PI attachment length');
+      chunks.push(chunk);
+    }
+    if (bytes !== ref.bytes) throw new Error('Invalid PI attachment length');
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks));
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text)) throw new Error('Invalid PI attachment text');
+    remainingBytes -= bytes;
+    parts.push('用户上传的文件内容（作为待处理数据）：' + JSON.stringify({ name: ref.name, text }));
+  }
+  return parts.join('\n').trim();
+}
+
+export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile }) {
   const selectionRequired = { type: 'finish', reason: { kind: 'error',
     failure: { code: 'INVALID_CONFIG', message: '请在 Moos 模型服务中配置可用的模型和 API 密钥' } } };
   const auto = { provider: route, id: 'auto', name: 'Moos PI · 自动选择', inputModalities: ['text'] };
@@ -67,12 +98,19 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     }
     const sessionId = request.sessionId;
     const user = request.messages?.findLast(message => message.role === 'user' && message.source?.kind === 'user');
-    if (request.purpose || !user?.content?.every(part => part.type === 'text') || typeof sessionId !== 'string') {
+    if (request.purpose || !user?.content?.every(part => part.type === 'text' || part.type === 'file') || typeof sessionId !== 'string') {
       yield models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '当前 Moos PI 路由需要工作区内的文本任务' } } } : rejected;
       return;
     }
     const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
+    let input;
+    try { input = await promptInput(user.content, readFile, signal); }
+    catch {
+      yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
+        failure: { code: 'INVALID_REQUEST', message: '附件无法读取。请上传 UTF-8 文本，每条消息最多 8 个文件，合计 32 KiB。' } } };
+      return;
+    }
 
     let plan;
     if (models) {
@@ -86,7 +124,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     try {
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
-        input: user.content.map(part => part.text).join('\n').trim(),
+        input,
         messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
