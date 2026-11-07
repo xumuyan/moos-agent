@@ -1107,3 +1107,13 @@
 - 验证结果：定向回归 2/2，`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：当前入口只验 macOS。短文本诊断与会话任务性能、真实套餐耗尽及其他端点能力分别验收。
 - 对应 Git 提交：唯一说明 `feat(P03.13): open model services from Electron settings`，用 `git log --all --oneline --grep='^feat(P03.13): open model services from Electron settings$'` 查询。
+
+## 2026-11-08 05:19:43 +08:00｜P03.13.2、P03.13.7 免登录启动与外网限制验收
+
+- 修改或新增内容：新增随包 Host 的回环网络冷启及重启回归。补录最新本机包的免登录工作台、模型与用量入口及默认插件验收。本轮只改测试与记录。
+- 遇到的难题：给整应用套外层系统沙箱会使 Chromium 自身沙箱初始化失败。单独验证 Host 时，首个 HTTP 客户端跟随重定向却未带上本地会话 Cookie，工作台正确拒绝该请求。Dock 自动化核对超时。
+- 处理方式：保留 Electron 原有沙箱。桌面使用不可达的 Chromium 代理并豁免回环，随包 Host 则单独在 Seatbelt 只允许回环的配置下启动。回归先确认外部 TCP 返回 EPERM，再按本地令牌交换流程携带 Cookie 请求工作台。输出仅保留状态，没有记录令牌、Cookie 或响应原文。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 使用 `build-jP7lE5`，与安装包关键文件一致。全新数据无模型配置和凭据，自动初始化的 DSH 凭据文件引用为空。冷启和正常退出后重启均直接进入工作台，左下角设置和模型、Token 入口可用，插件页只列皮肤中心及添加入口。单独运行的安装版 Host 在系统回环限制下两次完成本地认证并返回 HTTP 200，正常关闭。正式安装包严格签名复验通过。
+- 验证结果：回环回归 1/1，`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 29/29，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：两种限制分别施加，未证明整应用在整台 Mac 断网时可运行。Dock 图标未获得本轮实机观察。完整断网需要独立环境或可安全隔离的系统网络。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify sign-in-free loopback startup`，用 `git log --all --oneline --grep='^test(P03.13): verify sign-in-free loopback startup$'` 查询。

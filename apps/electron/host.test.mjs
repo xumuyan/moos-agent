@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { startHost, parseBootstrap } from './host.mjs';
@@ -81,6 +81,64 @@ test('the shell never exposes or dispatches upstream model tool calls', async ()
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
+test('the packaged Host starts and restarts with only loopback sockets and no account or model configured', {
+  skip: (!dshCli || process.platform !== 'darwin') && 'Requires the pinned macOS Moos package',
+}, async t => {
+  const { home } = await hostFixture(t, '');
+  const resources = join(dirname(dshCli), '..', '..');
+  const workspace = join(home, 'workspace');
+  const profile = join(home, 'loopback.sb');
+  await mkdir(workspace);
+  await cp(join(resources, 'profile-template', 'profiles'), join(home, 'profiles'), {
+    recursive: true, verbatimSymlinks: true,
+  });
+  await writeFile(profile, [
+    '(version 1)', '(allow default)', '(deny network*)',
+    '(allow network-inbound (local ip "localhost:*"))',
+    '(allow network-bind (local ip "localhost:*"))',
+    '(allow network-outbound (remote ip "localhost:*"))',
+  ].join('\n'));
+  await promisify(execFile)('/usr/bin/sandbox-exec', ['-f', profile, process.execPath, '-e', `
+    const socket = require('node:net').connect(443, '203.0.113.1');
+    socket.once('error', error => { process.exitCode = error.code === 'EPERM' ? 0 : 1; });
+    socket.once('connect', () => { socket.destroy(); process.exitCode = 1; });
+    socket.setTimeout(1000, () => { socket.destroy(); process.exitCode = 1; });
+  `]);
+
+  for (let pass = 0; pass < 2; pass++) {
+    const child = spawn('/usr/bin/sandbox-exec', ['-f', profile, dshCli,
+      'web', '--patch', join(resources, 'execution.patch.yml'), '--host', '127.0.0.1', '--port', '0', '--no-open'], {
+      cwd: workspace, stdio: ['pipe', 'pipe', 'ignore'],
+      env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1', PI_OFFLINE: '1',
+        MOOS_ELECTRON_PARENT_PIPE: '1', MOOS_ELECTRON_WORKSPACE_ROOT: workspace,
+        MOOS_ELECTRON_PI_RUNTIME: join(resources, 'pi-runtime') },
+    });
+    const exited = once(child, 'exit');
+    const lines = createInterface({ input: child.stdout });
+    const signal = AbortSignal.timeout(12000);
+    try {
+      let address;
+      do { const [line] = await once(lines, 'line', { signal }); address = parseBootstrap(line); } while (!address);
+      const bootstrap = await fetch(address, { redirect: 'manual', signal });
+      assert.ok([302, 303].includes(bootstrap.status));
+      const destination = new URL(bootstrap.headers.get('location'), address);
+      assert.equal(destination.origin, address.origin);
+      const cookies = bootstrap.headers.getSetCookie().map(value => value.split(';', 1)[0]);
+      assert.ok(cookies.length > 0);
+      await bootstrap.body?.cancel();
+      const response = await fetch(destination, { headers: { cookie: cookies.join('; ') }, redirect: 'manual', signal });
+      assert.equal(response.status, 200);
+      assert.match(await response.text(), /<html\b/i);
+      child.stdin.end();
+      assert.deepEqual(await once(child, 'exit', { signal }), [0, null]);
+    } finally {
+      lines.close();
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+      await exited;
+    }
+  }
+});
+
 test('the packaged Host stops when its desktop lifetime pipe closes', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
 }, async t => {
