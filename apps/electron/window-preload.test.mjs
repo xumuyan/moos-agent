@@ -8,6 +8,8 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   const document = { documentElement: null };
   let ready;
   let fullscreen;
+  let usage;
+  const messages = [];
   runInNewContext(code, {
     document,
     window: { addEventListener: (event, callback) => {
@@ -16,10 +18,19 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
     } },
     require: name => {
       assert.equal(name, 'electron');
-      return { ipcRenderer: { on: (event, callback) => {
-        assert.equal(event, 'moos:window-fullscreen');
-        fullscreen = callback;
-      } } };
+      return {
+        contextBridge: { exposeInMainWorld: (key, value) => {
+          assert.equal(key, 'moosUsage');
+          usage = value;
+        } },
+        ipcRenderer: {
+          on: (event, callback) => {
+            assert.equal(event, 'moos:window-fullscreen');
+            fullscreen = callback;
+          },
+          invoke: (...args) => { messages.push(args); },
+        },
+      };
     },
   });
   fullscreen({}, true);
@@ -28,4 +39,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin', fullscreen: 'true' });
   fullscreen({}, false);
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin' });
+  usage.summary();
+  usage.latest('session-id');
+  assert.deepEqual(messages, [['moos:pi-usage', null], ['moos:pi-usage', 'session-id']]);
 });

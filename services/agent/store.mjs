@@ -52,6 +52,7 @@ export class Store {
       CREATE INDEX IF NOT EXISTS messages_conversation ON messages(conversationId);
       CREATE INDEX IF NOT EXISTS tasks_conversation ON tasks(conversationId);
       CREATE INDEX IF NOT EXISTS events_conversation ON events(conversationId);
+      CREATE INDEX IF NOT EXISTS events_usage_conversation ON events(conversationId, id) WHERE type = 'usage';
       CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS usage_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

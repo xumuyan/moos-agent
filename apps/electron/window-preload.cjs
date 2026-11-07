@@ -1,4 +1,9 @@
-const { ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('moosUsage', {
+  summary: () => ipcRenderer.invoke('moos:pi-usage', null),
+  latest: sessionId => ipcRenderer.invoke('moos:pi-usage', sessionId),
+});
 
 let fullscreen = false;
 function syncLayout() {

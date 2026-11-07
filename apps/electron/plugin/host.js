@@ -47,7 +47,10 @@ export async function apply(ctx) {
     async run(options) {
       const provider = fixtureProvider ?? options.provider;
       const apiKey = fixture?.apiKey ?? await models.credential(provider);
-      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions') });
+      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
+        emit: (type, payload) => options.emit(type, type === 'usage'
+          ? { ...payload, contextWindow: provider.contextWindow } : payload),
+      });
     },
   });
   try {

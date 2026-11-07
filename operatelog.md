@@ -872,3 +872,13 @@
 - 线上复验与体积：正常模式下选择自动路由，经随包 Host 的 PI 调用 GLM-5.3，9.30 秒完成单文件写入。核对文件精确字节、成功状态及 2 条真实用量事件（2,255 Token）。`du -sk` 的落盘分配值为 Moos 开发包 695,108 KiB、其中 Host 222,652 KiB。旧包单独 466,560 KiB，另依赖上游 App 1,042,528 KiB。上述是本机构建和落盘值，尚无正式下载包体积。
 - 遗留问题：公开安装验收覆盖一个工作台插件。插件调用 PI 工具的接口兼容、正式签名和发行、设置用量汇总及模型自动升级仍待验收。测试日志见 `/tmp/moos-slim-*.log`。
 - 对应 Git 提交：唯一说明 `feat(P03.13): bundle a slim Electron workbench host`，用 `git log --all --oneline --grep='^feat(P03.13): bundle a slim Electron workbench host$'` 查询。
+
+## 2026-11-08 01:05:59 +08:00｜P03.13.6 显示真实 PI 用量
+
+- 修改或新增内容：在原版设置加入「Token 用量」，汇总本机真实请求的总 Token、未缓存输入、输出、缓存读写及记录条数。当前会话输入框下方显示最近一次有记录请求的缓存命中和输入 Token / 配置窗口。
+- 遇到的难题：DSH 将一次助手结算作为单个请求，而一轮 PI 可能多次请求模型和调用工具。直接把总用量写给原版上下文投影，会把整轮累计当成一次请求的上下文。旧用量事件缺少当时的窗口值。
+- 处理方式：通过只读 SQLite 和限定主窗口来源的 IPC 查询 PI 持久化用量事件。总量累加每条模型响应，输入框只查该会话最新记录。新事件保存当时配置的窗口，旧记录和未返回的字段显示未知。切换会话隔离读取，重启复用同一组事件。
+- 验证结果：使用随包 CLI 的 `npm --prefix apps/electron test` 14/14，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`npm run test:desktop-product` 30/30，`npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。正常开发包构建、深度严格签名和 Git 差异检查通过。脱敏日志见 `/tmp/moos-usage-*.log`。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 用 `build-nwp03k` 正常模式验证。首次打开设置显示暂无用量。真实 GLM-5.3 通过 PI 执行 write 与 read，独立核对文件精确内容。三条请求分别报告 1,106、1,153、1,183 Token。设置页显示 3,442 Token，未缓存输入 313、输出 57、缓存读取 3,072，缓存写入为未知。输入框显示最近请求缓存命中 93.8% 和上下文 1,160 / 128,000。正常退出、重启并重新打开历史会话后，输入框与设置页数值均一致。
+- 遗留问题：用量按本机已收到的模型响应记录统计。上下文窗口是配置值。结构化工具过程、改动摘要和重试恢复仍待逐项验收。
+- 对应 Git 提交：唯一说明 `feat(P03.13): show recorded PI token usage in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): show recorded PI token usage in Electron$'` 查询。

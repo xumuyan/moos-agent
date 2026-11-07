@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
+import { createPiUsageReader } from './pi-usage.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -133,6 +134,17 @@ async function launch() {
       nodeIntegration: false, webviewTag: false,
       ...(mac ? { preload: join(resources, 'app', 'window-preload.cjs') } : {}),
     },
+  });
+  const usage = createPiUsageReader(join(data, enableFixture ? 'pi-fixture' : 'pi', 'moos.sqlite'));
+  ipcMain.handle('moos:pi-usage', (event, sessionId) => {
+    const frame = event.senderFrame;
+    if (event.sender !== win.webContents || !frame || frame !== win.webContents.mainFrame
+      || new URL(frame.url).origin !== address.origin) throw new Error('Untrusted Moos usage request');
+    return usage.read(sessionId);
+  });
+  win.once('closed', () => {
+    ipcMain.removeHandler('moos:pi-usage');
+    usage.close();
   });
   if (mac) {
     const syncFullscreen = () => {
