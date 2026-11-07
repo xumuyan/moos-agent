@@ -39,7 +39,13 @@ execFileSync(cli, ['web', '--dump-config'], { env, cwd: build, stdio: 'ignore' }
 const webProfile = join(template, 'profiles', 'web');
 const bundles = join(webProfile, 'local-bundles');
 await mkdir(bundles, { recursive: true });
-const archive = execFileSync('npm', ['pack', join(source, 'plugin'), '--pack-destination', bundles, '--silent'],
+const stagedPlugin = join(build, 'shell-plugin');
+await cp(join(source, 'plugin'), stagedPlugin, { recursive: true });
+const pluginClient = join(stagedPlugin, 'client.js');
+const sidebarIcon = await readFile(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/32x32.png'));
+const clientSource = await readFile(pluginClient, 'utf8');
+await writeFile(pluginClient, clientSource.replace('__MOOS_SIDEBAR_ICON__', sidebarIcon.toString('base64')));
+const archive = execFileSync('npm', ['pack', stagedPlugin, '--pack-destination', bundles, '--silent'],
   { encoding: 'utf8' }).trim();
 execFileSync(cli, ['plugin', '--profile', 'web', 'add', `file:./local-bundles/${archive}`,
   '@linxin666/dsh-client-ui-skin-center@0.4.5', '--save-exact'],

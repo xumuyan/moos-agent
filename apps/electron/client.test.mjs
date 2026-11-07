@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
-test('the DSH client extension keeps one Moos mark and owns its title changes', async () => {
+test('the DSH client extension renders the Moos sidebar brand and preserves the welcome mark', async () => {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;
   let changed;
@@ -37,9 +37,12 @@ test('the DSH client extension keeps one Moos mark and owns its title changes', 
     },
     on(event, callback) { if (event === 'dispose') dispose = callback; },
   });
-  assert.equal(renderers.get('sidebar.brand.mark')(), null);
+  const icon = renderers.get('sidebar.brand.mark')({ size: 24 });
+  assert.equal(icon.element, 'img');
+  assert.equal(icon.props.width, 24);
+  assert.match(icon.props.src, /^data:image\/png;base64,/);
   assert.equal(document.documentElement.dataset.platform, 'darwin');
-  assert.equal(renderers.get('sidebar.brand.name')(), null);
+  assert.equal(renderers.get('sidebar.brand.name')().text, 'Moos');
   assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).text, 'M');
   assert.equal(document.title, 'Moos');
   document.title = '深海女仆工坊 · DeepSeek Harness';
