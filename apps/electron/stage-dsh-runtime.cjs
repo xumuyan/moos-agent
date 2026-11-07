@@ -28,11 +28,36 @@ function omitted(path) {
   return path.startsWith('node_modules/sherpa-onnx-');
 }
 
-function patchBundledSource(dsh, packageName, anchor, replacement) {
-  const file = join(dsh, 'node_modules/@deepseek-ai', packageName, 'lib/index.js');
+function patchBundledSource(dsh, packageName, anchor, replacement, { entry = 'index.js', count = 1 } = {}) {
+  const file = join(dsh, 'node_modules/@deepseek-ai', packageName, 'lib', entry);
   const source = fs.readFileSync(file, 'utf8');
-  if (source.split(anchor).length !== 2) throw new Error('Unexpected DSH source in ' + packageName);
-  fs.writeFileSync(file, source.replace(anchor, replacement));
+  if (source.split(anchor).length !== count + 1) throw new Error('Unexpected DSH source in ' + packageName);
+  fs.writeFileSync(file, source.replaceAll(anchor, replacement));
+}
+
+function configurePiQueue(dsh) {
+  // DSH can claim multiple next-step messages at once. PI owns the whole
+  // task, so keep one queued input per turn, including calls from old clients.
+  patchBundledSource(dsh, 'dsh-agent-loop',
+    'steer(input) {\n\t\tthis.send(input, "next-step", true);',
+    'steer(input) {\n\t\tthis.followup(input);');
+  patchBundledSource(dsh, 'dsh-api-session-controller',
+    'if (request.action.kind === "steer" && (target !== "next-turn" || agent.status !== "running"))',
+    'if (request.action.kind === "steer")');
+  const renderer = { entry: 'client.js' };
+  patchBundledSource(dsh, 'dsh-client-ui-conversation',
+    'const steeringAvailable = subagent === null || subagent.address.mode === "continuable";',
+    'const steeringAvailable = false;', renderer);
+  patchBundledSource(dsh, 'dsh-client-ui-conversation',
+    'running && steeringAvailable && !disabled && !uploadsPending && plainMessageDraft ? t(primarySubmitMode === "steer" ? "input.send.steer" : "input.send.queue")',
+    'running && !disabled && !uploadsPending && plainMessageDraft ? t("input.send.queue")', renderer);
+  patchBundledSource(dsh, 'dsh-client-ui-conversation',
+    '"aria-label": t("queue.steer"),', '"aria-label": t("queue.steer"), style: { display: "none" },',
+    { ...renderer, count: 2 });
+  patchBundledSource(dsh, 'dsh-client-ui-conversation',
+    'ctx.slots.inject("settings.general.item", () => ctx.slots.register({\n\t\t\t\tname: "settings.general.item",\n\t\t\t\tid: "composer-enter",',
+    'false && ctx.slots.inject("settings.general.item", () => ctx.slots.register({\n\t\t\t\tname: "settings.general.item",\n\t\t\t\tid: "composer-enter",',
+    renderer);
 }
 
 function stageDshRuntime(resources, destination) {
@@ -54,6 +79,7 @@ function stageDshRuntime(resources, destination) {
     }
   }
   copy('');
+  configurePiQueue(dsh);
   // Both initial registration and replacement pass through this validation.
   const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique';
   patchBundledSource(dsh, 'dsh-llm', registration, 'prepareRoutes(providers, adapter, owned) {\n' +
@@ -85,5 +111,5 @@ function stageDshRuntime(resources, destination) {
   }
 }
 
-module.exports = { stageDshRuntime };
+module.exports = { stageDshRuntime, configurePiQueue };
 if (require.main === module) stageDshRuntime(process.resourcesPath, process.argv[2]);

@@ -39,6 +39,20 @@ test('the carried Host drops optional packages and their inventory entries, but 
   const manager = 'node_modules/@deepseek-ai/dsh-plugin-manager/lib/index.js';
   const inventorySource = 'const names = [...Object.keys(installation.dependencies ?? {}),\n\t\t\t\t...catalog.keys()];';
   await write(join(dsh, manager), inventorySource);
+  const loop = 'node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js';
+  const steering = 'steer(input) {\n\t\tthis.send(input, "next-step", true);\n}';
+  await write(join(dsh, loop), steering);
+  const controller = 'node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js';
+  await write(join(dsh, controller),
+    'if (request.action.kind === "steer" && (target !== "next-turn" || agent.status !== "running")) throw new Error();');
+  const client = 'node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/client.js';
+  await write(join(dsh, client), [
+    'const steeringAvailable = subagent === null || subagent.address.mode === "continuable";',
+    'running && steeringAvailable && !disabled && !uploadsPending && plainMessageDraft ? t(primarySubmitMode === "steer" ? "input.send.steer" : "input.send.queue")',
+    '"aria-label": t("queue.steer"),',
+    '"aria-label": t("queue.steer"),',
+    'ctx.slots.inject("settings.general.item", () => ctx.slots.register({\n\t\t\t\tname: "settings.general.item",\n\t\t\t\tid: "composer-enter",',
+  ].join('\n'));
   await write(join(resources, 'runtime/bin/node'), 'node wrapper', 0o755);
   await write(join(resources, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'package manager');
   await write(join(resources, 'runtime/primary-runtime/dependencies/python/bin/python'), 'optional office runtime');
@@ -59,6 +73,14 @@ test('the carried Host drops optional packages and their inventory entries, but 
   assert.equal(await readFile(join(dsh, manager), 'utf8'), inventorySource);
   assert.equal(await readFile(join(built, manager), 'utf8'),
     'const names = [...Object.keys(installation.dependencies ?? {})];');
+  assert.equal(await readFile(join(dsh, loop), 'utf8'), steering);
+  assert.match(await readFile(join(built, loop), 'utf8'), /steer\(input\) \{\s*this\.followup\(input\);/);
+  assert.match(await readFile(join(built, controller), 'utf8'), /if \(request\.action\.kind === "steer"\) throw/);
+  const composer = await readFile(join(built, client), 'utf8');
+  assert.match(composer, /const steeringAvailable = false;/);
+  assert.match(composer, /plainMessageDraft \? t\("input.send.queue"\)/);
+  assert.equal(composer.match(/style: \{ display: "none" \}/g).length, 2);
+  assert.match(composer, /false && ctx\.slots\.inject/);
   assert.equal((await stat(join(target, 'runtime/bin/node'))).mode & 0o777, 0o755);
   assert.equal(await readFile(join(target, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'utf8'), 'package manager');
   await assert.rejects(stat(join(target, 'runtime/primary-runtime/dependencies/python')), { code: 'ENOENT' });

@@ -1007,3 +1007,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 25/25，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。新包构建、严格深度签名及 Git 差异检查通过。
 - 遗留问题：本次覆盖本地模型、桌面主进程单独退出和受控命令。系统断电、Host 同时被强制结束、不同操作系统另验。脱敏日志见 `/tmp/moos-life-*.log`。
 - 对应 Git 提交：唯一说明 `fix(P03.13): stop the PI host when the desktop exits`，用 `git log --all --oneline --grep='^fix(P03.13): stop the PI host when the desktop exits$'` 查询。
+
+## 2026-11-08 03:45:46 +08:00｜P03.13.3 同会话追加消息独立排队
+
+- 修改或新增内容：Moos 的打包版统一把运行中新发的消息排入下一轮。旧客户端提交的插入请求同样进入下一轮，已经排队的条目可编辑或删除。桌面移除插入动作和对应偏好，运行中按钮显示「排队发送」。
+- 遇到的难题：原版会把多条等待插入的消息合成一步，而 PI 适配层从该请求中只取最后一条用户消息。首次复制验收包和核心回归遇到本机磁盘空间不足，核心回归在打包测试复制 Node 文件时报告 ENOSPC。
+- 处理方式：在固定版 Host 中保留逐条队列，不从队列中抽取条目合并到当前步骤。输入区沿用排队、编辑和删除入口。构建断言上游每个修改位置的匹配次数。磁盘空间恢复后用正常入口完成全量构建，并重跑核心回归。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-tQH1KV` 正常模式，用本地模型执行一条约 26 秒的 PI 命令。命令运行中先用 Command+Enter，再用「排队发送」追加两条带不同标记的写入任务。界面显示两条排队消息，随后顺序显示 HOLD、first、second 完成。SQLite 有同一会话的三条成功任务和三条轮次关联，三条任务的运行时间无重叠。模型夹具收到八次请求，最终文件内容为 second。
+- 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 25/25，`npm test` 最终 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。完整构建、严格深度签名和 Git 差异检查通过。
+- 遗留问题：队列验收覆盖本机的三条指令，未实测运行中编辑队列后退出重启。线上逐轮续聊已有 E58，尚无线上运行中追加的独立性能样本。脱敏日志见 `/tmp/moos-queue-*.log`。
+- 对应 Git 提交：唯一说明 `fix(P03.13): queue every busy-session message for PI`，用 `git log --all --oneline --grep='^fix(P03.13): queue every busy-session message for PI$'` 查询。
