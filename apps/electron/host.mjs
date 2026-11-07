@@ -22,6 +22,7 @@ export function startHost({ cli, home, cwd, executionPatch, piFixture, onUnexpec
     DSH_SKINS_HOME: `${home}/skins`,
     DSH_SKINS_DIR: `${home}/skins`,
     DSH_TELEMETRY_DISABLED: '1',
+    PI_OFFLINE: '1',
     MOOS_ELECTRON_WORKSPACE_ROOT: cwd,
   };
   delete env.ELECTRON_RUN_AS_NODE;

@@ -38,7 +38,8 @@ test('runs the host on loopback and waits for its actual shutdown', async t => {
     if (process.argv.slice(2).join(' ') !==
         'web --patch ' + process.cwd() + '/execution.patch.yml --host 127.0.0.1 --port 0 --no-open'
         || process.env.DSH_HOME !== process.cwd() || process.env.MOOS_ELECTRON_WORKSPACE_ROOT !== process.cwd()
-        || process.env.DSH_TELEMETRY_DISABLED !== '1' || process.env.MOOS_ELECTRON_PI_RUNTIME) process.exit(8);
+        || process.env.DSH_TELEMETRY_DISABLED !== '1' || process.env.PI_OFFLINE !== '1'
+        || process.env.MOOS_ELECTRON_PI_RUNTIME) process.exit(8);
     console.log('dsh web: http://example.test:43123/?token=${token}');
     console.log(${JSON.stringify(line)});
     setInterval(() => {}, 1000);

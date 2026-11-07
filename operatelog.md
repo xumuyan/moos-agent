@@ -838,3 +838,13 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64、Electron 44.7.0 与 DSH Host 0.2.2-rc.1 下升级 0.1.4 的隔离插件配置。升级前页面显示内置配置、实验性扩展、内部壳和皮肤。升级后只显示皮肤中心，设置没有内置插件入口。原包深海女仆工坊生效，PI 实际写入验收文件并运行 bash。通过「添加插件」从本地目录安装独立临时插件，确认启用后状态为运行中。界面卸载后核对配置和列表恢复到基线。
 - 遗留问题：固定外部 DSH Host 仍含上游原始可选包文件。独立发行包物理裁剪、公开来源下载和执行插件兼容待验。正式线上模型与 PI 权限策略仍按各自阶段推进。
 - 对应 Git 提交：唯一说明 `feat(P03.13): slim the default Electron plugin profile`，用 `git log --all --oneline --grep='^feat(P03.13): slim the default Electron plugin profile$'` 查询。
+
+## 2026-11-08 00:01:23 +08:00｜P03.13.4 将 Electron 会话权限接入 PI
+
+- 修改或新增内容：每次 PI 工具调用读取对应会话权限。受限文件操作检查规范化路径，拒绝越界符号链接、悬空符号链接和直接硬链接。受限 Bash 使用 macOS 沙箱，限制外部文件与网络。需要越界的命令通过原版审批卡申请一次性授权，拒绝或停止时不执行。
+- 遇到的难题：上游默认命令沙箱只约束写入。首轮自定义沙箱缺少根目录及祖先目录访问，Bash 启动失败。PI 原生 grep、find 可能在进程外下载和启动辅助程序。
+- 处理方式：验证 macOS Bash 启动所需的目录规则，受限搜索改走 Bash 下的系统工具。Electron Host 开启 PI 的附属网络操作离线开关，本地模拟模型调用仍通过 PI 的模型代理。PI 的 shell 环境不继承凭据变量。
+- 验证结果：Electron（含固定 DSH CLI、macOS 原生命令与回环网络）11/11，`npm test` 137/137，`npm run test:desktop-ui -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`npm run test:desktop-product` 30/30，PI 探针 5/5，皮肤探针 4/4，`npm run test:docs` 53/53。构建和深度严格签名通过，检查日志见 `/tmp/moos-pi-permission-*.log`。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的签名 Moos 开发包验证深海女仆工坊和本地模拟模型。工作区内修改成功并拦截越界 Bash，切到仅可查看后写文件与 Bash 写入均受限。审批拒绝不生成文件，允许一次生成预期文件，下一次待审批任务停止后未生成文件。启用完全权限后同一条越界 Bash 命令写入预期内容。实机结果见 `/tmp/moos-pi-permission-gui.log`。
+- 遗留问题：权限证据覆盖本机模拟模型、隔离项目和现有 DSH 三个会话档位。真实项目、线上模型与推理档位、第三方执行插件、其他平台及完整对照仍待验收。
+- 对应 Git 提交：唯一说明 `feat(P03.13): apply desktop permissions to PI tools`，用 `git log --all --oneline --grep='^feat(P03.13): apply desktop permissions to PI tools$'` 查询。

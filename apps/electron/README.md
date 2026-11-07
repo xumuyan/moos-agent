@@ -28,3 +28,5 @@ MOOS_ELECTRON_PI_FIXTURE=1 MOOS_ELECTRON_DATA="$(mktemp -d)" "/path/to/Moos.app/
 ```
 
 验收模式默认选中「Moos PI · 本地调度验收」。可在默认工作区发送 `MOOS_FIXTURE_WRITE sample`，检查 `result.txt` 和对话中的工具结果。只接受专用数据目录 `workspace` 下的项目和固定验收指令。PI 复用现有 Host 进程、SQLite 和 Moos 调度器。定时任务、真实项目权限策略及真实模型仍待接入。
+
+PI 验收路由读取会话当前的「仅可查看」「工作区内修改」「完全权限」。在临时项目中发送 `MOOS_FIXTURE_POLICY` 可检查项目内写入及 Bash 越界行为。发送 `MOOS_FIXTURE_APPROVAL` 可在受限模式下测试一次性命令审批。受限命令由 macOS 沙箱执行，搜索通过受限 Bash 调用系统工具。真实项目与线上模型仍待验收。

@@ -3,7 +3,7 @@ export const model = 'pi-fixture';
 
 const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验收',
   contextWindow: 128000, inputModalities: ['text'] };
-const tools = new Set(['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls']);
+const tools = new Set(['read', 'write', 'edit', 'bash', 'bash_escalated', 'grep', 'find', 'ls']);
 const errors = {
   auth: { code: 'AUTHENTICATION', message: '本地模型验收返回认证失败' },
   rate_limit: { code: 'RATE_LIMIT', message: '本地模型验收返回限流' },
@@ -20,7 +20,7 @@ function* textBlock(index, text) {
   yield { type: 'block-end', index, block: { type: 'text', text } };
 }
 
-export function createFixtureAdapter({ tasks, getSession }) {
+export function createFixtureAdapter({ tasks, getSession, getPermissions }) {
   async function* stream(request) {
     const lifetime = new AbortController();
     const signal = request.signal ? AbortSignal.any([lifetime.signal, request.signal]) : lifetime.signal;
@@ -40,7 +40,8 @@ export function createFixtureAdapter({ tasks, getSession }) {
     let task;
     try {
       task = await tasks.open({ sessionId, cwd: getSession(sessionId)?.header?.cwd,
-        input: user.content.map(part => part.text).join('\n').trim(), signal });
+        input: user.content.map(part => part.text).join('\n').trim(),
+        signal, permissions: getPermissions?.(sessionId) });
     } catch {
       yield signal.aborted ? aborted : rejected;
       return;

@@ -9,6 +9,7 @@ import { checkedProvider, context, privateDir, privateFile, proxyFor } from '../
 import { classifyTaskError, TaskFailure } from '../../services/agent/errors.mjs';
 import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-policy.mjs';
 import { normalizeUsage } from '../../services/agent/usage.mjs';
+import { workspaceTools } from './tool-policy.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
@@ -52,7 +53,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   const cwd = await realpath(project.path);
@@ -84,6 +85,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const model = modelRuntime.getModel(provider.id, provider.model);
     if (!model) throw new Error('PI SDK model unavailable');
     const sessionManager = SessionManager.continueRecent(cwd, root);
+    const customTools = permissions && workspaceTools(cwd, permissions);
     ({ session } = await createAgentSession({
       cwd, agentDir, modelRuntime, model, thinkingLevel: 'off',
       resourceLoader: resourceLoader(instructions), sessionManager,
@@ -91,7 +93,8 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       // selected bounded task policy so quiet long-running requests are not
       // terminated before Moos' own task deadline.
       settingsManager: sdkSettings(duration),
-      tools: ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
+      tools: customTools?.map(tool => tool.name) ?? ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
+      customTools,
     }));
     let text = ''; let last;
     unsubscribe = session.subscribe(event => {

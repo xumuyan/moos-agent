@@ -48,7 +48,7 @@ function responsesText(res, text) {
 }
 
 /** Local-only, deterministic OpenAI SSE endpoint. Never contacts a model service. */
-export async function startFixture({ longDelayMs = 605000 } = {}) {
+export async function startFixture({ longDelayMs = 605000, desktopPolicy = false } = {}) {
   if (!Number.isSafeInteger(longDelayMs) || longDelayMs < 1 || longDelayMs > 620000) throw new Error('Invalid fixture long delay');
   const server = createServer(async (req, res) => {
     try {
@@ -98,12 +98,18 @@ export async function startFixture({ longDelayMs = 605000 } = {}) {
       const match = /\bMOOS_FIXTURE_WRITE\s+([^\s]+)/.exec(text);
       const hold = /\bMOOS_FIXTURE_HOLD\b/.test(text);
       const allTools = /\bMOOS_FIXTURE_TOOLS\b/.test(text);
+      const policy = desktopPolicy && /\bMOOS_FIXTURE_POLICY\b/.test(text);
+      const approval = desktopPolicy && /\bMOOS_FIXTURE_APPROVAL\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ([Boolean(match), hold, allTools].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools, policy, approval].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
-      const sequence = hold ? ['bash'] : allTools ? ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'] : ['write', 'bash'];
+      let sequence = ['write', 'bash'];
+      if (hold) sequence = ['bash'];
+      if (allTools) sequence = desktopPolicy ? ['write', 'read', 'edit', 'ls', 'bash']
+        : ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'];
+      if (approval) sequence = ['bash_escalated'];
       // Derive progress from this request, not a shared counter (projects run concurrently).
       // Only results paired with this turn's assistant calls advance the scenario.
       const turn = messages.slice(0, lastUser + 1).filter(message => message.role === 'user').length;
@@ -115,8 +121,17 @@ export async function startFixture({ longDelayMs = 605000 } = {}) {
         }
       }
       if (calls.length > sequence.length || results.length !== calls.length) return reply(res, 409, 'Unexpected fixture tool results');
-      if (calls.length === sequence.length) return stream(res, { content: `完成 ${hold ? 'HOLD' : allTools ? 'TOOLS' : marker}` }, 'stop');
+      if (calls.length === sequence.length) {
+        const result = hold ? 'HOLD' : allTools ? 'TOOLS' : policy ? 'POLICY' : approval ? 'APPROVAL' : marker;
+        return stream(res, { content: `完成 ${result}` }, 'stop');
+      }
+      if (policy) {
+        if (!calls.length) return tool(res, 'write', { path: 'policy.txt', content: 'inside\n' }, turn);
+        return tool(res, 'bash', { command: "printf 'outside\\n' > ../moos-policy-outside.txt" }, turn);
+      }
+      if (approval) return tool(res, 'bash_escalated', { command: "printf 'approved\\n' > ../moos-policy-approved.txt" }, turn);
       if (hold) {
+        if (desktopPolicy) return tool(res, 'bash', { command: 'printf "%s" "$$" > fixture-hold.pid && exec /bin/sleep 25', timeout: 30 }, turn);
         return tool(res, 'bash', { command: nodeCommand("require('node:fs').writeFileSync('fixture-hold.pid',String(process.pid)); console.log('fixture hold started'); setTimeout(()=>{console.log('fixture hold finished')},25000)"), timeout: 30 }, turn);
       }
       if (allTools) {
@@ -129,11 +144,14 @@ export async function startFixture({ longDelayMs = 605000 } = {}) {
           ['ls', { path: '.' }],
           ['bash', { command: nodeCommand("const fs=require('node:fs');if(fs.readFileSync('all-tools.txt','utf8')!=='after edit\\n')throw Error('edit missing');console.log('all tools verified')"), timeout: 5 }],
         ];
-        return tool(res, ...toolCases[calls.length], turn);
+        const desktopCases = [...toolCases.slice(0, 3), toolCases[5],
+          ['bash', { command: '/usr/bin/grep -qx "after edit" all-tools.txt && /usr/bin/find . -name all-tools.txt', timeout: 5 }]];
+        return tool(res, ...(desktopPolicy ? desktopCases : toolCases)[calls.length], turn);
       }
       if (calls.length === 0) return tool(res, 'write', { path: 'result.txt', content: `${marker}\n` }, turn);
       const source = `const fs=require('node:fs'); const expected=${JSON.stringify(`${marker}\n`)}; if(fs.readFileSync('result.txt','utf8')!==expected) throw new Error('fixture marker mismatch'); console.log(${JSON.stringify(`verified ${marker}`)});`;
-      return tool(res, 'bash', { command: nodeCommand(source), timeout: 5 }, turn);
+      const command = desktopPolicy ? '[ "$(/bin/cat result.txt)" = ' + shellQuote(marker) + ' ]' : nodeCommand(source);
+      return tool(res, 'bash', { command, timeout: 5 }, turn);
     } catch {
       if (!res.headersSent) reply(res, 500, 'Fixture request failed');
       else res.end();
