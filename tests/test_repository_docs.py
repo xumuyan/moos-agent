@@ -634,5 +634,16 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(followup['billingReconciled'])
 
 
+    def test_selection_state_fix_has_real_gui_evidence_and_remaining_scope(self):
+        report = json.loads((ROOT / 'apps/desktop/evidence/p02-selection-state.json').read_text())
+        for key in ('missingKeyErrorVisibleBeforeSwitch', 'conversationSwitchClearsError',
+                    'projectSwitchClearsError', 'defaultThemeMarkedAppliedAfterLocalThemeDisabled', 'graphiteRestored'):
+            self.assertTrue(report['gui'][key])
+        self.assertFalse(report['gui']['newModelRequestSent'])
+        self.assertFalse(report['limits']['p029Complete'])
+        self.assertTrue(report['build']['allRegularFilesMatch'])
+        self.assertIn('| E29 |', (ROOT / 'PLAN.md').read_text())
+
+
 if __name__ == '__main__':
     unittest.main()

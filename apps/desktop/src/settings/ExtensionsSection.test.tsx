@@ -28,7 +28,7 @@ it('keeps preview isolated and applies only after the explicit action', async ()
   expect(apply).not.toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: '应用此皮肤' }));
   expect(apply).toHaveBeenCalledWith('graphite');
-  await user.click(screen.getByRole('button', { name: 'Moos 默认' }));
+  await user.click(screen.getByRole('button', { name: 'Moos 默认 已应用' }));
   expect(apply).toHaveBeenCalledWith('default');
 });
 

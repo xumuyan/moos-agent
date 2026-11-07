@@ -42,7 +42,12 @@ export default function App() {
   const [conversationId, setConversationId] = useState('');
   const [providerId, setProviderId] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
+  const [notice, setNotice] = useState<{ message: string; scope: string }>();
+  // Errors belong to the selection that initiated the command, including late replies.
+  const noticeScope = JSON.stringify([projectId, conversationId, providerId]);
+  const error = notice?.scope === noticeScope ? notice.message : '';
+  const setError = (message: string) => setNotice(message ? { message, scope: noticeScope } : undefined);
+  useEffect(() => { setNotice(undefined); }, [noticeScope]);
   const [connectionError, setConnectionError] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);

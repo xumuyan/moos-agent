@@ -24,6 +24,27 @@ beforeEach(() => {
   });
 });
 describe('desktop assistant', () => {
+  it('clears request errors on conversation and project switches and suppresses late failures', async () => {
+    state.projects = [project, { id: 'p2', name: '另一项目', path: '/other' }];
+    state.conversations = [conversation, { id: 'c2', projectId: 'p1', title: '另一会话' }, { id: 'c3', projectId: 'p2', title: '其他项目会话' }];
+    state.providers = [provider];
+    const original = bridge.getMockImplementation()!;
+    let rejectPending: (error: Error) => void = () => {};
+    bridge.mockImplementation((method, params) => method === 'submit' ? Promise.reject(new Error('fixture submit failed')) : original(method, params));
+    const user = userEvent.setup(); render(<App />);
+    const input = await screen.findByRole('textbox', { name: '任务内容' });
+    await user.type(input, 'test{Enter}');
+    await screen.findByText('fixture submit failed');
+    await user.click(screen.getByRole('button', { name: '另一会话' }));
+    await waitFor(() => expect(screen.queryByText('fixture submit failed')).not.toBeInTheDocument());
+    bridge.mockImplementation((method, params) => method === 'submit' ? new Promise((_, reject) => { rejectPending = reject; }) : original(method, params));
+    await user.type(screen.getByRole('textbox', { name: '任务内容' }), 'later{Enter}');
+    await waitFor(() => expect(bridge).toHaveBeenCalledWith('submit', expect.objectContaining({ conversationId: 'c2' })));
+    await user.click(screen.getByRole('button', { name: '另一项目' }));
+    rejectPending(new Error('late old conversation error'));
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('其他项目会话'));
+    expect(screen.queryByText('late old conversation error')).not.toBeInTheDocument();
+  });
   it('updates the chat heading after rename and retains the rail settings entry only', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
     const user = userEvent.setup(); render(<App />);

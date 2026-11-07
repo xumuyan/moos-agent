@@ -576,3 +576,18 @@
 - 对应 Git 提交：唯一说明 `test(P02.9): record installed GUI stability and crash cleanup`；查询 `git log --all --oneline --grep='^test(P02.9): record installed GUI stability and crash cleanup$'`。
 
 - 本轮最终回归补记（2026-11-07）：`npm test`137/137、stable离线`npm run test:desktop-product`27/27、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`120/120、`npm run test:docs`43/43全部通过，`git diff --check`通过；原有jsdom NaN height警告保留。证据和日志仅追加本轮事实，不扩大P02.9完成范围。
+
+
+## 2026-11-07 08:14:41 +08:00｜P02.9：错误归属与默认主题标记
+
+- 时间说明：此为本轮整理北京时间，证据对应唯一提交说明 `fix(P02.9): scope request errors and mark fallback theme` 的提交前工作区；前轮E28问题记录保留。
+- 修改或新增内容：App命令错误携带发起时项目/会话/模型选择范围，选择变化清除提示，迟到旧请求不显示在新选择；本机连接错误独立保持。ThemeSection默认按钮增加已应用标记，失效预览只回退到可用目录项、不隐式应用或保存。增加App切会话/项目与迟到失败、皮肤目录移除测试，更新旧默认按钮断言，追加E29、规范及文档契约测试。
+- 遇到的难题：错误是全局字符串，之前缺密钥会在其他项目显示。皮肤样式已正常默认回退，真正缺的是默认按钮原本没有已应用标记，不能误判为整个皮肤系统失效。主题初始新夹具用*版本被兼容校验拒绝，改用项目实际^0.1.0。首轮构建因新增ByRole测试误用exact选项失败，移除不支持选项后通过。完整UI首轮121/122，旧ExtensionsSection断言仍按默认按钮旧名称查找，更新准确新名后重跑全量。
+- 处理方式：按investigate先追根因；App旧逻辑回归实际失败在切会话后提示仍存在，修复后定向13/13通过。错误按发起选择归属，迟到响应在新选择不展示；不掩盖独立连接异常。默认标记与其他主题一致，不修改皮肤加载和权限边界。GUI原拟临时目录错误夹具，最终取消目录选择，改用无密钥元数据服务，确保本机提交即拒绝、不收费。动态表单AX设置地址被截断或旧索引落到地址字段，未提交无效内容；刷新完整树并粘贴核对合法URL后保存。
+- 验证结果：`npm test`137/137、stable离线`npm run test:desktop-product`27/27；定向App13/13、ThemeSection1/1。TypeScript/Vite/Tauri build通过，ad-hoc签名deep/strict通过，安装15387项常规文件逐一哈希相同，SHA256 `98e36eb24308c90888ffbacafbd7ffe38c4df14929128f37ade82eb3df805b35`；完整UI最终与文档结果结束后补记再提交。
+- 实际验收：arm64/macOS27.0.1、1280×820，安装版无活跃任务和PTY后正常退出更新；选择本机缺密钥服务，拒绝提示在原会话出现，切另一会话后消失，再制造错误并切alpha项目后消失。未发出模型请求。启用/应用薄荷夹具后停用，主题页显示Moos默认已应用且薄荷选项消失，最后恢复石墨已应用，测试皮肤保持停用、选择恢复云桥。迟到错误精确时序只由自动回归覆盖，不冒充GUI。
+- 体积与证据：Tauri报告.app231.27MiB，签名常规文件逻辑246243362字节、磁盘284448KiB，仍为完整内置运行时基线。脱敏证据 `apps/desktop/evidence/p02-selection-state.json`；截图仅本机 `/tmp/moos-selection-20261107/default-applied.png`；备份在本机临时目录moos-before-selection-fix-295jo31u/Moos.app。
+- 遗留问题：P02.9剩余GLM、账单对账、全新安装及小包未完成。新增P029 missing key fixture仅存本机元数据、无凭据，保留供回归；未删除真实服务或改其密钥。未重复十分钟/组合强退全部验收，沿用E28已验证产品基线，既有Vite大chunk与jsdom NaN高度警告保留。
+- 对应 Git 提交：唯一说明 `fix(P02.9): scope request errors and mark fallback theme`；查询 `git log --all --oneline --grep='^fix(P02.9): scope request errors and mark fallback theme$'`。全部适用验证通过后提交并推送GitHub main，核对远程，不预填自身哈希。
+
+- 本轮最终回归补记（2026-11-07 08:17）：完整UI重跑39文件122/122通过，文档44/44通过，核心137/137与原生27/27通过，`git diff --check`通过。安装GUI已通过对应两项修复验收；现有jsdom NaN高度和Vite大chunk警告不影响本轮结论，继续保留历史问题。

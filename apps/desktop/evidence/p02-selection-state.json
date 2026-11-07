@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "scope": "P02.9 selection errors and default theme indicator",
+  "gui": {
+    "missingKeyErrorVisibleBeforeSwitch": true,
+    "conversationSwitchClearsError": true,
+    "projectSwitchClearsError": true,
+    "defaultThemeMarkedAppliedAfterLocalThemeDisabled": true,
+    "disabledThemeAbsentFromChoices": true,
+    "graphiteRestored": true,
+    "newModelRequestSent": false,
+    "temporaryMetadataOnlyProviderRetained": "P029 missing key fixture"
+  },
+  "automated": {
+    "lateFailureIsolation": true,
+    "themeCatalogRemoval": true,
+    "coreTests": 137,
+    "nativeTests": 27,
+    "uiTests": 122,
+    "uiFiles": 39,
+    "docsTests": 44,
+    "initialFullUiFailedOnOldDefaultButtonLabel": true
+  },
+  "build": {
+    "binarySha256": "98e36eb24308c90888ffbacafbd7ffe38c4df14929128f37ade82eb3df805b35",
+    "allRegularFilesMatch": true,
+    "fileCount": 15387,
+    "logicalBytes": 246243362,
+    "diskKiB": 284448
+  },
+  "limits": {
+    "p029Complete": false,
+    "guiLateReplyTimingSimulated": false,
+    "modelSelectionErrorSwitchGuiVerified": false
+  },
+  "privateEvidence": "/tmp/moos-selection-20261107/"
+}
