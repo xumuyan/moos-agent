@@ -2,6 +2,9 @@ import { forkPrefix } from './pi-fork.js';
 
 export const route = 'moos-pi';
 export const model = 'pi-fixture';
+const adapters = new WeakSet();
+
+export function isMoosPiAdapter(adapter) { return adapters.has(adapter); }
 
 const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验收',
   contextWindow: 128000, inputModalities: ['text'] };
@@ -197,7 +200,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       await task.stop();
     }
   }
-  return {
+  const adapter = {
     providerInfo: () => ({ id: route, name: 'Moos PI' }),
     providerRetryPolicy: () => ({ mode: 'normal', maxRetries: 0, retryableCodes: [],
       initialDelayMs: 100, maxDelayMs: 100, jitterRatio: 0 }),
@@ -212,4 +215,6 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     prepareCall: async (provider, model) => ({ model: await resolveModel(provider, model), stream }),
     stream,
   };
+  adapters.add(adapter);
+  return adapter;
 }

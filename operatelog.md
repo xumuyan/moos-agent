@@ -1117,3 +1117,13 @@
 - 验证结果：回环回归 1/1，`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 29/29，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：两种限制分别施加，未证明整应用在整台 Mac 断网时可运行。Dock 图标未获得本轮实机观察。完整断网需要独立环境或可安全隔离的系统网络。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify sign-in-free loopback startup`，用 `git log --all --oneline --grep='^test(P03.13): verify sign-in-free loopback startup$'` 查询。
+
+## 2026-11-08 05:27:48 +08:00｜P03.13.3、P03.13.7 校验 PI 路由的适配器实例
+
+- 修改或新增内容：随包 Host 的模型注册同时验证路由名和适配器实例。注册器和 Moos 内置壳使用同一个包内工厂，普通适配器即使使用同名或复制接口也会被拒绝。内置壳升级为 0.1.19。
+- 遇到的难题：旧包只比较路由名，独立注册器中同名第三方对象可以先注册，真实 PI 已注册时的重复名检查无法覆盖启动顺序。旧安装包上的定向回归复现了放行。
+- 处理方式：在同一模块实例记录正式工厂创建的适配器，让首次注册和热替换都验证对象身份。构建时把工厂放入签名 Host，沿用离线升级流程。回归覆盖同名、克隆、其他路由、合法热替换及释放后重注册。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-DV6dkR`，旧隔离配置升级内置壳后，通过随包 CLI 按需安装并启用本地测试插件。Host 拒绝它以 `moos-pi` 名称注册，返回 INVALID_ADAPTER。真实线上 GLM-5.3 仍经 PI 成功写入并用 Node 校验，文件字节准确，SQLite 任务成功且有三条用量事件。移除测试插件并重启，插件页恢复为皮肤中心与添加入口。已更新 `/Applications/Moos.app` 并严格验签，旧包留在本机临时验收目录。
+- 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 29/29，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：本轮验证受支持的注册接口。用户主动安装的 Host 插件代码仍具有宿主权限，尚未验收任意代码的系统隔离或第三方执行插件的兼容性。
+- 对应 Git 提交：唯一说明 `fix(P03.13): reserve the model route for packaged PI adapters`，用 `git log --all --oneline --grep='^fix(P03.13): reserve the model route for packaged PI adapters$'` 查询。

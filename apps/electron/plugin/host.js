@@ -2,7 +2,6 @@ import { realpath } from 'node:fs/promises';
 import { unwatchFile, watchFile } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createPiAdapter, route } from './pi-route.js';
 import { createPiTasks } from './pi-tasks.js';
 import { piModels } from './pi-models.js';
 
@@ -20,6 +19,8 @@ export async function apply(ctx) {
   }));
   const runtime = process.env.MOOS_ELECTRON_PI_RUNTIME;
   if (!runtime) return;
+  const { createPiAdapter, route } = await import(
+    pathToFileURL(join(runtime, '../host-runtime/dsh/moos-pi/pi-route.js')).href);
   ctx.on('agent/created', ({ agent }) => {
     if (agent.model.current()?.provider !== route) {
       agent.model.select({ provider: route, model: 'auto' });

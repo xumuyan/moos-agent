@@ -6,7 +6,6 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { stageDshRuntime } from './stage-dsh-runtime.cjs';
-import { createPiAdapter, route } from './plugin/pi-route.js';
 
 test('the carried Host drops optional packages and their inventory entries, but keeps plugin installation', async t => {
   const root = await mkdtemp(join(tmpdir(), 'moos-stage-dsh-'));
@@ -70,7 +69,9 @@ test('the carried Host drops optional packages and their inventory entries, but 
   for (const name of keep) assert.equal(await readFile(join(built, 'node_modules', name, 'index.js'), 'utf8'), name);
   for (const name of omit) await assert.rejects(stat(join(built, 'node_modules', name)), { code: 'ENOENT' });
   assert.equal(await readFile(join(dsh, llm), 'utf8'), registration);
-  assert.match(await readFile(join(built, llm), 'utf8'), /providers\.some\(provider => provider !== "moos-pi"\)/);
+  assert.match(await readFile(join(built, llm), 'utf8'),
+    /!isMoosPiAdapter\(adapter\) \|\| providers\.some\(provider => provider !== moosPiRoute\)/);
+  assert.match(await readFile(join(built, 'moos-pi/pi-route.js'), 'utf8'), /new WeakSet\(\)/);
   assert.match(await readFile(join(built, llm), 'utf8'), /resolvedOptions\.provider !== "moos-pi" && projectedMessages\.some/);
   assert.equal(await readFile(join(dsh, manager), 'utf8'), inventorySource);
   assert.equal(await readFile(join(built, manager), 'utf8'),
@@ -92,6 +93,10 @@ test('the carried Host drops optional packages and their inventory entries, but 
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
+function packagedAdapter() {
+  return import(pathToFileURL(join(dirname(dshCli), '../dsh/moos-pi/pi-route.js')).href);
+}
+
 test('the packaged Host keeps a verified upload intact until the PI adapter reads it', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
 }, async t => {
@@ -99,6 +104,7 @@ test('the packaged Host keeps a verified upload intact until the PI adapter read
   const { Context } = await import(pathToFileURL(require.resolve('@deepseek-ai/cordis')));
   const { LlmRuntime } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-llm')));
   const { LocalAttachmentStore } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-attachment-local')));
+  const { createPiAdapter, route } = await packagedAdapter();
   const root = await mkdtemp(join(tmpdir(), 'moos-attachment-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const ctx = new Context();
@@ -146,24 +152,31 @@ test('the packaged plugin inventory lists the skin and omits uninstalled catalog
   }
 });
 
-test('the packaged DSH registry accepts PI and rejects external adapters on register and replace', {
+test('the packaged DSH registry accepts PI and rejects lookalike adapters and other routes', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
 }, async () => {
   const require = createRequire(join(dirname(dshCli), '..', 'dsh', 'package.json'));
   const { Context } = await import(pathToFileURL(require.resolve('@deepseek-ai/cordis')));
   const { LlmRuntime } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-llm')));
+  const { createPiAdapter, route } = await packagedAdapter();
   const llm = new LlmRuntime(new Context());
   const other = {
-    providerInfo: () => ({ id: 'external', name: 'External plugin' }),
+    providerInfo: id => ({ id, name: 'External plugin' }),
     providerRetryPolicy: () => undefined,
   };
   assert.throws(() => llm.registerAdapter(['external'], other), { code: 'INVALID_ADAPTER' });
-  const pi = llm.registerAdapter([route], createPiAdapter({}));
+  assert.throws(() => llm.registerAdapter([route], other), { code: 'INVALID_ADAPTER' });
+  const adapter = createPiAdapter({});
+  assert.throws(() => llm.registerAdapter([route], { ...adapter }), { code: 'INVALID_ADAPTER' });
+  const pi = llm.registerAdapter([route], adapter);
   try {
     assert.throws(() => pi.replace([route, 'external']), { code: 'INVALID_ADAPTER' });
+    pi.replace([route]);
     assert.deepEqual(llm.listProviders().map(provider => provider.id), [route]);
     assert.equal((await llm.resolveModelInfo(route, 'pi-fixture')).id, 'pi-fixture');
   } finally {
     pi();
   }
+  assert.throws(() => llm.registerAdapter([route], other), { code: 'INVALID_ADAPTER' });
+  llm.registerAdapter([route], createPiAdapter({}))();
 });

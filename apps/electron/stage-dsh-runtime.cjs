@@ -80,12 +80,22 @@ function stageDshRuntime(resources, destination) {
   }
   copy('');
   configurePiQueue(dsh);
-  // Both initial registration and replacement pass through this validation.
+  // The Host and the registry must use the same adapter factory instance.
+  const adapterDir = join(dsh, 'moos-pi');
+  fs.mkdirSync(adapterDir);
+  for (const file of ['pi-route.js', 'pi-fork.js']) {
+    fs.copyFileSync(join(__dirname, 'plugin', file), join(adapterDir, file));
+  }
+  const llm = 'dsh-llm';
   const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique';
-  patchBundledSource(dsh, 'dsh-llm', registration, 'prepareRoutes(providers, adapter, owned) {\n' +
-    '\t\t\tif (providers.some(provider => provider !== "moos-pi")) {\n' +
+  patchBundledSource(dsh, llm, registration, 'prepareRoutes(providers, adapter, owned) {\n' +
+    '\t\t\tif (!isMoosPiAdapter(adapter) || providers.some(provider => provider !== moosPiRoute)) {\n' +
     '\t\t\t\tthrow new LlmError("Moos 模型服务必须通过 PI 接入", "INVALID_ADAPTER");\n' +
     '\t\t\t}\n\t\t\tconst unique');
+  const llmEntry = join(dsh, 'node_modules/@deepseek-ai', llm, 'lib/index.js');
+  fs.writeFileSync(llmEntry,
+    'import { isMoosPiAdapter, route as moosPiRoute } from "../../../../moos-pi/pi-route.js";\n' +
+    fs.readFileSync(llmEntry, 'utf8'));
   // PI reads explicit uploads through the verified attachment store. A host
   // path would be outside the workspace and inaccessible to confined tools.
   const projection = 'if (projectedMessages.some((message) => contentHasFile(message.content)))';
