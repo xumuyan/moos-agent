@@ -1,0 +1,24 @@
+{
+  "id": "E38",
+  "dateBeijing": "2026-11-07",
+  "machine": { "os": "macOS 27.0.1", "arch": "arm64" },
+  "runtime": {
+    "electron": "44.7.0",
+    "dshHost": "Installed DeepSeek Harness Desktop 0.2.2-rc.1 CLI",
+    "bundleId": "dev.moos.agent.electron",
+    "diskUsageKiB": 305584,
+    "localSignatureDeepStrict": "passed"
+  },
+  "acceptance": [
+    "Before commit, a fresh data directory opened the original workbench without official login or the upstream welcome notice.",
+    "Native window, application menu and page title said Moos. Finder displayed the Moos name and icon. The app's icon bytes matched the existing Moos icon.",
+    "The empty workbench displayed the center M, and the bottom-left Settings button directly opened Settings with Models and Plugins.",
+    "The default workspace was created under the probe's app data. The loopback listener exited after normal application quit.",
+    "The app reopened with the browser proxy denying external requests and exempting loopback. The actual network interface stayed enabled.",
+    "On the isolated verification profile, the original maid-atelier package activated. The Moos PI fixture displayed write and bash outcomes in the skinned conversation and result.txt bytes matched branded_shell_ok plus newline."
+  ],
+  "notVerified": [
+    "Dock icon visual comparison and standalone distributable package.",
+    "Token usage settings, all-task PI cutover, real model, complete OS offline behavior and arbitrary third-party plugins."
+  ]
+}

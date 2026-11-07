@@ -1,0 +1,12 @@
+{
+  "name": "moos-electron",
+  "productName": "Moos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "prepare:local": "node prepare-local.mjs",
+    "test": "node --test"
+  }
+}

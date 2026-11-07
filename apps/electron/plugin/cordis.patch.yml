@@ -1,0 +1,28 @@
+- id: ui-brand-official
+  disabled: true
+- id: ui-settings-account
+  disabled: true
+- id: account-controller
+  disabled: true
+- id: deepseek-account
+  disabled: true
+- id: workspace-controller
+  config:
+    documentsDirectory: !!js process.env.MOOS_ELECTRON_WORKSPACE_ROOT
+- id: ui-settings-general
+  config:
+    welcomeNoticeVersion: '2026-09-28.1'
+- id: ui-settings-models
+  config:
+    credentialOnboarding: false
+- id: llm-deepseek-account
+  disabled: true
+- id: llm-deepseek
+  disabled: true
+- id: llm-pi-ai
+  disabled: true
+- id: ui-message-feedback
+  disabled: true
+- insert:
+    - id: moos-electron-shell
+      name: moos-electron-shell

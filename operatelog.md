@@ -777,3 +777,13 @@
 - 验证结果：文档检查 53/53，核心 137/137，桌面前端 57 文件 175/175，Rust 原生 30/30，PI 探针 5/5，皮肤探针 4/4。命令记录位于 `/tmp/moos-p0313-*.log`。本轮实际验收为逐项核对计划与用户确认范围及验收顺序，未产生新的应用行为验收。
 - 遗留问题：P03.13 八项均待实施或实测，正式交付须补齐对应应用证据。现有原包兼容证据仍限已验证样本。
 - 对应 Git 提交：唯一说明 `docs(P03.13): plan the Moos Electron migration`，用 `git log --all --oneline --grep='^docs(P03.13): plan the Moos Electron migration$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
+
+## 2026-11-07 20:51:09 +08:00｜P03.13.1–P03.13.2 Moos Electron 本机开发版
+
+- 修改或新增内容：新增 `apps/electron` 本机应用工程、构建脚本和品牌插件。Moos 主进程启动原版 DSH 工作台及 Cordis 宿主，应用和辅助进程使用独立 Moos 标识。首页中心显示小 M，侧栏移除旧品牌，左下角直接打开设置。开发 profile 移除官方账户、登录界面、旧模型路由，并将默认工作区放入 Moos 数据目录。
+- 遇到的难题：第一次构建更名主应用后，Electron 找不到旧名称的辅助进程。原版 Web 工作台还会在首次启动弹出预览说明，并在系统 Documents 下创建默认项目。
+- 处理方式：同步修改应用、辅助进程及签名，复用已安装版本的 Electron 二进制和原版 Host。在专用 profile 设置首次启动行为及隔离目录，通过原版插槽替换品牌。启动只接受本机带认证的回环地址，正常退出等待 Host 回收。
+- 验证结果：Electron 4/4，核心 137/137，桌面前端 57 文件 175/175，Rust 原生 30/30，文档 53/53，PI 探针 5/5，皮肤探针 4/4。命令日志位于 `/tmp/moos-p0313a-*.log`。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 构建本机包。签名 deep/strict 通过，包内图标与现有 Moos 图标字节一致，Finder 实际显示名称及图标。全新配置启动无登录门槛，首页及设置入口通过。默认工作区独立，退出后回环监听消失。使用拒绝外网的浏览器代理重启后，原包皮肤能应用。装入验收插件后，从新 Electron 窗口触发 PI 写文件和 bash，实际文件内容通过。证据 `apps/electron/evidence.json`。
+- 遗留问题：Dock 视觉核对工具超时，完整系统离线与设置用量尚待验收。此本机包依赖现有 DSH Host，正式 PI 路由、权限和真实模型仍待后续阶段接入。
+- 对应 Git 提交：唯一说明 `feat(P03.13): build the local Moos Electron shell`，用 `git log --all --oneline --grep='^feat(P03.13): build the local Moos Electron shell$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
