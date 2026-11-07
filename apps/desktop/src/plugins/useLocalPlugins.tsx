@@ -15,8 +15,10 @@ export function useLocalPlugins(registry: PluginRegistry) {
   const [themes, setThemes] = useState<ThemeDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string>();
+  const [installing, setInstalling] = useState(false);
   const active = useRef(new Map<string, Active>());
   const themeRefresh = useRef(0);
+  const installLock = useRef(false);
 
   const stop = useCallback((id: string) => { const item = active.current.get(id); if (!item) return; item.sandbox.stop(); item.revoke(); active.current.delete(id); }, []);
   const refresh = useCallback(async () => {
@@ -57,15 +59,53 @@ export function useLocalPlugins(registry: PluginRegistry) {
           if (generation === themeRefresh.current) setError(`${item.name} 无法加载，请检查皮肤包中的背景图片和配置。`);
         }
       }
-      if (generation === themeRefresh.current) setThemes(available);
+      if (generation === themeRefresh.current) {
+        setThemes(available);
+        return available;
+      }
     } catch { setError('无法读取本地插件。'); }
     finally { if (generation === themeRefresh.current) setLoaded(true); }
   }, [registry, stop]);
 
   useEffect(() => { void refresh(); return () => { themeRefresh.current++; for (const id of [...active.current.keys()]) stop(id); }; }, [refresh, stop]);
-  const install = async (kind: 'zip' | 'folder') => { try { const path = await pickLocalPlugin(kind); if (!path) return; await installLocalPlugin(path); await refresh(); } catch { setError('安装失败：包不安全、不兼容或无法读取。'); } };
+  const install = async (kind: 'zip' | 'folder'): Promise<ThemeDefinition | undefined> => {
+    if (installLock.current) return;
+    installLock.current = true;
+    setInstalling(true);
+    try {
+      const path = await pickLocalPlugin(kind);
+      if (!path) return;
+      const plugin = await installLocalPlugin(path);
+      if (plugin.pluginType !== 'theme') {
+        await refresh();
+        return;
+      }
+
+      if (!plugin.enabled) {
+        try { await enableLocalPlugin(plugin.id, true); }
+        catch {
+          await refresh();
+          setError(`${plugin.name} 已安装，但无法启用。`);
+          return;
+        }
+      }
+      const available = await refresh();
+      const skin = available?.find(theme => theme.id === plugin.id);
+      if (skin) return skin;
+      if (available && !plugin.enabled) {
+        await enableLocalPlugin(plugin.id, false);
+        await refresh();
+      }
+      setError(`${plugin.name} 已安装，但无法应用。请检查皮肤包后重试。`);
+    } catch {
+      setError('安装失败：包不安全、不兼容或无法读取。');
+    } finally {
+      installLock.current = false;
+      setInstalling(false);
+    }
+  };
   const setEnabled = async (id: string, enabled: boolean) => { try { await enableLocalPlugin(id, enabled); await refresh(); } catch { setError('无法更改插件状态。'); } };
   const uninstall = async (id: string, clearConfig: boolean) => { try { stop(id); await uninstallLocalPlugin(id, clearConfig); await refresh(); } catch { setError('卸载失败，原安装状态已保留。'); } };
-  return { packages, themes, loaded, error, install, setEnabled, uninstall, refresh };
+  return { packages, themes, loaded, error, installing, install, setEnabled, uninstall, refresh };
 }
 export type LocalPluginController = ReturnType<typeof useLocalPlugins>;

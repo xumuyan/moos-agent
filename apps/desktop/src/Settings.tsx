@@ -10,7 +10,7 @@ import type { LocalPluginController } from './plugins/useLocalPlugins';
 interface DiagnosticResult { ok: boolean; code: string; message: string; elapsedMs: number; models?: string[]; status?: number }
 
 interface Values { id?: string; name: string; baseUrl: string; model: string; api: Provider['api']; apiKey?: string; pricing?: Partial<ProviderPricing> }
-export default function Settings({ initialSection = 'models', providers, projects = [], conversations = [], runtime = { taskTimeoutMs: 7200000, allowedTaskTimeouts: [600000, 1800000, 3600000, 7200000, 21600000, 86400000] }, activeThemeId = 'default', onThemeApply = () => {}, themes, localPlugins, onClose, mutate }: { initialSection?: 'models' | 'plugins' | 'usage'; providers: Provider[]; projects?: Project[]; conversations?: Conversation[]; runtime?: RuntimeConfig; activeThemeId?: string; onThemeApply?: (id: string) => void; themes?: ThemeDefinition[]; localPlugins?: LocalPluginController; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
+export default function Settings({ initialSection = 'models', providers, projects = [], conversations = [], runtime = { taskTimeoutMs: 7200000, allowedTaskTimeouts: [600000, 1800000, 3600000, 7200000, 21600000, 86400000] }, activeThemeId = 'default', onThemeApply = () => {}, localPlugins, onClose, mutate }: { initialSection?: 'models' | 'plugins' | 'usage'; providers: Provider[]; projects?: Project[]; conversations?: Conversation[]; runtime?: RuntimeConfig; activeThemeId?: string; onThemeApply?: (theme: string | ThemeDefinition) => void; localPlugins?: LocalPluginController; onClose: () => void; mutate: (method: string, params: Record<string, unknown>) => Promise<boolean> }) {
   const [form] = Form.useForm<Values>();
   const [editing, setEditing] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -111,6 +111,6 @@ export default function Settings({ initialSection = 'models', providers, project
     loadUsage={params => request<UsageSummary>('get_usage', params)}
     clearUsage={async () => (await request<{ removed: number }>('clear_usage')).removed}
     exportUsage={() => request<UsageExport>('export_usage')} />;
-  return <SettingsCenter initialSection={initialSection} open onClose={close} modelContent={modelContent} usageContent={usageContent} runtime={runtime} activeThemeId={activeThemeId} onThemeApply={onThemeApply} themes={themes} localPlugins={localPlugins}
+  return <SettingsCenter initialSection={initialSection} open onClose={close} modelContent={modelContent} usageContent={usageContent} runtime={runtime} activeThemeId={activeThemeId} onThemeApply={onThemeApply} localPlugins={localPlugins}
     onTaskTimeoutChange={taskTimeoutMs => mutate('set_task_policy', { taskTimeoutMs })} />;
 }

@@ -9,7 +9,7 @@ test('decorative navigation icons do not add spoken names or interrupt keyboard 
   const nav = screen.getByRole('tablist', { name:'设置分区' });
   expect(within(nav).queryByRole('img')).toBeNull();
   const tabs = within(nav).getAllByRole('tab');
-  expect(tabs.map(tab => tab.getAttribute('aria-controls'))).toEqual(Array(9).fill('settings-panel'));
+  expect(tabs.map(tab => tab.getAttribute('aria-controls'))).toEqual(Array(8).fill('settings-panel'));
   const models = screen.getByRole('tab', { name:'模型服务' });
   models.focus();
   await userEvent.keyboard('{ArrowUp}');

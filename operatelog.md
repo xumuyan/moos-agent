@@ -728,3 +728,13 @@
 - 实际验收与工作区状态：本提交前产品源码构建，macOS 27.0.1 arm64，1280×820。用原会话「用时 28秒」验证过程折叠和展开，回复卡下移且间距可见。在安装版从 ZIP 安装薄暮，启用、预览时保持原石墨、显式应用、更换背景、重启恢复、停用回退都通过。恢复石墨和旧背景 75% 遮罩，示例留为已启用、未应用。签名 deep/strict 核对通过，15388 项常规文件哈希与构建包一致，主程序 SHA256 `f20baac6e612d7be83cfce625ba020f329a07cfb632f9a830ec45f88812c01e4`。构建 `.app` 232.49 MiB，常规文件逻辑 247512494 字节，磁盘 285688 KiB。证据 `apps/desktop/evidence/p03-image-skin-plugin.json` 与本机私有截图 `/tmp/moos-p038-acceptance/`。
 - 遗留问题：当前导入 Moos 格式的静态图片皮肤，原版 DSH 包需转换；示例未使用第三方素材或脚本。Windows/iPhone 未做本轮验收，Mac GUI 以 PNG 样例实测，JPEG/WebP 仅有自动验证证据。
 - 对应 Git 提交：唯一说明 `fix(P03.8): separate conversation cards and package image skins`，可用 `git log --all --oneline --grep='^fix(P03.8): separate conversation cards and package image skins$'` 查询。提交后推送 GitHub main 并核对远端完整提交，不预填自身哈希。
+
+## 2026-11-07 17:45:00 +08:00｜P03.9 皮肤安装即应用
+
+- 修改或新增内容：删除独立「主题」分区和预览卡，插件页集中显示本地皮肤、内置外观、当前使用标记、恢复默认和已有旧背景。ZIP/文件夹安装成功且图片解码通过后自动启用并应用，持久化皮肤选择。普通 UI 插件安装后保持停用。
+- 遇到的难题：安装返回时 React 皮肤目录可能还未完成重渲染，用旧目录按 ID 查找会错过新皮肤。首轮新增测试清理了全局 `matchMedia` mock，第二个用例无法挂载。参考试穿页无法由网页读取工具渲染。
+- 处理方式：安装流程返回已校验解码的皮肤对象，应用入口直接使用它。解码失败的新包回退为停用，仍可用的原外观保留。测试只恢复自己的图片解码 spy。通过公开 HTML 和清单确认 `maid-atelier` 的包内素材声明，保留 Moos 包格式，未引入第三方素材或代码。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=120000 --hookTimeout=60000` 57 文件 175/175，定向 11/11。`npm test` 137/137。`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --offline -- --test-threads=1` 28/28。`npm run test:docs` 52/52。`npm run build:app` 成功，保留已有大 chunk 提示。命令结果位于 `/tmp/moos-p039-*.log`。
+- 实际验收与工作区状态：本提交前产品源码构建于 macOS 27.0.1 arm64。安装版设置无「主题」分区。重装验收前已停用的「薄暮」 ZIP，选择文件后立即出现「使用中」且工作台背景已改变。退出重启后恢复，在插件页恢复默认、再使用并停用均通过。验收后恢复用户原本默认外观和示例停用状态。应用签名 deep/strict 通过，15388 项常规文件逐项哈希一致。主程序 SHA256 `ed2b9dd6e65b8da85872cce231e4ef877f1fe182d307af28cac5343009c98dbf`，`.app` 232.49 MiB。脱敏记录 `apps/desktop/evidence/p03-plugin-skin-auto-apply.json`，私有截图 `/tmp/moos-p039-acceptance/`。
+- 遗留问题：DSH 试穿链接为参考，使用现有 Moos 皮肤包安装。实机覆盖已停用示例重装，首次安装与坏图处理有自动测试。其他平台未做本轮安装验收。
+- 对应 Git 提交：唯一说明 `feat(P03.9): apply installed skins from the plugins page`。查询 `git log --all --oneline --grep='^feat(P03.9): apply installed skins from the plugins page$'`。提交后推送 GitHub main，按完整 HEAD 核对。

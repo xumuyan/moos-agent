@@ -16,6 +16,7 @@ import ComposerStatus from './composer/ComposerStatus';
 import { createBuiltinPluginRegistry } from './builtin-plugins/insights';
 import { PluginProvider, SlotHost } from './plugins/slots';
 import { BUILTIN_THEMES } from './themes/builtin';
+import type { ThemeDefinition } from './themes/schema';
 import { applyTheme, loadSavedTheme, resetTheme, initializeWorkbenchTheme, THEME_STORAGE_KEY } from './themes/loader';
 import { useLocalPlugins } from './plugins/useLocalPlugins';
 import TaskTrajectory from './conversation/TaskTrajectory';
@@ -122,11 +123,15 @@ export default function App() {
   const disabled = !project || !conversation || !providerId || !!connectionError || busy || active.length > 0;
   const currentTask = [...history.recent.tasks].filter(task => task.projectId === projectId && task.conversationId === conversationId).sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))[0];
   const activeTheme = themes.find(theme => theme.id === themeId);
-  const selectTheme = (id: string) => {
+  const selectTheme = (target: string | ThemeDefinition) => {
     try {
-      if (id === 'default') resetTheme();
-      else applyTheme(themes.find(theme => theme.id === id), { persist: true });
-      setThemeId(id);
+      if (target === 'default') {
+        resetTheme();
+        setThemeId('default');
+      } else {
+        const theme = typeof target === 'string' ? themes.find(item => item.id === target) : target;
+        setThemeId(applyTheme(theme, { persist: true }).id);
+      }
     } catch { resetTheme(); setThemeId('default'); }
   };
   const submit = async () => {
@@ -199,6 +204,6 @@ export default function App() {
         </div>
       </main>}/>
     <Modal title="仅移除项目记录？" open={!!removing} okText="移除记录" cancelText="取消" okButtonProps={{ danger: true }} onCancel={() => setRemoving(undefined)} onOk={async () => { if (removing && await mutateCommand(uiCommands.removeProject(removing))) setRemoving(undefined); }}><p>此操作仅移除项目元数据，不删除磁盘中的文件。正在运行的任务是否允许移除，由本机服务检查。</p></Modal>
-    {settings && <Settings initialSection={settingsSection} providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} themes={themes} localPlugins={localPlugins} onClose={() => setSettings(false)} mutate={mutate} />}
+    {settings && <Settings initialSection={settingsSection} providers={data.providers} projects={data.projects} conversations={data.conversations} runtime={data.runtime ?? emptySnapshot.runtime!} activeThemeId={themeId} onThemeApply={selectTheme} localPlugins={localPlugins} onClose={() => setSettings(false)} mutate={mutate} />}
   </ConfigProvider></PluginProvider>;
 }

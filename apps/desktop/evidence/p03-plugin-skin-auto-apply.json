@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "baselineCommit": "3d7a63ba517ae5fb84cf10e5e9b162aebbbe1bc8",
+  "commitSubject": "feat(P03.9): apply installed skins from the plugins page",
+  "gui": {
+    "viewport": [
+      1280,
+      820
+    ],
+    "themeMenuAbsent": true,
+    "skinManagementInPlugins": true,
+    "fixture": "dev.moos.dusk-image-skin",
+    "reinstalledPreviouslyDisabledZip": true,
+    "enabledAndAppliedWithoutSecondAction": true,
+    "observedWorkbenchBackdrop": true,
+    "persistedAfterRestart": true,
+    "resetFromPlugins": true,
+    "selectedInstalledSkinFromPlugins": true,
+    "disabledSkinFallsBack": true,
+    "originalDefaultAndDisabledFixtureRestored": true
+  },
+  "checks": {
+    "desktopUi": 175,
+    "core": 137,
+    "native": 28,
+    "docs": 52,
+    "tauriAppBundle": true
+  },
+  "bundle": {
+    "path": "/Applications/Moos.app",
+    "bundleMiB": 232.49,
+    "deepStrictSignatureVerified": true,
+    "allRegularFilesMatch": true,
+    "sha256": "ed2b9dd6e65b8da85872cce231e4ef877f1fe182d307af28cac5343009c98dbf",
+    "files": 15388,
+    "logicalBytes": 247512494,
+    "diskKiB": 285688
+  },
+  "privateEvidence": "/tmp/moos-p039-acceptance/",
+  "limits": {
+    "nativeGuiFreshInstall": false,
+    "upstreamSkinPackageDirectlyCompatible": false,
+    "referenceTryOnInteracted": false
+  }
+}

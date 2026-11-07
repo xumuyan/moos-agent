@@ -21,6 +21,9 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))
         self.assertLessEqual(len(data), 1024 * 1024)
         self.assertIn('docs/plugins/image-skin.md', (ROOT / 'PLAN.md').read_text())
+        guide = (ROOT / 'docs/plugins/image-skin.md').read_text()
+        self.assertIn('皮肤会自动启用并应用', guide)
+        self.assertNotIn('设置 → 主题', guide)
 
     def test_direct_source_copy_and_local_wallpaper_keep_provenance_and_boundaries(self):
         lock = json.loads((ROOT / 'apps/desktop/src/vendor/dsh/upstream-source-lock.json').read_text())
