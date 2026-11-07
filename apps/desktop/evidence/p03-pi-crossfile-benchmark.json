@@ -1,0 +1,109 @@
+{
+  "evidence": "E52",
+  "dateBeijing": "2026-11-08",
+  "moosRevision": "3360e7d5a065ec243d40a2fff4348ba53d4f51a4",
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "electron": "44.7.0",
+    "piSdk": "1.5.0",
+    "originalDsh": "0.2.2-rc.1"
+  },
+  "case": {
+    "name": "计数解析与分组汇总",
+    "allowedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "independentTests": 5
+  },
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "sameEndpointAndCredential": true,
+  "runOrder": [
+    "dsh",
+    "moos"
+  ],
+  "moos": {
+    "mode": "electron-gui",
+    "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+    "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+    "requests": 10,
+    "http200": 10,
+    "firstActionMs": 12277,
+    "requestSpanMs": 160933,
+    "inputTokens": 75478,
+    "outputTokens": 3073,
+    "totalTokens": 78551,
+    "cacheReadTokens": 67818,
+    "changedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "linesAdded": 126,
+    "linesRemoved": 10,
+    "publicTests": {
+      "passed": 8,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 5,
+      "failed": 0,
+      "exit": 0
+    },
+    "taskStatus": "succeeded",
+    "toolAcceptance": {
+      "npmTest": "sandbox-denied",
+      "approval": "declined",
+      "nodeTest": "passed"
+    },
+    "approvalWaitMs": 45166,
+    "requestSpanExcludingApprovalMs": 115767
+  },
+  "dsh": {
+    "mode": "headless",
+    "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+    "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+    "requests": 12,
+    "http200": 12,
+    "firstActionMs": 3059,
+    "requestSpanMs": 178088,
+    "inputTokens": 136953,
+    "outputTokens": 3610,
+    "totalTokens": 140563,
+    "cacheReadTokens": 102317,
+    "changedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "linesAdded": 153,
+    "linesRemoved": 6,
+    "publicTests": {
+      "passed": 10,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 5,
+      "failed": 0,
+      "exit": 0
+    },
+    "processExit": 0,
+    "cliElapsedMs": 179343,
+    "toolAcceptance": {
+      "npmTest": "passed"
+    },
+    "includesTitleRequest": true
+  },
+  "limits": {
+    "pairedSamples": 1,
+    "cacheControlled": false,
+    "sameApplicationMode": false,
+    "sameToolsetAndSystemPrompt": false,
+    "supportsGeneralSpeedClaim": false
+  }
+}

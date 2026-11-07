@@ -924,3 +924,14 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-g3rbU3` 正常模式，从有两轮的父会话选择第一轮分支。第一轮只在 read 工具结果出现测试代号，第二轮带独立标记。线上分支请求带第一轮真实工具结果并排除第二轮标记，助手正确回复代号。四次真实请求均为 GPT-6.1 Sol High、HTTP 200。SQLite 为两个会话、一个项目、三个成功任务，分支未再次读取。脱敏测试日志见 `/tmp/moos-pi-fork-*.log`。
 - 遗留问题：分支共享实际工作区文件，独立的是会话历史。分支界面保留继承的对话文字，继承轮次的 Moos 执行过程卡片仍在父会话查看。后台入口和较长任务原版对照待验。
 - 对应 Git 提交：唯一说明 `feat(P03.13): inherit PI context in Electron forks`，用 `git log --all --oneline --grep='^feat(P03.13): inherit PI context in Electron forks$'` 查询。
+
+## 2026-11-08 02:21:35 +08:00｜P03.13.4–P03.13.5 三文件线上对照
+
+- 修改或新增内容：记录计数解析与分组汇总的同条件对照，新增结构化证据 `apps/desktop/evidence/p03-pi-crossfile-benchmark.json` 和文档回归检查。产品运行代码未参与本次改动。
+- 遇到的难题：原版首次启动使用内置 OpenAI 配置时实际发出 Medium，中继在转发前拒绝。Moos 工作区模式的 Bash 无法读取用户目录中的 npm 程序，随后请求一次授权；独立的 Git 校验命令也遇到 Xcode 运行库读权限。
+- 处理方式：原版改用独立命名的模型服务，逐次核对真实请求均为 High。Moos 验收拒绝一次权限扩张，模型改用 npm 脚本对应的 `node --test summary.test.mjs` 并通过。保留完整用时并单列权限等待，两侧任务结束后由同一外部验收器运行项目测试、独立边界测试和 Git 差异检查。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 20/20，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 54/54。对照包深度严格签名和 Git 差异检查通过。
+- 实际验收与工作区状态：macOS 27.0.1 arm64，Moos `build-g3rbU3` 对应 `3360e7d`。原版 DSH 0.2.2-rc.1 headless 先跑，Moos Electron GUI 后跑。两边模型、实际推理档位、中转和凭据一致，Git 基线树与指令哈希相同。两边只改了 `parse-count.mjs`、`summary.mjs`、`summary.test.mjs`。外部项目测试为 Moos 8/8、原版 10/10，独立验收均 5/5，覆盖严格数字解析、非法行、特殊键、排序与分组溢出。
+- 同条件结果：Moos / 原版分别发出 10 / 12 次有效请求，均返回 HTTP 200。首个文字或工具参数响应为 12.28 / 3.06 秒，首个请求至最后一次用量返回为 160.93 / 178.09 秒。Moos 包含 45.17 秒审批等待，仅作扣除后的算术对照为 115.77 秒。服务报告 Token 为 78,551 / 140,563，其中缓存输入为 67,818 / 102,317。原版统计包含标题请求，Moos 标题由本地生成。原版被拦截的 Medium 请求未计入有效请求和用量。
+- 遗留问题：本轮是单对照样本，模型工具、系统提示、缓存和启动形态存在差异。默认工作区权限下的 npm 与 Git 工具链待修复，完成条件是保持原有隔离边界并用打包版复跑。脱敏请求元数据和外部验收日志在 `/tmp/moos-crossfile-bench.6W6M5y/`，结构化汇总已纳入仓库。
+- 对应 Git 提交：唯一说明 `test(P03.13): record matched online cross-file benchmark`，用 `git log --all --oneline --grep='^test(P03.13): record matched online cross-file benchmark$'` 查询。

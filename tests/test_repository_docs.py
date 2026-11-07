@@ -759,6 +759,36 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('Permission is hereby granted', notice)
         self.assertIn('layout/dsh-columns.ts', notice)
 
+    def test_pi_online_benchmark_records_matched_inputs_and_separate_acceptance(self):
+        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-crossfile-benchmark.json').read_text())
+        self.assertIn('| E52 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['case']['allowedFiles'], ['parse-count.mjs', 'summary.mjs', 'summary.test.mjs'])
+        self.assertEqual(report['case']['independentTests'], 5)
+        self.assertEqual(report['model'], 'gpt-6.1-sol')
+        self.assertEqual(report['effort'], 'high')
+        self.assertTrue(report['sameEndpointAndCredential'])
+        self.assertFalse(report['limits']['cacheControlled'])
+        self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
+        moos, dsh = report['moos'], report['dsh']
+        self.assertEqual([moos['mode'], dsh['mode']], ['electron-gui', 'headless'])
+        self.assertEqual(moos['baselineTree'], dsh['baselineTree'])
+        self.assertEqual(moos['promptSha256'], dsh['promptSha256'])
+        self.assertEqual(moos['toolAcceptance']['npmTest'], 'sandbox-denied')
+        self.assertEqual(moos['toolAcceptance']['nodeTest'], 'passed')
+        self.assertEqual(dsh['toolAcceptance']['npmTest'], 'passed')
+        self.assertGreater(moos['approvalWaitMs'], 0)
+        self.assertEqual(moos['requestSpanMs'] - moos['approvalWaitMs'], moos['requestSpanExcludingApprovalMs'])
+        for side in (moos, dsh):
+            self.assertEqual(side['requests'], side['http200'])
+            self.assertEqual(side['totalTokens'], side['inputTokens'] + side['outputTokens'])
+            self.assertLessEqual(side['cacheReadTokens'], side['inputTokens'])
+            self.assertLess(side['firstActionMs'], side['requestSpanMs'])
+            self.assertEqual(side['changedFiles'], report['case']['allowedFiles'])
+            self.assertEqual(side['publicTests']['exit'], 0)
+            self.assertEqual(side['publicTests']['failed'], 0)
+            self.assertEqual(side['independentTests']['passed'], report['case']['independentTests'])
+            self.assertEqual(side['independentTests']['failed'], 0)
+
 
 if __name__ == '__main__':
     unittest.main()
