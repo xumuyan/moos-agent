@@ -1,0 +1,129 @@
+{
+  "evidence": "E66",
+  "dateBeijing": "2026-11-08",
+  "moosRevision": "2fe4f03beaaff4e6bad3922b928b6cf97ef8f1df",
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "electron": "44.7.0",
+    "piSdk": "1.5.0",
+    "originalDsh": "0.2.2-rc.1"
+  },
+  "case": {
+    "name": "账本截点报表与冲销",
+    "trackedFiles": 8,
+    "allowedFiles": [
+      "bin/ledger.mjs",
+      "src/parse.mjs",
+      "src/replay.mjs",
+      "src/report.mjs",
+      "test/ledger.test.mjs"
+    ],
+    "baselinePublicTests": 3,
+    "independentTests": 11,
+    "independentTestsFailedOnBaseline": 8
+  },
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "sameEndpointAndCredential": true,
+  "permissionLabel": "工作区内修改",
+  "build": "build-PmnxIL",
+  "moosBuildRevision": "7498d12",
+  "runOrder": [
+    "dsh",
+    "moos"
+  ],
+  "moos": {
+    "mode": "electron-gui",
+    "baselineTree": "c3b446567d446df68019b7bf184b889b4c9fd4c3",
+    "promptSha256": "54e5b28121f3dc4029bf24bf40726e24804cb44b0391a5edddbf73d169efc411",
+    "diffSha256": "34d75703f3a54a0612baab53fd0101d6ab04003922b966b875a19d863674e82e",
+    "requests": 12,
+    "effectiveHighRequests": 12,
+    "usageResponses": 12,
+    "http200": 12,
+    "firstActionMs": 2477,
+    "requestSpanMs": 174851,
+    "longestRequestMs": 75882,
+    "inputTokens": 112718,
+    "outputTokens": 6920,
+    "totalTokens": 119638,
+    "cacheReadTokens": 70555,
+    "changedFiles": [
+      "bin/ledger.mjs",
+      "src/parse.mjs",
+      "src/replay.mjs",
+      "src/report.mjs",
+      "test/ledger.test.mjs"
+    ],
+    "linesAdded": 305,
+    "linesRemoved": 9,
+    "publicTests": {
+      "passed": 15,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 11,
+      "failed": 0,
+      "exit": 0
+    },
+    "taskStatus": "succeeded",
+    "toolAcceptance": {
+      "npmTest": "passed",
+      "approvalRequests": 0,
+      "gitDiffCheck": "passed"
+    }
+  },
+  "dsh": {
+    "mode": "electron-gui",
+    "baselineTree": "c3b446567d446df68019b7bf184b889b4c9fd4c3",
+    "promptSha256": "54e5b28121f3dc4029bf24bf40726e24804cb44b0391a5edddbf73d169efc411",
+    "diffSha256": "79b3e6c9e76e10e124619453a229e5f021611618c3e3f53668c5acfbd500180b",
+    "requests": 17,
+    "effectiveHighRequests": 17,
+    "usageResponses": 17,
+    "http200": 17,
+    "firstActionMs": 2675,
+    "requestSpanMs": 254818,
+    "longestRequestMs": 80654,
+    "inputTokens": 310192,
+    "outputTokens": 9352,
+    "totalTokens": 319544,
+    "cacheReadTokens": 228661,
+    "changedFiles": [
+      "bin/ledger.mjs",
+      "src/parse.mjs",
+      "src/replay.mjs",
+      "src/report.mjs",
+      "test/ledger.test.mjs"
+    ],
+    "linesAdded": 378,
+    "linesRemoved": 9,
+    "publicTests": {
+      "passed": 20,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 11,
+      "failed": 0,
+      "exit": 0
+    },
+    "taskStatus": "completed",
+    "toolAcceptance": {
+      "npmTest": "passed",
+      "approvalRequests": 0,
+      "gitDiffCheck": "passed"
+    },
+    "includesTitleRequest": true
+  },
+  "limits": {
+    "pairedSamples": 1,
+    "cacheControlled": false,
+    "sameApplicationMode": true,
+    "sameToolsetAndSystemPrompt": false,
+    "samePermissionImplementation": false,
+    "supportsGeneralSpeedClaim": false
+  }
+}

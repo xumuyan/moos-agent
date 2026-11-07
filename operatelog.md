@@ -1067,3 +1067,13 @@
 - 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<验收包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 58/58，Git 差异检查通过。
 - 遗留问题：实测覆盖这两个现有服务与合成 PNG、UTF-8 小文本各一个。未抓取线上原始请求或响应，其他媒体及更大附件、真实服务额度、更多任务规模与缓存条件仍需分项验证。单次任务用时不能用于 Moos 与原版的性能对照。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify desktop attachments on live PI models`，用 `git log --all --oneline --grep='^test(P03.13): verify desktop attachments on live PI models$'` 查询。
+
+## 2026-11-08 04:48:39 +08:00｜P03.13.5 五文件账本线上桌面对照
+
+- 修改或新增内容：补充 E66 结构化证据和文档回归。本轮比较从桌面执行的五文件账本任务，包含截点时间解析、交易冲销、去重、报表筛选和 CLI 参数。两边使用各自实际工具链，本轮无运行时代码变更。
+- 遇到的难题：独立用例在原始基线有 8 项预期失败。真实服务出现长响应，Moos 和原版的最长单次请求分别为 75.88 和 80.65 秒。首次产品 Rust 回归中的旧终端守护进程启动失败测试卡在等待测试子进程退出。
+- 处理方式：用相同 Git tree 建立两个隔离项目，原版先跑，Moos 随后，均从 macOS 桌面以工作区内修改模式发送同一指令。回环中继把请求转发到同一线上地址，使用同一凭据，逐次验证实际模型和 High 档。只记录状态、耗时和用量等脱敏元数据。两边各自完成后复跑项目测试及独立用例。采样定位 Rust 测试等待后，结束本轮对应测试进程，串行复跑产品 Rust 测试。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，Moos `build-PmnxIL`（运行时代码 `7498d12`、PI 1.5.0）及原版 DSH 0.2.2-rc.1 均完成任务。Moos / 原版首次可见文本或工具动作为 2.48 / 2.68 秒，首请求到末次用量 174.85 / 254.82 秒，12 / 17 次请求，均为 GPT-6.1 Sol High 及 HTTP 200，119,638 / 319,544 Token。仅指定五个文件有变更，两边应用内均通过 `npm test` 和 `git diff --check`，无需审批。外部项目测试分别 15/15、20/20，共用独立用例均为 11/11。证据 `apps/desktop/evidence/p03-pi-desktop-ledger-benchmark.json`。
+- 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<验收包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 复跑 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 59/59，Git 差异检查通过。
+- 遗留问题：单对合成样本，两边运行时工具、提示及权限实现各自保留，原版包含标题请求，缓存和线上负载未控制。差值限本次任务。正式安装、真实大型项目及多轮重复样本另验。
+- 对应 Git 提交：唯一说明 `test(P03.13): compare five-file live desktop task`，用 `git log --all --oneline --grep='^test(P03.13): compare five-file live desktop task$'` 查询。

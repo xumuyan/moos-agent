@@ -912,6 +912,37 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(report['addPluginEntryVisible'])
         self.assertFalse(report['limits']['supportsSpeedComparison'])
 
+    def test_pi_desktop_ledger_benchmark_uses_equal_scope_and_independent_acceptance(self):
+        evidence = ROOT / 'apps/desktop/evidence/p03-pi-desktop-ledger-benchmark.json'
+        report = json.loads(evidence.read_text())
+        self.assertIn('| E66 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['runOrder'], ['dsh', 'moos'])
+        self.assertEqual((report['model'], report['effort']), ('gpt-6.1-sol', 'high'))
+        self.assertTrue(report['sameEndpointAndCredential'])
+        self.assertEqual(report['permissionLabel'], '工作区内修改')
+        moos, dsh = report['moos'], report['dsh']
+        self.assertEqual(moos['baselineTree'], dsh['baselineTree'])
+        self.assertEqual(moos['promptSha256'], dsh['promptSha256'])
+        self.assertEqual(len(report['case']['allowedFiles']), 5)
+        self.assertEqual(report['case']['independentTestsFailedOnBaseline'], 8)
+        self.assertTrue(dsh['includesTitleRequest'])
+        for side, status in ((moos, 'succeeded'), (dsh, 'completed')):
+            self.assertEqual(side['mode'], 'electron-gui')
+            self.assertEqual(side['taskStatus'], status)
+            self.assertEqual(side['changedFiles'], report['case']['allowedFiles'])
+            self.assertEqual(side['independentTests'], {'passed': 11, 'failed': 0, 'exit': 0})
+            self.assertEqual(side['publicTests']['exit'], 0)
+            self.assertEqual(side['toolAcceptance'], {
+                'npmTest': 'passed', 'approvalRequests': 0, 'gitDiffCheck': 'passed',
+            })
+            for field in ('effectiveHighRequests', 'http200', 'usageResponses'):
+                self.assertEqual(side[field], side['requests'])
+            self.assertEqual(side['totalTokens'], side['inputTokens'] + side['outputTokens'])
+            self.assertLess(side['longestRequestMs'], side['requestSpanMs'])
+        self.assertEqual(report['limits']['pairedSamples'], 1)
+        self.assertFalse(report['limits']['cacheControlled'])
+        self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
+
 
 if __name__ == '__main__':
     unittest.main()
