@@ -1,0 +1,113 @@
+{
+  "evidence": "E55",
+  "dateBeijing": "2026-11-08",
+  "moosRevision": "56b2cd89ff8ec71cb6510107095c23114bf2dcb8",
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "electron": "44.7.0",
+    "piSdk": "1.5.0",
+    "originalDsh": "0.2.2-rc.1"
+  },
+  "case": {
+    "name": "计数解析与分组汇总",
+    "allowedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "independentTests": 5
+  },
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "sameEndpointAndCredential": true,
+  "permissionLabel": "工作区内修改",
+  "runOrder": [
+    "dsh",
+    "moos"
+  ],
+  "moos": {
+    "mode": "electron-gui",
+    "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+    "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+    "requests": 9,
+    "effectiveHighRequests": 9,
+    "usageResponses": 9,
+    "http200": 9,
+    "firstActionMs": 2674,
+    "requestSpanMs": 88688,
+    "inputTokens": 61504,
+    "outputTokens": 3282,
+    "totalTokens": 64786,
+    "cacheReadTokens": 54400,
+    "changedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "linesAdded": 155,
+    "linesRemoved": 6,
+    "publicTests": {
+      "passed": 11,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 5,
+      "failed": 0,
+      "exit": 0
+    },
+    "taskStatus": "succeeded",
+    "toolAcceptance": {
+      "npmTest": "passed",
+      "approvalRequests": 0,
+      "gitDiffCheck": "passed"
+    }
+  },
+  "dsh": {
+    "mode": "electron-gui",
+    "baselineTree": "8a069fa950c2370d9d896ca454ffa0f514b64d12",
+    "promptSha256": "5211029e18732ae48fd8379c3b8f53d895283d476cd1dc1bb2138174c23bf1a9",
+    "requests": 15,
+    "effectiveHighRequests": 15,
+    "usageResponses": 15,
+    "http200": 15,
+    "firstActionMs": 3909,
+    "requestSpanMs": 158628,
+    "inputTokens": 218069,
+    "outputTokens": 4004,
+    "totalTokens": 222073,
+    "cacheReadTokens": 201472,
+    "changedFiles": [
+      "parse-count.mjs",
+      "summary.mjs",
+      "summary.test.mjs"
+    ],
+    "linesAdded": 162,
+    "linesRemoved": 6,
+    "publicTests": {
+      "passed": 13,
+      "failed": 0,
+      "exit": 0
+    },
+    "independentTests": {
+      "passed": 5,
+      "failed": 0,
+      "exit": 0
+    },
+    "taskStatus": "completed",
+    "toolAcceptance": {
+      "npmTest": "passed",
+      "approvalRequests": 0
+    },
+    "includesTitleRequest": true
+  },
+  "limits": {
+    "pairedSamples": 1,
+    "cacheControlled": false,
+    "sameApplicationMode": true,
+    "sameToolsetAndSystemPrompt": false,
+    "samePermissionImplementation": false,
+    "supportsGeneralSpeedClaim": false
+  }
+}

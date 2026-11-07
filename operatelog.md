@@ -955,3 +955,14 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-JAlxJ3` 正常模式，用应用内选择器添加临时工作区。B1 和 A1 处于不同工作区并行执行，A2 与 A1 同目录，在后台页显示排队。点击 A1 回到会话并停止，中继仅收到 A1 取消，随后 A2 才发出请求。B1 和 A2 的独立回复精确匹配，界面依次移除结束任务并返回空状态。真实模型请求均为 GPT-6.1 Sol High，三次响应均 HTTP 200。使用受控中继延迟真实响应，方便观察状态。实际查看默认已安装插件仅显示启用的皮肤中心。
 - 遗留问题：后台列表覆盖 Moos 正在运行期间的会话任务。可选定时任务、退出后持续运行与其他执行类插件仍须单独验收。这次是调度与界面验收，性能沿用 E52–E53 的独立口径。脱敏日志见 `/tmp/moos-active-*.log`。
 - 对应 Git 提交：唯一说明 `feat(P03.13): show live PI tasks across workspaces`，用 `git log --all --oneline --grep='^feat(P03.13): show live PI tasks across workspaces$'` 查询。
+
+## 2026-11-08 02:57:42 +08:00｜P03.13.5 两个桌面应用的线上对照
+
+- 修改或新增内容：新增 E55 结构化证据 `apps/desktop/evidence/p03-pi-desktop-benchmark.json`，同步计划并新增文档回归检查。生产代码没有改动。
+- 遇到的难题：原版桌面首次启动时，本轮临时凭据配置缺少版本字段，未进入工作台。两边的工具集和系统提示不同，原版另有标题生成请求。
+- 处理方式：补齐临时凭据配置的格式版本后重启，核对原版界面选中 High。Moos 测试配置只有一个 High 路由。从两个真实桌面窗口先后提交 E52 的任务文本，沿用同一 Git 基线。测试中继仅收集脱敏请求元数据，逐次核对模型、推理档位、HTTP 状态和用量。项目测试及独立验收分别在两个工作目录外部复跑。
+- 实际验收与工作区状态：提交前使用 macOS 27.0.1 arm64、Moos `build-JAlxJ3`（`56b2cd8`，Electron 44.7.0，PI SDK 1.5.0）与原版 DSH 0.2.2-rc.1，各用独立数据目录。两边都选择「工作区内修改」，线上实际使用同一 GPT-6.1 Sol High、中转地址及凭据。两边会话均显示完成，只修改指定的 `parse-count.mjs`、`summary.mjs`、`summary.test.mjs`。双方都在会话内直接执行 `npm test`，无需审批。Moos 会话还执行了 `git diff --check`。外部用 `npm test` 复跑，Moos 11/11、原版 13/13；同一 `node --test` 独立验收各 5/5，双方外部 `git diff --check` 通过。
+- 同条件结果：Moos / 原版首次文字或工具参数响应 2.67 / 3.91 秒，首请求到末次用量返回 88.69 / 158.63 秒，线上请求 9 / 15 次，均为 High 且返回 HTTP 200。总 Token 64,786 / 222,073，其中缓存输入 54,400 / 201,472。原版统计包含标题请求。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 22/22，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 55/55。Moos 测试包通过 `codesign --verify --deep --strict`，仓库 `git diff --check` 通过。
+- 遗留问题：仅一对同形态样本，未控制缓存，工具集、系统提示及权限实现有差异。中继的 Token 统计不代表账单金额。更长任务、重复样本和可选执行类插件仍按计划验证。脱敏元数据及外部验收日志留在临时验收目录，结构化摘要已纳入仓库。
+- 对应 Git 提交：唯一说明 `test(P03.13): compare desktop apps on the same online task`，用 `git log --all --oneline --grep='^test(P03.13): compare desktop apps on the same online task$'` 查询。

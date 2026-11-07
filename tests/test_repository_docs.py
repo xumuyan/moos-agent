@@ -790,5 +790,40 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertEqual(side['independentTests']['failed'], 0)
 
 
+    def test_pi_desktop_benchmark_compares_native_apps_on_matching_inputs(self):
+        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-benchmark.json').read_text())
+        reference = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-crossfile-benchmark.json').read_text())
+        self.assertIn('| E55 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['runOrder'], ['dsh', 'moos'])
+        for field in ('model', 'effort', 'case'):
+            self.assertEqual(report[field], reference[field])
+        self.assertTrue(report['sameEndpointAndCredential'])
+        self.assertEqual(report['permissionLabel'], '工作区内修改')
+        self.assertTrue(report['limits']['sameApplicationMode'])
+        self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
+        self.assertFalse(report['limits']['cacheControlled'])
+        self.assertEqual(report['limits']['pairedSamples'], 1)
+        self.assertEqual(report['moos']['taskStatus'], 'succeeded')
+        self.assertEqual(report['dsh']['taskStatus'], 'completed')
+        for name in report['runOrder']:
+            side = report[name]
+            self.assertEqual(side['mode'], 'electron-gui')
+            self.assertEqual(side['baselineTree'], reference[name]['baselineTree'])
+            self.assertEqual(side['promptSha256'], reference[name]['promptSha256'])
+            self.assertGreater(side['requests'], 0)
+            for field in ('effectiveHighRequests', 'http200', 'usageResponses'):
+                self.assertEqual(side[field], side['requests'])
+            self.assertLess(side['firstActionMs'], side['requestSpanMs'])
+            self.assertEqual(side['totalTokens'], side['inputTokens'] + side['outputTokens'])
+            self.assertLessEqual(side['cacheReadTokens'], side['inputTokens'])
+            self.assertEqual(side['changedFiles'], report['case']['allowedFiles'])
+            self.assertEqual(side['toolAcceptance']['npmTest'], 'passed')
+            self.assertEqual(side['toolAcceptance']['approvalRequests'], 0)
+            self.assertEqual(side['publicTests']['exit'], 0)
+            self.assertEqual(side['independentTests'], {
+                'passed': report['case']['independentTests'], 'failed': 0, 'exit': 0,
+            })
+
+
 if __name__ == '__main__':
     unittest.main()
