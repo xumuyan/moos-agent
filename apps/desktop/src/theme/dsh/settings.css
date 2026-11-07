@@ -77,3 +77,20 @@
 /* Retire the former standalone modal's negative margins and viewport cap. */
 .dsh-settings-dialog .settings-center { margin:0; }
 .dsh-settings-dialog .settings-content { max-height:none; }
+
+/* Source panel geometry: 28px surface, 24% mask; original desktop frame
+ * reserves 68px at both ends for native overlay chrome. */
+.dsh-settings-dialog .ant-modal-content { border-radius:28px; }
+.dsh-settings-dialog .settings-center { height:min(800px, calc(100dvh - 136px)); }
+.dsh-settings-dialog .settings-nav button { gap:8px; }
+.dsh-settings-dialog .settings-nav button > span { display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center; flex:none; }
+.ant-modal-mask:has(+ .ant-modal-wrap .dsh-settings-dialog) { background:rgb(0 0 0 / 24%); backdrop-filter:none; }
+.dsh-settings-dialog .settings-content { animation:dsh-settings-content-in 100ms ease; }
+@keyframes dsh-settings-content-in { from { opacity:.65; } }
+@media(max-width:767px) { .dsh-settings-dialog .settings-center { height:calc(100dvh - 24px); } }
+@media(prefers-reduced-motion:reduce) { .dsh-settings-dialog *, .dsh-settings-dialog { animation:none!important; transition:none!important; } }
+.dsh-settings-dialog:is(.ant-zoom-enter,.ant-zoom-appear) { animation-name:dsh-menu-fade-in!important; animation-duration:200ms!important; animation-timing-function:var(--dsh-motion-ease)!important; transform:none!important; }
+.dsh-settings-dialog.ant-zoom-leave { animation-name:dsh-menu-fade-out!important; animation-duration:200ms!important; transform:none!important; }
+
+/* Selected labels must not inherit the retired teal settings accent. */
+.dsh-settings-dialog .settings-nav button[aria-selected='true'] { color:var(--moos-text); font-weight:400; }

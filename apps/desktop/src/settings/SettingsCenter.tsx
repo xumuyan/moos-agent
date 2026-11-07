@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Modal } from 'antd';
+import { SettingOutlined, DatabaseOutlined, SafetyCertificateOutlined, BarChartOutlined, AppstoreOutlined, SkinOutlined, LockOutlined, MobileOutlined, ControlOutlined } from '@ant-design/icons';
 import '../theme/dsh/settings.css';
 import GeneralSection from './GeneralSection';
 import ModelSection from './ModelSection';
@@ -19,6 +20,7 @@ const SECTIONS = [
   ['general', '通用'], ['models', '模型服务'], ['permissions', '权限'], ['usage', '用量'], ['plugins', '插件'],
   ['theme', '主题'], ['privacy', '隐私'], ['mobile', '手机连接'], ['advanced', '高级'],
 ] as const;
+const SECTION_ICONS = [SettingOutlined, DatabaseOutlined, SafetyCertificateOutlined, BarChartOutlined, AppstoreOutlined, SkinOutlined, LockOutlined, MobileOutlined, ControlOutlined];
 type Section = typeof SECTIONS[number][0];
 
 export default function SettingsCenter({ initialSection = 'models', open, onClose, modelContent, usageContent, runtime, onTaskTimeoutChange, activeThemeId = 'default', onThemeApply = () => {}, themes = BUILTIN_THEMES, localPlugins }: {
@@ -46,7 +48,7 @@ export default function SettingsCenter({ initialSection = 'models', open, onClos
         setActive(SECTIONS[next][0]);
         event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
       }}>
-        {SECTIONS.map(([key, label]) => <button key={key} id={`settings-tab-${key}`} role="tab" aria-controls="settings-panel" tabIndex={active === key ? 0 : -1} aria-selected={active === key} onClick={() => setActive(key)}>{label}</button>)}
+        {SECTIONS.map(([key, label], index) => { const Icon = SECTION_ICONS[index]; return <button key={key} id={`settings-tab-${key}`} role="tab" aria-controls="settings-panel" tabIndex={active === key ? 0 : -1} aria-selected={active === key} onClick={() => setActive(key)}><span aria-hidden="true"><Icon /></span>{label}</button>; })}
       </nav>
       <div key={active} id="settings-panel" className="settings-content" role="tabpanel" tabIndex={0} aria-labelledby={`settings-tab-${active}`}>{content[active]}<SlotHost slot="settings.section" context={active} /></div>
     </div>
