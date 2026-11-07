@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-08",
+  "platform": "macOS 27.0.1 arm64",
+  "mode": "electron-gui",
+  "build": "build-PmnxIL",
+  "sourceCommit": "7498d12",
+  "piVersion": "1.5.0",
+  "modelSelection": "auto",
+  "nativeFilePicker": true,
+  "turns": [
+    {
+      "attachment": "image/png",
+      "bytes": 635,
+      "sha256": "c0553972a02ac68ab62b062331134058b844da283371c20abfaac8c3edaa56d9",
+      "model": "gpt-6.1-sol",
+      "status": "succeeded",
+      "exactAnswer": true,
+      "toolCalls": 0,
+      "reportedTotalTokens": 5072,
+      "taskDurationMs": 6038
+    },
+    {
+      "attachment": "text/plain",
+      "bytes": 21,
+      "sha256": "1554ba373c537d29a39bbe9ca763d337369e6349429866a1e377cc042fc2a5c4",
+      "model": "glm-5.3",
+      "status": "succeeded",
+      "exactAnswer": true,
+      "toolCalls": 0,
+      "reportedTotalTokens": 1172,
+      "taskDurationMs": 4245
+    }
+  ],
+  "afterRestart": {
+    "sameConversation": true,
+    "attachmentsAndAnswersVisible": true,
+    "taskCount": 2,
+    "usageEventCount": 2
+  },
+  "defaultInstalledExtensions": ["@linxin666/dsh-client-ui-skin-center"],
+  "addPluginEntryVisible": true,
+  "limits": {
+    "syntheticInputsOnly": true,
+    "otherMediaVerified": false,
+    "requestPayloadCaptured": false,
+    "supportsSpeedComparison": false
+  }
+}

@@ -1057,3 +1057,13 @@
 - 验证结果：`MOOS_ELECTRON_DSH_APP=<本地固定版应用> node apps/electron/prepare-local.mjs` 与 `codesign --verify --deep --strict` 成功；`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> node --test apps/electron/*.test.mjs` 28/28，`npm test` 138/138，`npm run test:desktop-ui` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57，Git 差异检查通过。
 - 遗留问题：短文本诊断单次耗时不能用于 PI 执行性能比较。真实套餐认证和额度异常、设置中心统一入口、桌面图片从选择到发送的完整交互仍待分项验收。
 - 对应 Git 提交：唯一说明 `feat(P03.13): test model connections from Electron settings`，用 `git log --all --oneline --grep='^feat(P03.13): test model connections from Electron settings$'` 查询。
+
+## 2026-11-08 04:32:55 +08:00｜P03.13.3、P03.13.5、P03.13.7 桌面线上附件验收
+
+- 修改或新增内容：补齐 E65 原生文件选择、线上发送、自动模型切换、重启恢复与默认插件实机证据。新增结构化记录和文档回归，本轮无运行时代码变更。
+- 遇到的难题：E63 走随包执行链，无法证明系统文件选择器、上传完成后的发送入口及前端历史恢复。系统选择器的路径框也未接收首次粘贴。
+- 处理方式：使用隔离数据目录和既有授权的线上配置，生成随机色序 PNG 与随机文本标记。通过原生选择器实际选中并发送，保留同一会话和自动模型选项。选文件前在系统路径框键入隔离验收目录。以无障碍树核对可见结果，以只读 SQLite 查询确认 PI 任务、模型、用量和重启前后任务计数。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64、PI 1.5.0 的 `build-PmnxIL`（运行时代码 `7498d12`）。自动模式先用 GPT-6.1 Sol 识图，回复与六个随机色块顺序完全一致，再用 GLM-5.3 精确返回新文本附件标记。两轮均成功，各一条 PI 用量事件，零工具调用。正常退出重启并打开原会话后，两轮附件和回复可见，任务与用量事件均保持两条。插件页只有启用的皮肤中心和添加入口。脱敏证据 `apps/desktop/evidence/p03-pi-desktop-attachments.json`。
+- 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<验收包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 58/58，Git 差异检查通过。
+- 遗留问题：实测覆盖这两个现有服务与合成 PNG、UTF-8 小文本各一个。未抓取线上原始请求或响应，其他媒体及更大附件、真实服务额度、更多任务规模与缓存条件仍需分项验证。单次任务用时不能用于 Moos 与原版的性能对照。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify desktop attachments on live PI models`，用 `git log --all --oneline --grep='^test(P03.13): verify desktop attachments on live PI models$'` 查询。

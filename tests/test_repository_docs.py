@@ -888,6 +888,30 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(glm['image']['requests'][0]['status'], 400)
         self.assertFalse(glm['image']['exact'])
 
+    def test_pi_desktop_attachments_record_gui_routing_and_recovery_separately_from_benchmarks(self):
+        evidence = ROOT / 'apps/desktop/evidence/p03-pi-desktop-attachments.json'
+        report = json.loads(evidence.read_text())
+        self.assertIn('| E65 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['mode'], 'electron-gui')
+        self.assertEqual(report['modelSelection'], 'auto')
+        self.assertTrue(report['nativeFilePicker'])
+        image, text = report['turns']
+        self.assertEqual((image['attachment'], image['model']), ('image/png', 'gpt-6.1-sol'))
+        self.assertEqual((text['attachment'], text['model']), ('text/plain', 'glm-5.3'))
+        for turn in (image, text):
+            self.assertEqual(turn['status'], 'succeeded')
+            self.assertTrue(turn['exactAnswer'])
+            self.assertEqual(turn['toolCalls'], 0)
+            self.assertGreater(turn['reportedTotalTokens'], 0)
+            self.assertRegex(turn['sha256'], r'^[0-9a-f]{64}$')
+        self.assertEqual(report['afterRestart'], {
+            'sameConversation': True, 'attachmentsAndAnswersVisible': True,
+            'taskCount': len(report['turns']), 'usageEventCount': len(report['turns']),
+        })
+        self.assertEqual(report['defaultInstalledExtensions'], ['@linxin666/dsh-client-ui-skin-center'])
+        self.assertTrue(report['addPluginEntryVisible'])
+        self.assertFalse(report['limits']['supportsSpeedComparison'])
+
 
 if __name__ == '__main__':
     unittest.main()
