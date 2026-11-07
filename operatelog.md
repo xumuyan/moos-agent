@@ -603,3 +603,16 @@
 - 对应 Git 提交：唯一说明 `design(P02.V3): create Moos coding assistant icon source`；查询 `git log --all --oneline --grep='^design(P02.V3): create Moos coding assistant icon source$'`。验证后提交推送并核对远程，不预填自身哈希。
 
 - 本轮最终检查：`npm test`137/137、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`122/122、stable离线`npm run test:desktop-product`27/27、`npm run test:docs`45/45、`git diff --check`通过；源图视觉及PNG格式验收通过，不宣称已替换安装图标。
+
+
+## 2026-11-07 08:36:21 +08:00｜P02.V3：安装使用 Moos 新图标
+
+- 时间说明：此为本轮整理北京时间，证据对应唯一提交说明 `feat(P02.V3): bundle and install Moos application icon` 的提交前工作区。
+- 修改或新增内容：使用本机Tauri CLI icon生成PNG/ICNS/ICO，将桌面六项资源放入icons/moos-v1，bundle.icon显式接入；保留原icon.png和v1源图。新增各尺寸PNG/ICNS/ICO契约测试，更新设计说明、PLAN和安装证据；签名、备份并替换/Applications/Moos.app。
+- 遇到的难题：只有源PNG不会自动替换安装包图标，必须明确bundle配置并重新构建。Dock直接AX工具请求超时；Finder核对时用户正在另行复制软件，工具检测到用户操作，未继续发送动作。
+- 处理方式：通过Tauri原生图标生成器转换，无需重新绘制源图；构建Info.plist的CFBundleIconFile和实际ICNS均与源生成资源核对。等用户复制结束后再选中Moos查看简介，实际确认小图标及预览为新M。未重启或终止Dock/Finder，不操作用户的复制任务，不把工具超时当显示失败或已通过。
+- 验证结果：`npm test`137/137、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`122/122、stable离线`npm run test:desktop-product`27/27、`npm run test:docs`46/46。TypeScript/Vite/Tauri build、ad-hoc签名deep/strict通过，安装15388项常规文件逐一哈希与构建一致，ICNS哈希ea5d6bd598cbc71ed956b24ffd3876c8b269743a2d88d5841c1c71fb2dad037f，主程序920a7be7cd63d83acdb3ec0f4a0066b0212be8f85bccc8f65072e2a7f13d0177。
+- 实际验收：arm64/macOS27.0.1，无活跃任务/PTY后正常退出旧版，旧App/Node退出，安装后正常启动、待命、历史可读；Finder“Moos简介”顶部小图标与大预览均显示新M图标。私有截图仅本机/tmp/moos-icon-install-20261107/finder-icon.png，脱敏证据apps/desktop/evidence/p02-installed-icon.json。未发送模型任务或更改凭据。
+- 体积与恢复：Tauri.app231.40MiB，签名常规文件逻辑246378917字节、磁盘284580KiB，完整内置运行时无需额外下载；未产DMG。安装前备份本机临时moos-before-icon-dxy96nsw/Moos.app。
+- 遗留问题：Dock直接显示未独立观测，Finder已实测；未改应用内部rail代码图标、iPhone图标或宣称Windows可用。P02.9、GLM、账单对账和小包目标维持未完成；既有Vite大chunk和jsdom NaN高度警告保留。
+- 对应 Git 提交：唯一说明 `feat(P02.V3): bundle and install Moos application icon`；查询 `git log --all --oneline --grep='^feat(P02.V3): bundle and install Moos application icon$'`。最终检查后提交推送并核对远程，不预填自身哈希。

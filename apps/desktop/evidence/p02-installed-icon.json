@@ -1,0 +1,33 @@
+{
+  "allRegularFilesMatch": true,
+  "fileCount": 15388,
+  "binarySha256": "920a7be7cd63d83acdb3ec0f4a0066b0212be8f85bccc8f65072e2a7f13d0177",
+  "iconFile": "icon.icns",
+  "icnsSha256": "ea5d6bd598cbc71ed956b24ffd3876c8b269743a2d88d5841c1c71fb2dad037f",
+  "infoPlistAndIcnsMatch": true,
+  "logicalBytes": 246378917,
+  "diskKiB": 284580,
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "source": "apps/desktop/design/moos-icon-v1.png",
+  "generator": "local Tauri CLI icon",
+  "tauriReportedMiB": 231.4,
+  "gui": {
+    "appRelaunched": true,
+    "historyLoaded": true,
+    "finderInfoNewIconVisible": true,
+    "dockDirectObservation": false
+  },
+  "checks": {
+    "core": 137,
+    "ui": 122,
+    "native": 27,
+    "docs": 46
+  },
+  "limits": {
+    "windowsVerified": false,
+    "iPhoneIconChanged": false,
+    "inAppRailGlyphChanged": false
+  },
+  "privateEvidence": "/tmp/moos-icon-install-20261107/"
+}

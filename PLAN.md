@@ -26,6 +26,8 @@
 
 #### P02 本轮证据
 
+2026-11-07 图标安装已完成本机子集：Tauri CLI生成PNG/ICNS/ICO，bundle.icon显式引用版本目录，保留旧图；签名与安装全部常规文件哈希一致，Moos重启及Finder应用简介新图标实测通过。证据`apps/desktop/evidence/p02-installed-icon.json`；Dock直接观测工具超时未独立验收，不将Finder结果冒充Dock结论。不涉及手机图标或Windows支持状态，不改变P02.9整体结论。
+
 2026-11-07 图标设计资产：按用户要求创建Moos原创v1图标，代码括号M与智能节点、石墨/米白/青绿，1254×1254透明RGBA源图位于`apps/desktop/design/moos-icon-v1.png`。仅完成源图创建与格式验收，尚未替换构建/安装图标，后续应用时需生成ICNS/ICO等并验证Dock及小尺寸；不改变P02.9完成状态。
 
 2026-11-07 P02.9界面缺陷修正中：根据E28，命令错误绑定发起时项目/会话/模型选择，切换清除且旧选择迟到失败不污染；默认皮肤补“已应用”标记，预览目标移除时回退可用目录且不隐式保存。规范 `docs/superpowers/specs/2026-11-07-selection-errors-theme-fallback.md`；新增回归、安装GUI缺密钥拒绝后切会话/项目清提示、皮肤停用后默认已应用标记通过，恢复石墨，证据E29；P02.9保持未完成。

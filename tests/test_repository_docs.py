@@ -658,5 +658,20 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('代码括号', note)
 
 
+    def test_packaged_moos_icon_uses_explicit_native_assets(self):
+        import struct
+        config = json.loads((ROOT / 'apps/desktop/src-tauri/tauri.conf.json').read_text())
+        for name, size in [('32x32.png', 32), ('128x128.png', 128), ('128x128@2x.png', 256)]:
+            relative = f'icons/moos-v1/{name}'
+            self.assertIn(relative, config['bundle']['icon'])
+            data = (ROOT / 'apps/desktop/src-tauri' / relative).read_bytes()
+            self.assertEqual(struct.unpack('>II', data[16:24]), (size, size))
+            self.assertEqual(data[25], 6)
+        data = (ROOT / 'apps/desktop/src-tauri/icons/moos-v1/icon.icns').read_bytes()
+        self.assertEqual(data[:4], b'icns')
+        self.assertEqual(struct.unpack('>I', data[4:8])[0], len(data))
+        self.assertEqual((ROOT / 'apps/desktop/src-tauri/icons/moos-v1/icon.ico').read_bytes()[:4], b'\x00\x00\x01\x00')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -17,6 +17,7 @@
   },
   "bundle": {
     "active": true,
+    "icon": ["icons/moos-v1/32x32.png", "icons/moos-v1/128x128.png", "icons/moos-v1/128x128@2x.png", "icons/moos-v1/icon.icns", "icons/moos-v1/icon.ico"],
     "targets": ["app"],
     "macOS": { "minimumSystemVersion": "14.0" },
     "externalBin": ["binaries/node"],
