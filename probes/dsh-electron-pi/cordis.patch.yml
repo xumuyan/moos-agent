@@ -1,0 +1,3 @@
+- insert:
+    - id: moos-pi-probe
+      name: moos-dsh-pi-probe

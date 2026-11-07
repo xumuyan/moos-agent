@@ -1,0 +1,23 @@
+{
+  "id": "E37",
+  "dateBeijing": "2026-11-07",
+  "machine": { "os": "macOS 27.0.1", "arch": "arm64" },
+  "runtime": {
+    "desktop": "DeepSeek Harness Desktop 0.2.2-rc.1",
+    "skin": "maid-atelier 0.3.2, skin center 0.4.5",
+    "pi": "Moos installed SDK runtime, PI 1.5.0",
+    "model": "Moos local deterministic fixture"
+  },
+  "acceptance": [
+    "Before commit, installed the host bridge using the original DSH CLI in the P03.11 desktop profile and launched the Electron probe using probe.sh.",
+    "The original skin stayed visible. Selected Moos PI in the native model menu for the designated temporary workspace.",
+    "Sent a write task from the Electron composer. The native transcript displayed actual PI write and bash outcomes, and result.txt bytes independently matched electron_ok plus newline.",
+    "Started a hold task in the same conversation and verified its process was active. The native stop button displayed stopped and the observed process exited.",
+    "Sent a recovery task in the same conversation. The transcript retained both successes and the stopped turn. Independently verified result.txt changed to electron_resume plus newline and only one PI session directory existed.",
+    "The DSH headless entry also completed the same path through the installed bridge."
+  ],
+  "notVerified": [
+    "Live providers and reasoning settings through the Electron adapter.",
+    "Full permissions, native tool cards, multiple projects, token metrics and standalone distribution."
+  ]
+}

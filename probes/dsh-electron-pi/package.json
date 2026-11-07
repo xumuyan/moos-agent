@@ -1,0 +1,9 @@
+{
+  "name": "moos-dsh-pi-probe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.mjs",
+  "files": ["index.mjs", "cordis.patch.yml"],
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}

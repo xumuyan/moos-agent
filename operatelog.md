@@ -758,3 +758,13 @@
 - 实际验收与工作区状态：本提交前的启动器在 macOS 27.0.1 arm64、1280×820 从空探针配置完成 init、install、open。原生窗口试穿标题变成「深海女仆工坊 · DeepSeek Harness」，退出试穿后恢复；应用后实见双女仆、宫殿、蕾丝输入框、脚本上下边饰，收放侧栏时重新布局，正常退出重启后恢复。原版 App deep/strict 签名检查通过。复用 App 的磁盘占用 1042528 KiB，本次独立配置采样 23136 KiB，不是新安装包大小。证据 `probes/dsh-electron-skin/evidence.json`。
 - 遗留问题：未对网页试穿做逐像素比对，未覆盖 Q 版角色在各布局中的可见性和全部动画，尤其未提交模型任务验证运行态。只验收这一份皮肤原包；市场一键安装、其他插件、独立打包、PI 接入与其他系统均未验收。待具备可复现的相应场景后分别验证。
 - 对应 Git 提交：唯一说明 `feat(P03.11): verify original DSH skins in isolated Electron`，用 `git log --all --oneline --grep='^feat(P03.11): verify original DSH skins in isolated Electron$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
+
+## 2026-11-07 19:23:48 +08:00｜P03.12 原版 DSH Electron 前端接入 Moos PI
+
+- 修改或新增内容：新增独立桥接插件和启动脚本。在原版 DSH Host 注册 PI 验收路由，用 Moos 安装包的 PI SDK 执行测试指令，把实际工具结果和回复流送回 DSH 会话。按 DSH 会话 ID 复用 PI 会话目录。
+- 遇到的难题：DSH 派生历史会插入 user-role 的运行时上下文。首次命令行验收选到了上下文，原始用户指令被误拒绝。原版模型菜单先显示当前模型，进入子菜单后才列出注册路由。
+- 处理方式：只提取来源为实际用户的消息，通过 DSH 会话的真实目录与专用工作区匹配。标题请求用本地标题，不启动 PI 任务。使用原版取消信号中止 PI，并为工具、取消及错误保留不同的输出。桥接仅使用本地模拟模型和限定指令。
+- 验证结果：`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，原皮肤探针 4/4，`npm test` 137/137，桌面前端 57 文件 175/175，Rust 原生 30/30，文档检查 52/52。命令日志位于 `/tmp/moos-p0312-*.log`。脚本语法、JSON 和 Git 差异检查通过。
+- 实际验收与工作区状态：提交前使用本机原版 DSH Electron 0.2.2-rc.1 和 P03.11 皮肤配置。从桌面发送写入任务，工具和回复在原版会话出现，独立读取文件核对。确认第二轮 PI 命令进程活跃后按停止，原版界面显示已停止并实测该进程退出。在同一会话发送第三轮，实际文件更新，只有一个 PI 会话目录。命令行入口亦使用同一插件通过。脱敏证据 `probes/dsh-electron-pi/evidence.json`。
+- 遗留问题：真实模型及 High 未通过此 Electron 桥实测。正式调度、权限强制执行、原版工具卡、用量、跨项目与独立安装包依照计划分阶段验收。
+- 对应 Git 提交：唯一说明 `feat(P03.12): connect original DSH Electron to Moos PI`，用 `git log --all --oneline --grep='^feat(P03.12): connect original DSH Electron to Moos PI$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
