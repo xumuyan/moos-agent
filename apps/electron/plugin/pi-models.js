@@ -28,6 +28,7 @@ export function piModels(data, checkedProvider) {
       id: row.id, model: row.model, api: row.api, baseUrl: row.baseUrl, name: row.name ?? row.model,
       contextWindow: row.contextWindow ?? 128000, maxTokens: row.maxTokens ?? 8192,
       thinkingLevel: row.thinkingLevel ?? 'off', service: row.service ?? 'openai',
+      ...(row.imageInput === true ? { imageInput: true } : {}),
     };
     if (!levels.has(provider.thinkingLevel) || !services.has(provider.service) ||
         provider.id === 'auto' || provider.id === 'pi-fixture' ||
@@ -58,8 +59,8 @@ export function piModels(data, checkedProvider) {
 
   async function resolve(id) { return select(await list(), id); }
 
-  async function plan(id) {
-    const profiles = await list();
+  async function plan(id, image = false) {
+    const profiles = (await list()).filter(profile => !image || profile.imageInput);
     const provider = select(profiles, id);
     if (!provider || id !== 'auto') return { provider };
     const alternatives = profiles.filter(item => item.id !== provider.id &&

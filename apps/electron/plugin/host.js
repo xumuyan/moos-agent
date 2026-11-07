@@ -65,6 +65,7 @@ export async function apply(ctx) {
     const release = ctx.llm.registerAdapter([route], createPiAdapter({
       tasks, models, getSession: id => ctx.agents.get(id)?.session,
       readFile: (ref, signal) => ctx.get('attachments')?.readFileStream(ref, signal),
+      readImage: (ref, signal) => ctx.get('attachments')?.readImage(ref, signal),
       getTurnStart: session => session && ctx.agents.turnBoundaryOf(session).openTurnStartSeq,
       getPermissions(id) {
         const agent = ctx.agents.get(id);

@@ -17,8 +17,12 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   const cwd = join(data, 'workspace', 'project');
   await mkdir(cwd, { recursive: true });
   const requests = [];
+  const imageRequests = [];
   const fixture = await startFixture({ desktopPolicy: true,
-    onModelRequest: body => requests.push({ model: body.model, effort: body.reasoning?.effort, thinking: body.thinking?.type }) });
+    onModelRequest(body) {
+      requests.push({ model: body.model, effort: body.reasoning?.effort, thinking: body.thinking?.type });
+      imageRequests.push(JSON.stringify(body).includes('data:image/'));
+    } });
   const models = piModels(data, checkedProvider);
   const profile = { id: 'relay', name: 'Relay', model: 'mock-gpt', baseUrl: fixture.baseUrl,
     api: 'openai-responses', thinkingLevel: 'high', apiKey: fixture.apiKey };
@@ -77,4 +81,37 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   assert.equal(await readFile(join(cwd, 'result.txt'), 'utf8'), 'glm_auto\n');
   assert.deepEqual(requests.slice(1).map(request => request.model), Array(3).fill('mock-glm'));
   assert.equal(store.listTasks().length, 2);
+
+  await models.save({ ...relay, imageInput: true, apiKey: '' });
+  assert.equal((await models.plan('auto', true)).provider.id, 'relay');
+  assert.equal((await models.plan('auto', true)).backup, undefined);
+  assert.equal((await models.plan('glm', true)).provider, undefined);
+  const imageData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAIAAAAt/+nTAAAASElEQVR4nO3PwQkAMBCEwO2/6aSIe4ggTAG6t6nxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QUNyPEFDcjxBQ3I8QVHHzLD+GoHbk06AAAAAElFTkSuQmCC', 'base64');
+  const vision = createPiAdapter({ tasks, models, getSession: () => ({ header: { cwd } }),
+    readImage: async () => ({ data: imageData }), getPermissions: () => ({ getMode: () => 'workspace-write' }) });
+  assert.deepEqual((await vision.resolveModel('moos-pi', 'auto')).inputModalities, ['text', 'image']);
+  const image = { type: 'image', attachment: { attachmentId: 'sha256:' + 'a'.repeat(64),
+    mediaType: 'image/png', width: 64, height: 32, bytes: imageData.length } };
+  async function turn(model, content, rpcId, sessionId = 'vision') {
+    const output = [];
+    for await (const event of vision.stream({ model, sessionId,
+      messages: [{ role: 'user', source: { kind: 'user', rpcId }, content }] })) output.push(event);
+    return output.at(-1).reason;
+  }
+  const content = [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }, image];
+  assert.equal((await turn('glm', content)).failure.code, 'INVALID_CONFIG');
+  assert.equal((await turn('auto', [image, image])).failure.code, 'INVALID_REQUEST');
+  assert.equal((await turn('auto', content)).kind, 'stop');
+  assert.equal(requests.at(-1).model, 'mock-gpt');
+  assert.equal(imageRequests.at(-1), true);
+  const priorRequestCount = requests.length;
+  assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_WRITE no_previous_image' }])).kind, 'stop');
+  assert.ok(imageRequests.slice(priorRequestCount).every(hasImage => !hasImage));
+  assert.equal((await turn('auto', [{ type: 'text', text: 'fixture-invalid' }, image], undefined, 'vision-retry')).kind, 'error');
+  const failed = store.listTasks()[0];
+  assert.deepEqual(tasks.retryImage('vision-retry', failed.id), image.attachment);
+  assert.throws(() => tasks.retryImage('another-session', failed.id));
+  assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }],
+    `moos-pi-retry:${failed.id}:00000000-0000-4000-8000-000000000001`, 'vision-retry')).kind, 'error');
+  assert.equal(imageRequests.at(-1), true);
 });

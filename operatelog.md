@@ -1037,3 +1037,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用现有包 CLI 27/27，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57，Git 差异检查通过。
 - 遗留问题：当前结论限于两个实际配置及各一张小图。GLM 的 HTTP 400 原因未证实，其他模型和端点的能力未知。桌面图片入口、能力选择、图片大小和恢复行为仍需接入与验收。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify online PI image capabilities`，用 `git log --all --oneline --grep='^test(P03.13): verify online PI image capabilities$'` 查询。
+
+## 2026-11-08 04:12:04 +08:00｜P03.13.3、P03.13.5 接入 PI 图片任务
+
+- 修改或新增内容：模型设置可为已验证配置启用图片输入，修改服务地址、协议、类型或模型时取消勾选。自动选路在图片任务中只选已启用的配置。每条消息接收一张不超过 512 KiB 的已规范化图片。PI 只发送当前轮图片，重试保存并恢复附件引用。内部插件升级到 0.1.17。
+- 遇到的难题：首个自动测试所用的微型 PNG 未被 PI 保留。完整构建及首次 Rust 回归遇到 ENOSPC。替换已有验收包资源后的首次签名也失败。
+- 处理方式：使用有效 PNG，并验证模型请求确实含图片；用 DSH 附件存储验证哈希及尺寸。保留纯文本路由，图片备用路由限制为具备图片能力的配置。清理本轮及历史未成功的临时构建产物后，重新签名验收包并复跑受影响的检查。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 用更新资源并重新签名的 `build-MtEX3a`。真实桌面核对模型设置中的图片能力开关、已启用测试配置及会话附件菜单。验收程序经同包 DSH 附件存储、PI 调度和 SDK 提交合成六色 PNG，GPT-6.1 Sol High 返回 HTTP 200 并精确识别颜色顺序，零工具调用。已核对验收包的关键模块与工作区文件一致。
+- 验证结果：`npm --prefix apps/electron test` 使用验收包 CLI 27/27，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57。验收包严格深度签名及 Git 差异检查通过。
+- 遗留问题：本轮完整构建受本机磁盘空间限制，验收用已更新资源的开发包。桌面文件选择后发送图片的完整交互未实测。能力开关依赖先完成服务验证，未实现一键测试。下一轮如需再次查看旧图，须重新附加。
+- 对应 Git 提交：唯一说明 `feat(P03.13): route verified image input through PI`，用 `git log --all --oneline --grep='^feat(P03.13): route verified image input through PI$'` 查询。

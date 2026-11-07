@@ -6,6 +6,7 @@ export const model = 'pi-fixture';
 const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验收',
   contextWindow: 128000, inputModalities: ['text'] };
 const errors = {
+  model_capability: { code: 'INVALID_REQUEST', message: '所选模型没有通过本次图片输入请求' },
   auth: { code: 'AUTHENTICATION', message: '模型服务认证失败' },
   rate_limit: { code: 'RATE_LIMIT', message: '模型服务请求限流' },
   quota: { code: 'QUOTA', message: '模型服务额度不足' },
@@ -66,12 +67,14 @@ async function promptInput(content, readFile, signal) {
   return parts.join('\n').trim();
 }
 
-export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile }) {
+export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile, readImage }) {
   const selectionRequired = { type: 'finish', reason: { kind: 'error',
     failure: { code: 'INVALID_CONFIG', message: '请在 Moos 模型服务中配置可用的模型和 API 密钥' } } };
-  const auto = { provider: route, id: 'auto', name: 'Moos PI · 自动选择', inputModalities: ['text'] };
+  const modalities = enabled => enabled ? ['text', 'image'] : ['text'];
+  const auto = profiles => ({ provider: route, id: 'auto', name: 'Moos PI · 自动选择',
+    inputModalities: modalities(profiles.some(profile => profile.imageInput)) });
   const modelInfo = profile => ({
-    provider: route, id: profile.id, name: profile.name, inputModalities: ['text'],
+    provider: route, id: profile.id, name: profile.name, inputModalities: modalities(profile.imageInput),
     description: profile.thinkingLevel === 'off' ? undefined : '推理档位 ' + profile.thinkingLevel,
     context: { contextWindow: profile.contextWindow }, defaultMaxTokens: profile.maxTokens,
   });
@@ -80,7 +83,8 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     if (!models) return metadata;
     if (id === 'auto') {
       const profile = await models.resolve(id);
-      return profile ? { ...modelInfo(profile), ...auto } : auto;
+      const automatic = auto(await models.list());
+      return profile ? { ...modelInfo(profile), ...automatic } : automatic;
     }
     const profile = await models.resolve(id);
     if (!profile) throw new Error('找不到所选的 Moos PI 模型');
@@ -98,14 +102,40 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     }
     const sessionId = request.sessionId;
     const user = request.messages?.findLast(message => message.role === 'user' && message.source?.kind === 'user');
-    if (request.purpose || !user?.content?.every(part => part.type === 'text' || part.type === 'file') || typeof sessionId !== 'string') {
+    if (request.purpose || !user?.content?.every(part => ['text', 'file', 'image'].includes(part.type)) || typeof sessionId !== 'string') {
       yield models ? { type: 'finish', reason: { kind: 'error',
-        failure: { code: 'INVALID_REQUEST', message: '当前 Moos PI 路由需要工作区内的文本任务' } } } : rejected;
+        failure: { code: 'INVALID_REQUEST', message: '当前 Moos PI 路由需要工作区内的任务' } } } : rejected;
       return;
     }
     const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
+    const imageParts = user.content.filter(part => part.type === 'image');
+    let imageRef;
+    let images;
+    try {
+      if (imageParts.length > 1 || retryOf && imageParts.length) throw new Error('Invalid number of images');
+      imageRef = retryOf ? tasks.retryImage(sessionId, retryOf) : imageParts[0]?.attachment;
+      if (imageParts.length && !imageRef) throw new Error('Missing image reference');
+      if (imageRef) {
+        const { attachmentId, mediaType, bytes, width, height } = imageRef;
+        if (!models || !/^sha256:[a-f0-9]{64}$/.test(attachmentId) ||
+            !['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(mediaType) ||
+            !Number.isSafeInteger(bytes) || bytes < 1 || bytes > 524288 ||
+            !Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1) {
+          throw new Error('Invalid PI image');
+        }
+        imageRef = { attachmentId, mediaType, bytes, width, height };
+        const { data } = await readImage(imageRef, signal);
+        signal.throwIfAborted();
+        if (data.byteLength !== bytes) throw new Error('Invalid PI image length');
+        images = [{ type: 'image', mimeType: mediaType, data: Buffer.from(data).toString('base64') }];
+      }
+    } catch {
+      yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
+        failure: { code: 'INVALID_REQUEST', message: retryOf ? '无法恢复该任务的附件或状态' : '每条消息可附带一张不超过 512 KiB 的图片。' } } };
+      return;
+    }
     let input;
-    try { input = await promptInput(user.content, readFile, signal); }
+    try { input = await promptInput(user.content.filter(part => part.type !== 'image'), readFile, signal); }
     catch {
       yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '附件无法读取。请上传 UTF-8 文本，每条消息最多 8 个文件，合计 32 KiB。' } } };
@@ -115,8 +145,12 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     let plan;
     if (models) {
       try {
-        plan = await models.plan(request.model);
-        if (!plan.provider) { yield selectionRequired; return; }
+        plan = await models.plan(request.model, Boolean(imageRef));
+        if (!plan.provider) {
+          yield imageRef ? { type: 'finish', reason: { kind: 'error',
+            failure: { code: 'INVALID_CONFIG', message: '请选择已启用图片输入的模型服务' } } } : selectionRequired;
+          return;
+        }
         await models.credential(plan.provider);
       } catch { yield selectionRequired; return; }
     }
@@ -124,7 +158,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     try {
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
-        input,
+        input: input || (imageRef ? '请查看我附带的图片。' : ''), imageRef, images,
         messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
@@ -169,7 +203,11 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       initialDelayMs: 100, maxDelayMs: 100, jitterRatio: 0 }),
     imageRequestPricing: () => undefined,
     imageRequestTarget: (_provider, _model, image) => image,
-    listModels: async () => models ? [auto, ...(await models.list()).map(modelInfo)] : [metadata],
+    listModels: async () => {
+      if (!models) return [metadata];
+      const profiles = await models.list();
+      return [auto(profiles), ...profiles.map(modelInfo)];
+    },
     resolveModel,
     prepareCall: async (provider, model) => ({ model: await resolveModel(provider, model), stream }),
     stream,

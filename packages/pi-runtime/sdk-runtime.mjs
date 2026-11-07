@@ -56,9 +56,10 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
+  if (images?.length && !provider.imageInput) throw new TaskFailure('model_capability');
   const cwd = await realpath(project.path);
   const root = resolve(dataDir, conversation.id);
   if (busy.has(root) || busy.has(cwd)) throw new Error('Project or conversation already running');
@@ -87,14 +88,15 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       configs[profile.id] = {
         baseUrl: proxy.baseUrl, api: profile.api, authHeader: true,
         ...(profile.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
-        models: [{ id: profile.model, name: profile.name, reasoning: thinkingLevel !== 'off' || profile.service === 'glm', input: ['text'],
+        models: [{ id: profile.model, name: profile.name, reasoning: thinkingLevel !== 'off' || profile.service === 'glm',
+          input: profile.imageInput ? ['text', 'image'] : ['text'],
           ...(thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
           contextWindow: profile.contextWindow, maxTokens: profile.maxTokens,
           cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
       };
     }
     await add(provider, upstream, apiKey);
-    if (routing?.backup && routing.backup.provider.id !== provider.id) {
+    if (routing?.backup && routing.backup.provider.id !== provider.id && (!images?.length || routing.backup.provider.imageInput)) {
       validate({ task, project, conversation, dataDir, apiKey: routing.backup.apiKey });
       await add(routing.backup.provider, checkedProvider(routing.backup.provider), routing.backup.apiKey);
     }
@@ -124,6 +126,17 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         tools: customTools?.map(tool => tool.name) ?? ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
         customTools,
       }));
+      const transform = session.agent.transformContext?.bind(session.agent);
+      session.agent.transformContext = async (messages, requestSignal) => {
+        const context = transform ? await transform(messages, requestSignal) : messages;
+        const current = images?.length ? context.findLastIndex(item => item.role === 'user') : -1;
+        return context.map((item, index) => {
+          if (index === current || item.role !== 'user' || !Array.isArray(item.content) ||
+              !item.content.some(part => part.type === 'image')) return item;
+          return { ...item, content: [...item.content.filter(part => part.type !== 'image'),
+            { type: 'text', text: '［先前附带的图片，请重新附加后查看］' }] };
+        });
+      };
       if (repair && active === primary) {
         const prepare = session.agent.prepareRequest;
         session.agent.prepareRequest = async (request, requestSignal) => {
@@ -176,7 +189,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
           const recoveryWithOriginal = `${retryPrompt}\n\n原始任务：\n${message}`;
           prompt = [message, retryPrompt, recoveryWithOriginal].includes(priorText) ? retryPrompt : recoveryWithOriginal;
         }
-        await session.prompt(prompt);
+        await session.prompt(prompt, images?.length ? { images } : undefined);
         await session.waitForIdle();
         if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
         if (last?.stopReason === 'stop') {

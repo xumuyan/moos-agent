@@ -15,6 +15,7 @@ function select(id) {
     form.elements.thinkingLevel.value = 'off';
   }
   form.elements.api.disabled = form.elements.service.value !== 'openai';
+  form.elements.imageInput.checked = profile?.imageInput === true;
   form.elements.apiKey.value = '';
 }
 
@@ -25,6 +26,9 @@ function render(rows, id = '') {
 }
 
 picker.addEventListener('change', () => select(picker.value));
+for (const field of ['baseUrl', 'model', 'service', 'api']) {
+  form.elements[field].addEventListener('input', () => { form.elements.imageInput.checked = false; });
+}
 form.elements.service.addEventListener('change', () => {
   const compatibility = form.elements.service.value !== 'openai';
   if (compatibility) form.elements.api.value = 'openai-completions';
@@ -37,7 +41,8 @@ form.addEventListener('submit', async event => {
   saveButton.disabled = true;
   status.textContent = '正在保存';
   try {
-    const rows = await window.moosModels.save({ ...profile, id, contextWindow: Number(profile.contextWindow),
+    const rows = await window.moosModels.save({ ...profile, id, imageInput: form.elements.imageInput.checked,
+      contextWindow: Number(profile.contextWindow),
       maxTokens: Math.min(8192, Number(profile.contextWindow)), apiKey: form.elements.apiKey.value });
     render(rows, id);
     status.textContent = '已保存。可在会话的模型选择器切换。';

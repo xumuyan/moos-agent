@@ -39,7 +39,17 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   });
   let closing;
 
-  async function open({ sessionId, turnStartSeq, cwd, input, messageId, fork, retryOf, signal, permissions, provider, backup }) {
+  function retryTask(sessionId, retryOf) {
+    const id = store.getSetting('dsh-session:' + sessionId);
+    const previous = id && store.latestTask(id);
+    if (previous?.id !== retryOf || !retryable.has(previous.status)) {
+      throw new Error('PI retry target is no longer available');
+    }
+    return previous;
+  }
+
+  async function open({ sessionId, turnStartSeq, cwd, input, messageId, fork, retryOf, signal, permissions, provider, backup,
+    imageRef, images }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || (!retryOf && (typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)))) throw new Error('Invalid PI task');
@@ -64,10 +74,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
       store.setSetting(key, conversation.id);
       return conversation.id;
     });
-    const previous = retryOf && store.latestTask(conversationId);
-    if (retryOf && (previous?.id !== retryOf || !retryable.has(previous.status))) {
-      throw new Error('PI retry target is no longer available');
-    }
+    const previous = retryOf && retryTask(sessionId, retryOf);
     let origin;
     if (fork?.checkpoint) {
       const sourceId = store.getSetting('dsh-message:' + fork.checkpoint);
@@ -85,9 +92,10 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
         store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
       }
       if (captureCheckpoint) store.setSetting('dsh-message:' + messageId, created.id);
+      if (imageRef) store.setSetting('dsh-image:' + created.id, JSON.stringify(imageRef));
       if (previous) store.appendEvent(created.id, 'task_retry', { previousTaskId: previous.id });
     } });
-    contextByTask.set(task.id, { permissions, provider, backup, retry: Boolean(previous), captureCheckpoint,
+    contextByTask.set(task.id, { permissions, provider, backup, images, retry: Boolean(previous), captureCheckpoint,
       fork: fork && { origin, history: fork.history } });
     const pending = [];
     const settled = Promise.withResolvers();
@@ -124,6 +132,10 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
 
   return {
     open,
+    retryImage(sessionId, retryOf) {
+      const value = store.getSetting('dsh-image:' + retryTask(sessionId, retryOf).id);
+      return value && JSON.parse(value);
+    },
     close() {
       closing ??= scheduler.shutdown({ timeoutMs: 15000 }).then(({ drained }) => {
         if (!drained) throw new Error('PI tasks did not stop');
