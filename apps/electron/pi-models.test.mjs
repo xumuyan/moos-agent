@@ -140,4 +140,13 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }],
     `moos-pi-retry:${failed.id}:00000000-0000-4000-8000-000000000001`, 'vision-retry')).kind, 'error');
   assert.equal(imageRequests.at(-1), true);
+
+  await models.save({ id: 'custom-deepseek', name: 'Custom DeepSeek', model: 'mock-deepseek',
+    baseUrl: fixture.baseUrl, service: 'deepseek', api: 'openai-completions', apiKey: fixture.apiKey });
+  assert.equal((await models.plan('custom-deepseek')).backup, undefined);
+  const beforeDeepSeek = requests.length;
+  assert.equal((await turn('custom-deepseek', [{ type: 'text', text: 'MOOS_FIXTURE_WRITE custom_deepseek' }],
+    undefined, 'custom-deepseek')).kind, 'stop');
+  assert.deepEqual(requests.slice(beforeDeepSeek).map(request => request.model), Array(3).fill('mock-deepseek'));
+  assert.equal(await readFile(join(cwd, 'result.txt'), 'utf8'), 'custom_deepseek\n');
 });

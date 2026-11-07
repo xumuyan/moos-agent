@@ -116,9 +116,16 @@ test('the packaged Host starts and restarts with only loopback sockets and no ac
     const exited = once(child, 'exit');
     const lines = createInterface({ input: child.stdout });
     const signal = AbortSignal.timeout(12000);
+    const timeout = once(signal, 'abort').then(() => { throw signal.reason; });
+    const ready = (async () => {
+      for await (const line of lines) {
+        const address = parseBootstrap(line);
+        if (address) return address;
+      }
+      throw new Error('Restricted Moos Host exited before publishing its address');
+    })();
     try {
-      let address;
-      do { const [line] = await once(lines, 'line', { signal }); address = parseBootstrap(line); } while (!address);
+      const address = await Promise.race([ready, timeout]);
       const bootstrap = await fetch(address, { redirect: 'manual', signal });
       assert.ok([302, 303].includes(bootstrap.status));
       const destination = new URL(bootstrap.headers.get('location'), address);
@@ -130,7 +137,7 @@ test('the packaged Host starts and restarts with only loopback sockets and no ac
       assert.equal(response.status, 200);
       assert.match(await response.text(), /<html\b/i);
       child.stdin.end();
-      assert.deepEqual(await once(child, 'exit', { signal }), [0, null]);
+      assert.deepEqual(await Promise.race([exited, timeout]), [0, null]);
     } finally {
       lines.close();
       if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');

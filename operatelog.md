@@ -1127,3 +1127,13 @@
 - 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 29/29，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：本轮验证受支持的注册接口。用户主动安装的 Host 插件代码仍具有宿主权限，尚未验收任意代码的系统隔离或第三方执行插件的兼容性。
 - 对应 Git 提交：唯一说明 `fix(P03.13): reserve the model route for packaged PI adapters`，用 `git log --all --oneline --grep='^fix(P03.13): reserve the model route for packaged PI adapters$'` 查询。
+
+## 2026-11-08 05:37:47 +08:00｜P03.13.5 手动及自动模型的线上收口验收
+
+- 修改或新增内容：补录当前包的双模型桌面任务证据，更新模型子菜单使用说明。新增自定义 DeepSeek 兼容端点的 PI 工具回归，并调整包内 Host 回环验收的事件等待。本轮无运行时代码变更。
+- 遇到的难题：模型菜单首层显示当前模型，需再进入「模型」子菜单才能选另一个服务。现有中转返回的模型列表未列出 DeepSeek，也无独立 DeepSeek 配置。首次并行回归中的回环 Host 测试出现超时。
+- 处理方式：在已签名的当前包中，从模型子菜单分别选择 GPT 中转和自动选路，用 SQLite 的任务归属、模型用量和工具事件复核。回归以本地兼容端点验证 DeepSeek 配置确实由 PI 执行。Host 测试持续消费启动输出，并复用已经订阅的退出事件，避免在逐行订阅或退出阶段漏事件，连续复跑三次。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-DV6dkR`，与 `/Applications/Moos.app` 的 PI 适配器文件一致，安装包严格验签通过。隔离配置中，手动选择真实 GPT-6.1 Sol 后成功执行 Bash 和写入，切回自动后真实 GLM-5.3 通过读工具准确回复文件标记。SQLite 核对同一会话的两条成功任务，分别三条及两条用量事件。安装包模板及本机配置的依赖仅为皮肤中心和 Moos 内部壳。复核 E66 同一中转、凭据、基线、提示和实际 High，Moos / 原版的请求时段为 174.85 / 254.82 秒，119,638 / 319,544 Token，独立验收各 11/11。
+- 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 复跑 29/29，回环 Host 定向连续三次通过，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：自定义 DeepSeek 只验本地兼容端点，真实端点需要可用的独立配置。性能差异限现有配对样本。正式发行、整机离线及其他平台按原计划继续验收。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify live manual and automatic PI routing`，用 `git log --all --oneline --grep='^test(P03.13): verify live manual and automatic PI routing$'` 查询。
