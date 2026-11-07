@@ -36,12 +36,14 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin', fullscreen: 'true' });
   fullscreen({}, false);
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin' });
-  assert.deepEqual([...bridges.keys()], ['moosUsage', 'moosTurn', 'moosActiveTasks']);
+  assert.deepEqual([...bridges.keys()], ['moosUsage', 'moosTurn', 'moosActiveTasks', 'moosOpenModelSettings']);
   bridges.get('moosUsage').summary();
   bridges.get('moosUsage').latest('session-id');
   bridges.get('moosTurn')('session-id', 12);
   bridges.get('moosActiveTasks')();
+  bridges.get('moosOpenModelSettings')();
   assert.deepEqual(messages, [
     ['moos:pi-usage', null], ['moos:pi-usage', 'session-id'], ['moos:pi-turn', 'session-id', 12], ['moos:pi-active'],
+    ['moos:open-model-settings'],
   ]);
 });

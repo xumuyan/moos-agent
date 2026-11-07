@@ -164,10 +164,15 @@ async function launch() {
     verifyWorkbench(event);
     return turns.active();
   });
+  ipcMain.handle('moos:open-model-settings', event => {
+    verifyWorkbench(event);
+    openModelSettings();
+  });
   win.once('closed', () => {
     ipcMain.removeHandler('moos:pi-usage');
     ipcMain.removeHandler('moos:pi-turn');
     ipcMain.removeHandler('moos:pi-active');
+    ipcMain.removeHandler('moos:open-model-settings');
     usage.close();
     turns.close();
   });

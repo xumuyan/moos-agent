@@ -1097,3 +1097,13 @@
 - 验证结果：定向回归 2/2，`npm test` 139/139，`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 28/28，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：真实账户未耗尽额度。额度响应为受控复现，真实网络覆盖 GLM 认证失败和 GPT High 备用。模型权限和密钥范围由本地夹具验证。自定义 DeepSeek 端点仍待真实配置验收。
 - 对应 Git 提交：唯一说明 `fix(P03.13): distinguish GLM Coding Plan rejections in PI`，用 `git log --all --oneline --grep='^fix(P03.13): distinguish GLM Coding Plan rejections in PI$'` 查询。
+
+## 2026-11-08 05:13:24 +08:00｜P03.13.2、P03.13.5 工作台模型服务入口
+
+- 修改或新增内容：左下角设置新增「模型服务」，可打开现有独立配置窗口，原生菜单保留。工作台 IPC 只允许受信任的主窗口调用打开动作，凭据读取、保存和连接诊断仍由独立窗口处理。内部壳升级到 0.1.18，更新使用说明。
+- 遇到的难题：旧配置需刷新已打包的内部壳才会显示新设置页。验收时磁盘空间紧张，首次电脑操作结果读取失败。
+- 处理方式：通过已有离线壳升级流程加载新入口，使用独立配置复测。清理已测量的临时 ZIP 和六份未运行、未被验收记录引用的可重建旧包后读取当前窗口状态，继续验证。未改动用户模型凭据。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-jP7lE5`，隔离配置从 0.1.17 升到 0.1.18。左下角设置可打开模型服务窗口，真实 GLM Coding Plan 的测试显示 HTTP 200、1498 毫秒。原生菜单再次打开时同一配置与测试结果仍在。Token 用量仍为暂无记录，SQLite 任务数为零。更新 `/Applications/Moos.app` 后严格验签，核对主程序脚本、预加载脚本和内置壳版本，旧包留在本机临时验收目录。
+- 验证结果：定向回归 2/2，`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：当前入口只验 macOS。短文本诊断与会话任务性能、真实套餐耗尽及其他端点能力分别验收。
+- 对应 Git 提交：唯一说明 `feat(P03.13): open model services from Electron settings`，用 `git log --all --oneline --grep='^feat(P03.13): open model services from Electron settings$'` 查询。

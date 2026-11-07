@@ -37,6 +37,20 @@ window.__ModuleLoader__.load({
       return result?.sessionId === sessionId ? result : undefined;
     }
 
+    function ModelSettings() {
+      const [failed, setFailed] = useState(false);
+      async function open() {
+        setFailed(false);
+        try { await window.moosOpenModelSettings(); }
+        catch { setFailed(true); }
+      }
+      return createElement('section', { 'data-moos-model-settings': '' },
+        createElement('h2', null, '模型服务'),
+        createElement('p', null, '配置 PI 使用的模型服务、推理档位和图片能力，并测试连接。'),
+        createElement('button', { type: 'button', onClick: open }, '管理模型服务'),
+        failed ? createElement('p', { role: 'status' }, '模型服务窗口未能打开，请重试。') : null);
+    }
+
     function UsageSettings() {
       const [refresh, setRefresh] = useState(0);
       const result = useUsage(null, refresh);
@@ -195,6 +209,11 @@ window.__ModuleLoader__.load({
       ]) {
         ctx.slots.inject(name, () => ctx.slots.register({ name }, component));
       }
+      if (window.moosOpenModelSettings) {
+        ctx.slots.inject('settings.section', () => ctx.slots.register({
+          name: 'settings.section', id: 'moos-models', order: 19, label: () => '模型服务',
+        }, ModelSettings));
+      }
       if (window.moosUsage) {
         ctx.slots.inject('settings.section', () => ctx.slots.register({
           name: 'settings.section', id: 'moos-usage', order: 20, label: () => 'Token 用量',
@@ -236,7 +255,7 @@ window.__ModuleLoader__.load({
         html[data-dsh-skin="maid-atelier"] [data-moos-sidebar-name] { color: #f3e3c0; }
         [data-plugin-package="moos-electron-shell"] { display: none !important; }
         [data-moos-composer-usage] { display: flex; flex-wrap: wrap; gap: 0 12px; font-size: 12px; opacity: .75; }
-        [data-moos-usage-settings] h2 { margin: 0 0 8px; }
+        [data-moos-usage-settings] h2, [data-moos-model-settings] h2 { margin: 0 0 8px; }
         [data-moos-usage-settings] dl > div { display: flex; justify-content: space-between; padding: 8px 0; }
         [data-moos-usage-settings] dd { margin: 0; font-variant-numeric: tabular-nums; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
