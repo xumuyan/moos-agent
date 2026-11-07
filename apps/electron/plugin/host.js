@@ -20,6 +20,11 @@ export async function apply(ctx) {
   }));
   const runtime = process.env.MOOS_ELECTRON_PI_RUNTIME;
   if (!runtime) return;
+  ctx.on('agent/created', ({ agent }) => {
+    if (agent.model.current()?.provider !== route) {
+      agent.model.select({ provider: route, model: 'auto' });
+    }
+  }, { global: true });
   const load = path => import(pathToFileURL(join(runtime, path)).href);
   const [{ Store }, { Scheduler }, { runPiSdk }, { privateDir, checkedProvider }] = await Promise.all([
     load('services/agent/store.mjs'), load('services/agent/scheduler.mjs'),

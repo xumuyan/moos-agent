@@ -966,3 +966,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 22/22，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 55/55。Moos 测试包通过 `codesign --verify --deep --strict`，仓库 `git diff --check` 通过。
 - 遗留问题：仅一对同形态样本，未控制缓存，工具集、系统提示及权限实现有差异。中继的 Token 统计不代表账单金额。更长任务、重复样本和可选执行类插件仍按计划验证。脱敏元数据及外部验收日志留在临时验收目录，结构化摘要已纳入仓库。
 - 对应 Git 提交：唯一说明 `test(P03.13): compare desktop apps on the same online task`，用 `git log --all --oneline --grep='^test(P03.13): compare desktop apps on the same online task$'` 查询。
+
+## 2026-11-08 03:06:13 +08:00｜P03.13.3、P03.13.7 关闭额外模型路由并迁移旧会话
+
+- 修改或新增内容：构建时在随包 DSH Host 的适配器注册校验处限制为 `moos-pi`。同一校验覆盖首次注册和热替换。旧会话打开时检查当前选择，将非 PI 的模型切换为 PI 自动路由。内部插件升级到 0.1.15，已有配置在启动时取得新版本。
+- 遇到的难题：停用上游内置模型服务后，旧包的通用注册接口仍接纳另装插件提供的模型。原版会话的历史请求头还记录了旧路由和推理档位。首次并行回归出现旧 Tauri PTY 租约释放断言失败，位置为 `tests/pty.rs:106`。
+- 处理方式：在旧包通过真实注册接口复现额外模型进入列表。新包在注册提交之前拒绝额外路由。构建要求固定版本源码中的校验位置唯一匹配。旧会话追加 PI 模型选择，保留历史消息及原有请求记录。Tauri 原生套件在前端测试结束后顺序复跑。
+- 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 23/23，新回归针对旧包失败。 `npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 最终 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 55/55。开发包构建、`codesign --verify --deep --strict` 和 `git diff --check` 通过。
+- 实际验收与工作区状态：提交前，macOS 27.0.1 arm64 的 Moos `build-t5dJ9K` 正常启动。在独立数据目录中用 0.1.14 的配置和 E55 原版会话副本升级。桌面打开旧会话后历史可见，模型显示「Moos PI · 自动选择」。在该会话发出读取 `package.json` 的任务，界面显示完成和一项实际操作，回复中的包名与文件字段一致。SQLite 确认同一会话只有一个本次 PI 任务，状态成功，唯一工具为 `read`。历史日志保留原请求头并记录新的 `moos-pi/auto` 选择。中继记录两次 GPT-6.1 Sol High 请求，均为 HTTP 200，第二次带工具结果。插件页已安装列表仅有启用的皮肤中心。
+- 遗留问题：本次注册限制覆盖随包 Host 的适配器接口。未来用户选择安装的执行类插件仍需实测其入口、权限和 PI 对接，插件自行运行的进程和网络行为另验。首次回归暴露的旧 Tauri PTY 时序问题未在本项修改。脱敏日志见 `/tmp/moos-pi-only-*.log`。
+- 对应 Git 提交：唯一说明 `fix(P03.13): restrict desktop model routes to PI`，用 `git log --all --oneline --grep='^fix(P03.13): restrict desktop model routes to PI$'` 查询。

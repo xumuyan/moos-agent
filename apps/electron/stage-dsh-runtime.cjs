@@ -26,6 +26,18 @@ function omitted(path) {
   return path.startsWith('node_modules/sherpa-onnx-');
 }
 
+function restrictModelRegistration(dsh) {
+  const file = join(dsh, 'node_modules/@deepseek-ai/dsh-llm/lib/index.js');
+  const source = fs.readFileSync(file, 'utf8');
+  // Both initial registration and replacement pass through this validation.
+  const anchor = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique';
+  if (source.split(anchor).length !== 2) throw new Error('Unexpected DSH model registration boundary');
+  fs.writeFileSync(file, source.replace(anchor, 'prepareRoutes(providers, adapter, owned) {\n' +
+    '\t\t\tif (providers.some(provider => provider !== "moos-pi")) {\n' +
+    '\t\t\t\tthrow new LlmError("Moos 模型服务必须通过 PI 接入", "INVALID_ADAPTER");\n' +
+    '\t\t\t}\n\t\t\tconst unique'));
+}
+
 function stageDshRuntime(resources, destination) {
   const source = join(resources, 'app.asar', 'dsh');
   const dsh = join(destination, 'dsh');
@@ -45,6 +57,7 @@ function stageDshRuntime(resources, destination) {
     }
   }
   copy('');
+  restrictModelRegistration(dsh);
   // The CLI package is the install anchor the plugin manager reads. Leaving
   // removed bundles there would render them as broken preinstalled plugins.
   for (const file of ['package.json', 'node_modules/@deepseek-ai/dsh/package.json']) {
