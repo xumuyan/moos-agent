@@ -62,6 +62,59 @@ window.__ModuleLoader__.load({
         createElement('span', null, '上下文 ', count(reading?.promptTokens), ' / ', count(reading?.contextWindow)));
     }
 
+    function usePiTurn(sessionId, startSeq) {
+      const [result, setResult] = useState();
+      useEffect(() => {
+        if (startSeq === undefined) return;
+        let closed = false;
+        let timer;
+        async function update() {
+          try {
+            const data = await window.moosTurn(sessionId, startSeq);
+            if (!closed) setResult({ sessionId, startSeq, data });
+          } catch {
+            if (!closed) setResult(undefined);
+          }
+          if (!closed && startSeq === null) timer = setTimeout(update, 1000);
+        }
+        void update();
+        return () => { closed = true; clearTimeout(timer); };
+      }, [sessionId, startSeq]);
+      return result?.sessionId === sessionId && result.startSeq === startSeq ? result.data : undefined;
+    }
+
+    const actionStates = { running: '进行中', done: '已完成', failed: '失败', unrecorded: '结果未记录' };
+    const turnStates = { queued: '排队中', running: '正在执行', succeeded: '已完成', failed: '失败',
+      cancelled: '已停止', interrupted: '已中断' };
+
+    function PiProcess({ data }) {
+      if (!data?.actions.length) return null;
+      return createElement('details', { 'data-moos-pi-process': '' },
+        createElement('summary', null, '执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]),
+        createElement('ul', null, data.actions.map((action, index) =>
+          createElement('li', { key: index },
+            createElement('span', null, action.label),
+            action.path || action.command ? createElement('span', { className: 'moos-action-subject' }, action.path || action.command) : null,
+            createElement('small', null, actionStates[action.state])))),
+        data.limited ? createElement('p', null, '仅显示前 400 条工具事件') : null);
+    }
+
+    function LivePiProcess({ sessionId }) {
+      return createElement(PiProcess, { data: usePiTurn(sessionId, null) });
+    }
+
+    function PiTurnTail({ sessionId, turn }) {
+      const data = usePiTurn(sessionId, turn.start?.seq);
+      if (!data || (!data.actions.length && !data.files.length)) return null;
+      return createElement('div', { 'data-moos-pi-turn': '' },
+        createElement(PiProcess, { data }),
+        data.files.length ? createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },
+          createElement('strong', null, data.workspaceChanges ? '工作区变化 · ' : '写入或编辑了 ', data.files.length, ' 个文件'),
+          createElement('ul', null, data.files.map(file => createElement('li', { key: file.path },
+            createElement('span', { className: 'moos-action-subject' }, file.path), createElement('small', null, file.summary)))),
+          data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null) : null);
+    }
+
     function apply(ctx) {
       const root = document.documentElement;
       // Desktop chrome uses the native layout, but shortcuts still use the web transport.
@@ -82,6 +135,15 @@ window.__ModuleLoader__.load({
           inject: sessionId => ({ sessionId }),
         }, ComposerUsage));
       }
+      if (window.moosTurn) {
+        const sessionProps = sessionId => ({ sessionId });
+        ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
+          name: 'conversation.input.dock', id: 'moos-pi-live', inject: sessionProps,
+        }, LivePiProcess));
+        ctx.slots.inject('conversation.chat.turnTail', () => ctx.slots.register({
+          name: 'conversation.chat.turnTail', id: 'moos-pi-turn', inject: sessionProps,
+        }, PiTurnTail));
+      }
       const styles = document.createElement('style');
       styles.textContent = `
         [data-skin-chrome="titlebar-brand"] { display: none !important; }
@@ -92,6 +154,15 @@ window.__ModuleLoader__.load({
         [data-moos-usage-settings] h2 { margin: 0 0 8px; }
         [data-moos-usage-settings] dl > div { display: flex; justify-content: space-between; padding: 8px 0; }
         [data-moos-usage-settings] dd { margin: 0; font-variant-numeric: tabular-nums; }
+        [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
+        [data-moos-pi-process] summary { cursor: pointer; }
+        [data-moos-pi-turn] { display: grid; gap: 8px; margin-bottom: 8px; }
+        :is([data-moos-pi-process], [data-moos-file-fallback]) ul { list-style: none; padding: 0; margin: 6px 0 0; }
+        :is([data-moos-pi-process], [data-moos-file-fallback]) li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
+        :is([data-moos-pi-process], [data-moos-file-fallback]) li small { margin-inline-start: auto; white-space: nowrap; opacity: .7; }
+        .moos-action-subject { min-width: 0; overflow-wrap: anywhere; }
+        [data-turn-tail]:has([data-changed-files]) [data-moos-file-fallback] { display: none; }
+        [data-chat-flow-kind="assistant-step"] :is(.md-code-block, pre) { display: none; }
       `;
       document.head.append(styles);
       const title = document.querySelector('title');

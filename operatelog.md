@@ -882,3 +882,14 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 用 `build-nwp03k` 正常模式验证。首次打开设置显示暂无用量。真实 GLM-5.3 通过 PI 执行 write 与 read，独立核对文件精确内容。三条请求分别报告 1,106、1,153、1,183 Token。设置页显示 3,442 Token，未缓存输入 313、输出 57、缓存读取 3,072，缓存写入为未知。输入框显示最近请求缓存命中 93.8% 和上下文 1,160 / 128,000。正常退出、重启并重新打开历史会话后，输入框与设置页数值均一致。
 - 遗留问题：用量按本机已收到的模型响应记录统计。上下文窗口是配置值。结构化工具过程、改动摘要和重试恢复仍待逐项验收。
 - 对应 Git 提交：唯一说明 `feat(P03.13): show recorded PI token usage in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): show recorded PI token usage in Electron$'` 查询。
+
+## 2026-11-08 01:25:44 +08:00｜P03.13.6 接通 PI 执行过程与文件摘要
+
+- 修改或新增内容：将 DSH 会话轮次的起点序号与 PI 任务在提交事务中关联。执行中和历史会话均可展开实际工具动作。回复正文省略代码块，过程只投影动作名称、允许显示的命令名、项目内路径及状态。Git 工作区通过前后文件指纹生成新增、修改、删除摘要。非 Git 工作区回退到已成功的 PI 文件写入和编辑。
+- 遇到的难题：上一版把工具完成提示混进助手正文。首轮测试发现 SQL 的列别名会按工具 ID 排序，打乱事件顺序。首轮线上验收中的原版文件卡未记录命令创建的文件。Tauri 原生 PTY 套件首次并发运行时，一项释放租约断言失败。
+- 处理方式：按 SQLite 原始事件序号聚合，限定主工作台来源读取，只给界面提供脱敏投影。Git 扫描在同目录任务锁内读取两次，限制文件数、总量和单文件大小，排除任务前已有改动与不变内容，不修改 Git 暂存区。取消时不再执行终态快照，保留已记录的文件工具事实。原生套件用 `RUST_TEST_THREADS=1` 整套复跑通过。
+- 验证结果：使用随包 CLI 的 `npm --prefix apps/electron test` 16/16，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。开发包构建、深度严格签名及 Git 差异检查通过。脱敏日志见 `/tmp/moos-pi-turn-*.log`。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 使用开发包 `build-1aSrji`。线上 GLM-5.3 通过 PI 编辑、运行 Bash 并读取校验，正文仅显示解释，保存回复中确有的验收代码块未出现在助手正文。工具过程显示五项操作。独立核对 `alpha.txt` 修改、`beta.txt` 新增的精确内容及已有修改 `other.txt` 保留，界面与 SQLite 均只列前两项。重启打开原会话后摘要及五项操作恢复。
+- 停止与失败：本地验收任务实际启动 Bash，点击停止后进程退出，界面显示已停止，命令行显示结果未记录。随后同会话提交认证失败样例，界面显示模型服务认证失败与 AUTHENTICATION，未回显上游正文。
+- 遗留问题：Git 摘要覆盖 Git 可见文件与扫描限额内的文件。非 Git 命令和取消时的未核实改动不计入；旧轮次没有当前映射，分支继承、长任务和完整重试入口仍待验。
+- 对应 Git 提交：唯一说明 `feat(P03.13): show PI actions and workspace changes`，用 `git log --all --oneline --grep='^feat(P03.13): show PI actions and workspace changes$'` 查询。

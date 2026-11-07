@@ -3,7 +3,6 @@ export const model = 'pi-fixture';
 
 const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验收',
   contextWindow: 128000, inputModalities: ['text'] };
-const tools = new Set(['read', 'write', 'edit', 'bash', 'bash_escalated', 'grep', 'find', 'ls']);
 const errors = {
   auth: { code: 'AUTHENTICATION', message: '模型服务认证失败' },
   rate_limit: { code: 'RATE_LIMIT', message: '模型服务请求限流' },
@@ -34,7 +33,7 @@ function sessionTitle(request) {
   return content?.trim().split('\n')[0].slice(0, 64) || 'Moos 会话';
 }
 
-export function createPiAdapter({ tasks, getSession, getPermissions, models }) {
+export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models }) {
   const selectionRequired = { type: 'finish', reason: { kind: 'error',
     failure: { code: 'INVALID_CONFIG', message: '请在 Moos 模型服务中配置可用的模型和 API 密钥' } } };
   const auto = { provider: route, id: 'auto', name: 'Moos PI · 自动选择', inputModalities: ['text'] };
@@ -82,7 +81,8 @@ export function createPiAdapter({ tasks, getSession, getPermissions, models }) {
     }
     let task;
     try {
-      task = await tasks.open({ sessionId, cwd: getSession(sessionId)?.header?.cwd,
+      const session = getSession(sessionId);
+      task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
         input: user.content.map(part => part.text).join('\n').trim(),
         signal, permissions: getPermissions?.(sessionId), provider });
     } catch {
@@ -107,9 +107,7 @@ export function createPiAdapter({ tasks, getSession, getPermissions, models }) {
             yield { type: 'block-end', index: index++, block: { type: 'text', text: answer } };
             answer = '';
           }
-          if (type === 'tool_end' && tools.has(payload.toolName)) {
-            yield* textBlock(index++, `PI 工具 ${payload.toolName}：${payload.isError ? '失败' : '完成'}\n`);
-          } else if (type === 'task_state' && payload.status === 'succeeded') {
+          if (type === 'task_state' && payload.status === 'succeeded') {
             finish = stop;
           } else if (type === 'task_state' && payload.status === 'failed') {
             finish = { type: 'finish', reason: { kind: 'error', failure: errors[payload.errorCode]

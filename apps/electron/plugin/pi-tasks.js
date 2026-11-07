@@ -1,5 +1,6 @@
 import { realpath } from 'node:fs/promises';
 import { isAbsolute, relative, sep } from 'node:path';
+import { withWorkspaceChanges } from './pi-workspace-changes.js';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled']);
 const fixtureInput = /^MOOS_FIXTURE_(?:WRITE [a-zA-Z0-9_]{1,32}|TOOLS|HOLD|AUTH_FAIL|RATE_LIMIT|POLICY|APPROVAL)$/;
@@ -28,14 +29,16 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
     store,
     async run(options) {
       if (await verifyWorkspace(options.project.path) !== options.project.path) throw new Error('PI workspace moved');
-      return run({ ...options, task: { ...options.task, text: options.task.message },
-        ...contextByTask.get(options.task.id) });
+      const input = { ...options, task: { ...options.task, text: options.task.message },
+        ...contextByTask.get(options.task.id) };
+      return withWorkspaceChanges(options.project.path, options.signal, () => run(input),
+        changes => options.emit('workspace_changes', changes));
     },
     onEvent(event) { listeners.get(event.taskId)?.(event); },
   });
   let closing;
 
-  async function open({ sessionId, cwd, input, signal, permissions, provider }) {
+  async function open({ sessionId, turnStartSeq, cwd, input, signal, permissions, provider }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)) throw new Error('Invalid PI task');
@@ -59,7 +62,11 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
       store.setSetting(key, conversation.id);
       return conversation.id;
     });
-    const task = scheduler.submit({ conversationId, message: input });
+    const task = scheduler.submit({ conversationId, message: input, onCreate(created) {
+      if (Number.isSafeInteger(turnStartSeq) && turnStartSeq >= 0) {
+        store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
+      }
+    } });
     contextByTask.set(task.id, { permissions, provider });
     const pending = [];
     const settled = Promise.withResolvers();
@@ -74,7 +81,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
         signal.removeEventListener('abort', cancel);
         settled.resolve();
         pending.push(event);
-      } else if (event.type === 'text_delta' || event.type === 'tool_end') {
+      } else if (event.type === 'text_delta') {
         pending.push(event);
       }
       wake?.();

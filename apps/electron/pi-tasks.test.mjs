@@ -78,7 +78,7 @@ test('Electron PI tasks serialize directory aliases, run other projects and stop
   store = new Store({ dbPath });
   tasks = makeTasks();
   await assert.rejects(tasks.open({ sessionId: 'same', cwd: second, input: 'MOOS_FIXTURE_TOOLS', signal }));
-  const adapter = createPiAdapter({ tasks, getSession: () => ({ header: { cwd: first } }) });
+  const adapter = createPiAdapter({ tasks, getSession: () => ({ header: { cwd: first } }), getTurnStart: () => 21 });
   const request = input => ({ sessionId: 'same', signal, messages: [
     { role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: input }] },
     { role: 'user', source: { kind: 'runtime-context' }, content: [{ type: 'text', text: 'ignored' }] },
@@ -99,6 +99,8 @@ test('Electron PI tasks serialize directory aliases, run other projects and stop
   const continued = await collect(adapter.stream(request('MOOS_FIXTURE_WRITE continued')));
   assert.equal(continued.at(-1).reason.kind, 'stop');
   assert.ok(continued.some(event => event.type === 'text-delta' && event.text.includes('完成 continued')));
+  assert.ok(continued.every(event => !event.text?.includes('PI 工具')));
   assert.equal(store.getSetting('dsh-session:same'), conversation);
+  assert.equal(store.getSetting('dsh-turn:same:21'), store.listTasks().find(task => task.message.endsWith(' continued')).id);
   assert.equal(await readFile(join(first, 'result.txt'), 'utf8'), 'continued\n');
 });

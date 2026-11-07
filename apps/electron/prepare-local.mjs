@@ -87,7 +87,7 @@ await writeFile(join(appSource, 'package.json'), JSON.stringify({
   name: manifest.name, productName: manifest.productName, version: manifest.version,
   main: manifest.main, type: manifest.type,
 }));
-for (const file of ['main.mjs', 'host.mjs', 'pi-usage.mjs', 'window-preload.cjs', 'model-settings.html', 'model-settings.js',
+for (const file of ['main.mjs', 'host.mjs', 'pi-usage.mjs', 'pi-turn.mjs', 'window-preload.cjs', 'model-settings.html', 'model-settings.js',
   'model-settings-preload.cjs']) {
   await cp(join(source, file), join(appSource, file));
 }

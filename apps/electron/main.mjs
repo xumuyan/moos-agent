@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
 import { createPiUsageReader } from './pi-usage.mjs';
+import { createPiTurnReader } from './pi-turn.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -108,7 +109,10 @@ async function launch() {
     },
   });
   const address = await host.ready;
-  const { checkedProvider } = await import(pathToFileURL(join(piRuntime, 'packages/pi-adapter/index.mjs')).href);
+  const [{ checkedProvider }, { timelinePayload }] = await Promise.all([
+    import(pathToFileURL(join(piRuntime, 'packages/pi-adapter/index.mjs')).href),
+    import(pathToFileURL(join(piRuntime, 'services/agent/timeline-view.mjs')).href),
+  ]);
   const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider));
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'Moos', submenu: [
@@ -135,16 +139,27 @@ async function launch() {
       ...(mac ? { preload: join(resources, 'app', 'window-preload.cjs') } : {}),
     },
   });
-  const usage = createPiUsageReader(join(data, enableFixture ? 'pi-fixture' : 'pi', 'moos.sqlite'));
-  ipcMain.handle('moos:pi-usage', (event, sessionId) => {
+  const dbPath = join(data, enableFixture ? 'pi-fixture' : 'pi', 'moos.sqlite');
+  const usage = createPiUsageReader(dbPath);
+  const turns = createPiTurnReader(dbPath, timelinePayload);
+  function verifyWorkbench(event) {
     const frame = event.senderFrame;
     if (event.sender !== win.webContents || !frame || frame !== win.webContents.mainFrame
-      || new URL(frame.url).origin !== address.origin) throw new Error('Untrusted Moos usage request');
+      || new URL(frame.url).origin !== address.origin) throw new Error('Untrusted Moos workbench request');
+  }
+  ipcMain.handle('moos:pi-usage', (event, sessionId) => {
+    verifyWorkbench(event);
     return usage.read(sessionId);
+  });
+  ipcMain.handle('moos:pi-turn', (event, sessionId, startSeq) => {
+    verifyWorkbench(event);
+    return turns.read(sessionId, startSeq);
   });
   win.once('closed', () => {
     ipcMain.removeHandler('moos:pi-usage');
+    ipcMain.removeHandler('moos:pi-turn');
     usage.close();
+    turns.close();
   });
   if (mac) {
     const syncFullscreen = () => {

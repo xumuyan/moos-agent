@@ -57,6 +57,7 @@ export async function apply(ctx) {
     store.interruptUnfinished();
     const release = ctx.llm.registerAdapter([route], createPiAdapter({
       tasks, models, getSession: id => ctx.agents.get(id)?.session,
+      getTurnStart: session => session && ctx.agents.turnBoundaryOf(session).openTurnStartSeq,
       getPermissions(id) {
         const agent = ctx.agents.get(id);
         if (!agent) throw new Error('PI needs an active desktop session');

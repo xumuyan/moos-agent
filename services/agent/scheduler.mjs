@@ -31,13 +31,14 @@ export class Scheduler {
     });
     this.#publish(event);
   }
-  submit({ conversationId, message, timeoutMs }) {
+  submit({ conversationId, message, timeoutMs, onCreate }) {
     if (this.#stopped) throw new Error('Scheduler is shut down');
     let event;
     const task = this.#store.transaction(() => {
       const task = this.#store.createTask({ conversationId, message, timeoutMs: taskTimeout(timeoutMs) });
       this.#store.addMessage({ conversationId, taskId: task.id, role: 'user', content: message });
       event = this.#store.appendEvent(task.id, 'task_state', { status: 'queued' });
+      onCreate?.(task);
       return task;
     });
     this.#queue.push(task.id);
