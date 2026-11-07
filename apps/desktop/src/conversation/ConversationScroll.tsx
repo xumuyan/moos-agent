@@ -1,3 +1,6 @@
+import rootCss from '../vendor/dsh/composer/ConversationRoot.module.css';
+import chatCss from '../vendor/dsh/conversation/ChatView.module.css';
+import bridge from '../vendor/dsh/conversation/MoosFlow.module.css';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 type Anchor = { node: HTMLElement; top: number };
@@ -12,9 +15,10 @@ function restore(viewport: HTMLElement, saved: Anchor[]) {
   if (anchor) viewport.scrollTop += anchor.node.getBoundingClientRect().top - viewport.getBoundingClientRect().top - anchor.top;
 }
 
-export default function ConversationScroll({ children, viewKey, isOlder }: { children: ReactNode; viewKey: string; isOlder: boolean }) {
+export default function ConversationScroll({ children, viewKey, isOlder, composer, hero = false }: { children: ReactNode; viewKey: string; isOlder: boolean; composer?: ReactNode; hero?: boolean }) {
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
+  const composerSeat = useRef<HTMLDivElement>(null);
   const following = useRef(!isOlder);
   const saved = useRef<Anchor[]>([]);
   const lastHeight = useRef(0);
@@ -38,7 +42,12 @@ export default function ConversationScroll({ children, viewKey, isOlder }: { chi
     lastHeight.current = node.scrollHeight;
     saved.current = anchors(node);
     setShowReturn(false);
+    const measureComposer = () => {
+      if (composerSeat.current) node.parentElement?.style.setProperty('--moos-composer-height', `${composerSeat.current.getBoundingClientRect().height}px`);
+    };
+    measureComposer();
     const observer = new ResizeObserver(() => {
+      measureComposer();
       if (folding.current) return;
       const height = node.scrollHeight;
       if (height < lastHeight.current || !following.current) restore(node, saved.current);
@@ -48,11 +57,12 @@ export default function ConversationScroll({ children, viewKey, isOlder }: { chi
     });
     observer.observe(content.current!);
     observer.observe(node);
+    if (composerSeat.current) observer.observe(composerSeat.current);
     return () => { observer.disconnect(); if (frame.current !== undefined) cancelAnimationFrame(frame.current); folding.current = false; };
   }, [viewKey, isOlder]);
 
   const beforeDisclosure = (target: EventTarget) => {
-    if (!(target instanceof Element) || !target.closest('summary, [data-preserve-scroll]')) return;
+    if (!(target instanceof Element) || !target.closest('summary, [data-preserve-scroll], [data-disclosure-row][aria-expanded]')) return;
     const node = viewport.current!;
     saved.current = anchors(node);
     folding.current = true;
@@ -64,11 +74,12 @@ export default function ConversationScroll({ children, viewKey, isOlder }: { chi
       remember();
     });
   };
-  return <div className="conversation-scroll-seat">
-    <div ref={viewport} className="conversation-area" aria-label="对话内容" aria-live={isOlder ? 'off' : 'polite'} onScroll={remember}
+  return <div className={`${chatCss.frame} conversation-scroll-seat`}>
+    <div ref={viewport} className={`${composer !== undefined ? rootCss.scrollBody : chatCss.scroll} conversation-area`} data-conversation-scroll={composer !== undefined ? '' : undefined} aria-label="对话内容" aria-live={isOlder ? 'off' : 'polite'} onScroll={remember}
       onClickCapture={event => beforeDisclosure(event.target)} onKeyDownCapture={event => { if (event.key === 'Enter' || event.key === ' ') beforeDisclosure(event.target); }}>
-      <div ref={content} className="conversation-flow">{children}</div>
+      <div ref={content} className={composer !== undefined ? rootCss.viewArea : bridge.flow} hidden={hero}>{composer !== undefined ? <div className={chatCss.root}><div className={chatCss.scroll}>{children}</div></div> : children}</div>
+      {composer !== undefined && <div ref={composerSeat} className={rootCss.composerSeat}>{composer}</div>}
     </div>
-    {showReturn && <button className="return-to-latest" onClick={() => { const node = viewport.current!; node.scrollTop = node.scrollHeight; remember(); }}>↓ 返回最新消息</button>}
+    {showReturn && <button className={bridge.returnToLatest} style={composer !== undefined ? { bottom: 'calc(var(--moos-composer-height, 152px) + 16px)' } : undefined} onClick={() => { const node = viewport.current!; node.scrollTop = node.scrollHeight; remember(); }}>↓ 返回最新消息</button>}
   </div>;
 }

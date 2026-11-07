@@ -18,7 +18,7 @@ it('shows verified usage, unavailable values and supports range/filter refresh a
     conversations={[{ id: 'conversation', projectId: 'project', title: 'Chat' }]}
     loadUsage={load} clearUsage={clear} exportUsage={vi.fn().mockResolvedValue({ records: [], truncated: false })} />);
   await waitFor(() => expect(load).toHaveBeenCalledWith({ range: 'today' }));
-  expect(screen.getByText('120')).toBeInTheDocument();
+  expect(await screen.findByText('120')).toBeInTheDocument();
   expect(screen.getByText('14.3%')).toBeInTheDocument();
   expect(screen.getAllByText('暂无数据').length).toBeGreaterThan(0);
   await user.selectOptions(screen.getByLabelText('统计时间范围'), '7d');

@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ConversationScroll from './ConversationScroll';
+import { DisclosureRow } from '../vendor/dsh/primitives/DisclosureRow';
+import TurnProcessToggle from '../vendor/dsh/conversation/TurnProcessToggle';
 
 let resize: () => void;
 let frame: FrameRequestCallback;
@@ -46,8 +48,11 @@ it('does not force an older page to the tail and resets when changing conversati
   rerender(<ConversationScroll viewKey="other:latest" isOlder={false}><div>新会话</div></ConversationScroll>);
   expect(node.scrollTop).toBe(1400);
 });
-it('restores a surviving visible anchor after a manual disclosure changes the layout', () => {
-  render(<ConversationScroll viewKey="c:latest" isOlder={false}><details><summary>展开过程</summary><p>过程</p></details><div data-scroll-anchor>阅读位置</div></ConversationScroll>);
+it.each(['summary','process','dsh'])('restores a surviving visible anchor after %s disclosure changes the layout', kind => {
+  const control = kind === 'summary' ? <details><summary>展开过程</summary><p>过程</p></details>
+    : kind === 'process' ? <TurnProcessToggle label="展开过程" open={false} hasContent onToggle={vi.fn()}/>
+    : <DisclosureRow icon={null} title="展开过程" open={false} expandable expandOnRowClick onToggle={vi.fn()}/>;
+  render(<ConversationScroll viewKey="c:latest" isOlder={false}>{control}<div data-scroll-anchor>阅读位置</div></ConversationScroll>);
   const node = screen.getByLabelText('对话内容');
   const state = geometry(node);
   node.scrollTop = 500;
@@ -67,4 +72,21 @@ it('restores a surviving visible anchor after a manual disclosure changes the la
   act(() => resize());
   expect(node.scrollTop).toBe(100);
   expect(anchor.getBoundingClientRect().top).toBe(100);
+});
+it('keeps return control above the measured native composer as terminal height changes', () => {
+  render(<ConversationScroll viewKey="native:latest" isOlder={false} composer={<div>输入与终端</div>}><div>内容</div></ConversationScroll>);
+  const viewport = screen.getByLabelText('对话内容');
+  geometry(viewport);
+  const seat=screen.getByText('输入与终端').parentElement!;
+  let height=160;
+  vi.spyOn(seat,'getBoundingClientRect').mockImplementation(()=>new DOMRect(0,0,500,height));
+  act(()=>resize());
+  viewport.scrollTop=100; fireEvent.scroll(viewport);
+  const button=screen.getByRole('button',{name:/返回最新消息/});
+  expect(button.style.bottom).toContain('--moos-composer-height');
+  expect(viewport.parentElement!.style.getPropertyValue('--moos-composer-height')).toBe('160px');
+  height=380; act(()=>resize());
+  expect(viewport.parentElement!.style.getPropertyValue('--moos-composer-height')).toBe('380px');
+  fireEvent.click(button);
+  expect(viewport.scrollTop).toBe(1000);
 });

@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "baselineCommit": "3caa5b1dad5b008352d8ca6969f7829dc9fbb58a",
+  "commitSubject": "feat(P03.7): port DSH source surfaces and add local image skins",
+  "upstreamCommit": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
+  "upstreamVerbatimFiles": 44,
+  "sourceLock": "apps/desktop/src/vendor/dsh/upstream-source-lock.json",
+  "report": "docs/design-reviews/2026-11-07-dsh-direct-source.md",
+  "privateEvidence": "/tmp/moos-p037-source-20261107/",
+  "gui": {
+    "viewport": [
+      1280,
+      820
+    ],
+    "sourceNativeMenus": true,
+    "defaultAndGraphite": true,
+    "sidebarZeroWidthCollapseRestore": true,
+    "rightPanelOptIn": true,
+    "realPiFixtureMarker": "P037_SOURCE_FINAL",
+    "actualWriteAndBash": true,
+    "fileSummary": true,
+    "toolPayloadCodeHidden": true,
+    "terminalPanelPreservedAcrossSubmit": true,
+    "finalReturnButtonClickedAndDisappeared": true,
+    "localImagePreviewApply": true,
+    "opacityPreviewThenSave": true,
+    "restartImageAndMask38Restored": true,
+    "switchThemeKeepsImage": true,
+    "removeLeavesOriginalFile": true,
+    "finalImageTitleAndUsageReadable": true,
+    "graphiteAndCloudProviderRestored": true,
+    "testWallpaperRemoved": true,
+    "fixtureAddressRestored": true,
+    "fixtureProcessStopped": true
+  },
+  "installed": {
+    "path": "/Applications/Moos.app",
+    "deepStrictSignatureVerified": true,
+    "notarized": false,
+    "bundleMiB": 232.47,
+    "binarySha256": "bc09837ebe2432cfbba729ec0936b07281c8a223ca47999e2e8f5fe48927e578",
+    "files": 15388,
+    "allRegularFilesMatch": true,
+    "logicalBytes": 247496062,
+    "diskKiB": 285672
+  },
+  "process": {
+    "appPid": 47821,
+    "oneNodeHostPid": 47833,
+    "productionWebServerListeners": 0,
+    "newNodeRuntimeAdded": false
+  },
+  "checks": {
+    "core": {
+      "command": "npm test",
+      "passed": 137,
+      "total": 137,
+      "log": "/tmp/moos-p037-core-accepted.log"
+    },
+    "native": {
+      "command": "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --offline -- --test-threads=1",
+      "passed": 27,
+      "total": 27,
+      "log": "/tmp/moos-p037-native-final-pass.log"
+    },
+    "docs": {
+      "command": "npm run test:docs",
+      "passed": 51,
+      "total": 51
+    },
+    "uiFull": {
+      "command": "npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=120000 --hookTimeout=60000",
+      "passed": 170,
+      "failed": 1,
+      "total": 171,
+      "log": "/tmp/moos-p037-ui-accepted.log",
+      "failure": "polling test repeatedly traversed accessibility/style tree before the real snapshot timer could run; cheap DOM wait replaces the expensive probe; test-only change"
+    },
+    "uiFinalAffectedFile": {
+      "command": "npm --prefix apps/desktop test -- src/App.test.tsx --maxWorkers=1 --testTimeout=120000 --reporter=verbose",
+      "passed": 14,
+      "total": 14,
+      "status": "passed",
+      "log": "/tmp/moos-p037-app-final-pass.log",
+      "allOtherProductSourcesUnchangedAfterFullRun": true
+    },
+    "build": "npm run build:app; passed /tmp/moos-p037-release-accepted.log"
+  },
+  "limits": {
+    "entireUpstreamRuntimeCopied": false,
+    "lexicalCopied": false,
+    "upstreamNativeVibrancy": false,
+    "marketArtworkOrHooksBundled": false,
+    "marketLiveBrowserVerified": false,
+    "animationFrameTimingMeasured": false,
+    "pixelDiffAllStates": false,
+    "windowsOrIphoneValidatedThisRound": false,
+    "smallPackageGoalCompleted": false
+  }
+}

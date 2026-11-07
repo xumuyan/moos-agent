@@ -9,11 +9,13 @@ export function initializeWorkbenchTheme() {
 const VARIABLES: Record<ThemeToken, string> = { accent: '--moos-accent', accentSoft: '--moos-accent-soft', border: '--moos-border', panel: '--moos-panel', sidebar: '--moos-sidebar', muted: '--moos-muted', radius: '--moos-radius', rightPanelWidth: '--moos-right-panel-width' };
 const SELECTORS = { sidebar: '.workspace-sidebar', conversation: '.conversation-pane', composer: '.composer-dock', rightPanel: '.right-panel' } as const;
 export function resetTheme() {
+  delete document.documentElement.dataset.moosTheme;
   for (const variable of Object.values(VARIABLES)) document.documentElement.style.removeProperty(variable);
   document.getElementById('moos-theme-regions')?.remove(); localStorage.removeItem(THEME_STORAGE_KEY);
 }
 export function applyTheme(input: unknown, { persist = false }: { persist?: boolean } = {}) {
   const theme = validateTheme(input); resetTheme();
+  document.documentElement.dataset.moosTheme = theme.id;
   for (const [key, value] of Object.entries(theme.tokens)) document.documentElement.style.setProperty(VARIABLES[key as ThemeToken], value);
   const rules = Object.entries(theme.styles).map(([region, style]) => {
     const declarations = Object.entries(style ?? {}).map(([property, value]) => property === 'backgroundAsset'

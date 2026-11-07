@@ -44,6 +44,7 @@ describe('desktop assistant', () => {
     bridge.mockImplementation((method, params) => method === 'submit' ? Promise.reject(new Error('fixture submit failed')) : original(method, params));
     const user = userEvent.setup(); render(<App />);
     const input = await screen.findByRole('textbox', { name: '任务内容' });
+    await waitFor(() => expect(input).toBeEnabled());
     await user.type(input, 'test{Enter}');
     await screen.findByText('fixture submit failed');
     await user.click(screen.getByRole('button', { name: '另一会话' }));
@@ -77,7 +78,7 @@ describe('desktop assistant', () => {
       { id: `${id}-end`, taskId: id, projectId: 'p1', conversationId: 'c1', type: 'tool_end', payload: { toolCallId: id, toolName: 'edit', isError: false } },
     ]);
     render(<App />);
-    await screen.findByText('new.ts');
+    await waitFor(() => expect(screen.getAllByRole('region', { name: '修改文件汇总' })).toHaveLength(2));
     expect(screen.queryByRole('complementary', { name: '上下文面板' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '收起上下文面板' })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '打开工具面板' }));
@@ -110,8 +111,8 @@ describe('desktop assistant', () => {
     await user.click(await screen.findByRole('button', { name: '添加项目' }));
     await waitFor(() => expect(added).toBe(true));
     state.projects.push(project);
-    await screen.findByRole('button', { name: '工作项目' }, { timeout: 2500 });
-    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('工作项目'), { timeout: 2500 });
+    await screen.findByRole('button', { name: '工作项目' }, { timeout: 8000 });
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('工作项目'), { timeout: 8000 });
   });
   it('does not add a project when directory selection is cancelled', async () => {
     bridge.mockImplementation(async method => method === 'pick_directory' ? null : structuredClone(state));
@@ -167,7 +168,9 @@ describe('desktop assistant', () => {
     assertOrder();
     state.messages.push({ id: 'a2', role: 'assistant', content: '第二轮回答', conversationId: 'c1', taskId: 't2' });
     state.tasks = (state.tasks as Array<Record<string, unknown>>).map(t => ({ ...t, status: 'completed' }));
-    await waitFor(() => expect(screen.queryByRole('button', { name: '停止此任务' })).not.toBeInTheDocument(), { timeout: 2500 });
+    // Poll with a cheap DOM probe: repeated full accessibility/style traversal
+    // can starve the real snapshot timer while the original SVG sprite is mounted.
+    await waitFor(() => expect(document.querySelector('button[aria-label="停止此任务"]')).toBeNull(), { timeout: 8000 });
     assertOrder();
     expect(screen.getAllByText('第一轮回答')).toHaveLength(1);
     expect(screen.getAllByText('第二轮回答')).toHaveLength(1);

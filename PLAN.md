@@ -8,6 +8,21 @@
 
 本轮优先范围：项目目录管理、多会话与历史、PI 流式聊天和文件/命令工具、默认并发 2 的跨项目调度、同真实目录串行、单任务停止、模型配置及 Mac 钥匙串。手机、原生电脑操作和自动模型路由暂不接入。按 M02/M03/M04 相关子集与 M06 的代码调度子集推进，不提前勾选整个阶段；真实模型须用户在本机填写配置，模拟验收与真实模型验收分别记录。
 
+## P03.7｜按用户最新要求直接移植原版组件源码（本机验收完成）
+
+用户明确要求停止近似外观改写，直接使用DSH源码；沿用已确认功能范围，以原样CSS Modules/原版JSX与SVG替换旧组件，再做Moos数据适配。P03/E30/E31仅为历史验证，不代表本阶段完成。
+
+- [x] P03.7.1 原版源码镜像、MIT、逐文件SHA256与Moos主题/图标运行时桥。
+- [x] P03.7.2 原版三列、SidebarRoot/WorkspaceBrowser/Rows、菜单、右栏/DockKit与现有项目会话适配。
+- [x] P03.7.3 原版InputBar/HeroShell、用户气泡、公开过程/工具/Markdown与现有submit/stop/history/scroll/slots适配。
+- [x] P03.7.4 原版SettingsPanel与九个真实业务分区、焦点/Portal/嵌套对话框适配。
+- [x] P03.7.6 图片皮肤：参考用户指定phoebe-atelier试穿页的全窗背景/scrim/透明面板机制；本地PNG/JPEG/WebP校验、预览后应用、面板透明/遮罩/模糊、IDB保存/恢复/移除及插件隔离，不执行市场第三方hooks或分发其人物图。
+- [x] P03.7.5 全量检查、真实本地模型与安装GUI、来源hash/签名/体积/单宿主核对。证据：E32；Git提交/远端一致性按本轮交付步骤核对，推送结果不预填。
+
+不接原版服务器/账号/调度/数据库，不增加生产Web服务；原版Lexical上下文由受控textarea替代，附件/队列/权限执行/多dock控制器未接的不设假入口。Moos保留品牌和用户皮肤；源码样式原样与宿主兼容桥分目录，不能再把近似CSS称为复制。
+
+证据：E32，`apps/desktop/evidence/p03-direct-source.json`；UI全量170通过/1失败后，仅修改该轮询测试等待探针，受影响App整文件14/14复测通过，其余产品源码未再变动。不把全量命令伪写为171/171；171项最终均有成功执行记录。来源和限制见 `docs/third-party/dsh-direct-source-p037.md`。
+
 ## P03｜DSH 原版前端全面对齐（本机展示层已实施）
 
 用户2026-11-07确认“整体按DSH，右栏按需打开”，覆盖此前Codex卡片视觉和移除右栏外观要求，保留Moos品牌、新图标、数据与内核。实施前书面设计见`docs/superpowers/specs/2026-11-07-dsh-full-frontend-design.md`。固定上游fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159；本轮已按确认范围实施展示层与Moos适配，验收见E30；不宣称原版后端或未开发功能同等可用。
@@ -389,3 +404,4 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 手机前置操作参考：[Apple 开发者模式](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)、[DCloud iOS 基座签名](https://uniapp.dcloud.net.cn/tutorial/run/ios-apple-certificate-signature.html)。开启开发者模式在 iPhone 设置 → 隐私与安全性 → 开发者模式中由用户操作并按提示重启确认；签名材料由用户在本机配置，证书存在不等于对应 app/profile 已匹配。
 
 | E31 | 2026-11-07，P03.6 V01—V05；原版空态/设置实拍+固定源码逐项复核，真实PI本地Markdown七列表格、窄窗拖条末列、终端/菜单/九设置/主题/侧栏右栏与最终安装通过。核心137、原生27、文档50；UI全量135通过/1新增入场断言失败，测试等待修正后定向1/1通过，其他135及产品源码未再变动。机器证据 `apps/desktop/evidence/p03-dsh-detail.json`，明细 `docs/design-reviews/2026-11-07-dsh-detail-audit.md` | 未做逐帧时长测量/全部原版状态像素diff；减少动态效果仅自动回归。保留56px轨道/Moos品牌与皮肤，无vibrancy或wide-breakout复刻；Windows/iPhone未验证。 |
+| E32 | 2026-11-07，P03.7；44份原版文件逐字核对，组件/菜单/设置/布局源码直移并接真实Moos数据，真实PI本机write/bash与工具/文件汇总、终端跨状态、侧栏/右栏、最终返回按钮实测；本机图片预览/应用/遮罩保存/重启恢复/主题独立切换/清理通过。核心137、原生27、文档51；UI全量170通过/1轮询测试失败，测试探针修正后App14/14通过，其他产品源码不变。最终安装hash/完整体积见 `apps/desktop/evidence/p03-direct-source.json` | 非DSH完整运行时迁移；textarea替代Lexical，保留Moos业务表单/品牌；无Electron原生vibrancy、全状态像素diff或逐帧测量；未分发参考皮肤的图片/hooks，在线试穿交互两次超时，改读公开源码/预览；Windows/iPhone/小包不在本轮完成范围。 |

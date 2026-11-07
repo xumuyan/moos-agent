@@ -1,0 +1,367 @@
+{
+  "upstream": "https://github.com/deepseek-ai/deepseek-harness",
+  "commit": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 DeepSeek",
+  "files": [
+    {
+      "local": "apps/desktop/src/vendor/dsh/composer/ConversationRoot.module.css",
+      "mode": "verbatim",
+      "sha256": "61b52c8daf686e98e379cb4f671ccee063ebace923cdbc15e88b6304078377e2",
+      "upstream": "packages/client/ui-conversation/src/client/skeleton/ConversationRoot.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/composer/DshComposer.tsx",
+      "mode": "moos-adapter",
+      "sha256": "ab6a4bfe2d0723051b49eb7348e106c233cd40e3d3d43094715131d984219e84"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/composer/HeroShell.module.css",
+      "mode": "verbatim",
+      "sha256": "9135bc0f982858c67158f977f205c23382ccc0bfd10e15bce0aca1247002107e",
+      "upstream": "packages/client/ui-conversation/src/client/skeleton/HeroShell.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/composer/InputBar.module.css",
+      "mode": "verbatim",
+      "sha256": "98180b4cbc8fa6169f7554bc2a7f477051cf6ec8108813b019db5cd760e06fd6",
+      "upstream": "packages/client/ui-conversation/src/client/skeleton/InputBar.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/composer/MoosBridge.module.css",
+      "mode": "moos-adapter",
+      "sha256": "5eb6d7b9f041c1da8f0328bff3fae449390aaa6e15bf5fec3228b0e898c93ed3"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/AssistantMarkdown.module.css",
+      "mode": "verbatim",
+      "sha256": "e10c5986e93070cf87bbd5c4a570a64a103c0d596d178ad4b8e170bbb6883908",
+      "upstream": "packages/client/ui-chat/src/client/chat/AssistantMarkdown.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/ChatView.module.css",
+      "mode": "verbatim",
+      "sha256": "665bde92503ad829f7ea188b6631435802f30e7e2c3dd80be991cf36d3806a91",
+      "upstream": "packages/client/ui-chat/src/client/chat/ChatView.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/MarkdownText.module.css",
+      "mode": "verbatim",
+      "sha256": "4c0680b3966e71b4ee7df38bc9c93efda240c05d2ea4c0174252e25f41488f24",
+      "upstream": "packages/client/ui-primitives/src/markdown/MarkdownText.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/MessageItem.module.css",
+      "mode": "verbatim",
+      "sha256": "ca84271735a3e41229d4edc49bd9e3ddc06ea99698f12a2a3c98dd30a8d14743",
+      "upstream": "packages/client/ui-chat/src/client/chat/MessageItem.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/MoosFlow.module.css",
+      "mode": "moos-adapter",
+      "sha256": "dc85854d5fb6ef87319bf08b054ff089b7396a2489e2deafb934b99f8732792e"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/ToolCallTree.module.css",
+      "mode": "verbatim",
+      "sha256": "7247f04ee77725aa59ed3621634fd4ac7b4ea63ae35cd5e647fdc8a6ae374dbb",
+      "upstream": "packages/client/ui-tool/src/client/tool/ToolCallTree.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/ToolRow.module.css",
+      "mode": "verbatim",
+      "sha256": "d93b55cec45aa2919bbfdeacfcffebf20e044c7f892e043b03597af0b86523d6",
+      "upstream": "packages/client/ui-tool/src/client/tool/components/ToolRow.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/TurnProcessNodeView.module.css",
+      "mode": "verbatim",
+      "sha256": "a20eaf9a5f4c6096b74d4a50ec48673f3044f4d5e07d8a57f1fda2225d9633ce",
+      "upstream": "packages/client/ui-chat/src/client/chat/TurnProcessNodeView.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/conversation/TurnProcessToggle.tsx",
+      "mode": "moos-adapter",
+      "sha256": "e84c975b6e0a7532fbd444ceb883b70fb79fbd7574a7ddca8ba4f1b56c738d91"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/host.css",
+      "mode": "moos-adapter",
+      "sha256": "111f0267fcf6d5d795bdf566118b60daa06137ca1f1e27a1b6465b0ae296a0a0"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/layout/AppFrame.module.css",
+      "mode": "verbatim",
+      "sha256": "ba2b1a8b01d19ba0e5b5d73d70ec686fef1752ddc6f4e2273943a76dc8d871be",
+      "upstream": "packages/client/ui-layout/src/client/AppFrame.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/Menu.module.css",
+      "mode": "verbatim",
+      "sha256": "ac03c6b4777b1b86e0e2ae09591fd2fe3c0da5718c493b458f67cbc7990b7649",
+      "upstream": "packages/client/ui-primitives/src/Menu.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/MenuSurface.module.css",
+      "mode": "verbatim",
+      "sha256": "9ec1f4b089ac40163475245661d27cc118a73238d3ce5e5fb5dbc4475a6f7589",
+      "upstream": "packages/client/ui-primitives/src/MenuSurface.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/ModelSelect.module.css",
+      "mode": "verbatim",
+      "sha256": "30c8644eb09dedfe1ac79675c2b1873284db11a9921f02b73ddb17ab4591cf3d",
+      "upstream": "packages/client/ui-model-selection/src/client/ModelSelect.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/MoosMenuBridge.module.css",
+      "mode": "moos-adapter",
+      "sha256": "36484e757fb4aae325ac07b5926ba89d455e857cca4bf9aa238b14303ea5aeb9"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/PermissionIcon.tsx",
+      "mode": "moos-adapter",
+      "sha256": "9050751b1612692cce68e9d8566011b7fd5f961298efb5f3eabcbeb3a82d37d8"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/PermissionSelect.module.css",
+      "mode": "verbatim",
+      "sha256": "101d81ec2a796b95d3e51a1800e3cacdb969715498a9e72a47739a33d1ecdbed",
+      "upstream": "packages/client/ui-permission-presets/src/client/PermissionSelect.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/Picker.tsx",
+      "mode": "moos-adapter",
+      "sha256": "0949c452dbaeae564521848a2851bcb8df3d4bcb03fb7aa299a3a2529d8f5516"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/menus/index.ts",
+      "mode": "moos-adapter",
+      "sha256": "ab9a7dce3fdc74f5146e372aed88c87b5afa721dafdebba8b2b0897daa6f8587"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/DisclosureRow.module.css",
+      "mode": "verbatim",
+      "sha256": "ab01c441fccaba51ebfa1769f73cee4a87fa28e09d09fcdee311052d9540dc32",
+      "upstream": "packages/client/ui-primitives/src/DisclosureRow.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/DisclosureRow.tsx",
+      "mode": "verbatim",
+      "sha256": "000d8193ebed80b6ac1d9ff8f8b7ce76e596532065b08003d0033c0ab040501d",
+      "upstream": "packages/client/ui-primitives/src/DisclosureRow.tsx"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/IconSprite.tsx",
+      "mode": "moos-adapter",
+      "sha256": "42f7ffd5d1ab66f4fa3df49a9e2f8179c109a89695766ee1c6e8cd1ab34c0eab"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/ModalLayer/ModalLayer.ts",
+      "mode": "moos-adapter",
+      "sha256": "fe92820c8728b8c34fd8c58c6834a0e34c6f7e5841c5c1a1a67e4836bee3b110"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/ModalLayer/focus.ts",
+      "mode": "verbatim",
+      "sha256": "08d0098694d096c44d7d3027a5dd8af50384c8d1d637f16a7cac6b1bab38c344",
+      "upstream": "packages/client/ui-primitives/src/focus.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/ModalLayer/keyboard-composition.ts",
+      "mode": "verbatim",
+      "sha256": "be1684e7f3b8306da3cb991f1a5e393065d74107892b78a1002cdf2624f23f6c",
+      "upstream": "packages/client/ui-primitives/src/keyboard-composition.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/ModalLayer/useModalLayer.ts",
+      "mode": "verbatim",
+      "sha256": "2988fe5b7b928c0152e563c560d7e6a83e40d3a38b734facb3a47a134ffa640c",
+      "upstream": "packages/client/ui-primitives/src/useModalLayer.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/TextShimmer.module.css",
+      "mode": "verbatim",
+      "sha256": "2353d6d72be5150aee3b528e7ae081a941f508f4ee3aa17243d6b0cc3b4240c7",
+      "upstream": "packages/client/ui-primitives/src/TextShimmer.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/TextShimmer.tsx",
+      "mode": "moos-adapter",
+      "sha256": "957a9389e0a051273cc9290c0807219dff69dd066d4d8c14d5fcaa574afe32a7"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/UserMessageBubble.module.css",
+      "mode": "verbatim",
+      "sha256": "c86a4623c0d64ade58cbe063129732c93f730d1cf2b892357c1e3dc6ef44871e",
+      "upstream": "packages/client/ui-primitives/src/UserMessageBubble.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/UserMessageBubble.tsx",
+      "mode": "verbatim",
+      "sha256": "55ef371e38a0f8f9d1b254898dc3a1dec89167e2cf5475ab7254aa8b7a694692",
+      "upstream": "packages/client/ui-primitives/src/UserMessageBubble.tsx"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/icons/artwork.ts",
+      "mode": "verbatim",
+      "sha256": "9116550d1fe745f8b10414699b08428c8c22ce8196b131a284eff4da1b43a7bb",
+      "upstream": "packages/client/ui-primitives/src/icons/artwork.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/icons/index.tsx",
+      "mode": "verbatim",
+      "sha256": "59f2722b1be659edd73cabc4071558b8bc1afeda158a55cbed1f1f8adc11f197",
+      "upstream": "packages/client/ui-primitives/src/icons/index.tsx"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/icons/props.ts",
+      "mode": "verbatim",
+      "sha256": "edaf6e6c5fd556d99e3e6fa2d6f633884e7b72f16e4a8963765b1ed1882a15f3",
+      "upstream": "packages/client/ui-primitives/src/icons/props.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/primitives/input-modality.ts",
+      "mode": "verbatim",
+      "sha256": "91268be3f5ddb7b9a1defb13628d96082477e8771cdaa5df37d6d8b16bbbf2ba",
+      "upstream": "packages/client/ui-primitives/src/input-modality.ts"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/rightpanel/RightPanelBridge.module.css",
+      "mode": "moos-adapter",
+      "sha256": "34759d56dbece360d3ee253813a106e7cd565d8dabe8990d734437fd03041a12"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/rightpanel/RightPanelFrame.ts",
+      "mode": "moos-adapter",
+      "sha256": "4be730cb1f416d70740b6584e16dfac88d2d5d10a7b2eec6affcc670bdcb07bd"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/rightpanel/SidebarRight.module.css",
+      "mode": "verbatim",
+      "sha256": "7d148ed0bb00b5b1755164770b2642c9f81364e9b441018570df47ea5a060d73",
+      "upstream": "packages/client/ui-sidebar-right/src/client/shell/SidebarRight.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/rightpanel/TabTitle.tsx",
+      "mode": "verbatim",
+      "sha256": "93e0fc61611e3f787a41528f8538081992f87432a24f2a8b4cdae334c3020ee0",
+      "upstream": "packages/client/ui-dockkit/src/components/TabTitle.tsx"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/rightpanel/dockkit.module.css",
+      "mode": "verbatim",
+      "sha256": "7566184590ff8cebd22a7bcf64a7973622cca220d49a790512e701e4fc8a229c",
+      "upstream": "packages/client/ui-dockkit/src/components/dockkit.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/settings/SettingsBridge.module.css",
+      "mode": "moos-adapter",
+      "sha256": "decb23a22a911e09e5cc6c062b6e0a1e9f1ba66cc25a7fbc77c33339f49f69a0"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/settings/SettingsForm.module.css",
+      "mode": "verbatim",
+      "sha256": "e6f8665558ac3f71e37a7d201a2fbc0f5f2991473747bf0a24795d2a037be26d",
+      "upstream": "packages/client/ui-primitives/src/settings-form/SettingsForm.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/settings/SettingsPanel.tsx",
+      "mode": "moos-adapter",
+      "sha256": "06e0f017d797831f143f5a1e4a6b90a4760335ce47d9edffc00f30054717017c"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/settings/SettingsRoot.module.css",
+      "mode": "verbatim",
+      "sha256": "c61ed2371dd6e86c0e850658f84edc9cc45c5662e61b5340d2235ba4a2ec1d9f",
+      "upstream": "packages/client/ui-settings-general/src/client/SettingsRoot.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/settings/fields.module.css",
+      "mode": "verbatim",
+      "sha256": "eb147988b2e325f3cfcff41cb217f21d73bcd4b5fb9ab0639cca4234b595dca4",
+      "upstream": "packages/client/ui-primitives/src/settings-form/fields.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/sidebar/DshNavigation.tsx",
+      "mode": "moos-adapter",
+      "sha256": "04621d21d8da50a8ae9a0e0db63d849dfab175ad9b2eb1d291f326e271a23e8c"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/sidebar/HeaderLeadingControls.module.css",
+      "mode": "verbatim",
+      "sha256": "054dbbcf4cc260903c82cd9158fdcb6427c8582b6cf9c25b2fd14d06a1453bf2",
+      "upstream": "packages/client/ui-sidebar/src/client/HeaderLeadingControls.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/sidebar/Rows.module.css",
+      "mode": "verbatim",
+      "sha256": "caa3416bc00d9fd9a27ef0fb6459df3754bef1628bd850d97d3804ec461f57d4",
+      "upstream": "packages/client/ui-workspace/src/client/rows/Rows.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/sidebar/SidebarRoot.module.css",
+      "mode": "verbatim",
+      "sha256": "15923805f46f7c84f8fe8de1c33ae9f3d793190ecfc5bdf84efb73e0c4917ab5",
+      "upstream": "packages/client/ui-sidebar/src/client/SidebarRoot.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/sidebar/WorkspaceBrowser.module.css",
+      "mode": "verbatim",
+      "sha256": "ad5b00559833a1521f75f6c8fa00ce8a70ef8c3ebca310874cdbc4593c4cb992",
+      "upstream": "packages/client/ui-workspace/src/client/rows/WorkspaceBrowser.module.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/base.css",
+      "mode": "verbatim",
+      "sha256": "803926ce39f5ea48b652021d06b6ca65c4acc7be2c5c4e19bd904ab1dabf0b67",
+      "upstream": "packages/client/ui-theme/src/styles/base.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/corner-shape.css",
+      "mode": "verbatim",
+      "sha256": "d94f82e1332b6d37e8345aafe1b6b4129faed65891edd3861c00b88940ec4d3f",
+      "upstream": "packages/client/ui-theme/src/styles/corner-shape.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/design-platform.css",
+      "mode": "verbatim",
+      "sha256": "82304058425df7a6c1cf1afa4bb00ee6efeb394aa7515226b69063495f12e475",
+      "upstream": "packages/client/ui-theme/src/styles/design-platform.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/focus.css",
+      "mode": "verbatim",
+      "sha256": "f7398e7730415592ab1e81cec36f8c5e23065becd06c050f0129a6fa44d247e8",
+      "upstream": "packages/client/ui-theme/src/styles/focus.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/gradient-shadow-text.css",
+      "mode": "verbatim",
+      "sha256": "b6e1e8387edbfa60ec03bb29aad7c01245c0adbd22229d5a6f2916caa7e7b427",
+      "upstream": "packages/client/ui-theme/src/styles/gradient-shadow-text.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/index.css",
+      "mode": "moos-adapter",
+      "sha256": "07e127c806303da1cb65a60d8782a7043e523adeb6195b843bb4ab51e3af4d0b"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/moos-bridge.css",
+      "mode": "moos-adapter",
+      "sha256": "73c3c5d285781688a0a29838655525733e5965676f1ac7c03b760c820c095399"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/scrollbar.css",
+      "mode": "verbatim",
+      "sha256": "d83797aa96625e8ec77412bfc5649469cd5834d3cb0f7f6a1f3db8a59e1f4530",
+      "upstream": "packages/client/ui-theme/src/styles/scrollbar.css"
+    },
+    {
+      "local": "apps/desktop/src/vendor/dsh/theme/web-base.css",
+      "mode": "verbatim",
+      "sha256": "1b4e694636bea5d9297748ffe532edf36de2c69f26787fa52b54bf2e456dd6fd",
+      "upstream": "packages/client/web/src/base.css"
+    }
+  ]
+}

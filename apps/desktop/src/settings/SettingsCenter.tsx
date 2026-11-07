@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Modal } from 'antd';
-import { SettingOutlined, DatabaseOutlined, SafetyCertificateOutlined, BarChartOutlined, AppstoreOutlined, SkinOutlined, LockOutlined, MobileOutlined, ControlOutlined } from '@ant-design/icons';
-import '../theme/dsh/settings.css';
+import SettingsPanel from '../vendor/dsh/settings/SettingsPanel';
+import { IconSettingsOutlineMedium, IconDataOutlineMedium, IconPersonalizationOutlineMedium, IconUserOutlineMedium, IconArchiveOutlineMedium } from '../vendor/dsh/primitives/icons/index';
 import GeneralSection from './GeneralSection';
 import ModelSection from './ModelSection';
 import PermissionSection from './PermissionSection';
@@ -20,7 +19,7 @@ const SECTIONS = [
   ['general', '通用'], ['models', '模型服务'], ['permissions', '权限'], ['usage', '用量'], ['plugins', '插件'],
   ['theme', '主题'], ['privacy', '隐私'], ['mobile', '手机连接'], ['advanced', '高级'],
 ] as const;
-const SECTION_ICONS = [SettingOutlined, DatabaseOutlined, SafetyCertificateOutlined, BarChartOutlined, AppstoreOutlined, SkinOutlined, LockOutlined, MobileOutlined, ControlOutlined];
+const SECTION_ICONS = [IconSettingsOutlineMedium, IconDataOutlineMedium, IconSettingsOutlineMedium, IconDataOutlineMedium, IconPersonalizationOutlineMedium, IconPersonalizationOutlineMedium, IconUserOutlineMedium, IconArchiveOutlineMedium, IconSettingsOutlineMedium];
 type Section = typeof SECTIONS[number][0];
 
 export default function SettingsCenter({ initialSection = 'models', open, onClose, modelContent, usageContent, runtime, onTaskTimeoutChange, activeThemeId = 'default', onThemeApply = () => {}, themes = BUILTIN_THEMES, localPlugins }: {
@@ -34,23 +33,8 @@ export default function SettingsCenter({ initialSection = 'models', open, onClos
     usage: usageContent, plugins: <PluginSection local={localPlugins} />, theme: <ThemeSection themes={themes} activeId={activeThemeId} onApply={onThemeApply} />, privacy: <PrivacySection />,
     mobile: <MobileSection />, advanced: <AdvancedSection runtime={runtime} onTaskTimeoutChange={onTaskTimeoutChange} />,
   };
-  return <Modal className="settings-dialog dsh-settings-dialog" title="设置中心" open={open} onCancel={onClose} footer={null} destroyOnHidden centered width={800}>
-    <div className="settings-center">
-      <div className="settings-nav-title" aria-hidden="true">设置中心</div>
-      <div className="settings-header" aria-hidden="true" />
-      <nav className="settings-nav" role="tablist" aria-label="设置分区" aria-orientation="vertical" onKeyDown={event => {
-        const index = SECTIONS.findIndex(([key]) => key === active);
-        const next = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? (index + 1) % SECTIONS.length
-          : event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? (index + SECTIONS.length - 1) % SECTIONS.length
-          : event.key === 'Home' ? 0 : event.key === 'End' ? SECTIONS.length - 1 : -1;
-        if (next < 0) return;
-        event.preventDefault();
-        setActive(SECTIONS[next][0]);
-        event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-      }}>
-        {SECTIONS.map(([key, label], index) => { const Icon = SECTION_ICONS[index]; return <button key={key} id={`settings-tab-${key}`} role="tab" aria-controls="settings-panel" tabIndex={active === key ? 0 : -1} aria-selected={active === key} onClick={() => setActive(key)}><span aria-hidden="true"><Icon /></span>{label}</button>; })}
-      </nav>
-      <div key={active} id="settings-panel" className="settings-content" role="tabpanel" tabIndex={0} aria-labelledby={`settings-tab-${active}`}>{content[active]}<SlotHost slot="settings.section" context={active} /></div>
-    </div>
-  </Modal>;
+  if (!open) return null;
+  return <SettingsPanel rows={SECTIONS.map(([id,label],index) => { const Icon=SECTION_ICONS[index]; return {id,label,icon:<Icon size={16} />}; })}
+    activeId={active} onSelect={id => setActive(id as Section)} onClose={onClose}
+    renderContent={id => <>{content[id as Section]}<SlotHost slot="settings.section" context={id} /></>} />;
 }

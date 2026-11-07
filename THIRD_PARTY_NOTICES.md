@@ -76,3 +76,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+P03.7 update (2026-11-07): 44 original source sheets/primitives are copied byte-for-byte, with host presentation adapters and original source paths recorded in `apps/desktop/src/vendor/dsh/upstream-source-lock.json`. See `docs/third-party/dsh-direct-source-p037.md` for the framework, brand and local image-skin boundaries. This supersedes the earlier approximate presentation implementation; historical statements remain dated above.

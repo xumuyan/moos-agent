@@ -10,7 +10,7 @@ test('puts the real model control with permission and send while readings stay o
   } : {});
   const { container } = render(<App />);
   await screen.findByText('今天想完成什么？');
-  const card = container.querySelector('.dsh-composer-card') as HTMLElement;
+  const card = container.querySelector('[data-composer-card]') as HTMLElement;
   expect(within(card).getByRole('combobox', {name:'选择模型'})).toBeInTheDocument();
   expect(within(card).getByRole('button', {name:/权限模式/})).toBeInTheDocument();
   expect(within(card).getByRole('button', {name:'发送任务'})).toBeDisabled();

@@ -1,10 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button, Tooltip } from 'antd';
 import { CloseOutlined, CodeOutlined, PlusOutlined } from '@ant-design/icons';
 import { nativeTerminalAvailable, terminalRequest, type TerminalSession } from './api';
+import { IconCodeOutlineRegular } from '../../vendor/dsh/primitives/icons';
+import inputBarStyles from '../../vendor/dsh/composer/InputBar.module.css';
 import './terminal.css';
 const TerminalScreen = lazy(() => import('./TerminalScreen'));
-export default function TerminalDock({ projectId }: { projectId: string }) {
+export default function TerminalDock({ projectId, panelTargetId }: { projectId: string; panelTargetId?: string }) {
   const [open, setOpen] = useState(false), [sessions, setSessions] = useState<TerminalSession[]>([]), [selected, setSelected] = useState('');
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const available = nativeTerminalAvailable();
@@ -24,11 +27,24 @@ export default function TerminalDock({ projectId }: { projectId: string }) {
   };
   const close = async (id: string) => {setBusy(true);setError(''); try {await terminalRequest('close',{projectId,sessionId:id});await refresh();}catch {setError('终端尚未关闭，请重试；目录锁未提前释放。');}finally {setBusy(false);} };
   const current = sessions.find(s => s.id === selected);
-  return <div className="terminal-plugin">
-    <div className="terminal-toolbar"><Button type="text" size="small" icon={<CodeOutlined />} aria-label={open ? '收起内置终端' : '打开内置终端'} disabled={!available || !projectId} onClick={() => {setOpen(value => !value);}}>{open ? '收起终端' : '终端'}{sessions.length ? ` · ${sessions.length}` : ''}</Button><span>{!available ? 'Mac 桌面可用' : sessions.length ? '运行中的标签占用项目锁，退出后自动释放' : ''}</span></div>
+  const toggleLabel = open ? '收起内置终端' : '打开内置终端';
+  const toggle = () => setOpen(value => !value);
+  const panel = <>
     {open && <section className="terminal-dock" aria-label="项目终端"><div className="terminal-tabs" role="tablist" aria-label="终端标签">{sessions.map(session => <div className="terminal-tab" key={session.id}><Button type={selected === session.id ? 'primary' : 'text'} size="small" role="tab" aria-selected={selected === session.id} onClick={() => setSelected(session.id)}>终端 {session.id.split('_').at(-1)}</Button><Tooltip title="关闭此终端及其命令"><Button type="text" size="small" icon={<CloseOutlined />} aria-label={`关闭终端 ${session.id.split('_').at(-1)}`} disabled={busy} onClick={() => void close(session.id)} /></Tooltip></div>)}<Button type="text" size="small" icon={<PlusOutlined />} aria-label="新建终端" disabled={busy || sessions.length >= 4} onClick={() => void create()} />{current && <Button type="text" size="small" className="terminal-interrupt" disabled={busy} onClick={() => void terminalRequest('interrupt',{projectId,sessionId:current.id}).catch(() => setError('进程已退出或暂时无法中断，请关闭标签。'))}>中断 Ctrl+C</Button>}</div>
       {current ? <Suspense fallback={<p className="terminal-empty">正在加载终端…</p>}><TerminalScreen key={current.id} session={current} /></Suspense> : <div className="terminal-empty"><p>在当前项目目录中打开 shell。</p><Button disabled={busy} onClick={() => void create()}>开始终端</Button></div>}
       <p className="terminal-footnote">收起后命令继续。目录锁覆盖所选项目；Shell 可访问当前账户有权限的其他目录。退出应用会关闭终端，不自动重放命令。</p>
     </section>}{error && <p role="alert" className="terminal-error">{error}</p>}
+  </>;
+  const panelTarget = panelTargetId ? document.getElementById(panelTargetId) : null;
+  if (panelTargetId) return <>
+    <button type="button" className={inputBarStyles.add} aria-label={toggleLabel} aria-expanded={open}
+      aria-controls={panelTargetId} title={toggleLabel} disabled={!available || !projectId} onClick={toggle}>
+      <IconCodeOutlineRegular size={16} />
+    </button>
+    {panelTarget ? createPortal(panel, panelTarget) : panel}
+  </>;
+  return <div className="terminal-plugin">
+    <div className="terminal-toolbar"><Button type="text" size="small" icon={<CodeOutlined />} aria-label={toggleLabel} disabled={!available || !projectId} onClick={toggle}>{open ? '收起终端' : '终端'}{sessions.length ? ` · ${sessions.length}` : ''}</Button><span>{!available ? 'Mac 桌面可用' : sessions.length ? '运行中的标签占用项目锁，退出后自动释放' : ''}</span></div>
+    {panel}
   </div>;
 }

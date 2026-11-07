@@ -1,4 +1,7 @@
-import { Bubble } from '@ant-design/x';
+import { UserMessageBubble } from '../vendor/dsh/primitives/UserMessageBubble';
+import messageCss from '../vendor/dsh/conversation/MessageItem.module.css';
+import chatCss from '../vendor/dsh/conversation/ChatView.module.css';
+import bridge from '../vendor/dsh/conversation/MoosFlow.module.css';
 import { isActive, type AgentEvent, type Message, type Task } from '../types';
 import { SlotHost } from '../plugins/slots';
 import MessageContent from './MessageContent';
@@ -7,7 +10,7 @@ import { transcript } from './transcript';
 
 function MessageRow({ message }: { message: Message }) {
   return <div className={`message message-${message.role}`} data-scroll-anchor>
-    {message.role === 'assistant' ? <MessageContent text={message.content} /> : <Bubble placement={message.role === 'user' ? 'end' : 'start'} content={<span className="plain-text">{message.content}</span>} />}
+    {message.role === 'assistant' ? <MessageContent text={message.content} /> : <div className={messageCss.userRow}><div className={messageCss.userStack}><UserMessageBubble>{message.content}</UserMessageBubble></div></div>}
     <SlotHost slot="conversation.message" context={{ messageId: message.id, role: message.role }} />
   </div>;
 }
@@ -15,7 +18,7 @@ function MessageRow({ message }: { message: Message }) {
 export default function ConversationTranscript({ messages, tasks, events, onStop, loadProcess = true }: {
   messages: Message[]; tasks: Task[]; events: AgentEvent[]; onStop: (id: string) => void; loadProcess?: boolean;
 }) {
-  return <div className="thread grouped-transcript">{transcript(messages, tasks).map(item => {
+  return <div className={`${chatCss.column} thread grouped-transcript`}>{transcript(messages, tasks).map(item => {
     if (item.kind === 'message') return <MessageRow message={item.message} key={`message:${item.message.id}`} />;
     const { task, messages: turnMessages } = item;
     const turnEvents = events.filter(event => event.taskId === task.id && event.projectId === task.projectId && event.conversationId === task.conversationId);
@@ -24,8 +27,8 @@ export default function ConversationTranscript({ messages, tasks, events, onStop
     const savedReplies = replies.filter(message => message.role === 'assistant');
     const running = isActive(task);
     const compact = !running && ['failed', 'cancelled', 'interrupted'].includes(task.status) && savedReplies.length === 0;
-    return <section className={`conversation-turn ${compact ? 'is-incomplete' : ''}`} key={task.id} aria-label="任务执行记录">
-      <div className="turn-prompts">{prompts.length ? prompts.map(message => <MessageRow key={message.id} message={message} />) : <div className="message message-user"><Bubble placement="end" content={<span className="plain-text">{task.message}</span>} /></div>}</div>
+    return <section className={`${bridge.turn} ${chatCss.flowItem} conversation-turn ${compact ? 'is-incomplete' : ''}`} key={task.id} aria-label="任务执行记录">
+      <div className="turn-prompts">{prompts.length ? prompts.map(message => <MessageRow key={message.id} message={message} />) : <div className="message message-user"><div className={messageCss.userRow}><div className={messageCss.userStack}><UserMessageBubble>{task.message}</UserMessageBubble></div></div></div>}</div>
       <div className="assistant-turn">
         <div className="response-content">
           <TurnTimeline task={task} events={turnEvents} savedText={savedReplies.length ? savedReplies.map(message => message.content).join('') : undefined} onStop={() => onStop(task.id)} timelineMode={loadProcess ? tasks.slice(0, 8).some(row => row.id === task.id) ? 'auto' : 'manual' : 'off'}

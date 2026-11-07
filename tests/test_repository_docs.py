@@ -9,6 +9,28 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_direct_source_copy_and_local_wallpaper_keep_provenance_and_boundaries(self):
+        lock = json.loads((ROOT / 'apps/desktop/src/vendor/dsh/upstream-source-lock.json').read_text())
+        self.assertEqual(lock['license'], 'MIT')
+        self.assertEqual(lock['commit'], 'fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159')
+        copied = [item for item in lock['files'] if item['mode'] == 'verbatim']
+        self.assertEqual(len(copied), 44)
+        for item in copied:
+            self.assertEqual(hashlib.sha256((ROOT / item['local']).read_bytes()).hexdigest(), item['sha256'])
+        evidence = json.loads((ROOT / 'apps/desktop/evidence/p03-direct-source.json').read_text())
+        self.assertTrue(evidence['gui']['restartImageAndMask38Restored'])
+        self.assertTrue(evidence['gui']['finalReturnButtonClickedAndDisappeared'])
+        self.assertTrue(evidence['installed']['allRegularFilesMatch'])
+        self.assertEqual(evidence['checks']['uiFinalAffectedFile']['status'], 'passed')
+        self.assertIn('证据：E32', (ROOT / 'PLAN.md').read_text())
+        report = (ROOT / 'docs/third-party/dsh-direct-source-p037.md').read_text()
+        for term in ('Lexical', 'IndexedDB', '2000万像素', '第三方hooks', '试穿页浏览器加载两次超时'):
+            self.assertIn(term, report)
+        app = (ROOT / 'apps/desktop/src/App.tsx').read_text()
+        self.assertIn("import './vendor/dsh/theme/index.css'", app)
+        self.assertIn('loadWallpaper()', app)
+        self.assertNotIn("import './style.css'", app)
+
     def test_user_override_uses_local_private_credentials_without_keychain_migration(self):
         rules = (ROOT / 'AGENTS.md').read_text()
         main = (ROOT / 'apps/desktop/src-tauri/src/main.rs').read_text()
