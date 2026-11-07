@@ -807,3 +807,14 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 Moos Electron 构建版查看默认皮肤及深海女仆工坊。蓝色卡片内清楚显示图标与 Moos 名称。实际收起并再次展开侧栏，卡片恢复，中央小 M 仍可见。证据 E40。
 - 遗留问题：本次视觉验证仅覆盖默认皮肤与截图使用的原包。
 - 对应 Git 提交：唯一说明 `fix(P03.13): restore the Moos sidebar brand`，用 `git log --all --oneline --grep='^fix(P03.13): restore the Moos sidebar brand$'` 查询。
+
+## 2026-11-07 22:59:39 +08:00｜P03.13.3 停用 DSH 内置任务执行路径
+
+- 修改或新增内容：Moos Electron 启动时最后应用随包执行配置，停用原版内置模型适配器、Native/PTC 工具执行器、内置子智能体启动入口和定时任务，收起自动化任务入口。保留四种内置预设的历史标识，清空其原工具。会话驱动暂时保留，工具目录为空，原版工具调用被拒绝。
+- 遇到的难题：只停用根级工具仍会让预设单独加载执行器。直接移除 Agent 工厂则失去会话新建和恢复。首次实测误用了旧验收插件归档，且测试工作区需精确匹配默认项目目录。桌面 UI 全量首跑两项失败，其中一项超时，另一项调用断言未满足。
+- 处理方式：使用优先于用户配置的启动覆盖，保留预设标识及原版会话协议。从当前仓库重新打包 PI 验收插件并限定到真实临时项目目录。用两名 worker 重跑完整桌面 UI 测试。
+- 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<固定版本 CLI> npm --prefix apps/electron test` 7/7，`npm test` 137/137，`npm run test:desktop-ui -- --maxWorkers=2` 57 文件 175/175，`npm run test:desktop-product` 30/30，PI 探针 5/5，皮肤探针 4/4，`npm run test:docs` 53/53。构建和 `codesign --verify --deep --strict` 通过。脱敏自动检查日志见 `/tmp/moos-execution-*.log`。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64、Electron 44.7.0 和 DSH Host 0.2.2-rc.1 下，从上一版模板创建专用验收配置。旧品牌插件离线升级，原包深海女仆工坊正常加载，自动化任务入口隐藏。将旧模型、旧执行器和定时任务设置为启用后，合成配置仍显示停用。真实 PI 使用本地模拟模型完成同一会话两次写文件和 bash，重启后打开历史会话并成功写入第三个标记，逐次读取文件核对内容。合成配置的脱敏状态位于 `/tmp/moos-execution-qa.8moRHf/gate-results.log`。
+- 遗留问题：原版会话驱动仍保留，正式 Moos 调度、单任务停止、跨项目串并行、权限和真实模型待后续验收。尚未逐一验收第三方执行插件。P03.13.3 保持未完成。
+- 推送处理：首次推送因默认 Git 凭据的账号无写权限收到 403。本机 GitHub CLI 已登录有写权限的仓库账号，重试时仅为该命令指定 CLI 凭据助手，远程结果通过完整提交号核对。
+- 对应 Git 提交：唯一说明 `feat(P03.13): disable upstream Electron task execution`，用 `git log --all --oneline --grep='^feat(P03.13): disable upstream Electron task execution$'` 查询。

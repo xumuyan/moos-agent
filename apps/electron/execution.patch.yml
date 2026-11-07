@@ -1,0 +1,28 @@
+# Apply after the writable profile and home patches. Existing sessions keep
+# their preset IDs, but the original built-in presets no longer mount tools.
+- id: preset-standard
+  config: { id: standard, order: 1, plugins: [] }
+- id: preset-ptc
+  config: { id: ptc, order: 2, plugins: [] }
+- id: preset-minimal
+  config: { id: minimal, order: 3, plugins: [] }
+- id: preset-cordis
+  config: { id: cordis, order: 4, plugins: [] }
+- id: tool-executor-native
+  disabled: true
+- id: tool-executor-ptc
+  disabled: true
+- id: subagent-spawn-in-process
+  disabled: true
+- id: subagent-fork-in-process
+  disabled: true
+- id: schedule
+  disabled: true
+- id: ui-schedule
+  disabled: true
+- id: llm-deepseek
+  disabled: true
+- id: llm-deepseek-account
+  disabled: true
+- id: llm-pi-ai
+  disabled: true

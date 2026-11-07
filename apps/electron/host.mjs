@@ -14,7 +14,7 @@ export function parseBootstrap(line) {
   } catch { return null; }
 }
 
-export function startHost({ cli, home, cwd, onUnexpectedExit, timeoutMs = 30000 }) {
+export function startHost({ cli, home, cwd, executionPatch, onUnexpectedExit, timeoutMs = 30000 }) {
   const env = {
     ...process.env,
     DSH_HOME: home,
@@ -26,7 +26,7 @@ export function startHost({ cli, home, cwd, onUnexpectedExit, timeoutMs = 30000 
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_OPTIONS;
   delete env.NODE_PATH;
-  const child = spawn(cli, ['web', '--host', '127.0.0.1', '--port', '0', '--no-open'], {
+  const child = spawn(cli, ['web', '--patch', executionPatch, '--host', '127.0.0.1', '--port', '0', '--no-open'], {
     cwd, env, detached: true, stdio: ['ignore', 'pipe', 'ignore'],
   });
   const output = createInterface({ input: child.stdout });

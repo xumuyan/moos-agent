@@ -57,7 +57,7 @@ async function launch() {
   await seedHome(resources, home);
   await updateShellPlugin(resources, home, cli);
 
-  host = startHost({ cli, home, cwd: workspace, onUnexpectedExit() {
+  host = startHost({ cli, home, cwd: workspace, executionPatch: join(resources, 'execution.patch.yml'), onUnexpectedExit() {
     dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
     app.quit();
   } });

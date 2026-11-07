@@ -80,6 +80,7 @@ for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs']) {
   await cp(join(source, file), join(appSource, file));
 }
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion }));
+await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));
 await cp(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/icon.icns'), join(resources, 'moos.icns'));
 
 const setInfo = async (info, fields) => {
