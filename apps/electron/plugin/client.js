@@ -1,7 +1,7 @@
 window.__ModuleLoader__.load({
   id: 'moos-electron-shell',
   factory(require) {
-    const { createElement, useEffect, useState } = require('react');
+    const { createElement, useEffect, useRef, useState } = require('react');
     const sidebarIcon = ({ size }) => createElement('img', {
       src: 'data:image/png;base64,__MOOS_SIDEBAR_ICON__',
       alt: '', width: size, height: size, draggable: false, 'data-moos-sidebar-icon': '',
@@ -75,7 +75,7 @@ window.__ModuleLoader__.load({
           } catch {
             if (!closed) setResult(undefined);
           }
-          if (!closed && startSeq === null) timer = setTimeout(update, 1000);
+          if (!closed && (startSeq === null || startSeq === 'retry')) timer = setTimeout(update, 1000);
         }
         void update();
         return () => { closed = true; clearTimeout(timer); };
@@ -104,6 +104,36 @@ window.__ModuleLoader__.load({
 
     function LivePiProcess({ sessionId }) {
       return createElement(PiProcess, { data: usePiTurn(sessionId, null) });
+    }
+
+    function PiRetry({ sessionId, submit }) {
+      const target = usePiTurn(sessionId, 'retry');
+      const pending = useRef(false);
+      const [attempt, setAttempt] = useState();
+      useEffect(() => {
+        if (attempt?.state !== 'accepted') return;
+        const timer = setTimeout(() => setAttempt(undefined), 3000);
+        return () => clearTimeout(timer);
+      }, [attempt]);
+      if (!target || (attempt?.id === target.id && attempt.state === 'accepted')) return null;
+      const state = attempt?.id === target.id ? attempt.state : undefined;
+      async function retry() {
+        if (pending.current) return;
+        pending.current = true;
+        setAttempt({ id: target.id, state: 'sending' });
+        try {
+          const result = await submit(target.id);
+          if (!result?.ok) throw new Error('Retry not admitted');
+          setAttempt({ id: target.id, state: 'accepted' });
+        } catch {
+          setAttempt({ id: target.id, state: 'error' });
+        } finally { pending.current = false; }
+      }
+      return createElement('div', { 'data-moos-pi-retry': '' },
+        createElement('span', null, '上次任务', turnStates[target.status]),
+        createElement('button', { type: 'button', disabled: state === 'sending', onClick: retry },
+          state === 'sending' ? '正在提交…' : '继续上次任务'),
+        state === 'error' ? createElement('span', { role: 'status' }, '提交失败，请重试。') : null);
     }
 
     function PiTurnTail({ sessionId, turn }) {
@@ -143,6 +173,12 @@ window.__ModuleLoader__.load({
         ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
           name: 'conversation.input.dock', id: 'moos-pi-live', inject: sessionProps,
         }, LivePiProcess));
+        ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
+          name: 'conversation.input.dock', id: 'moos-pi-retry',
+          inject: sessionId => ({ sessionId, submit: id => ctx.sessions.binding(sessionId)?.session.prompt(
+            [{ type: 'text', text: '继续上次 PI 任务' }], 'queue', undefined, 'moos-pi-retry:' + id + ':' + crypto.randomUUID(),
+          ) }),
+        }, PiRetry));
         ctx.slots.inject('conversation.chat.turnTail', () => ctx.slots.register({
           name: 'conversation.chat.turnTail', id: 'moos-pi-turn', inject: sessionProps,
         }, PiTurnTail));
@@ -159,6 +195,8 @@ window.__ModuleLoader__.load({
         [data-moos-usage-settings] dd { margin: 0; font-variant-numeric: tabular-nums; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-pi-process] summary { cursor: pointer; }
+        [data-moos-pi-retry] { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        [data-moos-pi-retry] button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
         [data-moos-pi-turn] { display: grid; gap: 8px; margin-bottom: 8px; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) ul { list-style: none; padding: 0; margin: 6px 0 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
@@ -183,6 +221,6 @@ window.__ModuleLoader__.load({
         if (root.dataset.moosWindow === 'darwin') delete root.dataset.platform;
       });
     }
-    return { inject: ['slots', 'shortcuts'], apply };
+    return { inject: ['slots', 'shortcuts', 'sessions'], apply };
   },
 });

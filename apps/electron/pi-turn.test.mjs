@@ -30,6 +30,7 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
   assert.equal(reader.read('session-two', 12), null);
   assert.equal(reader.read('session-one', 14), null);
   assert.throws(() => reader.read('session-one', '12'));
+  assert.equal(reader.read('session-one', 'retry'), null);
   store.updateTask(task.id, { status: 'running' });
 
   function record(id, toolName, args, isError) {
@@ -51,11 +52,15 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
   assert.doesNotMatch(JSON.stringify(live), /private|user input/);
   store.updateTask(task.id, { status: 'cancelled' });
   assert.equal(reader.read('session-one', null), null);
+  assert.deepEqual({ ...reader.read('session-one', 'retry') }, { id: task.id, status: 'cancelled' });
+  assert.equal(reader.read('session-two', 'retry'), null);
   const settled = reader.read('session-one', 12);
   assert.equal(settled.status, 'cancelled');
   assert.equal(settled.actions.at(-1).state, 'unrecorded');
   reader.close();
   assert.deepEqual(reader.read('session-one', 12), settled);
+  store.createTask({ conversationId: conversation.id, message: 'newer task' });
+  assert.equal(reader.read('session-one', 'retry'), null);
 });
 
 test('the workspace summary detects command changes without including pre-existing dirty files or changing the index', async t => {

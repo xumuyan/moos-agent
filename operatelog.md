@@ -904,3 +904,13 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 用 `build-0VzjCj`，本地受控主路由依次执行失败测试、修复、失败测试、修复、失败测试。随后同一会话切换至线上 GPT-6.1 Sol。实际五次请求均为 High、HTTP 200，第一条已带失败结果和第二次修复，使用原有中转配置，核对线上模型写入验收文件的字节和原修复文件保留。界面展开过程显示升级原因，线上用量事件合计 28,717 Token。`build-xbQRqQ` 本地复验自动模式识别额度错误并完成备用请求，手动固定主模型时同一错误显示 QUOTA，仅记录一次切换。最后的代理上传边界修正通过实际回环 HTTP 请求复验，并在 `build-SHK15Q` 核对打包文件与源码一致。
 - 遗留问题：主路由故障来自可控样例，未主动制造真实账户欠费。修复升级覆盖已识别验证命令及稳定失败输出，其他命令和依赖异常不会据此升级。模型请求与工具次数上限配置、长任务、视觉和完整重试入口按原计划推进。脱敏日志见 `/tmp/moos-routing-*.log`。
 - 对应 Git 提交：唯一说明 `feat(P03.13): route PI fallback and repair escalation`，用 `git log --all --oneline --grep='^feat(P03.13): route PI fallback and repair escalation$'` 查询。
+
+## 2026-11-08 02:00:04 +08:00｜P03.13.3 同会话继续 PI 任务
+
+- 修改或新增内容：在输入区上方提供「继续上次任务」。最近一次失败、停止或中断的任务可在原会话显式继续，沿用当前模型和权限，保留旧轮次的状态及工具结果。每次继续建立独立任务，并在 SQLite 记录上一尝试的关联。
+- 遇到的难题：固定版 DSH 随包网关拒绝空提示；重复点击或跨会话请求可能选错任务。第一次线上测试在模型读取工作目录后就触发了故障，早于预期写入。修正触发点后，首次续跑完成第二个文件，但最终回复触及验收中继的七次真实请求上限。
+- 处理方式：复用 DSH 的已授权非空提交入口，使用请求标识指定尝试。调度前复核会话、工作区和最新任务，拒绝重复及过期目标。PI 复用本地会话，原始指令缺失时补入，否则只提交继续指令，提示先核对已有结果。验收中继改为在确认首次写入后才返回 503；首次续跑触及中继上限后，将验收上限提高至十二次，并在原会话显式继续至成功。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 19/19，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。开发包构建、深度严格签名和 Git 差异检查通过。自动测试覆盖恢复工具结果、冷任务中断、旧任务记录、跨会话、重复提交与已成功任务。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 运行 `build-ZvEMIz` 本地验收模式，按钮接续首次失败，核对追加文件只有一行及第二个文件内容。正常模式 `build-J0uj3J` 使用已有中转服务，核对首次追加成功后中继返回 503，退出 App 并重开原会话再继续。两次续跑共有六次真实 High 请求，均带已有工具结果、HTTP 200。旧轮次保持失败，最终轮次成功，`retry-counter.txt` 仅一行，`retry-proof.txt` 内容及结尾换行与预期一致。脱敏测试日志见 `/tmp/moos-pi-retry-*.log`。
+- 遗留问题：断开由受控中继触发，冷任务中断仅在自动测试中验证。已执行命令的效果仍由 PI 和模型结合持久化结果、当前工作区核对。分支历史、后台入口与更长任务的原版对照仍待验。
+- 对应 Git 提交：唯一说明 `feat(P03.13): continue failed PI turns in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): continue failed PI turns in Electron$'` 查询。

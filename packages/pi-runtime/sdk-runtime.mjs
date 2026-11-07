@@ -14,6 +14,7 @@ import { repairRouting } from './repair-routing.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
+const retryPrompt = '继续上一次未完成的任务。先核对当前工作区和已有工具结果，再完成剩余步骤。已经成功的操作无需重做。';
 
 // Node's built-in fetch otherwise aborts while waiting for response headers at
 // five minutes, before PI's request timeout is reached. The shared transport is
@@ -54,7 +55,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   const cwd = await realpath(project.path);
@@ -166,7 +167,15 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         await createSession();
         if (controller.signal.aborted) throw aborted();
         last = undefined;
-        await session.prompt(message);
+        let prompt = message;
+        if (retry) {
+          const previous = session.messages.findLast(item => item.role === 'user')?.content;
+          const priorText = typeof previous === 'string' ? previous
+            : previous?.filter(part => part.type === 'text').map(part => part.text).join('\n');
+          const recoveryWithOriginal = `${retryPrompt}\n\n原始任务：\n${message}`;
+          prompt = [message, retryPrompt, recoveryWithOriginal].includes(priorText) ? retryPrompt : recoveryWithOriginal;
+        }
+        await session.prompt(prompt);
         await session.waitForIdle();
         if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
         if (last?.stopReason === 'stop') return { text };

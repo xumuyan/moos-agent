@@ -3,7 +3,8 @@ import { isAbsolute, relative, sep } from 'node:path';
 import { withWorkspaceChanges } from './pi-workspace-changes.js';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled']);
-const fixtureInput = /^MOOS_FIXTURE_(?:WRITE [a-zA-Z0-9_]{1,32}|TOOLS|HOLD|AUTH_FAIL|RATE_LIMIT|POLICY|APPROVAL)$/;
+const retryable = new Set(['failed', 'cancelled', 'interrupted']);
+const fixtureInput = /^MOOS_FIXTURE_(?:WRITE [a-zA-Z0-9_]{1,32}|TOOLS|HOLD|AUTH_FAIL|RATE_LIMIT|POLICY|APPROVAL|RETRY)$/;
 
 // Both regular and fixture tasks share scheduling and workspace identity.
 export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) {
@@ -38,10 +39,10 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   });
   let closing;
 
-  async function open({ sessionId, turnStartSeq, cwd, input, signal, permissions, provider, backup }) {
+  async function open({ sessionId, turnStartSeq, cwd, input, retryOf, signal, permissions, provider, backup }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
-      || typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
-      || fixtureRoot && !fixtureInput.test(input)) throw new Error('Invalid PI task');
+      || (!retryOf && (typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
+      || fixtureRoot && !fixtureInput.test(input)))) throw new Error('Invalid PI task');
     const canonical = await verifyWorkspace(cwd);
     signal.throwIfAborted();
     if (closing || store.countActiveTasks() >= 128) throw new Error('PI scheduler unavailable');
@@ -58,16 +59,22 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
         if (conversation.projectId !== project.id) throw new Error('PI session belongs to another workspace');
         return storedId;
       }
+      if (retryOf) throw new Error('PI session has no previous task');
       const conversation = store.createConversation(project.id);
       store.setSetting(key, conversation.id);
       return conversation.id;
     });
-    const task = scheduler.submit({ conversationId, message: input, onCreate(created) {
+    const previous = retryOf && store.latestTask(conversationId);
+    if (retryOf && (previous?.id !== retryOf || !retryable.has(previous.status))) {
+      throw new Error('PI retry target is no longer available');
+    }
+    const task = scheduler.submit({ conversationId, message: previous?.message ?? input, onCreate(created) {
       if (Number.isSafeInteger(turnStartSeq) && turnStartSeq >= 0) {
         store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
       }
+      if (previous) store.appendEvent(created.id, 'task_retry', { previousTaskId: previous.id });
     } });
-    contextByTask.set(task.id, { permissions, provider, backup });
+    contextByTask.set(task.id, { permissions, provider, backup, retry: Boolean(previous) });
     const pending = [];
     const settled = Promise.withResolvers();
     let done = false;

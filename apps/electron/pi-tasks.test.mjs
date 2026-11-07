@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, realpath, rm, symlink } from 'node:fs/promise
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { randomUUID } from 'node:crypto';
 import test from 'node:test';
 import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from '../../services/agent/fixture.mjs';
@@ -103,4 +104,70 @@ test('Electron PI tasks serialize directory aliases, run other projects and stop
   assert.equal(store.getSetting('dsh-session:same'), conversation);
   assert.equal(store.getSetting('dsh-turn:same:21'), store.listTasks().find(task => task.message.endsWith(' continued')).id);
   assert.equal(await readFile(join(first, 'result.txt'), 'utf8'), 'continued\n');
+});
+
+test('Electron retry resumes PI after a tool and accepts only the latest eligible task in that session', async t => {
+  const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-electron-retry-')));
+  const dbPath = join(data, 'moos.sqlite');
+  const requests = [];
+  const fixture = await startFixture({ desktopPolicy: true, onModelRequest: request => requests.push(request) });
+  let store = new Store({ dbPath });
+  let tasks;
+  t.after(async () => {
+    await tasks?.close();
+    await fixture.close();
+    await rm(data, { recursive: true, force: true });
+  });
+  let seq = 0;
+  const start = () => {
+    tasks = createPiTasks({ store, Scheduler, run: options => runPiSdk({
+      ...options, dataDir: join(data, 'pi'),
+      provider: { id: 'moos-pi', name: 'Fixture', api: 'openai-completions', baseUrl: fixture.baseUrl,
+        model: 'moos-fixture', contextWindow: 128000, maxTokens: 8192 }, apiKey: fixture.apiKey,
+    }) });
+    return createPiAdapter({ tasks, getSession: () => ({ header: { cwd: data } }), getTurnStart: () => ++seq });
+  };
+  let adapter = start();
+  const send = (sessionId, text, retryOf) => collect(adapter.stream({ sessionId, messages: [{ role: 'user',
+    source: { kind: 'user', rpcId: retryOf ? `moos-pi-retry:${retryOf}:${randomUUID()}` : randomUUID() },
+    content: [{ type: 'text', text }],
+  }] }));
+  const original = 'MOOS_FIXTURE_RETRY';
+  assert.equal((await send('retry', original)).at(-1).reason.failure.code, 'NETWORK');
+  const previous = store.listTasks()[0];
+  assert.equal(previous.status, 'failed');
+  assert.equal(await readFile(join(data, 'retry-count.txt'), 'utf8'), 'once\n');
+  await tasks.close();
+  store = new Store({ dbPath });
+  adapter = start();
+  assert.equal((await send('foreign', '继续上次 PI 任务', previous.id)).at(-1).reason.kind, 'error');
+  assert.equal(store.listTasks().length, 1);
+  const results = await Promise.all([
+    send('retry', '继续上次 PI 任务', previous.id),
+    send('retry', '继续上次 PI 任务', previous.id),
+  ]);
+  assert.deepEqual(results.map(result => result.at(-1).reason.kind).sort(), ['error', 'stop']);
+  const [resumed, failed] = store.listTasks();
+  assert.equal(resumed.conversationId, previous.conversationId);
+  assert.equal(resumed.status, 'succeeded');
+  assert.equal(failed.status, 'failed');
+  assert.equal(store.getSetting('dsh-turn:retry:1'), failed.id);
+  assert.ok(store.listEvents(resumed.id).some(event => event.type === 'task_retry' && event.payload.previousTaskId === previous.id));
+  assert.equal(await readFile(join(data, 'retry-count.txt'), 'utf8'), 'once\n');
+  assert.equal(await readFile(join(data, 'retry-result.txt'), 'utf8'), 'resumed\n');
+  assert.equal(requests.length, 4);
+  assert.equal(JSON.stringify(requests[2].messages).match(/MOOS_FIXTURE_RETRY/g).length, 1);
+  assert.ok(requests[2].messages.some(message => message.role === 'tool'));
+  assert.equal((await send('retry', '继续上次 PI 任务', resumed.id)).at(-1).reason.kind, 'error');
+  assert.equal(store.listTasks().length, 2);
+
+  const cold = store.createConversation(previous.projectId);
+  store.setSetting('dsh-session:interrupted', cold.id);
+  const unfinished = store.createTask({ conversationId: cold.id, message: 'MOOS_FIXTURE_WRITE interrupted' });
+  assert.equal(store.interruptUnfinished(), 1);
+  assert.equal(store.getTask(unfinished.id).status, 'interrupted');
+  assert.equal(requests.length, 4);
+  assert.equal((await send('interrupted', '继续上次 PI 任务', unfinished.id)).at(-1).reason.kind, 'stop');
+  assert.equal(await readFile(join(data, 'result.txt'), 'utf8'), 'interrupted\n');
+  assert.match(JSON.stringify(requests[4].messages), /原始任务.*MOOS_FIXTURE_WRITE interrupted/);
 });

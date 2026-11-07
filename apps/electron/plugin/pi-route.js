@@ -70,6 +70,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
         failure: { code: 'INVALID_REQUEST', message: '当前 Moos PI 路由需要工作区内的文本任务' } } } : rejected;
       return;
     }
+    const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
 
     let plan;
     if (models) {
@@ -84,7 +85,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
         input: user.content.map(part => part.text).join('\n').trim(),
-        signal, permissions: getPermissions?.(sessionId), ...plan });
+        retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '无法启动 PI 任务，请检查工作区和会话状态' } } } : rejected;

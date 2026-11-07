@@ -19,10 +19,16 @@ export function createPiTurnReader(dbPath, timelinePayload) {
   return {
     read(sessionId, startSeq) {
       if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
-        || startSeq !== null && (!Number.isSafeInteger(startSeq) || startSeq < 0)) {
+        || startSeq !== null && startSeq !== 'retry' && (!Number.isSafeInteger(startSeq) || startSeq < 0)) {
         throw new Error('Invalid Moos turn');
       }
       db ??= new DatabaseSync(dbPath, { readOnly: true });
+      if (startSeq === 'retry') {
+        const latest = db.prepare(`SELECT id, status FROM tasks
+          WHERE conversationId = (SELECT value FROM settings WHERE key = ?) ORDER BY rowid DESC LIMIT 1`)
+          .get('dsh-session:' + sessionId);
+        return latest && ['failed', 'cancelled', 'interrupted'].includes(latest.status) ? latest : null;
+      }
       const live = startSeq === null;
       const task = db.prepare(`
         SELECT tasks.id, tasks.status, projects.path

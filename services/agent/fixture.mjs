@@ -116,6 +116,17 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       }
       if (/\bMOOS_FIXTURE_AUTH_FAIL\b/.test(text)) return reply(res, 401, 'fixture upstream SECRET detail');
       if (/\bMOOS_FIXTURE_RATE_LIMIT\b/.test(text)) return reply(res, 429, 'fixture rate limit');
+      if (desktopPolicy) {
+        const original = messages.findLastIndex(message => message.role === 'user' && messageText(message.content) === 'MOOS_FIXTURE_RETRY');
+        if (original >= 0 && (original === lastUser || text.startsWith('继续上一次未完成的任务。'))) {
+          const results = messages.slice(original + 1).filter(message => message.role === 'tool');
+          if (original === lastUser) return results.length ? reply(res, 503, 'fixture interruption after command')
+            : tool(res, 'bash', { command: "printf 'once\\n' >> retry-count.txt" }, lastUser);
+          if (results.length === 1) return tool(res, 'write', { path: 'retry-result.txt', content: 'resumed\n' }, lastUser);
+          if (results.length === 2) return stream(res, { content: '已接续上次任务并完成剩余操作。' }, 'stop');
+          return reply(res, 409, 'Expected previous tool result');
+        }
+      }
       if (/\bMOOS_FIXTURE_LONG\b/.test(text)) {
         await delay(longDelayMs);
         return stream(res, { content: '完成 LONG' }, 'stop');

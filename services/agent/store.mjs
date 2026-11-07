@@ -169,6 +169,9 @@ export class Store {
     return this.getTask(id);
   }
   listTasks() { return this.#all('SELECT * FROM tasks ORDER BY rowid DESC'); }
+  latestTask(conversationId) {
+    return this.#one('SELECT * FROM tasks WHERE conversationId = ? ORDER BY rowid DESC LIMIT 1', conversationId);
+  }
   countActiveTasks() { return this.#one("SELECT count(*) AS count FROM tasks WHERE status IN ('queued','running')").count; }
   updateTask(id, { status, error = null, errorCode = null, stage = status }) {
     this.getTask(id);
