@@ -28,7 +28,7 @@ function mockInstaller({ corrupt = false, ui = false } = {}) {
   const decode = vi.spyOn(wallpaper, 'decodeThemeBackground');
   if (corrupt) decode.mockRejectedValue(new Error('invalid image'));
   else decode.mockResolvedValue(source);
-  const pkg = ui ? { ...theme, pluginType: 'ui' } : theme;
+  const pkg = ui ? { ...theme, pluginType: 'ui' } : { ...theme, manifest: { ...theme.manifest, sourceFormat: 'dsh-skin-v2' } };
   const invoke = vi.fn(async (command: string, args?: { id: string; enabled: boolean }) => {
     if (command === 'list_local_plugins') return installed ? [{ ...pkg, enabled }] : [];
     if (command === 'pick_plugin_zip') return '/tmp/skin.zip';
@@ -55,6 +55,7 @@ it('applies the installed image skin immediately and falls back when disabled', 
   expect(decode).toHaveBeenCalledWith(bytes);
   expect(invoke.mock.calls.some(([command]) => command === 'load_local_plugin_entry')).toBe(false);
   expect(screen.getByText('使用中', { exact: true })).toBeVisible();
+  expect(screen.getByText('DSH 静态皮肤')).toBeVisible();
   expect(root.style.getPropertyValue('--moos-skin-mask')).toBe('0.3');
   expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe(theme.id);
   const row = screen.getByText(theme.name).closest('.plugin-row')!;

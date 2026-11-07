@@ -96,8 +96,13 @@ impl PluginManager {
         } else {
             return Err("Plugin source must be a ZIP or directory".into());
         }
-        let manifest = read_manifest(staging.path())?;
-        let mut plugin = validate_manifest(manifest, staging.path())?;
+        let package = staged_package_root(staging.path())?;
+        let manifest = if package.join("plugin.json").exists() {
+            read_manifest(&package)?
+        } else {
+            read_dsh_skin(&package).map_err(|error| format!("DSH skin: {error}"))?
+        };
+        let mut plugin = validate_manifest(manifest, &package)?;
         let mut state = self.lock()?;
         let target = self.root.join("packages").join(&plugin.id);
         let backup = self.root.join(format!(".backup-{}", plugin.id));
@@ -107,8 +112,7 @@ impl PluginManager {
         if target.exists() {
             fs::rename(&target, &backup).map_err(|_| "Unable to prepare plugin upgrade")?;
         }
-        let staged = staging.keep();
-        if fs::rename(&staged, &target).is_err() {
+        if fs::rename(&package, &target).is_err() {
             let _ = if backup.exists() {
                 fs::rename(&backup, &target)
             } else {
@@ -289,6 +293,157 @@ fn read_manifest(root: &Path) -> Result<Value, String> {
         .map_err(|_| "plugin.json must be valid JSON".into())
 }
 
+fn staged_package_root(root: &Path) -> Result<PathBuf, String> {
+    if root.join("plugin.json").is_file() || root.join("skin.json").is_file() {
+        return Ok(root.to_owned());
+    }
+    let mut matches = fs::read_dir(root)
+        .map_err(|_| "Unable to inspect package root")?
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_name() != "__MACOSX")
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir() && path.join("skin.json").is_file());
+    let path = matches
+        .next()
+        .ok_or("Package requires plugin.json or skin.json")?;
+    if matches.next().is_some() {
+        return Err("ZIP contains more than one DSH skin".into());
+    }
+    Ok(path)
+}
+
+fn read_dsh_skin(root: &Path) -> Result<Value, String> {
+    let manifest_file = fs::File::open(root.join("skin.json")).map_err(|_| "找不到 skin.json")?;
+    let mut manifest_bytes = Vec::new();
+    manifest_file
+        .take(MAX_MANIFEST_BYTES + 1)
+        .read_to_end(&mut manifest_bytes)
+        .map_err(|_| "无法读取 skin.json")?;
+    if manifest_bytes.len() as u64 > MAX_MANIFEST_BYTES {
+        return Err("skin.json 超过大小限制".into());
+    }
+    let skin: Value = serde_json::from_slice(&manifest_bytes).map_err(|_| "skin.json 格式无效")?;
+    if skin["skinManifestVersion"].as_u64() != Some(2) {
+        return Err("请选择皮肤中心发行的 skin.json v2 原包".into());
+    }
+    let id = skin["id"]
+        .as_str()
+        .filter(|id| {
+            id.len() <= 32
+                && id.as_bytes().first().is_some_and(u8::is_ascii_lowercase)
+                && id
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        })
+        .ok_or("皮肤 ID 无效")?;
+    let name = skin["name"]
+        .as_str()
+        .filter(|name| !name.trim().is_empty() && name.trim().len() <= 100)
+        .ok_or("皮肤名称无效")?;
+    let version = skin["version"]
+        .as_str()
+        .and_then(|version| version.split(['-', '+']).next())
+        .filter(|version| is_semver(version))
+        .ok_or("皮肤版本无效")?;
+    if let Some(requires) = skin.get("requires") {
+        if !requires.is_object() {
+            return Err("皮肤运行要求无效".into());
+        }
+        if let Some(contracts) = requires.get("contracts") {
+            let contracts = contracts.as_array().ok_or("皮肤运行要求无效")?;
+            if contracts
+                .iter()
+                .any(|contract| contract["optional"].as_bool() != Some(true))
+            {
+                return Err("该皮肤必须使用 DSH 运行时扩展，无法静态安装".into());
+            }
+        }
+    }
+
+    let contributions = skin["contributes"].as_object().ok_or("缺少皮肤资源声明")?;
+    let mut tokens = serde_json::Map::new();
+    if let Some(accent) = skin["accent"].as_str().filter(|color| solid_hex(color)) {
+        tokens.insert("accent".into(), accent.into());
+    }
+    if let Some(stylesheet) = contributions.get("stylesheet") {
+        let path = stylesheet.as_str().ok_or("皮肤样式路径无效")?;
+        let path = theme_asset_path(path, root).map_err(|_| "皮肤样式路径无效")?;
+        if path.extension().and_then(|ext| ext.to_str()) != Some("css") || !path.is_file() {
+            return Err("找不到包内皮肤样式".into());
+        }
+        let css = fs::read_to_string(path).map_err(|_| "无法读取皮肤样式")?;
+        read_dsh_colors(&css, &mut tokens);
+    }
+    let mut manifest = serde_json::json!({
+        "id": format!("dsh.skin.{id}"), "name": name, "version": version, "type": "theme",
+        "moosVersion": "^0.1.0", "slots": [], "permissions": [], "tokens": tokens,
+        "styles": {}, "assets": {}, "sourceFormat": "dsh-skin-v2",
+    });
+    if let Some(media) = contributions.get("backgroundMedia") {
+        let image = media
+            .get("light")
+            .or_else(|| media.get("dark"))
+            .ok_or("缺少皮肤背景图")?;
+        if image["type"].as_str() != Some("image") {
+            return Err("当前支持静态图片背景的 DSH 皮肤".into());
+        }
+        let src = image["src"].as_str().ok_or("缺少皮肤背景图路径")?;
+        let background = serde_json::json!({ "type": "image", "src": src });
+        read_theme_background(&background, root).map_err(|_| "背景图缺失、超限或格式无效")?;
+        manifest["backgroundMedia"] = background;
+    } else if manifest["tokens"]
+        .as_object()
+        .is_none_or(|tokens| tokens.is_empty())
+    {
+        return Err("皮肤没有可应用的静态图片或配色".into());
+    }
+    Ok(manifest)
+}
+
+fn solid_hex(color: &str) -> bool {
+    matches!(color.len(), 4 | 5 | 7 | 9)
+        && color.starts_with('#')
+        && color.as_bytes()[1..].iter().all(u8::is_ascii_hexdigit)
+}
+
+fn read_dsh_colors(css: &str, tokens: &mut serde_json::Map<String, Value>) {
+    const COLORS: &[(&str, &str)] = &[
+        ("--dsw-alias-brand-primary", "accent"),
+        ("--dsw-alias-interactive-bg-active", "accentSoft"),
+        ("--dsw-alias-bg-layer-1", "panel"),
+        ("--dsw-specific-sidebar-fill", "sidebar"),
+        ("--dsw-alias-border-l2", "border"),
+        ("--dsw-alias-label-tertiary", "muted"),
+    ];
+    // Import only literal colors from simple light-mode root blocks. No source CSS is applied.
+    for block in css.split('}') {
+        let Some((selector, declarations)) = block.trim().split_once('{') else {
+            continue;
+        };
+        if selector.trim() != ":root" {
+            continue;
+        }
+        for declaration in declarations.split(';') {
+            let Some((property, value)) = declaration.split_once(':') else {
+                continue;
+            };
+            let Some((_, token)) = COLORS.iter().find(|(name, _)| *name == property.trim()) else {
+                continue;
+            };
+            let value = value.trim();
+            if solid_hex(value) {
+                // Fixed Moos seats handle transparency separately.
+                let opaque = match value.len() {
+                    5 => &value[..4],
+                    9 => &value[..7],
+                    _ => value,
+                };
+                tokens.insert((*token).into(), opaque.into());
+            }
+        }
+    }
+}
+
 fn validate_manifest(manifest: Value, root: &Path) -> Result<LocalPlugin, String> {
     let object = manifest
         .as_object()
@@ -405,26 +560,8 @@ fn read_theme_background(media: &Value, root: &Path) -> Result<Vec<u8>, String> 
         .get("src")
         .and_then(Value::as_str)
         .ok_or("Theme background requires a package image")?;
-    if src.len() > 200
-        || src
-            .split('/')
-            .any(|part| part.is_empty() || part == "." || part == "..")
-        || !src
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'/' | b'.' | b'_' | b'-'))
-    {
-        return Err("Unsafe theme background path".into());
-    }
-    let relative = safe_relative(src)?;
-    let mut path = root.to_path_buf();
-    for part in relative.components() {
-        path.push(part);
-        let metadata =
-            fs::symlink_metadata(&path).map_err(|_| "Theme background image is missing")?;
-        if metadata.file_type().is_symlink() {
-            return Err("Theme background links are not allowed".into());
-        }
-    }
+    let path =
+        theme_asset_path(src, root).map_err(|_| "Unsafe or missing theme background image")?;
     let metadata = fs::metadata(&path).map_err(|_| "Theme background image is missing")?;
     if !metadata.is_file() || metadata.len() > MAX_FILE_BYTES {
         return Err("Invalid theme background image size".into());
@@ -448,6 +585,29 @@ fn read_theme_background(media: &Value, root: &Path) -> Result<Vec<u8>, String> 
         return Err("Invalid theme background image format".into());
     }
     Ok(bytes)
+}
+
+fn theme_asset_path(src: &str, root: &Path) -> Result<PathBuf, String> {
+    if src.len() > 200
+        || src
+            .split('/')
+            .any(|part| part.is_empty() || part == "." || part == "..")
+        || !src
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'/' | b'.' | b'_' | b'-'))
+    {
+        return Err("Unsafe theme asset path".into());
+    }
+    let relative = safe_relative(src)?;
+    let mut path = root.to_path_buf();
+    for part in relative.components() {
+        path.push(part);
+        let metadata = fs::symlink_metadata(&path).map_err(|_| "Theme asset is missing")?;
+        if metadata.file_type().is_symlink() {
+            return Err("Theme asset links are not allowed".into());
+        }
+    }
+    Ok(path)
 }
 
 fn validate_theme(object: &serde_json::Map<String, Value>) -> Result<(), String> {
@@ -666,7 +826,7 @@ fn extract_validated_zip(source: &Path, target: &Path) -> Result<(), String> {
         }
         if entry.unix_mode().is_some_and(|mode| {
             mode & 0o170000 != 0 && mode & 0o170000 != 0o100000 && mode & 0o170000 != 0o040000
-                || mode & 0o111 != 0
+                || entry.is_file() && mode & 0o111 != 0
         }) {
             return Err("Plugin ZIP executable or linked entries are not allowed".into());
         }
@@ -940,6 +1100,111 @@ mod tests {
         assert!(restarted.theme_background(id).is_err());
         restarted.uninstall(id, false).unwrap();
         assert!(restarted.theme_background(id).is_err());
+    }
+
+    fn dsh_fixture() -> Value {
+        serde_json::json!({
+            "skinManifestVersion": 2, "id": "sample-skin", "name": "DSH fixture",
+            "nameEn": "DSH fixture", "author": "Moos", "version": "0.3.2", "accent": "#c5a468",
+            "contributes": {"stylesheet":"skin.css", "patches":"patches.css",
+                "backgroundMedia": {"light": {"type":"image", "src":"assets/light.png",
+                    "scrim":"linear-gradient(transparent, #ffffff)"}}},
+            "requires": {"contracts":[{"kind":"SkinHooks","optional":true}]},
+            "facets": {"client":{"entry":"hooks.mjs", "apiVersion":"fixture"}}
+        })
+    }
+
+    #[test]
+    fn imports_unmodified_dsh_skin_from_folder_and_wrapped_zip() {
+        let data = tempfile::tempdir().unwrap();
+        let source = tempfile::tempdir().unwrap();
+        let manager = PluginManager::new(data.path().to_owned()).unwrap();
+        let manifest = serde_json::to_vec(&dsh_fixture()).unwrap();
+        let css = b":root { --dsw-alias-bg-layer-1: #f8faffb8; --dsw-alias-border-l2: url(https://bad.test); } body[data-ds-dark-theme] { --dsw-alias-bg-layer-1: #000; }";
+        let png = include_bytes!("../icons/moos-v1/32x32.png");
+        let hook = b"throw new Error('never run this');";
+        fs::create_dir(source.path().join("assets")).unwrap();
+        fs::write(source.path().join("skin.json"), &manifest).unwrap();
+        fs::write(source.path().join("skin.css"), css).unwrap();
+        fs::write(source.path().join("patches.css"), "body{display:none}").unwrap();
+        fs::write(source.path().join("hooks.mjs"), hook).unwrap();
+        fs::write(source.path().join("assets/light.png"), png).unwrap();
+
+        let plugin = manager.install(source.path()).unwrap();
+        assert_eq!(plugin.id, "dsh.skin.sample-skin");
+        assert_eq!(plugin.manifest["sourceFormat"], "dsh-skin-v2");
+        assert_eq!(
+            plugin.manifest["tokens"],
+            serde_json::json!({"accent":"#c5a468","panel":"#f8faff"})
+        );
+        assert_eq!(plugin.manifest["styles"], serde_json::json!({}));
+        assert!(plugin.entry.is_none() && plugin.permissions.is_empty());
+        assert!(!plugin.enabled);
+        manager.set_enabled(&plugin.id, true).unwrap();
+        assert_eq!(manager.theme_background(&plugin.id).unwrap(), png);
+        assert!(manager.entry(&plugin.id).is_err());
+
+        let zip = tempfile::Builder::new().suffix(".zip").tempfile().unwrap();
+        let mut writer = zip::ZipWriter::new(zip.reopen().unwrap());
+        writer
+            .add_directory(
+                "skin/",
+                SimpleFileOptions::default().unix_permissions(0o755),
+            )
+            .unwrap();
+        for (path, bytes) in [
+            ("skin/skin.json", manifest.as_slice()),
+            ("skin/skin.css", css.as_slice()),
+            ("skin/assets/light.png", png.as_slice()),
+        ] {
+            writer
+                .start_file(path, SimpleFileOptions::default().unix_permissions(0o644))
+                .unwrap();
+            writer.write_all(bytes).unwrap();
+        }
+        writer.finish().unwrap();
+        assert!(manager.install(zip.path()).unwrap().enabled);
+        let reopened = PluginManager::new(data.path().to_owned()).unwrap();
+        assert_eq!(reopened.theme_background(&plugin.id).unwrap(), png);
+    }
+
+    #[test]
+    fn rejects_dsh_legacy_required_runtime_and_unsafe_asset_paths() {
+        let source = tempfile::tempdir().unwrap();
+        let mut manifest = dsh_fixture();
+        manifest["skinManifestVersion"] = 1.into();
+        let write_manifest = |value: &Value| {
+            fs::write(
+                source.path().join("skin.json"),
+                serde_json::to_vec(value).unwrap(),
+            )
+            .unwrap();
+        };
+        write_manifest(&manifest);
+        assert!(read_dsh_skin(source.path()).unwrap_err().contains("v2"));
+        manifest["skinManifestVersion"] = 2.into();
+        manifest["requires"]["contracts"][0]["optional"] = false.into();
+        write_manifest(&manifest);
+        assert!(read_dsh_skin(source.path()).unwrap_err().contains("运行时"));
+        manifest["requires"]["contracts"][0]["optional"] = true.into();
+        manifest["contributes"]["stylesheet"] = "../outside.css".into();
+        write_manifest(&manifest);
+        assert!(read_dsh_skin(source.path())
+            .unwrap_err()
+            .contains("样式路径"));
+        manifest["contributes"]
+            .as_object_mut()
+            .unwrap()
+            .remove("stylesheet");
+        for path in [
+            "https://example.test/w.png",
+            "../outside.png",
+            "assets/missing.png",
+        ] {
+            manifest["contributes"]["backgroundMedia"]["light"]["src"] = path.into();
+            write_manifest(&manifest);
+            assert!(read_dsh_skin(source.path()).unwrap_err().contains("背景图"));
+        }
     }
 
     #[test]

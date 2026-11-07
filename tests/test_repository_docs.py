@@ -24,6 +24,8 @@ class RepositoryDocsTests(unittest.TestCase):
         guide = (ROOT / 'docs/plugins/image-skin.md').read_text()
         self.assertIn('皮肤会自动启用并应用', guide)
         self.assertNotIn('设置 → 主题', guide)
+        self.assertIn('DSH 皮肤中心发行的 v2 皮肤使用 `skin.json`', guide)
+        self.assertIn('DSH 静态皮肤', guide)
 
     def test_direct_source_copy_and_local_wallpaper_keep_provenance_and_boundaries(self):
         lock = json.loads((ROOT / 'apps/desktop/src/vendor/dsh/upstream-source-lock.json').read_text())

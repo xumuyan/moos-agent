@@ -97,8 +97,9 @@ export function useLocalPlugins(registry: PluginRegistry) {
         await refresh();
       }
       setError(`${plugin.name} 已安装，但无法应用。请检查皮肤包后重试。`);
-    } catch {
-      setError('安装失败：包不安全、不兼容或无法读取。');
+    } catch (error) {
+      const detail = typeof error === 'string' && error.startsWith('DSH skin: ') ? error.slice(10) : undefined;
+      setError(detail || '安装失败：包不安全、不兼容或无法读取。');
     } finally {
       installLock.current = false;
       setInstalling(false);

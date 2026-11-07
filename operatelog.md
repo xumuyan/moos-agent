@@ -738,3 +738,13 @@
 - 实际验收与工作区状态：本提交前产品源码构建于 macOS 27.0.1 arm64。安装版设置无「主题」分区。重装验收前已停用的「薄暮」 ZIP，选择文件后立即出现「使用中」且工作台背景已改变。退出重启后恢复，在插件页恢复默认、再使用并停用均通过。验收后恢复用户原本默认外观和示例停用状态。应用签名 deep/strict 通过，15388 项常规文件逐项哈希一致。主程序 SHA256 `ed2b9dd6e65b8da85872cce231e4ef877f1fe182d307af28cac5343009c98dbf`，`.app` 232.49 MiB。脱敏记录 `apps/desktop/evidence/p03-plugin-skin-auto-apply.json`，私有截图 `/tmp/moos-p039-acceptance/`。
 - 遗留问题：DSH 试穿链接为参考，使用现有 Moos 皮肤包安装。实机覆盖已停用示例重装，首次安装与坏图处理有自动测试。其他平台未做本轮安装验收。
 - 对应 Git 提交：唯一说明 `feat(P03.9): apply installed skins from the plugins page`。查询 `git log --all --oneline --grep='^feat(P03.9): apply installed skins from the plugins page$'`。提交后推送 GitHub main，按完整 HEAD 核对。
+
+## 2026-11-07 18:02:04 +08:00｜P03.10 直接安装 DSH v2 原包
+
+- 修改或新增内容：插件 ZIP/文件夹安装识别 DSH 皮肤中心 v2 `skin.json`。原包由原生安装器在内部适配为静态 Moos 皮肤，支持声明的包内图片、指定 `:root` 十六进制色值、安装即应用、重启恢复与停用。列表区分 DSH 静态皮肤。允许 ZIP 的普通目录权限，仍拒绝带执行位的文件。
+- 遇到的难题：作者旧版仓库和皮肤中心发行版清单不同。原包的场景是声明式 WebP，角色、挂件和部分动画由 hooks 与补丁生成。原 ZIP 校验还把普通目录的搜索权限误判成可执行文件。
+- 处理方式：按皮肤中心 v2 清单和固定源码 `85047d9cacb375f20bc8fabee4b3829fdfe47128` 核对兼容入口。使用现有大小、解压、路径与图片校验，优先声明的浅色图并映射白名单配色。必需 DSH 扩展的包明确拒绝，任选扩展不执行。目录保留正常 Unix 搜索权限判定，文件执行与链接限制不变。无第三方素材入库。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=120000 --hookTimeout=60000` 57 文件 175/175。`npm test` 137/137。`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --offline -- --test-threads=1` 30/30，覆盖原样目录、带目录的 ZIP、运行要求及非法资源路径。`npm run test:docs` 52/52。`npm run build:app` 通过，保留既有大 chunk 提示。命令记录 `/tmp/moos-p040-*.log`。
+- 实际验收与工作区状态：本提交前同一产品工作区构建，macOS 27.0.1 arm64、1280×820。按固定源码的 `skins/maid-atelier` 原目录生成外包 ZIP，逐文件原字节一致。实机直接选择 ZIP 安装深海女仆工坊 0.3.2，自动启用并应用包内 WebP。重启恢复，停用回退，再启用并切回后留为当前皮肤。签名 deep/strict 通过，15388 项常规文件哈希与构建一致。主程序 SHA256 `124c96ec31eb052269ea72a86172aa4b05e2303f2d2ba4083e2061dd2dab9781`，`.app` 232.50 MiB。脱敏证据 `apps/desktop/evidence/p03-dsh-skin-import.json`，私有截图 `/tmp/moos-p040-acceptance/`。
+- 遗留问题：静态兼容未包含原版角色挂件、自由 CSS、视频及脚本动效。Cordis 运行时功能插件和旧版包需 DSH 环境。此次 macOS GUI 验收选 ZIP，文件夹由原生测试覆盖。未验收其他平台。
+- 对应 Git 提交：唯一说明 `feat(P03.10): install original DSH v2 static skins`。可用 `git log --all --oneline --grep='^feat(P03.10): install original DSH v2 static skins$'` 查询。提交后推送 GitHub main，并核对完整 HEAD。

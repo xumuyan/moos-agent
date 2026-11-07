@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "baselineCommit": "d2b9a9951bb38176eecd55f2e330c7429c96091f",
+  "commitSubject": "feat(P03.10): install original DSH v2 static skins",
+  "upstream": {
+    "repository": "https://github.com/yudukongchen/dsh-client-ui-skin-center",
+    "commit": "85047d9cacb375f20bc8fabee4b3829fdfe47128",
+    "path": "skins/maid-atelier",
+    "version": "0.3.2",
+    "manifestSha256": "7596a704bce65006381d27417d4c12bb09d7e5ede038a6f486cfa58e62314aa5",
+    "zipKeptEverySourceFileByteIdentical": true,
+    "zipBytes": 2545610
+  },
+  "gui": {
+    "viewport": [
+      1280,
+      820
+    ],
+    "directOriginalZipInstall": true,
+    "autoEnabledAndApplied": true,
+    "sourceWebpVisible": true,
+    "restoredAfterRestart": true,
+    "disabledReturnsDefault": true,
+    "reselectedForUser": true
+  },
+  "checks": {
+    "desktopUi": 175,
+    "core": 137,
+    "native": 30,
+    "docs": 52,
+    "tauriAppBundle": true
+  },
+  "bundle": {
+    "path": "/Applications/Moos.app",
+    "bundleMiB": 232.5,
+    "deepStrictSignatureVerified": true,
+    "allRegularFilesMatch": true,
+    "sha256": "124c96ec31eb052269ea72a86172aa4b05e2303f2d2ba4083e2061dd2dab9781",
+    "files": 15388,
+    "logicalBytes": 247528942,
+    "diskKiB": 285704
+  },
+  "privateEvidence": "/tmp/moos-p040-acceptance/",
+  "limits": {
+    "staticOnly": true,
+    "upstreamScriptsOrCssExecuted": false,
+    "thirdPartyArtCommitted": false,
+    "legacyDshRuntimePluginsSupported": false
+  }
+}

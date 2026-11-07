@@ -20,7 +20,7 @@ export default function PluginSection({ local, activeThemeId = 'default', onThem
 
   return <section>
     <h3>插件</h3>
-    <p>安装皮肤包后立即应用。已安装的皮肤可在下方切换。</p>
+    <p>支持 Moos 皮肤包和 DSH 皮肤中心 v2 原包。安装后立即应用，可在下方切换。</p>
     {local?.error && <Alert type="error" showIcon message={local.error} />}
     {local && <Space wrap>
       <Button loading={local.installing} onClick={() => void install('zip')}>安装 ZIP</Button>
@@ -44,6 +44,7 @@ export default function PluginSection({ local, activeThemeId = 'default', onThem
         return <div className="plugin-row" key={plugin.id}>
           <div>
             <strong>{plugin.name}</strong> <Tag>{isSkin ? '皮肤' : '沙箱 UI'}</Tag>
+            {isSkin && plugin.manifest.sourceFormat === 'dsh-skin-v2' && <Tag>DSH 静态皮肤</Tag>}
             {selected && <Tag color="success">使用中</Tag>}
             <div className="muted">{plugin.id} · {plugin.version} · {plugin.enabled ? '已启用' : '已停用'}</div>
             <div className="muted">声明权限：{plugin.permissions.length ? plugin.permissions.join('、') : '无'}</div>
