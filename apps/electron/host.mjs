@@ -24,6 +24,7 @@ export function startHost({ cli, home, cwd, executionPatch, piRuntime, piFixture
     DSH_TELEMETRY_DISABLED: '1',
     PI_OFFLINE: '1',
     MOOS_ELECTRON_WORKSPACE_ROOT: cwd,
+    MOOS_ELECTRON_PARENT_PIPE: '1',
   };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_OPTIONS;
@@ -38,7 +39,7 @@ export function startHost({ cli, home, cwd, executionPatch, piRuntime, piFixture
     patches.push('--patch', join(piFixture, 'profile.patch.yml'));
   }
   const child = spawn(cli, ['web', ...patches, '--host', '127.0.0.1', '--port', '0', '--no-open'], {
-    cwd, env, detached: true, stdio: ['ignore', 'pipe', 'ignore'],
+    cwd, env, detached: true, stdio: ['pipe', 'pipe', 'ignore'],
   });
   const output = createInterface({ input: child.stdout });
   let stopping = false;

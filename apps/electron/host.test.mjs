@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +41,7 @@ test('runs the host on loopback and waits for its actual shutdown', async t => {
         'web --patch ' + process.cwd() + '/execution.patch.yml --host 127.0.0.1 --port 0 --no-open'
         || process.env.DSH_HOME !== process.cwd() || process.env.MOOS_ELECTRON_WORKSPACE_ROOT !== process.cwd()
         || process.env.DSH_TELEMETRY_DISABLED !== '1' || process.env.PI_OFFLINE !== '1'
+        || process.env.MOOS_ELECTRON_PARENT_PIPE !== '1'
         || process.env.MOOS_ELECTRON_PI_RUNTIME) process.exit(8);
     console.log('dsh web: http://example.test:43123/?token=${token}');
     console.log(${JSON.stringify(line)});
@@ -78,6 +81,29 @@ test('the shell never exposes or dispatches upstream model tool calls', async ()
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
+test('the packaged Host stops when its desktop lifetime pipe closes', {
+  skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
+}, async t => {
+  const { home } = await hostFixture(t, '');
+  const overlay = fileURLToPath(new URL('./execution.patch.yml', import.meta.url));
+  const child = spawn(dshCli, ['web', '--patch', overlay, '--host', '127.0.0.1', '--port', '0', '--no-open'], {
+    cwd: home, env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1', MOOS_ELECTRON_PARENT_PIPE: '1' },
+    stdio: ['pipe', 'pipe', 'ignore'],
+  });
+  const exited = once(child, 'exit');
+  t.after(async () => {
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    await exited;
+  });
+  const lines = createInterface({ input: child.stdout });
+  t.after(() => lines.close());
+  const wait = AbortSignal.timeout(10000);
+  let line;
+  do { [line] = await once(lines, 'line', { signal: wait }); } while (!parseBootstrap(line));
+  child.stdin.end();
+  assert.deepEqual(await once(child, 'exit', { signal: wait }), [0, null]);
+});
+
 test('the shipped DSH overlay disables optional built-ins and keeps the package installer', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned DSH CLI',
 }, async t => {

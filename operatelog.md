@@ -997,3 +997,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 24/24，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。Moos 包严格深度签名和仓库 Git 差异检查通过。
 - 遗留问题：这是同一个小型项目的一对两轮会话。统计不含人工验收等待，缓存及两边的系统提示、工具集有差异，服务总 Token 不是实际费用。复杂项目和更长上下文仍需另行取样。脱敏结果见 `apps/desktop/evidence/p03-pi-desktop-multiturn.json`。
 - 对应 Git 提交：唯一说明 `test(P03.13): compare two-turn online desktop tasks`，用 `git log --all --oneline --grep='^test(P03.13): compare two-turn online desktop tasks$'` 查询。
+
+## 2026-11-08 03:37:59 +08:00｜P03.13.3 桌面异常退出后的 PI 清理
+
+- 修改或新增内容：Moos 主进程启动随包 Host 时持有标准输入管道。Host 仅在桌面启动模式下监听管道关闭，并复用现有 SIGTERM 清理流程。新增包内 CLI 断开管道后的退出回归。
+- 遇到的难题：旧 Host 独立于 Electron 主进程组，主进程被强制结束后没有收到退出通知，PI 启动的命令继续运行。第一次手动恢复验收时，本地测试服务只识别初始 HOLD 指令，对实际续跑提示返回错误。
+- 处理方式：用主进程持有的管道检测退出，交由 Host 回收 PI 调度器与受控子进程。旧包针对新增回归因退出等待超时而失败。给临时模型夹具补上续跑场景，保持原会话并重新点击继续，保留首次失败记录。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，用旧包 `build-qwtMKg` 和新包 `build-ErG41i` 分别运行本地模型的同一 PI Bash 任务。待命令确认开始后仅强制结束对应测试桌面的主进程。旧包的 Host 和命令在约 2.5 秒后仍活跃，随后手动清理。新包的 Host 和命令在约 0.51 秒内均退出，无需补发信号。用原数据目录重启，界面显示已停止，SQLite 和本地模型请求计数保持 1 项和 1 次。显式继续后，最终在原会话执行写入与命令校验，磁盘内容匹配预期。
+- 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 25/25，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。新包构建、严格深度签名及 Git 差异检查通过。
+- 遗留问题：本次覆盖本地模型、桌面主进程单独退出和受控命令。系统断电、Host 同时被强制结束、不同操作系统另验。脱敏日志见 `/tmp/moos-life-*.log`。
+- 对应 Git 提交：唯一说明 `fix(P03.13): stop the PI host when the desktop exits`，用 `git log --all --oneline --grep='^fix(P03.13): stop the PI host when the desktop exits$'` 查询。
