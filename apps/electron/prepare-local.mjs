@@ -70,7 +70,9 @@ await writeFile(join(appSource, 'package.json'), JSON.stringify({
   name: manifest.name, productName: manifest.productName, version: manifest.version,
   main: manifest.main, type: manifest.type,
 }));
-for (const file of ['main.mjs', 'host.mjs']) await cp(join(source, file), join(appSource, file));
+for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs']) {
+  await cp(join(source, file), join(appSource, file));
+}
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion }));
 await cp(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/icon.icns'), join(resources, 'moos.icns'));
 

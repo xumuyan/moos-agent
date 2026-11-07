@@ -787,3 +787,13 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 构建本机包。签名 deep/strict 通过，包内图标与现有 Moos 图标字节一致，Finder 实际显示名称及图标。全新配置启动无登录门槛，首页及设置入口通过。默认工作区独立，退出后回环监听消失。使用拒绝外网的浏览器代理重启后，原包皮肤能应用。装入验收插件后，从新 Electron 窗口触发 PI 写文件和 bash，实际文件内容通过。证据 `apps/electron/evidence.json`。
 - 遗留问题：Dock 视觉核对工具超时，完整系统离线与设置用量尚待验收。此本机包依赖现有 DSH Host，正式 PI 路由、权限和真实模型仍待后续阶段接入。
 - 对应 Git 提交：唯一说明 `feat(P03.13): build the local Moos Electron shell`，用 `git log --all --oneline --grep='^feat(P03.13): build the local Moos Electron shell$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
+
+## 2026-11-07 22:07:09 +08:00｜P03.13.1 对齐 DeepSeek macOS 顶栏
+
+- 修改或新增内容：应用采用原版内嵌窗口按钮位置、侧栏材质和全屏布局。界面顶部沿用原版控制区，收起侧栏后保留可见的展开按钮。
+- 遇到的难题：提前给页面标记 macOS 桌面会让原版快捷键插件寻找原版桌面键盘桥，导致工作台未启动。现有配置保留此前安装的品牌插件版本。
+- 处理方式：预加载只提供本机窗口状态，等快捷键服务初始化后再启用原版 macOS 布局。新应用从随包归档离线更新自有品牌插件。
+- 验证结果：Electron 5/5，核心 137/137，前端 175/175，Rust 30/30，PI 探针 5/5，皮肤探针 4/4，文档 53/53。命令记录位于 `/tmp/moos-title-*.log`。本机应用签名深度严格校验通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 对照正在运行的原版 DSH。验证旧 profile 升级后进入工作台，深海女仆工坊皮肤铺到窗口顶部，侧栏收起后展开按钮可用，全屏进出后系统按钮恢复。证据 `apps/electron/titlebar-evidence.json`。
+- 遗留问题：实际视觉验收覆盖 macOS 和深海女仆工坊，截图工具遮挡了窗口按钮颜色。
+- 对应 Git 提交：唯一说明 `fix(P03.13): align the macOS workbench title bar`。可用 `git log --all --oneline --grep='^fix(P03.13): align the macOS workbench title bar$'` 查询。

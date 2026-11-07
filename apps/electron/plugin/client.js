@@ -9,6 +9,9 @@ window.__ModuleLoader__.load({
     }, 'M');
 
     function apply(ctx) {
+      const root = document.documentElement;
+      // Desktop chrome uses the native layout, but shortcuts still use the web transport.
+      if (root.dataset.moosWindow === 'darwin') root.dataset.platform = 'darwin';
       for (const [name, component] of [
         ['sidebar.brand.mark', hidden],
         ['sidebar.brand.name', hidden],
@@ -32,8 +35,9 @@ window.__ModuleLoader__.load({
       ctx.on('dispose', () => {
         observer.disconnect();
         styles.remove();
+        if (root.dataset.moosWindow === 'darwin') delete root.dataset.platform;
       });
     }
-    return { inject: ['slots'], apply };
+    return { inject: ['slots', 'shortcuts'], apply };
   },
 });

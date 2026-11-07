@@ -1,6 +1,8 @@
-import { app, BrowserWindow, dialog, Menu, session } from 'electron';
+import { app, BrowserWindow, dialog, Menu, nativeTheme, session } from 'electron';
 import { cp, mkdir, readFile, lstat, rename, mkdtemp, rm } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { startHost } from './host.mjs';
 
 app.setName('Moos');
@@ -31,6 +33,21 @@ async function seedHome(resources, home) {
   } finally { await rm(staging, { recursive: true, force: true }); }
 }
 
+async function updateShellPlugin(resources, home, cli) {
+  const manifest = 'profiles/web/node_modules/moos-electron-shell/package.json';
+  const readVersion = async root => JSON.parse(await readFile(join(root, manifest), 'utf8')).version;
+  const version = await readVersion(join(resources, 'profile-template'));
+  const installed = await readVersion(home).catch(error => {
+    if (error.code !== 'ENOENT') throw error;
+  });
+  if (installed === version) return;
+  const archive = join(resources, 'profile-template', 'profiles', 'web', 'local-bundles',
+    `moos-electron-shell-${version}.tgz`);
+  await promisify(execFile)(cli, ['plugin', '--profile', 'web', 'add', archive, '--offline', '--save-exact'], {
+    env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' }, timeout: 30000,
+  });
+}
+
 async function launch() {
   const resources = process.resourcesPath;
   const { cli } = JSON.parse(await readFile(join(resources, 'moos-runtime.json'), 'utf8'));
@@ -38,6 +55,7 @@ async function launch() {
   const workspace = join(data, 'workspace');
   await mkdir(workspace, { recursive: true, mode: 0o700 });
   await seedHome(resources, home);
+  await updateShellPlugin(resources, home, cli);
 
   host = startHost({ cli, home, cwd: workspace, onUnexpectedExit() {
     dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
@@ -53,11 +71,41 @@ async function launch() {
   const partition = session.fromPartition('persist:moos-workbench');
   partition.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   partition.setPermissionCheckHandler(() => false);
+  const mac = process.platform === 'darwin';
   const win = new BrowserWindow({
     title: 'Moos', width: 1240, height: 820, minWidth: 760, minHeight: 480, show: false,
+    ...(mac ? {
+      titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 16, y: 18 },
+      vibrancy: 'sidebar', visualEffectState: 'active', backgroundColor: '#00000000',
+    } : {}),
     webPreferences: { session: partition, sandbox: true, contextIsolation: true,
-      nodeIntegration: false, webviewTag: false },
+      nodeIntegration: false, webviewTag: false,
+      ...(mac ? { preload: join(resources, 'app', 'window-preload.cjs') } : {}),
+    },
   });
+  if (mac) {
+    const syncFullscreen = () => {
+      if (!win.isDestroyed()) win.webContents.send('moos:window-fullscreen', win.isFullScreen());
+    };
+    win.on('enter-full-screen', syncFullscreen);
+    win.on('leave-full-screen', syncFullscreen);
+    win.webContents.on('did-finish-load', () => {
+      syncFullscreen();
+      // Moos omits the upstream logo, so show the existing panel control at rest.
+      void win.webContents.insertCSS(
+        'html[data-platform="darwin"] [data-sidebar-toggle] > svg { display: inline !important; }',
+      ).catch(() => {});
+    });
+
+    // Keep an opaque backing while macOS reattaches the sidebar material.
+    const syncBackdrop = () => {
+      const hidden = win.isMinimized() || !win.isVisible();
+      win.setVibrancy(hidden ? null : 'sidebar');
+      win.setBackgroundColor(hidden
+        ? (nativeTheme.shouldUseDarkColors ? '#1b1b1c' : '#f9fafb') : '#00000000');
+    };
+    for (const event of ['minimize', 'hide', 'restore', 'show']) win.on(event, syncBackdrop);
+  }
   win.on('page-title-updated', event => event.preventDefault());
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   const preventRemoteNavigation = (event, target) => {

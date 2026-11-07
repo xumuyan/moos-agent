@@ -10,6 +10,7 @@ test('the DSH client extension keeps one Moos mark and owns its title changes', 
   let cleanedUp = false;
   let dispose;
   const document = {
+    documentElement: { dataset: { moosWindow: 'darwin' } },
     title: 'DeepSeek Harness',
     createElement: () => ({ remove() {} }),
     querySelector: () => ({}),
@@ -26,6 +27,8 @@ test('the DSH client extension keeps one Moos mark and owns its title changes', 
   });
 
   const plugin = entry.factory(() => ({ createElement: (element, props, text) => ({ element, props, text }) }));
+  assert.ok(plugin.inject.includes('shortcuts'));
+  assert.equal(document.documentElement.dataset.platform, undefined);
   const renderers = new Map();
   plugin.apply({
     slots: {
@@ -35,6 +38,7 @@ test('the DSH client extension keeps one Moos mark and owns its title changes', 
     on(event, callback) { if (event === 'dispose') dispose = callback; },
   });
   assert.equal(renderers.get('sidebar.brand.mark')(), null);
+  assert.equal(document.documentElement.dataset.platform, 'darwin');
   assert.equal(renderers.get('sidebar.brand.name')(), null);
   assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).text, 'M');
   assert.equal(document.title, 'Moos');
@@ -43,4 +47,5 @@ test('the DSH client extension keeps one Moos mark and owns its title changes', 
   assert.equal(document.title, '深海女仆工坊 · Moos');
   dispose();
   assert.equal(cleanedUp, true);
+  assert.equal(document.documentElement.dataset.platform, undefined);
 });

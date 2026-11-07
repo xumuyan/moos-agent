@@ -1,0 +1,14 @@
+{
+  "id": "E39",
+  "dateBeijing": "2026-11-07",
+  "machine": { "os": "macOS 27.0.1", "arch": "arm64", "electron": "44.7.0" },
+  "acceptance": [
+    "Compared the running original DeepSeek Harness desktop with the local Moos build.",
+    "Reopened Moos with an existing 0.1.0 profile. The bundled shell plugin upgraded offline to 0.1.1 and the workbench loaded.",
+    "The independent system title bar was gone. The native window actions, sidebar toggle and Moos title were present in the accessibility tree.",
+    "Applied the original maid-atelier skin and checked the continuous top edge and the sidebar toggle in the collapsed state.",
+    "Entered fullscreen with the native button and returned through the Window menu. The window controls returned.",
+    "The local bundle passed deep strict signature verification."
+  ],
+  "limits": ["The visual comparison covered macOS and the maid-atelier skin. The screenshot overlay obscured the traffic-light colors."]
+}
