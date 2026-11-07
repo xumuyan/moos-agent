@@ -96,6 +96,10 @@ test('the shipped DSH overlay disables optional built-ins and keeps the package 
   disabled: false
 - id: ui-settings-plugin-inventory
   disabled: false
+- id: cordis-host-runner
+  disabled: false
+- id: ptc-runtime
+  disabled: false
 `);
   const { stdout } = await promisify(execFile)(dshCli, ['web', '--patch', overlay, '--dump-config'], {
     env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' },
@@ -106,6 +110,8 @@ test('the shipped DSH overlay disables optional built-ins and keeps the package 
   }));
   for (const id of ['llm-deepseek', 'llm-deepseek-account', 'llm-pi-ai',
     'tool-executor-native', 'tool-executor-ptc', 'schedule', 'ui-schedule', 'job-controller', 'ui-jobs',
+    'cordis-host-runner', 'cordis-client-runner', 'cordis-inspect-providers', 'ui-cordis', 'ptc-runtime',
+    'harness-dev-context',
     'terminal-controller', 'ui-sidebar-terminal', 'ui-sidebar-browser', 'office-to-pdf',
     'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins', 'directory-picker']) {
     assert.match(rows.get(id) ?? '', /^  disabled: true$/m, id);

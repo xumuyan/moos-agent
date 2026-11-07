@@ -17,6 +17,7 @@ test('the carried Host drops optional packages and their inventory entries, but 
   const keep = ['@deepseek-ai/dsh', '@deepseek-ai/dsh-plugin-manager', '@deepseek-ai/dsh-client-ui-conversation',
     '@deepseek-ai/dsh-llm'];
   const omit = ['@deepseek-ai/dsh-tool-executor-native', '@deepseek-ai/dsh-client-ui-sidebar-terminal',
+    '@deepseek-ai/dsh-cordis-host-runner', '@deepseek-ai/dsh-client-ui-cordis', '@deepseek-ai/dsh-ptc-runtime-node',
     '@deepseek-ai/dsh-experimental-plugin-market-bundle', '@deepseek-ai/libreoffice-kit-darwin-arm64',
     'sherpa-onnx-darwin-arm64'];
   const names = [...keep, ...omit];
@@ -35,6 +36,9 @@ test('the carried Host drops optional packages and their inventory entries, but 
   const llm = 'node_modules/@deepseek-ai/dsh-llm/lib/index.js';
   const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique = new Set();\n}';
   await write(join(dsh, llm), registration);
+  const manager = 'node_modules/@deepseek-ai/dsh-plugin-manager/lib/index.js';
+  const inventorySource = 'const names = [...Object.keys(installation.dependencies ?? {}),\n\t\t\t\t...catalog.keys()];';
+  await write(join(dsh, manager), inventorySource);
   await write(join(resources, 'runtime/bin/node'), 'node wrapper', 0o755);
   await write(join(resources, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'package manager');
   await write(join(resources, 'runtime/primary-runtime/dependencies/python/bin/python'), 'optional office runtime');
@@ -52,15 +56,37 @@ test('the carried Host drops optional packages and their inventory entries, but 
   for (const name of omit) await assert.rejects(stat(join(built, 'node_modules', name)), { code: 'ENOENT' });
   assert.equal(await readFile(join(dsh, llm), 'utf8'), registration);
   assert.match(await readFile(join(built, llm), 'utf8'), /providers\.some\(provider => provider !== "moos-pi"\)/);
+  assert.equal(await readFile(join(dsh, manager), 'utf8'), inventorySource);
+  assert.equal(await readFile(join(built, manager), 'utf8'),
+    'const names = [...Object.keys(installation.dependencies ?? {})];');
   assert.equal((await stat(join(target, 'runtime/bin/node'))).mode & 0o777, 0o755);
   assert.equal(await readFile(join(target, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'utf8'), 'package manager');
   await assert.rejects(stat(join(target, 'runtime/primary-runtime/dependencies/python')), { code: 'ENOENT' });
 
   await write(join(dsh, llm), '// upstream registration changed');
-  assert.throws(() => stageDshRuntime(resources, join(root, 'incompatible')), /Unexpected DSH model registration boundary/);
+  assert.throws(() => stageDshRuntime(resources, join(root, 'incompatible')), /Unexpected DSH source in dsh-llm/);
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
+test('the packaged plugin inventory lists the skin and omits uninstalled catalog offers', {
+  skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
+}, async () => {
+  const resources = join(dirname(dshCli), '..', '..');
+  const installAnchor = join(resources, 'host-runtime', 'dsh', 'node_modules', '@deepseek-ai', 'dsh', 'package.json');
+  const require = createRequire(installAnchor);
+  const { PluginManager } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-plugin-manager')));
+  const packages = PluginManager.prototype.readBundles.call({
+    profile: { dir: join(resources, 'profile-template', 'profiles', 'web'), installAnchor },
+    protectsManager: () => false,
+    declaredRows: () => ({ rows: [], overrides: [] }),
+  });
+  assert.deepEqual(packages.filter(item => item.installed).map(item => item.name).sort(),
+    ['@linxin666/dsh-client-ui-skin-center', 'moos-electron-shell']);
+  for (const name of ['subagent-codex', 'subagent-claude-code', 'cua-bundle']) {
+    assert.ok(!packages.some(item => item.name === '@deepseek-ai/dsh-' + name), name);
+  }
+});
+
 test('the packaged DSH registry accepts PI and rejects external adapters on register and replace', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI',
 }, async () => {

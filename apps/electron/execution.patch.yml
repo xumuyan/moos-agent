@@ -16,6 +16,18 @@
   disabled: true
 - id: subagent-fork-in-process
   disabled: true
+- id: ptc-runtime
+  disabled: true
+- id: cordis-host-runner
+  disabled: true
+- id: cordis-client-runner
+  disabled: true
+- id: cordis-inspect-providers
+  disabled: true
+- id: ui-cordis
+  disabled: true
+- id: harness-dev-context
+  disabled: true
 - id: schedule
   disabled: true
 - id: ui-schedule

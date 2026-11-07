@@ -976,3 +976,13 @@
 - 实际验收与工作区状态：提交前，macOS 27.0.1 arm64 的 Moos `build-t5dJ9K` 正常启动。在独立数据目录中用 0.1.14 的配置和 E55 原版会话副本升级。桌面打开旧会话后历史可见，模型显示「Moos PI · 自动选择」。在该会话发出读取 `package.json` 的任务，界面显示完成和一项实际操作，回复中的包名与文件字段一致。SQLite 确认同一会话只有一个本次 PI 任务，状态成功，唯一工具为 `read`。历史日志保留原请求头并记录新的 `moos-pi/auto` 选择。中继记录两次 GPT-6.1 Sol High 请求，均为 HTTP 200，第二次带工具结果。插件页已安装列表仅有启用的皮肤中心。
 - 遗留问题：本次注册限制覆盖随包 Host 的适配器接口。未来用户选择安装的执行类插件仍需实测其入口、权限和 PI 对接，插件自行运行的进程和网络行为另验。首次回归暴露的旧 Tauri PTY 时序问题未在本项修改。脱敏日志见 `/tmp/moos-pi-only-*.log`。
 - 对应 Git 提交：唯一说明 `fix(P03.13): restrict desktop model routes to PI`，用 `git log --all --oneline --grep='^fix(P03.13): restrict desktop model routes to PI$'` 查询。
+
+## 2026-11-08 03:15:58 +08:00｜P03.13.3、P03.13.7 精简默认插件页和原版运行器
+
+- 修改或新增内容：随包 Host 的插件清单仅从配置和实际安装的依赖取项。预置目录仍可为用户主动安装的包提供元信息。默认移除 Cordis 动态脚本运行器、相应客户端面板、开发提示模块及 PTC Node 运行器。
+- 遇到的难题：旧包已裁剪可选插件文件，但管理器从原版内置目录合成未安装条目。实际点击「实验性插件 → 更多」仍显示 Codex 和 Claude Code 子智能体。另有原版动态脚本执行服务绕开普通会话工具入口。
+- 处理方式：在固定版本的随包管理器取消仅因目录存在而枚举的条目。保留按名称、地址或本地路径安装的常规服务。默认覆盖停用动态执行入口，并从包和共享清单裁剪对应实现。回归核对覆盖优先于旧配置、旧包目录测试失败、新包实际目录通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 打开 `build-qwtMKg` 的全新配置。默认插件页只显示皮肤中心与添加入口。正常桌面经 PI 使用 GPT-6.1 Sol High 读取验收项目的 `package.json`，页面回复与实际包名一致，记录唯一 `read` 操作和成功任务，两次真实请求均为 HTTP 200。退出后使用随包 CLI 的 `plugin --profile web add` 从公开 npm 镜像下载固定版本的自定义插件索引。重启后实际打开「发现」页。用随包 CLI 的 `plugin --profile web remove` 清理测试项后重启，界面恢复只显示皮肤中心。
+- 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 24/24，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 55/55。开发包构建、严格深度签名及 Git 差异检查通过。
+- 遗留问题：这次按需安装验证覆盖一个普通界面插件，未来选定的执行类插件仍须核对其入口及 PI 兼容性。本机开发包和独立发行仍分开验收。脱敏日志见 `/tmp/moos-optional-only-*.log`。
+- 对应 Git 提交：唯一说明 `fix(P03.13): remove default legacy plugin offers and runners`，用 `git log --all --oneline --grep='^fix(P03.13): remove default legacy plugin offers and runners$'` 查询。
