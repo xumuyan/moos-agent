@@ -1,11 +1,11 @@
 import { chmod, cp, mkdir, mkdtemp, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const source = dirname(fileURLToPath(import.meta.url));
 const repo = join(source, '..', '..');
-const dshApp = '/Applications/DeepSeek Harness.app/Contents';
+const dshApp = join(resolve(process.env.MOOS_ELECTRON_DSH_APP ?? '/Applications/DeepSeek Harness.app'), 'Contents');
 const cli = join(dshApp, 'Resources/runtime/cli/bin/dsh');
 const dshVersion = execFileSync('/usr/libexec/PlistBuddy',
   ['-c', 'Print CFBundleShortVersionString', join(dshApp, 'Info.plist')], { encoding: 'utf8' }).trim();
@@ -79,8 +79,25 @@ await writeFile(join(appSource, 'package.json'), JSON.stringify({
 for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs']) {
   await cp(join(source, file), join(appSource, file));
 }
-await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion }));
+const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
+await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion, includesPiFixture }));
 await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));
+if (includesPiFixture) {
+  const runtime = join(resources, 'pi-fixture');
+  await mkdir(runtime);
+  for (const file of ['package.json', 'package-lock.json']) await cp(join(repo, file), join(runtime, file));
+  execFileSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
+    { cwd: runtime, stdio: 'inherit' });
+  for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-adapter/index.mjs',
+    'services/agent/store.mjs', 'services/agent/scheduler.mjs', 'services/agent/fixture.mjs',
+    'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
+    'services/agent/usage.mjs']) {
+    const destination = join(runtime, file);
+    await mkdir(dirname(destination), { recursive: true });
+    await cp(join(repo, file), destination);
+  }
+  await cp(join(source, 'pi-fixture.patch.yml'), join(runtime, 'profile.patch.yml'));
+}
 await cp(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/icon.icns'), join(resources, 'moos.icns'));
 
 const setInfo = async (info, fields) => {

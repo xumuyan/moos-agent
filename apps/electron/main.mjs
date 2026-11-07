@@ -50,17 +50,25 @@ async function updateShellPlugin(resources, home, cli) {
 
 async function launch() {
   const resources = process.resourcesPath;
-  const { cli } = JSON.parse(await readFile(join(resources, 'moos-runtime.json'), 'utf8'));
+  const { cli, includesPiFixture } = JSON.parse(await readFile(join(resources, 'moos-runtime.json'), 'utf8'));
+  const enableFixture = process.env.MOOS_ELECTRON_PI_FIXTURE === '1';
+  if (enableFixture && (!includesPiFixture || !process.env.MOOS_ELECTRON_DATA)) {
+    throw new Error('PI fixture requires a fixture build and an explicit data directory');
+  }
+  const piFixture = enableFixture ? join(resources, 'pi-fixture') : undefined;
   const home = join(data, 'dsh');
   const workspace = join(data, 'workspace');
   await mkdir(workspace, { recursive: true, mode: 0o700 });
   await seedHome(resources, home);
   await updateShellPlugin(resources, home, cli);
 
-  host = startHost({ cli, home, cwd: workspace, executionPatch: join(resources, 'execution.patch.yml'), onUnexpectedExit() {
-    dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
-    app.quit();
-  } });
+  host = startHost({
+    cli, home, cwd: workspace, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
+    onUnexpectedExit() {
+      dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
+      app.quit();
+    },
+  });
   const address = await host.ready;
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { role: 'appMenu', label: 'Moos' },

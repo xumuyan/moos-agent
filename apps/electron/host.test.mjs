@@ -38,7 +38,7 @@ test('runs the host on loopback and waits for its actual shutdown', async t => {
     if (process.argv.slice(2).join(' ') !==
         'web --patch ' + process.cwd() + '/execution.patch.yml --host 127.0.0.1 --port 0 --no-open'
         || process.env.DSH_HOME !== process.cwd() || process.env.MOOS_ELECTRON_WORKSPACE_ROOT !== process.cwd()
-        || process.env.DSH_TELEMETRY_DISABLED !== '1') process.exit(8);
+        || process.env.DSH_TELEMETRY_DISABLED !== '1' || process.env.MOOS_ELECTRON_PI_RUNTIME) process.exit(8);
     console.log('dsh web: http://example.test:43123/?token=${token}');
     console.log(${JSON.stringify(line)});
     setInterval(() => {}, 1000);
@@ -52,10 +52,23 @@ test('runs the host on loopback and waits for its actual shutdown', async t => {
   await stopping;
 });
 
+test('the opt-in fixture runs inside the existing host with its own model overlay', async t => {
+  const config = await hostFixture(t, `
+    const fixture = process.cwd() + '/fixture';
+    if (process.env.MOOS_ELECTRON_PI_RUNTIME !== fixture ||
+        process.argv.slice(5, 7).join(' ') !== '--patch ' + fixture + '/profile.patch.yml') process.exit(8);
+    console.log(${JSON.stringify(line)});
+    setInterval(() => {}, 1000);
+  `);
+  const host = startHost({ ...config, piFixture: join(config.home, 'fixture'), timeoutMs: 2000 });
+  t.after(() => host.stop());
+  assert.equal((await host.ready).origin, 'http://127.0.0.1:43123');
+});
+
 test('the shell never exposes or dispatches upstream model tool calls', async () => {
   let executor;
   const unregister = () => {};
-  applyShell({
+  await applyShell({
     effect: setup => assert.equal(setup(), unregister),
     tools: { setExecutor(value) { executor = value; return unregister; } },
   });

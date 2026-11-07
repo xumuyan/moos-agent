@@ -89,6 +89,7 @@ export async function startFixture({ longDelayMs = 605000 } = {}) {
       if (lastUser < 0) return reply(res, 400, 'Fixture user message required');
       const text = messageText(messages[lastUser].content);
       if (/\bMOOS_FIXTURE_AUTH_FAIL\b/.test(text)) return reply(res, 401, 'fixture upstream SECRET detail');
+      if (/\bMOOS_FIXTURE_RATE_LIMIT\b/.test(text)) return reply(res, 429, 'fixture rate limit');
       if (/\bMOOS_FIXTURE_LONG\b/.test(text)) {
         await delay(longDelayMs);
         return stream(res, { content: '完成 LONG' }, 'stop');

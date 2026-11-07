@@ -818,3 +818,13 @@
 - 遗留问题：原版会话驱动仍保留，正式 Moos 调度、单任务停止、跨项目串并行、权限和真实模型待后续验收。尚未逐一验收第三方执行插件。P03.13.3 保持未完成。
 - 推送处理：首次推送因默认 Git 凭据的账号无写权限收到 403。本机 GitHub CLI 已登录有写权限的仓库账号，重试时仅为该命令指定 CLI 凭据助手，远程结果通过完整提交号核对。
 - 对应 Git 提交：唯一说明 `feat(P03.13): disable upstream Electron task execution`，用 `git log --all --oneline --grep='^feat(P03.13): disable upstream Electron task execution$'` 查询。
+
+## 2026-11-07 23:27:50 +08:00｜P03.13.3 Electron 内置 PI 调度验收
+
+- 修改或新增内容：在可选验收构建中内置 PI SDK 1.5.0 和本地模拟模型路由，复用 Moos Scheduler、SQLite、工作区真实路径和停止信号。保存 DSH 会话与 Moos 会话映射。新增构建时指定固定版本上游 App 路径的入口。同步用户对线上模型、同条件对照和仅预装皮肤中心的最新范围。
+- 遇到的难题：固定 DSH App 的原安装位置在验收期间消失。当前固定安装包还没有上游源码里的会话「继续生成」接口。首次尝试用 503 验证重试时，现有代理剥离响应正文后无法确认是传输错误。
+- 处理方式：从本机已挂载的 0.2.2-rc.1 镜像读取固定 App，保留在忽略目录供本机开发包引用。将验收限定在显式测试数据目录的 workspace 子目录与固定指令。用 429 验证安全错误映射和显式重发；固定版原生重试入口另行接入。
+- 验证结果：Electron（含固定 DSH CLI 及真实 PI SDK）9/9，`npm test` 137/137，`npm run test:desktop-ui -- --maxWorkers=2` 57 文件 175/175，`npm run test:desktop-product` 30/30，PI 探针 5/5，皮肤探针 4/4，`npm run test:docs` 53/53。构建及深度严格签名校验通过。脱敏检查日志见 `/tmp/moos-dispatch-*.log`。
+- 实际验收与工作区状态：提交前使用 macOS 27.0.1 arm64、Electron 44.7.0 和深海女仆工坊原皮肤。全新验收 profile 从随包路由执行真实 PI 写文件和 bash，无需另装 PI 探针。通过 DSH 的浏览式目录选择器添加第二项目，切换后确认第二项目先完成，同目录另一会话仍排队。回到首个会话点击停止，界面显示已停止，目标命令进程退出，队列随后写入正确文件。模拟认证和限流的错误不含上游正文；手动重发 429 测试产生一个新的失败任务，随后正常任务成功。自动测试另外覆盖符号链接目录别名和 SQLite 重开后的会话映射。
+- 遗留问题：本机验收只覆盖专用临时项目和固定输入。固定运行时缺少原生手动重试入口，后台执行、真实权限、线上模型和同条件对照待验收。可选插件收敛范围已记入计划。
+- 对应 Git 提交：唯一说明 `feat(P03.13): route Electron fixture tasks through PI scheduler`，用 `git log --all --oneline --grep='^feat(P03.13): route Electron fixture tasks through PI scheduler$'` 查询。
