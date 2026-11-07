@@ -155,9 +155,14 @@ async function launch() {
     verifyWorkbench(event);
     return turns.read(sessionId, startSeq);
   });
+  ipcMain.handle('moos:pi-active', event => {
+    verifyWorkbench(event);
+    return turns.active();
+  });
   win.once('closed', () => {
     ipcMain.removeHandler('moos:pi-usage');
     ipcMain.removeHandler('moos:pi-turn');
+    ipcMain.removeHandler('moos:pi-active');
     usage.close();
     turns.close();
   });

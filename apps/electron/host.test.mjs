@@ -90,6 +90,8 @@ test('the shipped DSH overlay disables optional built-ins and keeps the package 
   disabled: false
 - id: schedule
   disabled: false
+- id: job-controller
+  disabled: false
 - id: terminal-controller
   disabled: false
 - id: ui-settings-plugin-inventory
@@ -103,12 +105,13 @@ test('the shipped DSH overlay disables optional built-ins and keeps the package 
     return [row.slice(0, end), row.slice(end + 1)];
   }));
   for (const id of ['llm-deepseek', 'llm-deepseek-account', 'llm-pi-ai',
-    'tool-executor-native', 'tool-executor-ptc', 'schedule', 'ui-schedule',
+    'tool-executor-native', 'tool-executor-ptc', 'schedule', 'ui-schedule', 'job-controller', 'ui-jobs',
     'terminal-controller', 'ui-sidebar-terminal', 'ui-sidebar-browser', 'office-to-pdf',
-    'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins']) {
+    'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins', 'directory-picker']) {
     assert.match(rows.get(id) ?? '', /^  disabled: true$/m, id);
   }
-  for (const id of ['plugin-manager', 'ui-plugin-manager', 'ui-sidebar', 'ui-sidebar-files', 'ui-conversation']) {
+  for (const id of ['plugin-manager', 'ui-plugin-manager', 'ui-sidebar', 'ui-sidebar-files', 'ui-conversation',
+    'moos-directory-picker-browse', 'moos-directory-picker-browser-ui']) {
     assert.ok(rows.has(id), id);
     assert.doesNotMatch(rows.get(id), /^  disabled: true$/m, id);
   }

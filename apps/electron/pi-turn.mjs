@@ -17,6 +17,18 @@ function workspacePath(cwd, path) {
 export function createPiTurnReader(dbPath, timelinePayload) {
   let db;
   return {
+    active() {
+      db ??= new DatabaseSync(dbPath, { readOnly: true });
+      return db.prepare(`
+        SELECT tasks.id, substr(settings.key, 13) AS sessionId, tasks.status,
+          substr(projects.name, 1, 120) AS project
+        FROM tasks JOIN projects ON projects.id = tasks.projectId
+        JOIN settings ON settings.value = tasks.conversationId
+          AND settings.key >= 'dsh-session:' AND settings.key < 'dsh-session;'
+        WHERE tasks.status IN ('queued', 'running')
+        ORDER BY tasks.status = 'queued', tasks.rowid LIMIT 128
+      `).all().filter(task => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(task.sessionId));
+    },
     read(sessionId, startSeq) {
       if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
         || startSeq !== null && startSeq !== 'retry' && (!Number.isSafeInteger(startSeq) || startSeq < 0)) {

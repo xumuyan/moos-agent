@@ -8,8 +8,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   const document = { documentElement: null };
   let ready;
   let fullscreen;
-  let usage;
-  let turn;
+  const bridges = new Map();
   const messages = [];
   runInNewContext(code, {
     document,
@@ -20,13 +19,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
     require: name => {
       assert.equal(name, 'electron');
       return {
-        contextBridge: { exposeInMainWorld: (key, value) => {
-          if (key === 'moosUsage') usage = value;
-          else {
-            assert.equal(key, 'moosTurn');
-            turn = value;
-          }
-        } },
+        contextBridge: { exposeInMainWorld: (key, value) => bridges.set(key, value) },
         ipcRenderer: {
           on: (event, callback) => {
             assert.equal(event, 'moos:window-fullscreen');
@@ -43,8 +36,12 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin', fullscreen: 'true' });
   fullscreen({}, false);
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin' });
-  usage.summary();
-  usage.latest('session-id');
-  turn('session-id', 12);
-  assert.deepEqual(messages, [['moos:pi-usage', null], ['moos:pi-usage', 'session-id'], ['moos:pi-turn', 'session-id', 12]]);
+  assert.deepEqual([...bridges.keys()], ['moosUsage', 'moosTurn', 'moosActiveTasks']);
+  bridges.get('moosUsage').summary();
+  bridges.get('moosUsage').latest('session-id');
+  bridges.get('moosTurn')('session-id', 12);
+  bridges.get('moosActiveTasks')();
+  assert.deepEqual(messages, [
+    ['moos:pi-usage', null], ['moos:pi-usage', 'session-id'], ['moos:pi-turn', 'session-id', 12], ['moos:pi-active'],
+  ]);
 });

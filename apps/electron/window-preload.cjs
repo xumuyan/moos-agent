@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('moosUsage', {
   latest: sessionId => ipcRenderer.invoke('moos:pi-usage', sessionId),
 });
 contextBridge.exposeInMainWorld('moosTurn', (sessionId, startSeq) => ipcRenderer.invoke('moos:pi-turn', sessionId, startSeq));
+contextBridge.exposeInMainWorld('moosActiveTasks', () => ipcRenderer.invoke('moos:pi-active'));
 
 let fullscreen = false;
 function syncLayout() {

@@ -148,6 +148,42 @@ window.__ModuleLoader__.load({
           data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null) : null);
     }
 
+    const taskPanel = 'moos-pi-tasks';
+    const taskIcon = ({ size }) => createElement('svg', { width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, 'aria-hidden': true },
+    createElement('path', { d: 'M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1', strokeLinecap: 'round' }));
+
+    function PiTasks({ openSession, getTitle }) {
+      const [tasks, setTasks] = useState();
+      const [error, setError] = useState(false);
+      useEffect(() => {
+        let disposed = false;
+        let timer;
+        async function refresh() {
+          try {
+            const rows = await window.moosActiveTasks();
+            if (!disposed) { setTasks(rows); setError(false); }
+          } catch {
+            if (!disposed) setError(true);
+          }
+          if (!disposed) timer = setTimeout(refresh, 1000);
+        }
+        void refresh();
+        return () => { disposed = true; clearTimeout(timer); };
+      }, []);
+      return createElement('section', { 'data-moos-pi-tasks': '', 'aria-label': '后台任务' },
+        createElement('div', null,
+        createElement('h1', null, '后台任务'),
+        createElement('p', null, '查看各工作区正在执行或排队的 PI 任务。'),
+        error || !tasks?.length ? createElement('p', { role: 'status' }, error ? '任务状态读取失败，正在重试。'
+          : tasks ? '当前没有正在执行或排队的任务。' : '正在读取任务…') :
+          createElement('ul', null, tasks.map(task => createElement('li', { key: task.id },
+            createElement('div', null, createElement('strong', null, task.project),
+              createElement('span', null, turnStates[task.status])),
+            createElement('button', { type: 'button', onClick: () => openSession(task.sessionId) },
+              getTitle(task.sessionId) || '打开会话'))))));
+    }
+
     function apply(ctx) {
       const root = document.documentElement;
       // Desktop chrome uses the native layout, but shortcuts still use the web transport.
@@ -183,6 +219,16 @@ window.__ModuleLoader__.load({
           name: 'conversation.chat.turnTail', id: 'moos-pi-turn', inject: sessionProps,
         }, PiTurnTail));
       }
+      if (window.moosActiveTasks) {
+        ctx.slots.inject('main', () => ctx.slots.register({
+          name: 'main', key: taskPanel,
+          inject: () => ({ openSession: id => ctx.uiWorkspace.openSession(id),
+            getTitle: id => ctx.sessions.list.getSnapshot().byId[id]?.title }),
+        }, PiTasks));
+        ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+          name: 'sidebar.panellist', id: taskPanel, order: 18, label: () => '后台任务',
+        }, taskIcon));
+      }
       const styles = document.createElement('style');
       styles.textContent = `
         [data-skin-chrome="titlebar-brand"] { display: none !important; }
@@ -197,6 +243,14 @@ window.__ModuleLoader__.load({
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-pi-retry] { display: flex; align-items: center; gap: 8px; font-size: 13px; }
         [data-moos-pi-retry] button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
+        [data-moos-pi-tasks] { box-sizing: border-box; height: 100%; overflow: auto; padding: 32px clamp(18px, 5vw, 56px); }
+        [data-moos-pi-tasks] > div { max-width: 720px; padding: 20px; border-radius: 14px; background: var(--dsw-alias-bg-module-platform, Canvas); }
+        [data-moos-pi-tasks] h1 { margin: 0; font-size: 23px; }
+        [data-moos-pi-tasks] p { margin: 8px 0 20px; color: var(--dsw-alias-label-secondary); }
+        [data-moos-pi-tasks] ul { max-width: 720px; display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+        [data-moos-pi-tasks] li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; }
+        [data-moos-pi-tasks] li span { margin-inline-start: 8px; color: var(--dsw-alias-label-secondary); font-size: 13px; }
+        [data-moos-pi-tasks] button { cursor: pointer; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 5px 9px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
         [data-moos-pi-turn] { display: grid; gap: 8px; margin-bottom: 8px; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) ul { list-style: none; padding: 0; margin: 6px 0 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
@@ -221,6 +275,6 @@ window.__ModuleLoader__.load({
         if (root.dataset.moosWindow === 'darwin') delete root.dataset.platform;
       });
     }
-    return { inject: ['slots', 'shortcuts', 'sessions'], apply };
+    return { inject: ['slots', 'shortcuts', 'sessions', 'uiWorkspace'], apply };
   },
 });

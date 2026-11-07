@@ -87,3 +87,39 @@ test('the workspace summary detects command changes without including pre-existi
   ], limited: false });
   assert.equal(git('ls-files', '-s'), index);
 });
+
+test('the background panel reads live PI work across projects and excludes finished or unmapped tasks', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-active-')));
+  const dbPath = join(root, 'test.sqlite');
+  const store = new Store({ dbPath });
+  const reader = createPiTurnReader(dbPath, timelinePayload);
+  t.after(async () => {
+    reader.close();
+    store.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const first = await store.addProject(root);
+  const second = await store.addProject(tmpdir());
+  function make(project, session, status) {
+    const conversation = store.createConversation(project.id);
+    if (session) store.setSetting('dsh-session:' + session, conversation.id);
+    const task = store.createTask({ conversationId: conversation.id, message: 'private prompt' });
+    return store.updateTask(task.id, { status });
+  }
+  const queued = make(first, 'queued-session', 'queued');
+  const running = make(second, 'running-session', 'running');
+  make(first, 'finished-session', 'succeeded');
+  make(first, 'interrupted-session', 'interrupted');
+  make(first, undefined, 'running');
+  const rows = () => reader.active().map(row => ({ ...row }));
+  assert.deepEqual(rows(), [
+    { id: running.id, sessionId: 'running-session', status: 'running', project: second.name },
+    { id: queued.id, sessionId: 'queued-session', status: 'queued', project: first.name },
+  ]);
+  assert.doesNotMatch(JSON.stringify(rows()), /private prompt|\/private\/tmp/);
+  store.updateTask(running.id, { status: 'cancelled' });
+  store.updateTask(queued.id, { status: 'running' });
+  assert.deepEqual(rows().map(row => [row.id, row.status]), [[queued.id, 'running']]);
+  store.updateTask(queued.id, { status: 'failed' });
+  assert.deepEqual(rows(), []);
+});

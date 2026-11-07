@@ -945,3 +945,13 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，以 `PATH=/usr/bin:/bin:/usr/sbin:/sbin` 启动 `build-xVdpyZ`。复用 E52 同一 Git 基线及指令哈希，经同一线上中转使用 GPT-6.1 Sol High。默认工作区模式下 `npm test` 10/10，`git diff --check` 和 `git status --short` 退出 0，零审批。外部测试 10/10、独立验收 5/5，只修改指定的三个文件，无未跟踪文件。10 次请求均为 High 和 HTTP 200，首个响应动作 19.03 秒，首请求到末次用量 107.32 秒，服务报告 73,576 Token。
 - 遗留问题：这次只重跑了 Moos，缓存和模型行为存在波动。最小 PATH 环境中的 `rg` 和系统 Python 未覆盖，真实使用中分别出现找不到命令与加载库失败。其他 Node 安装器、不同系统以及旧 PTY 的时序问题仍待验。脱敏日志见 `/tmp/moos-toolchain-*.log`。
 - 对应 Git 提交：唯一说明 `fix(P03.13): enable confined npm and Git toolchains`，用 `git log --all --oneline --grep='^fix(P03.13): enable confined npm and Git toolchains$'` 查询。
+
+## 2026-11-08 02:48:31 +08:00｜P03.13.3 跨项目后台任务入口
+
+- 修改或新增内容：原版侧栏增加「后台任务」，展示 Moos PI 调度器中正在执行和排队的任务。点击一项跳转到对应会话，可用现有停止按钮控制该任务。复用现有 SQLite 与工作台来源校验。工作区选择器固定使用应用内浏览模式。
+- 遇到的难题：初版在 macOS 使用 DSH 自动目录选择，启动脱离 Moos 窗口的辅助选框；皮肤背景和后台页标题重叠。新增 IPC 后，旧的 preload 测试仍假设只注册两个桥接对象。
+- 处理方式：保留原版目录浏览组件，关闭自动选择外置选框的入口。为后台页使用工作台主题的底色。后台列表只读取工作区显示名、会话关联和任务状态；更新 preload 断言验证三个桥接及其参数。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 22/22，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 54/54。构建、深度严格签名和 Git 差异检查通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-JAlxJ3` 正常模式，用应用内选择器添加临时工作区。B1 和 A1 处于不同工作区并行执行，A2 与 A1 同目录，在后台页显示排队。点击 A1 回到会话并停止，中继仅收到 A1 取消，随后 A2 才发出请求。B1 和 A2 的独立回复精确匹配，界面依次移除结束任务并返回空状态。真实模型请求均为 GPT-6.1 Sol High，三次响应均 HTTP 200。使用受控中继延迟真实响应，方便观察状态。实际查看默认已安装插件仅显示启用的皮肤中心。
+- 遗留问题：后台列表覆盖 Moos 正在运行期间的会话任务。可选定时任务、退出后持续运行与其他执行类插件仍须单独验收。这次是调度与界面验收，性能沿用 E52–E53 的独立口径。脱敏日志见 `/tmp/moos-active-*.log`。
+- 对应 Git 提交：唯一说明 `feat(P03.13): show live PI tasks across workspaces`，用 `git log --all --oneline --grep='^feat(P03.13): show live PI tasks across workspaces$'` 查询。
