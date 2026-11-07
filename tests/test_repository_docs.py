@@ -673,5 +673,16 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual((ROOT / 'apps/desktop/src-tauri/icons/moos-v1/icon.ico').read_bytes()[:4], b'\x00\x00\x01\x00')
 
 
+    def test_full_dsh_design_keeps_scope_and_rightbar_confirmation_explicit(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        spec = (ROOT / 'docs/superpowers/specs/2026-11-07-dsh-full-frontend-design.md').read_text()
+        for number in range(1, 6):
+            self.assertIn(f'- [ ] P03.{number} ', plan)
+        for term in ('右栏按需打开', 'Codex', 'Moos UI Adapter', 'fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159',
+                     '不安装或启动DSH服务', 'private/credentials.json', '逐页对照', 'MIT'):
+            self.assertIn(term, spec)
+        self.assertIn('尚未实施', spec)
+
+
 if __name__ == '__main__':
     unittest.main()

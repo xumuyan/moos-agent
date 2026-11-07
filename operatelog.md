@@ -616,3 +616,18 @@
 - 体积与恢复：Tauri.app231.40MiB，签名常规文件逻辑246378917字节、磁盘284580KiB，完整内置运行时无需额外下载；未产DMG。安装前备份本机临时moos-before-icon-dxy96nsw/Moos.app。
 - 遗留问题：Dock直接显示未独立观测，Finder已实测；未改应用内部rail代码图标、iPhone图标或宣称Windows可用。P02.9、GLM、账单对账和小包目标维持未完成；既有Vite大chunk和jsdom NaN高度警告保留。
 - 对应 Git 提交：唯一说明 `feat(P02.V3): bundle and install Moos application icon`；查询 `git log --all --oneline --grep='^feat(P02.V3): bundle and install Moos application icon$'`。最终检查后提交推送并核对远程，不预填自身哈希。
+
+
+## 2026-11-07 08:49:20 +08:00｜P03：DSH 全面前端设计与已确认右栏范围
+
+- 时间说明：此为本轮设计整理北京时间，对应唯一提交说明 `docs(P03): specify full DSH frontend migration` 的提交前文档工作区。
+- 修改或新增内容：新增完整书面设计，明确用户选择整体DSH和按需右栏覆盖此前Codex视觉/去右栏要求，保留Moos品牌图标及后端；逐项映射原版AppFrame/columns、SidebarRoot、ChatView、输入/轨迹、SidebarRight、设置和主题组件至Moos适配层。PLAN增加P03.1—P03.5依赖、未勾选状态与实际逐页验收标准，新增设计契约测试。
+- 遇到的难题：此前采用风格参考但积累多层样式覆盖，不能据局部颜色相似宣称完整对齐；原版组件依赖运行框架注入，不能直接拷贝后连接假数据。右栏原需求曾明确移除，必须以本次最新确认覆盖且不删除旧验收历史。
+- 处理方式：用户已确认整体按DSH且右栏按需打开。只读核对GitHub及本地原版，ls-remote master与本地均fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159。设计采用真实展示组件/布局算法移植与Moos UI Adapter，固定MIT基线、保留版权，排除原版后端/品牌/Node Web Server。尚无文件编辑/Git后端时不放假入口；现有终端不能重复挂载创建实例。依brainstorming书面复核要求，已向用户提供具体文档范围复核，实施未开始。
+- 验证结果：设计自审无未定义阶段、占位承诺或提前完成勾选；新增Python契约检查P03五项均未完成、右栏确认、固定上游/许可/密钥边界与逐页对照标准。完整自动检查结果结束后补记；本轮不修改应用代码或安装包，不发送模型任务。
+- 遗留问题：本轮仅完成实施前设计，页面仍是原安装版；书面范围待复核后执行P03.1，逐阶段自动测试与安装GUI实际对照通过才能完成。P02.9真实GLM/账单、小包、手机、Windows等不由此自动完成。
+- 对应 Git 提交：唯一说明 `docs(P03): specify full DSH frontend migration`；查询 `git log --all --oneline --grep='^docs(P03): specify full DSH frontend migration$'`。检查通过后提交并推送GitHub，核对远程，不预填自身哈希。
+
+- 后续确认：本轮用户已答复“按这份设计直接实施”，书面设计复核门解除，按原计划进入实施，不再重复询问同一范围。核心首轮136/137，其中现有proxy body-cap网络测试在fetch写入阶段ECONNRESET，未修改产品或测试，重跑完整核心以确认是否为瞬态；该失败保留，不冒充首轮全通过。
+
+- 本轮最终设计基线检查：完整核心重跑137/137（首轮网络瞬态失败保留），完整UI122/122、原生27/27、文档47/47与git diff --check通过。用户已确认书面范围，新增同名实施计划，后续直接按计划推进；本提交仅设计基线，未更改安装页面。
