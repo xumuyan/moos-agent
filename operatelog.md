@@ -659,3 +659,13 @@
 - 实际验收与工作区状态：arm64/macOS27.0.1，原版1280×820空态/设置与固定源码；Moos整合V01—V05后的组合工作区完成GUI，最终签名deep/strict通过、15388项常规文件逐一哈希匹配，主程序SHA256 `257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5`。App9670→单Node9676，无新增生产Web服务；.app232.42MiB、常规文件逻辑247446378字节/磁盘285624KiB，完整内置运行时。此前候选1138/f7ed哈希只为中间包，最终以此为准。证据apps/desktop/evidence/p03-dsh-detail.json，私有截图/tmp/moos-dsh-detail-20261107/；分项提交对应同一组合工作区验收，不声称每个单独中间提交另装过一次。
 - 遗留问题：未逐帧测量动画精确时长、未逐状态像素diff；系统减少动态效果未手工切换，仅媒体查询/时序自动测试。原版macOS零宽侧栏、native vibrancy、wide-table breakout及鲸鱼品牌动画未复制；保留Moos品牌/56px轨道和用户石墨。DSH后端、Windows/iPhone与P02.9/小包等原未完成项不由本轮勾选。
 - 对应 Git 提交：唯一说明 `style(P03.6): align window chrome and panel motion`；查询 `git log --all --oneline --grep='^style(P03.6): align window chrome and panel motion$'`。全部分项完成后推送GitHub main并核对远程HEAD；不预填自身哈希。
+
+## 2026-11-07 10:22:12 +08:00｜P03.6 V02：DSH逐项视觉/动效复核
+
+- 修改或新增内容：真实模型选择移入权限/发送工具行；统计放卡片外、空态工作区置于卡片上方，36/52px文本区、26/32标题。保留终端与插件插槽、权限计划中提示，隐藏冗长说明但悬停/聚焦可查。
+- 遇到的难题：首个GUI候选展开终端时标签较长、左侧78px预留偏挤；调整96px，窄窗终端只显示图标，最终安装实测无重叠。原版未选项目卡片虚线与Moos已选项目实线不能作同状态像素比较。
+- 处理方式：按固定源码与实拍差异修正，保留实际Moos能力，组合工作区验收后分项提交。
+- 验证结果：`npm test`137/137；stable离线`npm run test:desktop-product`27/27；`npm run test:docs`50/50；`npm run build:desktop`及Tauri.app构建通过。UI此前完整44文件135/135；加入图标测试后完整45文件135通过/1失败，失败只在新测试立即断言Modal可见，修正测试等待后`npm --prefix apps/desktop test -- src/settings/SettingsCenter.icons.test.tsx --maxWorkers=1 --testTimeout=60000`1/1通过，其余135及产品代码未再变化。当前136用例均成功执行，不将最后完整命令伪写为136/136。日志在/tmp/moos-dsh-detail-*.log。新增定向时序/位置/表格测试通过，既有大chunk与jsdom NaN高度警告保留。
+- 实际验收与工作区状态：arm64/macOS27.0.1，原版1280×820空态/设置与固定源码；Moos整合V01—V05后的组合工作区完成GUI，最终签名deep/strict通过、15388项常规文件逐一哈希匹配，主程序SHA256 `257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5`。App9670→单Node9676，无新增生产Web服务；.app232.42MiB、常规文件逻辑247446378字节/磁盘285624KiB，完整内置运行时。此前候选1138/f7ed哈希只为中间包，最终以此为准。证据apps/desktop/evidence/p03-dsh-detail.json，私有截图/tmp/moos-dsh-detail-20261107/；分项提交对应同一组合工作区验收，不声称每个单独中间提交另装过一次。
+- 遗留问题：未逐帧测量动画精确时长、未逐状态像素diff；系统减少动态效果未手工切换，仅媒体查询/时序自动测试。原版macOS零宽侧栏、native vibrancy、wide-table breakout及鲸鱼品牌动画未复制；保留Moos品牌/56px轨道和用户石墨。DSH后端、Windows/iPhone与P02.9/小包等原未完成项不由本轮勾选。
+- 对应 Git 提交：唯一说明 `style(P03.6): align composer controls and readings`；查询 `git log --all --oneline --grep='^style(P03.6): align composer controls and readings$'`。全部分项完成后推送GitHub main并核对远程HEAD；不预填自身哈希。

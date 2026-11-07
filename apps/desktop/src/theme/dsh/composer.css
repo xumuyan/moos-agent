@@ -1,34 +1,47 @@
-/* Adapted from deepseek-ai/deepseek-harness, MIT, fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159.
- * Copyright (c) 2026 DeepSeek. See THIRD_PARTY_NOTICES.md.
- * Sources: ui-conversation skeleton/InputBar.module.css and ConversationRoot.module.css.
- * Sender retains Moos submit/cancel, drafts, capability boundaries and usage. */
-.composer-dock { flex: none; position: relative; width: calc(100% - 32px); max-width: calc(var(--dsh-chat-content-width) + 32px); margin: 12px auto 4px; padding: 8px 0 0; border: 0; border-radius: var(--moos-radius-panel, 28px); background: var(--moos-panel); box-shadow: 0 0 0 .5px var(--moos-border), 0 2px 8px #00000008; overflow-anchor: none; }
-.composer-context { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 4px 12px; padding: 0 14px 8px; color: var(--moos-muted); font-size: 12px; line-height: 18px; }
-.composer-context > :last-child { margin-left: auto; }
-.composer .ant-sender, .composer .ant-sender:focus-within { border: 0; box-shadow: none; background: transparent; border-radius: 0; }
-.composer .ant-sender-content { flex-wrap: wrap; padding: 0 8px 6px 14px; gap: 12px; }
-.composer .ant-sender-input { flex-basis: 100%; min-height: 36px; max-height: 336px; padding: 4px 0 0; font-size: 14px !important; line-height: 24px; color: var(--moos-text); caret-color: var(--moos-accent); }
-.composer .ant-sender-actions-list { margin-left: auto; align-self: flex-end; }
-.composer .ant-sender-actions-list .ant-btn { display: inline-grid; place-items: center; width: 34px; min-width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; box-shadow: none; }
-.composer .ant-sender-actions-list .ant-btn-primary { background: var(--moos-send-fill, #3964fe); color: white; }
-.composer .ant-sender-actions-list .ant-btn-primary:disabled { opacity: .4; }
-.composer .permission-control { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 0 12px 6px; color: var(--moos-muted); }
-.composer .permission-control .ant-btn { border: 0; box-shadow: none; background: transparent; color: var(--moos-muted); font-size: 12px; }
-.composer .permission-note { font-size: 11px; }
-.composer .permission-control .ant-tag { margin: 0; font-size: 10px; }
-.composer-footnote { margin: 0; padding: 4px 12px; text-align: center; color: var(--moos-muted); font-size: 10px; line-height: 18px; }
-.composer .model-warning { padding: 0 14px 6px; color: var(--moos-muted); }
-@media (pointer: coarse) { .composer .ant-sender-input { font-size: 16px !important; } }
-
-/* Reference input surface keeps the send action in the editor, not a second row. */
-.composer .ant-sender-content { position:relative; display:flex; flex-wrap:nowrap; padding:0 52px 4px 14px; gap:0; }
-.composer .ant-sender-input { flex-basis:auto; min-height:58px; }
-.composer .ant-sender-actions-list { position:absolute; right:10px; bottom:8px; margin:0; }
-.composer .permission-control { padding-right:48px; flex-wrap:nowrap; }
-.composer .permission-note { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:10px; }
-.composer .permission-control .ant-tag { flex:none; }
-.composer-context { padding-top:6px; padding-bottom:8px; border-top:.5px solid var(--moos-border); font-size:10px; }
+/* Adapted from DeepSeek Harness InputBar / HeroShell / ConversationRoot,
+ * fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159. Copyright (c) 2026 DeepSeek, MIT.
+ * See THIRD_PARTY_NOTICES.md. Actual Moos actions and plugin slots are retained. */
+.composer-dock { flex:none; position:relative; width:calc(100% - 32px); max-width:calc(var(--dsh-chat-content-width) + 32px); margin:12px auto 4px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; overflow-anchor:none; }
+.dsh-composer-card { position:relative; padding-top:8px; border-radius:calc(var(--moos-radius) + 16px); background:var(--moos-panel); box-shadow:0 0 0 .5px var(--moos-border), 0 2px 8px #00000008; }
+.composer .ant-sender, .composer .ant-sender:focus-within { position:static; border:0; box-shadow:none; background:transparent; border-radius:0; }
+.composer .ant-sender-content { position:static; padding:0 14px; gap:0; }
+.composer .ant-sender-input { min-height:36px; max-height:336px; padding:0; font-size:14px!important; line-height:24px; color:var(--moos-text); caret-color:var(--moos-accent); }
+.main-panel:has(.is-chat-ready) .composer .ant-sender-input { min-height:52px; }
+.composer .ant-sender-actions-list { position:absolute; right:8px; bottom:6px; margin:0; }
+.composer .ant-sender-actions-list .ant-btn { display:inline-grid; place-items:center; width:34px; min-width:34px; height:34px; padding:0; border:0; border-radius:50%; box-shadow:none; }
+.composer .ant-sender-actions-list .ant-btn-primary { background:var(--moos-send-fill,#3964fe); color:white; }
+.composer .ant-sender-actions-list .ant-btn-primary:disabled { opacity:.4; }
+.dsh-composer-tools { display:flex; align-items:center; gap:6px; min-height:46px; margin-top:12px; padding:2px 50px 6px 78px; }
+.composer .permission-control { display:flex; align-items:center; min-width:0; gap:4px; padding:0; margin:0; }
+.composer .permission-control .ant-btn { border:0; box-shadow:none; background:transparent; color:var(--moos-muted); font-size:12px; padding:0 4px; }
+/* The policy is still visibly marked as planned. Its full limitation is
+ * discoverable on hover/focus instead of making every composer a notice. */
+.composer .permission-note { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.composer .permission-control .ant-tag { flex:none; margin:0; font-size:10px; }
+.composer .permission-control { cursor:help; }
+.composer .model-select { min-width:0; width:170px; margin-left:auto; }
+.composer .model-select .ant-select-selector { background:transparent!important; border:0!important; box-shadow:none!important; font-size:12px; }
+.composer .terminal-plugin { width:100%; padding:0; margin:0; }
+.composer .terminal-toolbar { position:absolute; left:12px; bottom:10px; min-height:28px; z-index:2; }
+.composer .terminal-toolbar > span { display:none; }
+.composer .terminal-toolbar .ant-btn { font-size:12px; height:28px; }
+.composer .terminal-dock { margin:0 8px 12px; }
+.composer-context { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 12px; min-height:22px; padding:4px 8px 0; margin:0; border:0; color:var(--moos-muted); font-size:11px; line-height:20px; }
+.composer-context > span:first-child { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.main-panel:has(.is-chat-ready) .composer-context > span:first-child { position:absolute; left:8px; top:-32px; max-width:calc(100% - 16px); font-size:13px; color:var(--moos-text); }
 .composer-footnote { display:none; }
-.composer .plugin-composer-note { padding:0 14px 6px; font-size:10px; }
-.composer .terminal-plugin { padding:0 12px; margin-bottom:0; }
-.composer .terminal-toolbar { min-height:26px; }
+.composer .plugin-composer-note { display:block; text-align:center; padding:0 8px; font-size:10px; line-height:16px; color:var(--moos-muted); }
+.composer .model-warning { padding:0 14px 6px; color:var(--moos-muted); }
+@media(max-width:900px) { .composer .model-select { width:140px; } }
+@media(max-width:600px) { .dsh-composer-tools { padding-left:66px; gap:2px; } .composer .model-select { width:120px; } .composer .permission-control .ant-btn { max-width:102px; overflow:hidden; } .composer .permission-control .ant-tag { display:none; } }
+@media(pointer:coarse) { .composer .ant-sender-input { font-size:16px!important; } }
+.composer .permission-control:hover .permission-note,
+.composer .permission-control:focus-within .permission-note { clip-path:none; bottom:44px; left:12px; width:min(360px,calc(100% - 24px)); height:auto; padding:8px 12px; border:.5px solid var(--moos-border); border-radius:8px; background:var(--moos-panel); color:var(--moos-text-secondary); font-size:12px; line-height:20px; box-shadow:0 4px 16px #00000012; z-index:5; }
+/* Native acceptance: the expanded terminal label is wider than “终端”. */
+.dsh-composer-tools { padding-left:96px; }
+@media(max-width:600px) {
+  .dsh-composer-tools { padding-left:44px; }
+  .composer .terminal-toolbar .ant-btn { width:26px; padding:0; font-size:0; }
+  .composer .terminal-toolbar .ant-btn .anticon { font-size:14px; }
+  .composer .permission-control .ant-btn { max-width:72px; }
+}
