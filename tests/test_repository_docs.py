@@ -858,5 +858,36 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(report['moos']['rounds'][1]['promptSha256'], report['dsh']['rounds'][1]['promptSha256'])
 
 
+    def test_pi_vision_probe_keeps_provider_capabilities_and_product_scope_separate(self):
+        evidence = ROOT / 'apps/desktop/evidence/p03-pi-vision-provider-probe.json'
+        report = json.loads(evidence.read_text())
+        self.assertIn('| E62 |', (ROOT / 'PLAN.md').read_text())
+        self.assertEqual(report['mode'], 'isolated-pi-sdk-probe')
+        self.assertFalse(report['limits']['productImageInputVerified'])
+        self.assertFalse(report['limits']['otherModelCapabilitiesVerified'])
+        self.assertFalse(report['limits']['glmRejectionReasonVerified'])
+        self.assertEqual(report['case']['stripes'], 6)
+        self.assertTrue(report['case']['independentRandomImagePerService'])
+        gpt, glm = report['providers']
+        self.assertNotEqual(gpt['imageSha256'], glm['imageSha256'])
+        for provider in (gpt, glm):
+            control, image = provider['control'], provider['image']
+            self.assertTrue(control['exact'])
+            self.assertFalse(control['requests'][0]['containsImage'])
+            self.assertEqual(control['requests'][0]['status'], 200)
+            for sample in (control, image):
+                self.assertEqual(len(sample['requests']), 1)
+                self.assertEqual(sample['requests'][0]['model'], provider['model'])
+                self.assertEqual(sample['tools'], 0)
+            self.assertTrue(image['requests'][0]['containsImage'])
+        self.assertEqual((gpt['model'], gpt['api']), ('gpt-6.1-sol', 'openai-responses'))
+        self.assertEqual(gpt['image']['requests'][0]['reasoningEffort'], 'high')
+        self.assertEqual(gpt['image']['requests'][0]['status'], 200)
+        self.assertTrue(gpt['image']['exact'])
+        self.assertEqual((glm['model'], glm['api']), ('glm-5.3', 'openai-completions'))
+        self.assertEqual(glm['image']['requests'][0]['status'], 400)
+        self.assertFalse(glm['image']['exact'])
+
+
 if __name__ == '__main__':
     unittest.main()

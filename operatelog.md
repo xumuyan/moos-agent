@@ -1027,3 +1027,13 @@
 - 验证结果：`npm --prefix apps/electron test` 使用新包 CLI 27/27，`npm test` 最终 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 56/56。完整构建、深度严格签名及 Git 差异检查通过。
 - 遗留问题：验收覆盖随包执行链和一份合成文本。桌面选择文件的交互以及图片、二进制和更大附件需分项验收。脱敏结果见 `/tmp/moos-attachment-online.log`。
 - 对应 Git 提交：唯一说明 `feat(P03.13): send verified text attachments through PI`，用 `git log --all --oneline --grep='^feat(P03.13): send verified text attachments through PI$'` 查询。
+
+## 2026-11-08 03:59:48 +08:00｜P03.13.5 真实模型图片能力探针
+
+- 修改或新增内容：新增 E62 结构化证据和对应文档回归，区分已验证的模型服务能力与正式桌面的图片入口。
+- 遇到的难题：现有桌面 PI 只声明文本输入，单凭模型名或协议不能确定图片能力。GLM-5.3 的带图请求在当前 Coding Plan 端点返回 HTTP 400。
+- 处理方式：在隔离副本中只打开 PI SDK 的图片能力声明并传入实际 PNG。每个服务先做一次纯文本对照，再发一张独立随机排列的六色 PNG。中继只记录请求模型、档位、状态和是否携带精确图像数据。验收比对完整色块顺序，不记录服务错误正文、凭据或原始请求。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64、PI SDK 1.5.0，使用 `build-MtEX3a` 的运行时副本。两个文本对照均为 HTTP 200 并精确回复。GPT-6.1 Sol High 的 Responses 请求含 PNG，返回 HTTP 200，精确识别六色顺序。GLM Coding Plan 的 GLM-5.3 Chat Completions 请求也含 PNG，返回 HTTP 400。四次尝试各一次线上请求，全部零工具调用，未使用用户图片。
+- 验证结果：`npm --prefix apps/electron test` 使用现有包 CLI 27/27，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 57/57，Git 差异检查通过。
+- 遗留问题：当前结论限于两个实际配置及各一张小图。GLM 的 HTTP 400 原因未证实，其他模型和端点的能力未知。桌面图片入口、能力选择、图片大小和恢复行为仍需接入与验收。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify online PI image capabilities`，用 `git log --all --oneline --grep='^test(P03.13): verify online PI image capabilities$'` 查询。

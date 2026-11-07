@@ -1,0 +1,101 @@
+{
+  "evidence": "E62",
+  "dateBeijing": "2026-11-08",
+  "piSdk": "1.5.0",
+  "macOS": "27.0.1",
+  "architecture": "arm64",
+  "baseMoosRevision": "2def8d1d4129a50e41aeb9fd6948fef82a86013a",
+  "mode": "isolated-pi-sdk-probe",
+  "case": {
+    "imageFormat": "PNG",
+    "width": 384,
+    "height": 96,
+    "stripes": 6,
+    "independentRandomImagePerService": true,
+    "textControl": true
+  },
+  "providers": [
+    {
+      "name": "OpenAI relay",
+      "model": "gpt-6.1-sol",
+      "api": "openai-responses",
+      "thinkingLevel": "high",
+      "imageSha256": "9a022524120f321e7d7bf14f0e60da98f45ff80910aadd2aaaef25bd09f62c0c",
+      "imageBytes": 922,
+      "control": {
+        "exact": true,
+        "errorCode": null,
+        "tools": 0,
+        "elapsedMs": 3154,
+        "requests": [
+          {
+            "model": "gpt-6.1-sol",
+            "reasoningEffort": "high",
+            "containsImage": false,
+            "status": 200
+          }
+        ],
+        "usageResponses": 1
+      },
+      "image": {
+        "exact": true,
+        "errorCode": null,
+        "tools": 0,
+        "elapsedMs": 8778,
+        "requests": [
+          {
+            "model": "gpt-6.1-sol",
+            "reasoningEffort": "high",
+            "containsImage": true,
+            "status": 200
+          }
+        ],
+        "usageResponses": 1
+      }
+    },
+    {
+      "name": "GLM Coding Plan",
+      "model": "glm-5.3",
+      "api": "openai-completions",
+      "thinkingLevel": "off",
+      "imageSha256": "d07c579f1258506484075ebf7e79c0ac919bbf268815b1103d70bf9e6b2fa66d",
+      "imageBytes": 922,
+      "control": {
+        "exact": true,
+        "errorCode": null,
+        "tools": 0,
+        "elapsedMs": 3643,
+        "requests": [
+          {
+            "model": "glm-5.3",
+            "reasoningEffort": null,
+            "containsImage": false,
+            "status": 200
+          }
+        ],
+        "usageResponses": 1
+      },
+      "image": {
+        "exact": false,
+        "errorCode": "internal",
+        "tools": 0,
+        "elapsedMs": 167,
+        "requests": [
+          {
+            "model": "glm-5.3",
+            "reasoningEffort": null,
+            "containsImage": true,
+            "status": 400,
+            "explicitImageRejection": false
+          }
+        ],
+        "usageResponses": 0
+      }
+    }
+  ],
+  "limits": {
+    "productImageInputVerified": false,
+    "otherModelCapabilitiesVerified": false,
+    "glmRejectionReasonVerified": false
+  }
+}
