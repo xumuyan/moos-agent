@@ -96,9 +96,15 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       if (routingTest && text.includes('MOOS_ROUTE_')) {
         const calls = messages.slice(lastUser + 1).filter(message => message.role === 'assistant')
           .flatMap(message => message.tool_calls ?? []);
-        if (text.includes('MOOS_ROUTE_QUOTA')) {
+        const errorCode = Object.entries({
+          MOOS_ROUTE_QUOTA: 'insufficient_quota',
+          MOOS_ROUTE_GLM_QUOTA: '1310',
+          MOOS_ROUTE_GLM_MODEL: '1311',
+          MOOS_ROUTE_GLM_CREDENTIAL: '1315',
+        }).find(([marker]) => text.includes(marker))?.[1];
+        if (errorCode) {
           res.writeHead(429, { 'content-type': 'application/json' });
-          return res.end(JSON.stringify({ error: { code: 'insufficient_quota', message: 'private upstream detail' } }));
+          return res.end(JSON.stringify({ error: { code: errorCode, message: 'private upstream detail' } }));
         }
         if (text.includes('MOOS_ROUTE_AUTH')) return reply(res, 401, 'private upstream detail');
         if (text.includes('MOOS_ROUTE_BOTH')) return reply(res, 429, 'primary unavailable');

@@ -7,6 +7,7 @@ import { resolve, join, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
+import { glmRejection } from '../../services/agent/errors.mjs';
 
 function collectUsage(incoming, queue) {
   const decoder = new StringDecoder('utf8'); let buffer = '';
@@ -121,6 +122,7 @@ export async function proxyFor(provider, baseUrl, apiKey) {
               try {
                 const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
                 if (value?.error?.code === 'insufficient_quota' || value?.error?.type === 'insufficient_quota') failure = 'quota';
+                failure = glmRejection(provider.service, status, value?.error) ?? failure;
               } catch { /* Only a recognized code refines the status. */ }
               if (!res.destroyed) reject(status);
             };

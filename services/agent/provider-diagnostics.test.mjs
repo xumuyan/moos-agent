@@ -124,6 +124,22 @@ for (const [status, error, code] of [
   });
 }
 
+test('GLM diagnostics distinguish Coding Plan limits, model access and credential scope', async t => {
+  let code;
+  const f = await setup(t, (_, res) => json(res, 429, { error: { code, message: `UPSTREAM_PRIVATE ${key}` } }));
+  const provider = { ...f.provider, service: 'glm' };
+  for (const [upstream, expected] of [
+    ['1113', 'quota'], [1308, 'quota'], ['1309', 'quota'], ['1310', 'quota'], ['1314', 'quota'],
+    ['1316', 'quota'], ['1321', 'quota'], ['1302', 'rate_limit'], ['1305', 'rate_limit'],
+    ['1311', 'model_not_found'], ['1315', 'auth'], ['9999', 'rate_limit'],
+  ]) {
+    code = upstream;
+    result(await f.request('test_provider', { provider }), expected);
+  }
+  code = '1310';
+  result(await f.request(), 'rate_limit');
+});
+
 for (const [label, body, api] of [
   ['failed response', { status: 'failed', error: { code: 'insufficient_quota', message: key } }, 'openai-responses'],
   ['incomplete response', { ...completed, status: 'incomplete' }, 'openai-responses'],

@@ -1087,3 +1087,13 @@
 - 验证结果：`codesign --verify --deep --strict`、`unzip -tq`、`git diff --check` 通过；`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 28/28，`npm test` 138/138，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。
 - 遗留问题：本机包为 ad-hoc 签名。正式 Apple 签名和公证、第三方分发范围、干净 Mac 的首次下载流量与卸载另验。正常用户配置的模型服务需在 Moos 内单独设置。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify installed Moos Electron with live PI`，用 `git log --all --oneline --grep='^test(P03.13): verify installed Moos Electron with live PI$'` 查询。
+
+## 2026-11-08 05:06:16 +08:00｜P03.13.5、P03.13.7 区分 GLM 额度、限流和访问错误
+
+- 修改或新增内容：连接诊断与 PI 任务共用 GLM HTTP 429 业务码分类。余额或套餐额度错误记录为额度不足；模型访问和密钥范围使用对应错误。普通限流、过载及未知 429 保持限流。额度错误复用已有的有界备用机制，模型权限和认证失败终止。
+- 遇到的难题：智谱使用同一 HTTP 状态表达不同情况，原实现只识别 OpenAI 风格的额度码，GLM 余额或套餐用尽会误标为限流。修改前两条定向回归均复现该问题。
+- 处理方式：只为 GLM 读取已知业务码，沿用代理 8 KiB 与 1 秒错误读取边界，不转发原始错误文本。测试覆盖额度、限流、模型权限、密钥范围和跨服务隔离。错误码依据 [智谱 API 错误说明](https://docs.z.ai/api-reference/api-code)。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 新构建的 `build-pYJd3W`。隔离配置用无效验收凭据发起一次真实 GLM 请求，返回 HTTP 401，桌面与 SQLite 均标记认证失败，零工具和备用请求。另一次任务以受控 HTTP 429 和 1310 启动，执行过程显示额度不足，只切换一次，真实 GPT-6.1 Sol High 返回 HTTP 200 并精确回复。连接诊断也对受控 1310 显示额度不足。旧隔离配置的内置壳从 0.1.15 更新到 0.1.17，插件页仅列启用的皮肤中心及添加入口。验收后更新 `/Applications/Moos.app`，严格签名及三份改动模块的逐文件比对通过，旧包保存在本机临时验收目录供回滚。
+- 验证结果：定向回归 2/2，`npm test` 139/139，`MOOS_ELECTRON_TEST_DSH_CLI=<新包 CLI> npm --prefix apps/electron test` 28/28，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：真实账户未耗尽额度。额度响应为受控复现，真实网络覆盖 GLM 认证失败和 GPT High 备用。模型权限和密钥范围由本地夹具验证。自定义 DeepSeek 端点仍待真实配置验收。
+- 对应 Git 提交：唯一说明 `fix(P03.13): distinguish GLM Coding Plan rejections in PI`，用 `git log --all --oneline --grep='^fix(P03.13): distinguish GLM Coding Plan rejections in PI$'` 查询。

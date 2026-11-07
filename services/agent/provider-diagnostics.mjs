@@ -1,4 +1,6 @@
 // Diagnostics deliberately bypass saved providers, the scheduler and task history.
+import { glmRejection } from './errors.mjs';
+
 const messages = {
   ok: '模型服务验证成功',
   invalid_config: '模型配置无效，请检查地址、协议和模型',
@@ -23,9 +25,11 @@ const upstreamCodes = new Map([
   ['insufficient_quota', 'quota'], ['quota_exceeded', 'quota'], ['billing_hard_limit_reached', 'quota'],
   ['rate_limit_exceeded', 'rate_limit'], ['rate_limit_error', 'rate_limit'],
 ]);
-function classify(status, error) {
+function classify(status, error, service) {
   if (status === 401) return 'auth';
   if (status === 403) return 'forbidden';
+  const glm = glmRejection(service, status, error);
+  if (glm) return glm === 'model_capability' ? 'model_not_found' : glm;
   for (const value of [error?.code, error?.type]) {
     if (typeof value === 'string' && value.length <= 80 && /^[a-zA-Z0-9_]+$/.test(value)) {
       const mapped = upstreamCodes.get(value.toLowerCase());
@@ -119,7 +123,7 @@ export async function diagnoseProvider(method, params = {}) {
       throw error;
     }
     if (!response.ok || data?.error || (method === 'test_provider' && data?.status === 'failed')) {
-      return finish(classify(response.status, data?.error));
+      return finish(classify(response.status, data?.error, provider.service));
     }
     if (method === 'list_models') {
       if (!Array.isArray(data?.data) || data.data.some(item => !item || typeof item !== 'object' || Array.isArray(item))) return finish('protocol');

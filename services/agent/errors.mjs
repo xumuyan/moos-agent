@@ -24,6 +24,19 @@ export class TaskFailure extends Error {
   }
 }
 
+// These GLM account and model restrictions share HTTP 429 with rate limits.
+const glmRejections = new Map([
+  ...[1113, 1308, 1309, 1310, 1314, 1316, 1317, 1318, 1319, 1320, 1321].map(code => [String(code), 'quota']),
+  ['1311', 'model_capability'],
+  ['1315', 'auth'],
+]);
+
+export function glmRejection(service, status, error) {
+  if (service !== 'glm' || status !== 429) return undefined;
+  const code = error?.code;
+  if (typeof code === 'string' || Number.isSafeInteger(code)) return glmRejections.get(String(code));
+}
+
 export function classifyTaskError(error) {
   if (error instanceof TaskFailure) return { code: error.code, message: messages[error.code] };
   const text = String(error?.message ?? error).toLowerCase();

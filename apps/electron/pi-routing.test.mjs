@@ -45,6 +45,14 @@ test('PI switches provider and protocol at most once and keeps repairs in the sa
   await assert.rejects(run('AUTH'), { code: 'auth' });
   assert.equal(requests.length, 1);
   assert.deepEqual(switches(), []);
+  assert.match((await run('GLM_QUOTA')).text, /Backup PI route ready/);
+  assert.deepEqual(requests.map(request => request.model), ['mock-glm', 'mock-gpt']);
+  assert.deepEqual(switches(), [{ from: 'GLM', to: 'Relay High', reason: 'quota' }]);
+  for (const [scenario, code] of [['GLM_MODEL', 'model_capability'], ['GLM_CREDENTIAL', 'auth']]) {
+    await assert.rejects(run(scenario), { code });
+    assert.equal(requests.length, 1);
+    assert.deepEqual(switches(), []);
+  }
   await assert.rejects(run('BOTH'), { code: 'network' });
   assert.deepEqual(requests.map(request => request.model), ['mock-glm', 'mock-gpt']);
   assert.deepEqual(switches(), [{ from: 'GLM', to: 'Relay High', reason: 'rate_limit' }]);
