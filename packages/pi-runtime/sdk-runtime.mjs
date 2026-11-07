@@ -76,9 +76,15 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const instructions = await context(cwd);
     proxy = await proxyFor(provider, upstream, apiKey);
     const modelsPath = join(agentDir, 'models.json');
+    const thinkingLevel = provider.thinkingLevel ?? 'off';
+    const reasoning = thinkingLevel !== 'off' || provider.service === 'glm';
     await privateFile(modelsPath, JSON.stringify({ providers: { [provider.id]: {
       baseUrl: proxy.baseUrl, api: provider.api, authHeader: true,
-      models: [{ id: provider.model, name: provider.name, reasoning: false, input: ['text'], contextWindow: provider.contextWindow, maxTokens: provider.maxTokens, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
+      ...(provider.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
+      models: [{ id: provider.model, name: provider.name, reasoning, input: ['text'],
+        ...(thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
+        contextWindow: provider.contextWindow, maxTokens: provider.maxTokens,
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
     } } }));
     const modelRuntime = await ModelRuntime.create({ authPath: join(agentDir, 'auth.json'), modelsPath, refreshOnCreate: false });
     await modelRuntime.setRuntimeApiKey(provider.id, proxy.token);
@@ -87,7 +93,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const sessionManager = SessionManager.continueRecent(cwd, root);
     const customTools = permissions && workspaceTools(cwd, permissions);
     ({ session } = await createAgentSession({
-      cwd, agentDir, modelRuntime, model, thinkingLevel: 'off',
+      cwd, agentDir, modelRuntime, model, thinkingLevel,
       resourceLoader: resourceLoader(instructions), sessionManager,
       // PI defaults provider requests to a 5-minute idle deadline. Match the
       // selected bounded task policy so quiet long-running requests are not

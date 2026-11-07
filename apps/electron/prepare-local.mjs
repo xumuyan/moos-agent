@@ -76,27 +76,32 @@ await writeFile(join(appSource, 'package.json'), JSON.stringify({
   name: manifest.name, productName: manifest.productName, version: manifest.version,
   main: manifest.main, type: manifest.type,
 }));
-for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs']) {
+for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs', 'model-settings.html', 'model-settings.js',
+  'model-settings-preload.cjs']) {
   await cp(join(source, file), join(appSource, file));
 }
+await cp(join(source, 'plugin/pi-models.js'), join(appSource, 'pi-models.js'));
 const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion, includesPiFixture }));
 await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));
-if (includesPiFixture) {
-  const runtime = join(resources, 'pi-fixture');
+{
+  const runtime = join(resources, 'pi-runtime');
   await mkdir(runtime);
   for (const file of ['package.json', 'package-lock.json']) await cp(join(repo, file), join(runtime, file));
   execFileSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
     { cwd: runtime, stdio: 'inherit' });
   for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/tool-policy.mjs', 'packages/pi-adapter/index.mjs',
-    'services/agent/store.mjs', 'services/agent/scheduler.mjs', 'services/agent/fixture.mjs',
+    'services/agent/store.mjs', 'services/agent/scheduler.mjs',
     'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
     'services/agent/usage.mjs']) {
     const destination = join(runtime, file);
     await mkdir(dirname(destination), { recursive: true });
     await cp(join(repo, file), destination);
   }
-  await cp(join(source, 'pi-fixture.patch.yml'), join(runtime, 'profile.patch.yml'));
+  if (includesPiFixture) {
+    await cp(join(repo, 'services/agent/fixture.mjs'), join(runtime, 'services/agent/fixture.mjs'));
+    await cp(join(source, 'pi-fixture.patch.yml'), join(runtime, 'profile.patch.yml'));
+  }
 }
 await cp(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/icon.icns'), join(resources, 'moos.icns'));
 

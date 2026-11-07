@@ -48,7 +48,7 @@ function responsesText(res, text) {
 }
 
 /** Local-only, deterministic OpenAI SSE endpoint. Never contacts a model service. */
-export async function startFixture({ longDelayMs = 605000, desktopPolicy = false } = {}) {
+export async function startFixture({ longDelayMs = 605000, desktopPolicy = false, onModelRequest } = {}) {
   if (!Number.isSafeInteger(longDelayMs) || longDelayMs < 1 || longDelayMs > 620000) throw new Error('Invalid fixture long delay');
   const server = createServer(async (req, res) => {
     try {
@@ -67,6 +67,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       }
       let input;
       try { input = JSON.parse(body); } catch { return reply(res, 400, 'Invalid fixture JSON'); }
+      onModelRequest?.(input);
       if (input.stream === false && input.model === 'fixture') {
         if (req.url === '/v1/responses' && input.input === 'Reply OK' && input.max_output_tokens === 16) {
           return diagnostic({ status: 'completed', output: [{ type: 'message', role: 'assistant', status: 'completed',

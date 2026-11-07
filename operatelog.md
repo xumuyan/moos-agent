@@ -848,3 +848,15 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的签名 Moos 开发包验证深海女仆工坊和本地模拟模型。工作区内修改成功并拦截越界 Bash，切到仅可查看后写文件与 Bash 写入均受限。审批拒绝不生成文件，允许一次生成预期文件，下一次待审批任务停止后未生成文件。启用完全权限后同一条越界 Bash 命令写入预期内容。实机结果见 `/tmp/moos-pi-permission-gui.log`。
 - 遗留问题：权限证据覆盖本机模拟模型、隔离项目和现有 DSH 三个会话档位。真实项目、线上模型与推理档位、第三方执行插件、其他平台及完整对照仍待验收。
 - 对应 Git 提交：唯一说明 `feat(P03.13): apply desktop permissions to PI tools`，用 `git log --all --oneline --grep='^feat(P03.13): apply desktop permissions to PI tools$'` 查询。
+
+## 2026-11-08 00:34:18 +08:00｜P03.13.5 接通 Electron 的 PI 线上文本任务
+
+- 修改或新增内容：默认 Electron 构建内置 PI SDK，正常会话由本机 Moos Scheduler 与 SQLite 管理，保留真实目录隔离及当前会话权限。新增「Moos → 模型服务…」配置入口，允许配置 OpenAI Responses 或 Chat Completions、GLM Coding Plan 与兼容的自定义模型，支持固定推理档位和 GLM 优先的自动选模。原版模型与工具执行器保持停用。
+- 遇到的难题：固定版 DSH 的模型准备接口传入路由与模型两个参数。首次 GUI 提交取错参数，找不到配置。默认会话命名使用上游的封装提示。对照中原版 OpenAI 内置路由仍实际发出 Medium。受限 Moos 会话执行的 Bash 测试已输出通过，但该批命令随后执行的 Git 触发 Xcode 动态库权限限制，整条工具命令显示失败。
+- 处理方式：按固定版接口修正模型解析，本地命名从封装消息提取首条用户文本。凭据与模型元数据分文件保存，密钥绑定服务地址，地址更改时重新录入，部分写入失败也不会把密钥发给另一个地址。对照使用原版的独立自定义 Responses 路由配置 High，中继只校验档位并透传，拒绝 Medium。两份隔离项目分别在宿主执行公开测试和补充边界测试，并通过 Git 验证仅修改目标文件。
+- 验证结果：`npm --prefix apps/electron test`（设置固定 DSH CLI）12/12，`npm test` 137/137，`npm run test:desktop-ui -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`npm run test:desktop-product` 30/30，`npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。正常开发包构建、`codesign --verify --deep --strict` 与 Git 差异检查通过。脱敏测试日志见 `/tmp/moos-live-pi-*.log`。
+- 实际验收与工作区状态：提交前使用 macOS 27.0.1 arm64、Electron 44.7.0、PI SDK 1.5.0 和隔离数据。两家服务的模型列表接口均返回 HTTP 200。使用相同的 GPT-6.1 Sol、端点和凭据，在 Moos GUI 与原版 DSH 0.2.2-rc.1 headless 中分别完成相同 Bash 任务。所有计入请求均为 High。两边只改 `duration.sh`，公开测试、前导零、边界值和非法输入测试通过。
+- 同条件对照：Moos / 原版 DSH 的请求分别为 5 / 7 次，首次响应动作 2.76 / 2.96 秒，首请求发出至末次用量返回 58.77 / 55.83 秒。各端自行计时为 59.09 / 56.83 秒，起点分别是 Moos 任务创建和 DSH CLI 启动。服务返回总 Token 30,870 / 67,551，其中缓存读取 22,298 / 51,045，含原版额外的并发模型请求。两边使用各自提示词与工具集，测试按顺序运行，缓存与线上延迟不可控。脱敏请求元数据见 `/tmp/moos-pi-online-bench.WI8AzF/wire.jsonl`。
+- GLM 实机复验：最终开发包 `build-HB4lrb` 使用「Moos PI · 自动选择」执行 GLM-5.3，同会话两轮调用 PI write。首轮验收输入只传入 ASCII 片段，写入内容未含换行。第二轮用完整英文指令，界面显示完成，核对文件为目标字符串加一个 LF，SQLite 状态为成功，记录 2 条真实用量事件、合计 2,436 Token，凭据文件权限 0600。PI SDK 单独调用同端点也通过精确文件写入。
+- 遗留问题：本轮对照只有一个小任务，不能据此推断大项目速度或费用。用量仍需接进原版设置汇总，设置中心的模型入口与诊断、DeepSeek 自定义服务、真实认证/额度错误、自动升级和备用切换待验。固定外部 Host 的可选插件文件、公开下载和独立发行按原计划推进。
+- 对应 Git 提交：唯一说明 `feat(P03.13): enable configured PI models in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): enable configured PI models in Electron$'` 查询。

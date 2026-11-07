@@ -8,8 +8,8 @@ import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from '../../services/agent/fixture.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { Store } from '../../services/agent/store.mjs';
-import { createFixtureAdapter } from './plugin/pi-route.js';
-import { createFixtureTasks } from './plugin/pi-tasks.js';
+import { createPiAdapter } from './plugin/pi-route.js';
+import { createPiTasks } from './plugin/pi-tasks.js';
 
 async function waitFor(check) {
   for (let i = 0; i < 150; i++) {
@@ -40,7 +40,7 @@ test('Electron PI tasks serialize directory aliases, run other projects and stop
   const dbPath = join(data, 'moos.sqlite');
   let store = new Store({ dbPath });
   const fixture = await startFixture();
-  const makeTasks = () => createFixtureTasks({ store, Scheduler, root, run: options => runPiSdk({
+  const makeTasks = () => createPiTasks({ store, Scheduler, fixtureRoot: root, run: options => runPiSdk({
     ...options, dataDir: join(data, 'pi'),
     provider: { id: 'moos-pi', name: 'Fixture', api: 'openai-completions', baseUrl: fixture.baseUrl,
       model: 'moos-fixture', contextWindow: 128000, maxTokens: 8192 },
@@ -78,7 +78,7 @@ test('Electron PI tasks serialize directory aliases, run other projects and stop
   store = new Store({ dbPath });
   tasks = makeTasks();
   await assert.rejects(tasks.open({ sessionId: 'same', cwd: second, input: 'MOOS_FIXTURE_TOOLS', signal }));
-  const adapter = createFixtureAdapter({ tasks, getSession: () => ({ header: { cwd: first } }) });
+  const adapter = createPiAdapter({ tasks, getSession: () => ({ header: { cwd: first } }) });
   const request = input => ({ sessionId: 'same', signal, messages: [
     { role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: input }] },
     { role: 'user', source: { kind: 'runtime-context' }, content: [{ type: 'text', text: 'ignored' }] },

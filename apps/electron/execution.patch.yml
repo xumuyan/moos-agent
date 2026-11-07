@@ -26,6 +26,8 @@
   disabled: true
 - id: llm-pi-ai
   disabled: true
+- id: agent-default-model
+  config: { provider: moos-pi, model: auto }
 
 # The workbench keeps its core views and package installer. Optional upstream
 # tools and their settings are not part of the default Moos composition.

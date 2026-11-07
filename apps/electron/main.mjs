@@ -1,9 +1,11 @@
-import { app, BrowserWindow, dialog, Menu, nativeTheme, session } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session } from 'electron';
 import { cp, mkdir, readFile, lstat, rename, mkdtemp, rm } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import { startHost } from './host.mjs';
+import { piModels } from './pi-models.js';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -12,6 +14,39 @@ app.setPath('userData', data);
 
 let host;
 let hostStopped = false;
+let modelWindow;
+
+function installModelSettings(resources, models) {
+  const assets = join(resources, 'app');
+  function senderAllowed(event) {
+    if (!modelWindow || event.sender !== modelWindow.webContents || event.senderFrame !== event.sender.mainFrame) {
+      throw new Error('Untrusted Moos settings request');
+    }
+  }
+  ipcMain.handle('moos:models:list', event => {
+    senderAllowed(event);
+    return models.list();
+  });
+  ipcMain.handle('moos:models:save', (event, profile) => {
+    senderAllowed(event);
+    return models.save(profile);
+  });
+  return () => {
+    if (modelWindow) { modelWindow.focus(); return; }
+    modelWindow = new BrowserWindow({
+      title: 'Moos 模型服务', width: 580, height: 640, minWidth: 450, minHeight: 600,
+      webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false,
+        preload: join(assets, 'model-settings-preload.cjs') },
+    });
+    modelWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    modelWindow.webContents.on('will-navigate', event => event.preventDefault());
+    modelWindow.webContents.on('will-redirect', event => event.preventDefault());
+    modelWindow.once('closed', () => { modelWindow = undefined; });
+    void modelWindow.loadFile(join(assets, 'model-settings.html')).catch(() => {
+      modelWindow?.close();
+    });
+  };
+}
 
 async function seedHome(resources, home) {
   await mkdir(home, { recursive: true, mode: 0o700 });
@@ -55,7 +90,8 @@ async function launch() {
   if (enableFixture && (!includesPiFixture || !process.env.MOOS_ELECTRON_DATA)) {
     throw new Error('PI fixture requires a fixture build and an explicit data directory');
   }
-  const piFixture = enableFixture ? join(resources, 'pi-fixture') : undefined;
+  const piRuntime = join(resources, 'pi-runtime');
+  const piFixture = enableFixture ? piRuntime : undefined;
   const home = join(data, 'dsh');
   const workspace = join(data, 'workspace');
   await mkdir(workspace, { recursive: true, mode: 0o700 });
@@ -63,15 +99,21 @@ async function launch() {
   await updateShellPlugin(resources, home, cli);
 
   host = startHost({
-    cli, home, cwd: workspace, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
+    cli, home, cwd: workspace, piRuntime, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
     onUnexpectedExit() {
       dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
       app.quit();
     },
   });
   const address = await host.ready;
+  const { checkedProvider } = await import(pathToFileURL(join(piRuntime, 'packages/pi-adapter/index.mjs')).href);
+  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider));
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { role: 'appMenu', label: 'Moos' },
+    { label: 'Moos', submenu: [
+      { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: openModelSettings },
+      { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
+      { type: 'separator' }, { role: 'quit' },
+    ] },
     { role: 'editMenu' },
     { role: 'windowMenu' },
   ]));

@@ -15,7 +15,7 @@ export function parseBootstrap(line) {
   } catch { return null; }
 }
 
-export function startHost({ cli, home, cwd, executionPatch, piFixture, onUnexpectedExit, timeoutMs = 30000 }) {
+export function startHost({ cli, home, cwd, executionPatch, piRuntime, piFixture, onUnexpectedExit, timeoutMs = 30000 }) {
   const env = {
     ...process.env,
     DSH_HOME: home,
@@ -29,9 +29,12 @@ export function startHost({ cli, home, cwd, executionPatch, piFixture, onUnexpec
   delete env.NODE_OPTIONS;
   delete env.NODE_PATH;
   delete env.MOOS_ELECTRON_PI_RUNTIME;
+  delete env.MOOS_ELECTRON_PI_FIXTURE_MODE;
   const patches = ['--patch', executionPatch];
+  if (piRuntime) env.MOOS_ELECTRON_PI_RUNTIME = piRuntime;
   if (piFixture) {
     env.MOOS_ELECTRON_PI_RUNTIME = piFixture;
+    env.MOOS_ELECTRON_PI_FIXTURE_MODE = '1';
     patches.push('--patch', join(piFixture, 'profile.patch.yml'));
   }
   const child = spawn(cli, ['web', ...patches, '--host', '127.0.0.1', '--port', '0', '--no-open'], {

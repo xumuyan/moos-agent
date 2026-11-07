@@ -1,8 +1,10 @@
 import { realpath } from 'node:fs/promises';
+import { unwatchFile, watchFile } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createFixtureAdapter, route } from './pi-route.js';
-import { createFixtureTasks } from './pi-tasks.js';
+import { createPiAdapter, route } from './pi-route.js';
+import { createPiTasks } from './pi-tasks.js';
+import { piModels } from './pi-models.js';
 
 export const name = 'moos-electron-shell';
 export const inject = ['tools', 'agents', 'llm', 'sandboxPolicy', 'approval'];
@@ -19,28 +21,39 @@ export async function apply(ctx) {
   const runtime = process.env.MOOS_ELECTRON_PI_RUNTIME;
   if (!runtime) return;
   const load = path => import(pathToFileURL(join(runtime, path)).href);
-  const [{ Store }, { Scheduler }, { runPiSdk }, { startFixture }, { privateDir }] = await Promise.all([
+  const [{ Store }, { Scheduler }, { runPiSdk }, { privateDir, checkedProvider }] = await Promise.all([
     load('services/agent/store.mjs'), load('services/agent/scheduler.mjs'),
-    load('packages/pi-runtime/sdk-runtime.mjs'), load('services/agent/fixture.mjs'),
-    load('packages/pi-adapter/index.mjs'),
+    load('packages/pi-runtime/sdk-runtime.mjs'), load('packages/pi-adapter/index.mjs'),
   ]);
+  const fixtureMode = process.env.MOOS_ELECTRON_PI_FIXTURE_MODE === '1';
   const workspace = process.env.MOOS_ELECTRON_WORKSPACE_ROOT;
   const root = await realpath(workspace);
   const data = await realpath(dirname(workspace));
-  if (root !== join(data, 'workspace')) throw new Error('PI fixture workspace must be inside its data directory');
-  const dataDir = join(data, 'pi-fixture');
+  if (root !== join(data, 'workspace')) throw new Error('PI workspace must be inside its data directory');
+  const dataDir = join(data, fixtureMode ? 'pi-fixture' : 'pi');
   await privateDir(dataDir);
   const store = new Store({ dbPath: join(dataDir, 'moos.sqlite') });
-  const fixture = await startFixture({ desktopPolicy: true }).catch(error => { store.close(); throw error; });
-  const provider = { id: route, model: 'moos-fixture', name: 'Moos PI', api: 'openai-completions',
+  let fixture;
+  if (fixtureMode) {
+    try {
+      const { startFixture } = await load('services/agent/fixture.mjs');
+      fixture = await startFixture({ desktopPolicy: true });
+    } catch (error) { store.close(); throw error; }
+  }
+  const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: 'Moos PI', api: 'openai-completions',
     baseUrl: fixture.baseUrl, contextWindow: 128000, maxTokens: 8192 };
-  const tasks = createFixtureTasks({ store, Scheduler, root,
-    run: options => runPiSdk({ ...options, provider, apiKey: fixture.apiKey, dataDir: join(dataDir, 'sessions') }),
+  const models = fixture ? undefined : piModels(data, checkedProvider);
+  const tasks = createPiTasks({ store, Scheduler, fixtureRoot: fixture ? root : undefined, dataRoot: data,
+    async run(options) {
+      const provider = fixtureProvider ?? options.provider;
+      const apiKey = fixture?.apiKey ?? await models.credential(provider);
+      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions') });
+    },
   });
   try {
     store.interruptUnfinished();
-    const release = ctx.llm.registerAdapter([route], createFixtureAdapter({
-      tasks, getSession: id => ctx.agents.get(id)?.session,
+    const release = ctx.llm.registerAdapter([route], createPiAdapter({
+      tasks, models, getSession: id => ctx.agents.get(id)?.session,
       getPermissions(id) {
         const agent = ctx.agents.get(id);
         if (!agent) throw new Error('PI needs an active desktop session');
@@ -53,12 +66,16 @@ export async function apply(ctx) {
         };
       },
     }));
+    const profilePath = join(data, 'providers.json');
+    const refresh = () => ctx.emit('llm/models-updated', route);
+    if (models) watchFile(profilePath, { persistent: false, interval: 500 }, refresh);
     ctx.on('dispose', async () => {
+      if (models) unwatchFile(profilePath, refresh);
       release();
-      try { await tasks.close(); } finally { await fixture.close(); }
+      try { await tasks.close(); } finally { await fixture?.close(); }
     });
   } catch (error) {
-    try { await tasks.close(); } finally { await fixture.close(); }
+    try { await tasks.close(); } finally { await fixture?.close(); }
     throw error;
   }
 }
