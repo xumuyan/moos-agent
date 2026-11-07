@@ -768,3 +768,12 @@
 - 实际验收与工作区状态：提交前使用本机原版 DSH Electron 0.2.2-rc.1 和 P03.11 皮肤配置。从桌面发送写入任务，工具和回复在原版会话出现，独立读取文件核对。确认第二轮 PI 命令进程活跃后按停止，原版界面显示已停止并实测该进程退出。在同一会话发送第三轮，实际文件更新，只有一个 PI 会话目录。命令行入口亦使用同一插件通过。脱敏证据 `probes/dsh-electron-pi/evidence.json`。
 - 遗留问题：真实模型及 High 未通过此 Electron 桥实测。正式调度、权限强制执行、原版工具卡、用量、跨项目与独立安装包依照计划分阶段验收。
 - 对应 Git 提交：唯一说明 `feat(P03.12): connect original DSH Electron to Moos PI`，用 `git log --all --oneline --grep='^feat(P03.12): connect original DSH Electron to Moos PI$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
+
+## 2026-11-07 20:19:14 +08:00｜P03.13 Moos Electron 改造清单
+
+- 修改或新增内容：把已确认的 Moos Electron 改造拆为八项。覆盖独立工程及品牌、移除官方账户、PI 统一执行、权限、模型、会话、插件及 Mac 打包。新增计划依赖与验收证据检查。
+- 遇到的难题：现有 P03.11、P03.12 证据只覆盖原皮肤和本地 PI 探针，不能作为正式改造的完成证据。皮肤、界面和执行类插件也不能用同一种方式判断兼容。
+- 处理方式：保留历史证据和完成状态，将新工作放入 P03.13。明确先验证 PI 执行边界，再连接真实服务，并按插件依赖逐包验收。
+- 验证结果：文档检查 53/53，核心 137/137，桌面前端 57 文件 175/175，Rust 原生 30/30，PI 探针 5/5，皮肤探针 4/4。命令记录位于 `/tmp/moos-p0313-*.log`。本轮实际验收为逐项核对计划与用户确认范围及验收顺序，未产生新的应用行为验收。
+- 遗留问题：P03.13 八项均待实施或实测，正式交付须补齐对应应用证据。现有原包兼容证据仍限已验证样本。
+- 对应 Git 提交：唯一说明 `docs(P03.13): plan the Moos Electron migration`，用 `git log --all --oneline --grep='^docs(P03.13): plan the Moos Electron migration$'` 查询。提交后推送 GitHub main 并核对完整 HEAD。
