@@ -66,12 +66,12 @@
 .dsh-resize-handle { position:absolute; width:8px; top:0; bottom:0; z-index:30; cursor:col-resize; touch-action:none; outline-offset:-2px; }
 .dsh-resize-sidebar { right:-4px; } .dsh-resize-right { left:-4px; }
 .dsh-resize-handle:hover, .dsh-resize-handle:focus-visible { background:color-mix(in srgb,var(--moos-accent) 25%,transparent); }
-.dsh-shell.is-sidebar-collapsed .project-rail { height:auto; flex:1; flex-direction:column; padding:64px 10px 70px; gap:12px; }
-.dsh-shell.is-sidebar-collapsed .rail-brand { display:none; }
-.dsh-shell.is-sidebar-collapsed .rail-project, .dsh-shell.is-sidebar-collapsed .project-rail > .ant-btn[aria-label="添加工作区"] { display:grid; place-items:center; width:36px; height:36px; min-height:36px; border:0; border-radius:12px; padding:0; color:var(--dsh-text-secondary); background:transparent; }
-.dsh-shell.is-sidebar-collapsed .rail-project.selected { background:var(--dsh-selected); color:var(--dsh-text); }
-.dsh-shell.is-sidebar-collapsed .project-rail > .ant-btn[aria-label="打开设置中心"] { width:36px; left:10px; justify-content:center; }
-.dsh-shell.is-sidebar-collapsed .project-rail > .ant-btn[aria-label="打开设置中心"]::after { display:none; }
+.dsh-shell.is-rail-layout .project-rail { height:auto; flex:1; flex-direction:column; padding:64px 10px 70px; gap:12px; }
+.dsh-shell.is-rail-layout .rail-brand { display:none; }
+.dsh-shell.is-rail-layout .rail-project, .dsh-shell.is-rail-layout .project-rail > .ant-btn[aria-label="添加工作区"] { display:grid; place-items:center; width:36px; height:36px; min-height:36px; border:0; border-radius:12px; padding:0; color:var(--dsh-text-secondary); background:transparent; }
+.dsh-shell.is-rail-layout .rail-project.selected { background:var(--dsh-selected); color:var(--dsh-text); }
+.dsh-shell.is-rail-layout .project-rail > .ant-btn[aria-label="打开设置中心"] { width:36px; left:10px; justify-content:center; }
+.dsh-shell.is-rail-layout .project-rail > .ant-btn[aria-label="打开设置中心"]::after { display:none; }
 @media(max-width:900px) { .dsh-shell .topbar { padding-inline:16px; gap:8px; } .dsh-shell .model-select { width:160px; } .dsh-shell .topbar .ant-tag { display:none; } }
 @media(max-width:600px) { .dsh-shell .topbar { padding:10px; } .dsh-shell .topbar > .ant-space { gap:2px!important; } .dsh-shell .model-select { width:125px; } .dsh-shell .topbar .ant-btn-dangerous { width:30px; padding:0; overflow:hidden; } .dsh-shell .heading { display:none; } .dsh-shell .topbar > .ant-space { width:100%; justify-content:flex-end; } }
 
@@ -100,10 +100,55 @@
 .dsh-shell .composer-dock { border-radius:calc(var(--moos-radius) + 16px); }
 
 .dsh-shell .rail-projects { display:none; }
-.dsh-shell.is-sidebar-collapsed .rail-projects { display:flex; flex-direction:column; gap:12px; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; width:36px; }
-.dsh-shell.is-sidebar-collapsed .rail-project { flex:none; }
+.dsh-shell.is-rail-layout .rail-projects { display:flex; flex-direction:column; gap:12px; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; width:36px; }
+.dsh-shell.is-rail-layout .rail-project { flex:none; }
 
 .dsh-shell .is-chat-ready { padding:0 0 24px!important; gap:0; }
 .dsh-shell .is-chat-ready > .welcome-icon, .dsh-shell .is-chat-ready > p, .dsh-shell .is-chat-ready > .project-path { display:none; }
 .dsh-shell .is-chat-ready h2 { display:flex; align-items:center; gap:12px; font-size:24px; line-height:36px; margin:0; }
 .dsh-shell .is-chat-ready h2 img { width:36px; height:36px; }
+
+/* P03 detail audit: source AppFrame has a 50px header, not a 64px toolbar
+ * beneath a second native caption. macOS uses the standard overlay controls. */
+.dsh-window-drag { position:absolute; inset:0 0 auto; height:48px; z-index:1; }
+.dsh-shell .topbar { height:50px; min-height:50px; padding:8px 24px; }
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar .heading,
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar .ant-tag,
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar .ant-btn-dangerous { visibility:hidden; }
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar { height:40px; min-height:40px; }
+.dsh-shell .rail-brand { transform:translateY(6px); }
+.dsh-shell .dsh-sidebar-toggle { top:11px; z-index:3; }
+.dsh-shell .is-chat-ready { padding-bottom:52px!important; }
+.dsh-shell .is-chat-ready h2 { font-size:26px; line-height:32px; gap:10px; }
+.dsh-shell .is-chat-ready h2 img { width:32px; height:32px; }
+/* Freeze wide content while its column slides; swap to the rail only after
+ * the original 150ms fade. A drag always stays synchronous with the pointer. */
+.dsh-navigation { overflow:hidden; transition:width var(--dsh-motion-slow) var(--dsh-motion-ease); }
+.dsh-sidebar-body { flex:none; height:calc(100% - 88px); }
+.dsh-shell.is-sidebar-fading .dsh-sidebar-body,
+.dsh-shell.is-sidebar-fading .project-rail { opacity:0; transition:opacity 150ms var(--dsh-motion-ease); pointer-events:none; }
+.dsh-shell.has-sidebar-motion:not(.is-sidebar-collapsed) .dsh-sidebar-body { animation:dsh-wide-in 200ms var(--dsh-motion-ease); }
+.dsh-shell.has-sidebar-motion.is-rail-layout .rail-projects { animation:dsh-rail-in 150ms var(--dsh-motion-ease) backwards; }
+.dsh-shell.is-resizing .dsh-navigation, .dsh-shell.is-resizing .dsh-right-column { transition:none; }
+.dsh-right-column { transition:width var(--dsh-motion-slow) var(--dsh-motion-ease); }
+.dsh-right-column > .right-panel { min-width:300px; animation:dsh-panel-in 160ms var(--dsh-motion-ease); }
+.dsh-shell.is-right-closing .dsh-right-column { border-width:0; pointer-events:none; }
+.dsh-shell.is-right-closing .right-panel { opacity:0; transform:translateX(24px); transition:opacity 150ms ease, transform 300ms var(--dsh-motion-ease); }
+.dsh-shell button, .dsh-shell .project-item, .dsh-shell .conversation-item { transition:background-color 100ms ease, color 100ms ease; }
+.dsh-shell button:focus-visible, .dsh-shell summary:focus-visible { outline:2px solid var(--moos-focus); outline-offset:2px; }
+@keyframes dsh-wide-in { from { opacity:0; } }
+@keyframes dsh-rail-in { from { opacity:0; transform:translateX(49px); } }
+@keyframes dsh-panel-in { from { opacity:0; transform:translateX(24px); } }
+@media(prefers-reduced-motion:reduce) {
+  .dsh-shell *, .dsh-shell *::before, .dsh-shell *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+}
+.dsh-shell.is-rail-layout .dsh-sidebar-toggle { top:54px; }
+.dsh-shell.is-rail-layout .project-rail { padding-top:100px; }
+.dsh-shell.has-overlay-right.is-right-closing .dsh-right-column { transform:translateX(100%); opacity:0; transition:transform 300ms var(--dsh-motion-ease), opacity 150ms ease; }
+/* Modern WebKit's entry starting style also animates the flex column itself
+ * on first mount. The content remains clipped until its track has room. */
+.dsh-right-column { overflow:clip; }
+@starting-style { .dsh-shell:not(.has-overlay-right) .dsh-right-column { width:0; } }
+/* Empty-state chrome has no invisible status/stop seats reserving space. */
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar .ant-space-item:has(.ant-tag),
+.dsh-shell .main-panel:has(.is-chat-ready) .topbar .ant-space-item:has(.ant-btn-dangerous) { display:none; }

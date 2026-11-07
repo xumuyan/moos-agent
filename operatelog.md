@@ -649,3 +649,13 @@
 
 - 最终复查与交付补记（2026-11-07 09:34:24 +08:00）：审查发现空态工具条不能通过卸载整个HistoryControls隐藏，否则可见数组为空但存在超长记录或读取错误时会丢失恢复入口。改为始终挂载恢复组件，只隐藏确实无历史的计数行，新增空数组超长记录与错误提示回归。首次定向15项14通过，旧任务停止按钮轮询断言在并发编译负载下超时；未放宽该断言，最终完整UI41文件131/131通过（/tmp/moos-dsh-delivery-ui.log）。核心137/137、原生27/27与已完成基线保持；文档48/48通过。此处更新前述候选版129项结论，历史记录不覆盖。
 - 最终安装补记：历史入口修复后重新TypeScript/Vite/Tauri构建及ad-hoc deep/strict签名通过；正常退出91366/91376并核对已结束后更新安装，15388项常规文件逐一哈希匹配，新主程序SHA256 `1e8c85d6ebffa8efd28d57e7bac1f4ca887273dc710875b270054a5f538022f0`。重新GUI启动96769→内置Node96781，保持单宿主；最终版实测原会话超长记录入口仍在、beta已有空会话无多余历史栏，返回原项目/云桥，右栏关闭。最终截图moos-delivery-history.png仅本机私有证据目录；先前完整逐页GUI对应同一视觉实现，最终修复仅历史栏边界并已再次实测。最终逻辑/磁盘体积不变；上述旧SHA仅为前一候选版证据。
+
+## 2026-11-07 10:21:30 +08:00｜P03.6 V01：DSH逐项视觉/动效复核
+
+- 修改或新增内容：移除重复原生标题条，采用Tauri Overlay和main窗口唯一start-dragging权限；50/40px页头，侧栏冻结宽内容、150ms退出/200ms展开/300ms列宽，右栏保留退场、inert与首次列宽起始样式；拖动/减少动态效果不补间。
+- 遇到的难题：旧版hidden直接切换缺少动画；收起按钮移动导致原生连续旧坐标第二下不能证明反转。新增计时器回归验证150ms前反转取消旧timer、退场及reduce路径，GUI只记录正常开合、半屏右栏与最终状态。
+- 处理方式：按原版固定源码、截图与最小权限分项修正；组合工作区验收，逐项提交。首轮日志标签未符合现有文档契约，规范为固定字段后重新检查，不改变历史产品结论。
+- 验证结果：`npm test`137/137；stable离线`npm run test:desktop-product`27/27；`npm run test:docs`50/50；`npm run build:desktop`及Tauri.app构建通过。UI此前完整44文件135/135；加入图标测试后完整45文件135通过/1失败，失败只在新测试立即断言Modal可见，修正测试等待后`npm --prefix apps/desktop test -- src/settings/SettingsCenter.icons.test.tsx --maxWorkers=1 --testTimeout=60000`1/1通过，其余135及产品代码未再变化。当前136用例均成功执行，不将最后完整命令伪写为136/136。日志在/tmp/moos-dsh-detail-*.log。新增定向时序/位置/表格测试通过，既有大chunk与jsdom NaN高度警告保留。
+- 实际验收与工作区状态：arm64/macOS27.0.1，原版1280×820空态/设置与固定源码；Moos整合V01—V05后的组合工作区完成GUI，最终签名deep/strict通过、15388项常规文件逐一哈希匹配，主程序SHA256 `257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5`。App9670→单Node9676，无新增生产Web服务；.app232.42MiB、常规文件逻辑247446378字节/磁盘285624KiB，完整内置运行时。此前候选1138/f7ed哈希只为中间包，最终以此为准。证据apps/desktop/evidence/p03-dsh-detail.json，私有截图/tmp/moos-dsh-detail-20261107/；分项提交对应同一组合工作区验收，不声称每个单独中间提交另装过一次。
+- 遗留问题：未逐帧测量动画精确时长、未逐状态像素diff；系统减少动态效果未手工切换，仅媒体查询/时序自动测试。原版macOS零宽侧栏、native vibrancy、wide-table breakout及鲸鱼品牌动画未复制；保留Moos品牌/56px轨道和用户石墨。DSH后端、Windows/iPhone与P02.9/小包等原未完成项不由本轮勾选。
+- 对应 Git 提交：唯一说明 `style(P03.6): align window chrome and panel motion`；查询 `git log --all --oneline --grep='^style(P03.6): align window chrome and panel motion$'`。全部分项完成后推送GitHub main并核对远程HEAD；不预填自身哈希。

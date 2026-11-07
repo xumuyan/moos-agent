@@ -93,3 +93,6 @@ code, pre, kbd, samp { font-family: var(--moos-font-code); }
 @media (forced-colors: active) {
   ::-webkit-scrollbar-thumb { background-color: GrayText; }
 }
+
+/* Original layout cadence (ui-theme/styles/base.css): fast 100ms, slow 300ms. */
+:root { --dsh-motion-fast:100ms; --dsh-motion-slow:300ms; --dsh-motion-ease:cubic-bezier(.4,0,.2,1); }
