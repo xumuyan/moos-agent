@@ -87,7 +87,7 @@
     {
       "local": "apps/desktop/src/vendor/dsh/host.css",
       "mode": "moos-adapter",
-      "sha256": "111f0267fcf6d5d795bdf566118b60daa06137ca1f1e27a1b6465b0ae296a0a0"
+      "sha256": "36781c4b152e6ffbdec46c6c98018fdf1fd21c9783c4be9b88327eddcab09e81"
     },
     {
       "local": "apps/desktop/src/vendor/dsh/layout/AppFrame.module.css",

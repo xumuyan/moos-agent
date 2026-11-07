@@ -121,6 +121,14 @@ async fn load_local_plugin_entry(
 }
 
 #[tauri::command]
+async fn load_local_theme_background(
+    id: String,
+    state: State<'_, SharedPlugins>,
+) -> Result<tauri::ipc::Response, String> {
+    state.theme_background(&id).map(tauri::ipc::Response::new)
+}
+
+#[tauri::command]
 async fn get_local_plugin_config(
     id: String,
     state: State<'_, SharedPlugins>,
@@ -182,6 +190,7 @@ fn main() {
             set_local_plugin_enabled,
             uninstall_local_plugin,
             load_local_plugin_entry,
+            load_local_theme_background,
             get_local_plugin_config,
             set_local_plugin_config
         ])

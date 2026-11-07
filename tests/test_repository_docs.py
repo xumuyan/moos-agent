@@ -9,6 +9,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_image_skin_example_matches_native_package_contract(self):
+        root = ROOT / 'apps/desktop/examples/dusk-image-skin'
+        manifest = json.loads((root / 'plugin.json').read_text())
+        self.assertEqual(manifest['type'], 'theme')
+        self.assertEqual(manifest['permissions'], [])
+        self.assertNotIn('entry', manifest)
+        background = manifest['backgroundMedia']
+        self.assertEqual(background['type'], 'image')
+        data = (root / background['src']).read_bytes()
+        self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))
+        self.assertLessEqual(len(data), 1024 * 1024)
+        self.assertIn('docs/plugins/image-skin.md', (ROOT / 'PLAN.md').read_text())
+
     def test_direct_source_copy_and_local_wallpaper_keep_provenance_and_boundaries(self):
         lock = json.loads((ROOT / 'apps/desktop/src/vendor/dsh/upstream-source-lock.json').read_text())
         self.assertEqual(lock['license'], 'MIT')

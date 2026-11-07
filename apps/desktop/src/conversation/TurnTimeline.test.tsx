@@ -12,12 +12,15 @@ it('folds process independently from final reply and files, and expands the chro
   expect(screen.getByText('先检查文件。')).not.toBeVisible();
   const result = screen.getByRole('region', { name: '本轮结果' });
   expect(result).toHaveClass('dsh-response');
-  expect(screen.getByRole('region', { name: '实际工具轨迹' })).toHaveClass('dsh-turn-work');
+  const process = screen.getByRole('region', { name: '实际工具轨迹' });
+  expect(process).toHaveClass('dsh-turn-work');
+  expect(process.nextElementSibling).toBe(result);
   expect(document.querySelector('.dsh-tool-card')).toBeInTheDocument();
   expect(document.querySelector('[class*=codex-]')).not.toBeInTheDocument();
   expect(within(result).getByText('修复完成。')).toBeVisible();
   expect(within(result).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('src/app.ts');
   await userEvent.click(screen.getByText('用时 1分5秒'));
+  expect(process.nextElementSibling).toBe(result);
   expect(screen.getByText('先检查文件。')).toBeVisible();
   await userEvent.click(screen.getByText('编辑了文件'));
   expect(screen.getByText('修改文件')).toBeVisible();

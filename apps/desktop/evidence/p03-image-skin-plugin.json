@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "baselineCommit": "b61f1eb692b5f10d1836fad3356048a087ce158e",
+  "commitSubject": "fix(P03.8): separate conversation cards and package image skins",
+  "example": "apps/desktop/examples/dusk-image-skin",
+  "exampleId": "dev.moos.dusk-image-skin",
+  "privateEvidence": "/tmp/moos-p038-acceptance/",
+  "gui": {
+    "viewport": [
+      1280,
+      820
+    ],
+    "originalConversationTurn": "用时 28秒",
+    "collapsedAndExpandedSeparateFromReply": true,
+    "sameGapOnLegacyWallpaper": true,
+    "zipInstalledDisabled": true,
+    "enableMakesPreviewAvailable": true,
+    "previewKeptGraphiteActive": true,
+    "appliedPackageImagePainted": true,
+    "restartRestoredImageSkin": true,
+    "disableRemovedThemeAndFellBack": true,
+    "legacyMaskPercentRetained": 75,
+    "graphiteRestored": true,
+    "exampleLeftEnabledAndUnapplied": true
+  },
+  "checks": {
+    "desktopUi": 174,
+    "core": 137,
+    "native": 28,
+    "docs": 52,
+    "tauriAppBundle": true
+  },
+  "bundle": {
+    "path": "/Applications/Moos.app",
+    "bundleMiB": 232.49,
+    "deepStrictSignatureVerified": true,
+    "allRegularFilesMatch": true,
+    "sha256": "f20baac6e612d7be83cfce625ba020f329a07cfb632f9a830ec45f88812c01e4",
+    "files": 15388,
+    "logicalBytes": 247512494,
+    "diskKiB": 285688
+  },
+  "process": {
+    "appPid": 27919,
+    "ownedNodePid": 27924
+  },
+  "limits": {
+    "nativeGuiImageFormats": [
+      "png"
+    ],
+    "upstreamSkinPackageDirectlyCompatible": false,
+    "shipsUpstreamArtworkOrHooks": false
+  }
+}

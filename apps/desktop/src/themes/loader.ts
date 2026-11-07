@@ -8,15 +8,25 @@ export function initializeWorkbenchTheme() {
 }
 const VARIABLES: Record<ThemeToken, string> = { accent: '--moos-accent', accentSoft: '--moos-accent-soft', border: '--moos-border', panel: '--moos-panel', sidebar: '--moos-sidebar', muted: '--moos-muted', radius: '--moos-radius', rightPanelWidth: '--moos-right-panel-width' };
 const SELECTORS = { sidebar: '.workspace-sidebar', conversation: '.conversation-pane', composer: '.composer-dock', rightPanel: '.right-panel' } as const;
+const BACKGROUND_VARIABLES = ['--moos-skin-image', '--moos-skin-mask', '--moos-skin-surface', '--moos-skin-blur'];
 export function resetTheme() {
-  delete document.documentElement.dataset.moosTheme;
-  for (const variable of Object.values(VARIABLES)) document.documentElement.style.removeProperty(variable);
+  const root = document.documentElement;
+  delete root.dataset.moosTheme;
+  delete root.dataset.moosSkinWallpaper;
+  for (const variable of [...Object.values(VARIABLES), ...BACKGROUND_VARIABLES]) root.style.removeProperty(variable);
   document.getElementById('moos-theme-regions')?.remove(); localStorage.removeItem(THEME_STORAGE_KEY);
 }
 export function applyTheme(input: unknown, { persist = false }: { persist?: boolean } = {}) {
   const theme = validateTheme(input); resetTheme();
-  document.documentElement.dataset.moosTheme = theme.id;
-  for (const [key, value] of Object.entries(theme.tokens)) document.documentElement.style.setProperty(VARIABLES[key as ThemeToken], value);
+  const root = document.documentElement;
+  root.dataset.moosTheme = theme.id;
+  for (const [key, value] of Object.entries(theme.tokens)) root.style.setProperty(VARIABLES[key as ThemeToken], value);
+  if (theme.backgroundMedia) {
+    const { src, maskOpacity, surfaceOpacity, blur } = theme.backgroundMedia;
+    const values = [`url("${src}")`, String(maskOpacity), String(surfaceOpacity), `${blur}px`];
+    BACKGROUND_VARIABLES.forEach((variable, index) => root.style.setProperty(variable, values[index]));
+    root.dataset.moosSkinWallpaper = 'true';
+  }
   const rules = Object.entries(theme.styles).map(([region, style]) => {
     const declarations = Object.entries(style ?? {}).map(([property, value]) => property === 'backgroundAsset'
       ? `background-image:url("${theme.assets[value]}")` : `${property.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}:${value}`);

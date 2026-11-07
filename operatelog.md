@@ -718,3 +718,13 @@
 - 验证结果：推送输出`3caa5b1..3703f16 HEAD -> main`；`git ls-remote origin refs/heads/main`与`git rev-parse HEAD`均为上述完整3703提交，工作区当时干净。本次补记后`npm run test:docs`51/51；产品源码未改，前一条核心/原生/UI复测和最终GUI/签名/哈希证据继续对应相同产品。后续文档提交同样推送并核对远端，不把3703伪写成本条自身hash。
 - 遗留问题：全局osxkeychain默认账号未调整，以免影响其他开发任务；本仓库可使用上述命令限定的helper。其余界面/平台/小包限制沿用前一条，无新增功能未验收项。
 - 对应 Git 提交：代码提交`3703f1676b4e4ab9f09898007b02cd0604fc4ac6`；本次文档唯一说明`docs(P03.7): record verified delivery and credential helper recovery`，查询`git log --all --oneline --grep='^docs(P03.7): record verified delivery and credential helper recovery$'`。
+
+## 2026-11-07 17:27:52 +08:00｜P03.8 会话卡片间距与图片皮肤插件
+
+- 修改或新增内容：会话过程卡与紧随的回复卡统一留出 12px 间距，收起与展开共用同一布局。Moos `type: theme` 皮肤包新增 `backgroundMedia` 静态资源声明，原生读取已启用包的指定图片，WebKit 校验解码，按已有插件安装、预览、应用、重启和停用生命周期管理。新增可安装的薄暮示例及格式说明，保留旧版背景数据及原有管理入口。
+- 遇到的难题：上一轮图片模式同时为相邻过程和回复添加卡片背景，但外层没有留间距；原生插件只支持清单内嵌的小图，不适合可分享的独立图片。新原生测试首轮误用了另一用例的局部 ZIP 助手，导致作用域和类型编译错误。
+- 处理方式：在 Moos 会话桥接层补相邻选择器，原版文件保持原样。参考菲比皮肤的资源声明与切换流程，由 Moos 原生安装器复制并校验包内 PNG/JPEG/WebP；使用按插件 ID 的限长二进制 IPC，校验相对路径、图片签名、大小和效果参数，前端解码后才显示。忽略已停用插件的迟到加载结果。复用模块级 ZIP 测试助手并为临时包加 `.zip` 后复跑。
+- 验证结果：`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=120000 --hookTimeout=60000` 58 文件 174/174，过程边界定向 5/5；`npm test` 137/137；`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --offline -- --test-threads=1` 28/28；`npm run test:docs` 52/52；`npm run build:app` 通过，保留已有大 chunk 提示。命令证据在 `/tmp/moos-p038-*.log`。
+- 实际验收与工作区状态：本提交前产品源码构建，macOS 27.0.1 arm64，1280×820。用原会话「用时 28秒」验证过程折叠和展开，回复卡下移且间距可见。在安装版从 ZIP 安装薄暮，启用、预览时保持原石墨、显式应用、更换背景、重启恢复、停用回退都通过。恢复石墨和旧背景 75% 遮罩，示例留为已启用、未应用。签名 deep/strict 核对通过，15388 项常规文件哈希与构建包一致，主程序 SHA256 `f20baac6e612d7be83cfce625ba020f329a07cfb632f9a830ec45f88812c01e4`。构建 `.app` 232.49 MiB，常规文件逻辑 247512494 字节，磁盘 285688 KiB。证据 `apps/desktop/evidence/p03-image-skin-plugin.json` 与本机私有截图 `/tmp/moos-p038-acceptance/`。
+- 遗留问题：当前导入 Moos 格式的静态图片皮肤，原版 DSH 包需转换；示例未使用第三方素材或脚本。Windows/iPhone 未做本轮验收，Mac GUI 以 PNG 样例实测，JPEG/WebP 仅有自动验证证据。
+- 对应 Git 提交：唯一说明 `fix(P03.8): separate conversation cards and package image skins`，可用 `git log --all --oneline --grep='^fix(P03.8): separate conversation cards and package image skins$'` 查询。提交后推送 GitHub main 并核对远端完整提交，不预填自身哈希。

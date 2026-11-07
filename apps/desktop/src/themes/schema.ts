@@ -1,11 +1,13 @@
 import { isMoosCompatible } from '../plugins/manifest';
+import { normalizeWallpaperOptions, type WallpaperOptions } from './wallpaper';
 
 export const THEME_TOKENS = ['accent', 'accentSoft', 'border', 'panel', 'sidebar', 'muted', 'radius', 'rightPanelWidth'] as const;
 export type ThemeToken = typeof THEME_TOKENS[number];
 export const THEME_REGIONS = ['sidebar', 'conversation', 'composer', 'rightPanel'] as const;
 export type ThemeRegion = typeof THEME_REGIONS[number];
 export interface ThemeStyle { backgroundColor?: string; color?: string; borderColor?: string; backgroundAsset?: string }
-export interface ThemeDefinition { id: string; name: string; version: string; moosVersion: string; tokens: Partial<Record<ThemeToken, string>>; styles: Partial<Record<ThemeRegion, ThemeStyle>>; assets: Record<string, string> }
+export interface ThemeBackground extends WallpaperOptions { type: 'image'; src: string }
+export interface ThemeDefinition { id: string; name: string; version: string; moosVersion: string; tokens: Partial<Record<ThemeToken, string>>; styles: Partial<Record<ThemeRegion, ThemeStyle>>; assets: Record<string, string>; backgroundMedia?: ThemeBackground }
 const color = (value: string) => /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s.,%]+\))$/.test(value);
 const dimension = (value: string) => /^(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-9]{2})px$/.test(value);
 const asset = (value: string) => (/^\/assets\/themes\/[a-zA-Z0-9/_-]+\.(png|jpe?g|webp)$/.test(value) || /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(value)) && value.length <= 131072;
@@ -34,6 +36,16 @@ export function validateTheme(input: unknown): ThemeDefinition {
       if (property === 'backgroundAsset' ? !Object.hasOwn(assets, styleValue) : !color(styleValue)) throw new Error('Invalid theme style value');
     }
   }
-  return { id: value.id, name: value.name.trim(), version: value.version, moosVersion: value.moosVersion,
+  const theme: ThemeDefinition = { id: value.id, name: value.name.trim(), version: value.version, moosVersion: value.moosVersion,
     tokens: { ...tokens } as ThemeDefinition['tokens'], styles: structuredClone(styles) as ThemeDefinition['styles'], assets: { ...assets } as Record<string, string> };
+  if (value.backgroundMedia !== undefined) {
+    const media = value.backgroundMedia as Partial<ThemeBackground> | null;
+    if (!media || media.type !== 'image' || typeof media.src !== 'string' || media.src.length > 1_400_000
+      || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(media.src)
+      || Object.keys(media).some(key => !['type', 'src', 'maskOpacity', 'surfaceOpacity', 'blur'].includes(key))) {
+      throw new Error('Invalid theme background');
+    }
+    theme.backgroundMedia = { type: 'image', src: media.src, ...normalizeWallpaperOptions(media) };
+  }
+  return theme;
 }

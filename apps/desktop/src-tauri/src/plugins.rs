@@ -98,6 +98,7 @@ impl PluginManager {
         }
         let manifest = read_manifest(staging.path())?;
         let mut plugin = validate_manifest(manifest, staging.path())?;
+        let mut state = self.lock()?;
         let target = self.root.join("packages").join(&plugin.id);
         let backup = self.root.join(format!(".backup-{}", plugin.id));
         if backup.exists() {
@@ -115,7 +116,6 @@ impl PluginManager {
             };
             return Err("Unable to install plugin atomically".into());
         }
-        let mut state = self.lock()?;
         plugin.enabled = state
             .plugins
             .get(&plugin.id)
@@ -161,6 +161,10 @@ impl PluginManager {
 
     pub fn uninstall(&self, id: &str, clear_config: bool) -> Result<(), String> {
         validate_id(id)?;
+        let mut state = self.lock()?;
+        if !state.plugins.contains_key(id) {
+            return Err("Plugin not found".into());
+        }
         let target = self.root.join("packages").join(id);
         let trash = self.root.join(format!(".remove-{id}"));
         if trash.exists() {
@@ -169,7 +173,6 @@ impl PluginManager {
         if target.exists() {
             fs::rename(&target, &trash).map_err(|_| "Unable to stage plugin removal")?;
         }
-        let mut state = self.lock()?;
         let previous = state.plugins.remove(id).ok_or("Plugin not found")?;
         let old_config = if clear_config {
             state.config.remove(id)
@@ -208,6 +211,20 @@ impl PluginManager {
             return Err("Plugin entry exceeds size limit".into());
         }
         String::from_utf8(bytes).map_err(|_| "Plugin entry must be UTF-8 JavaScript".into())
+    }
+
+    pub fn theme_background(&self, id: &str) -> Result<Vec<u8>, String> {
+        validate_id(id)?;
+        let state = self.lock()?;
+        let plugin = state.plugins.get(id).ok_or("Plugin not found")?;
+        if plugin.plugin_type != "theme" || !plugin.enabled {
+            return Err("Plugin is not an enabled theme".into());
+        }
+        let media = plugin
+            .manifest
+            .get("backgroundMedia")
+            .ok_or("Theme has no background image")?;
+        read_theme_background(media, &self.root.join("packages").join(id))
     }
 
     pub fn get_config(&self, id: &str) -> Result<Value, String> {
@@ -341,6 +358,9 @@ fn validate_manifest(manifest: Value, root: &Path) -> Result<LocalPlugin, String
             }
         }
         validate_theme(object)?;
+        if let Some(media) = object.get("backgroundMedia") {
+            read_theme_background(media, root)?;
+        }
         None
     };
     Ok(LocalPlugin {
@@ -355,6 +375,79 @@ fn validate_manifest(manifest: Value, root: &Path) -> Result<LocalPlugin, String
         enabled: false,
         manifest,
     })
+}
+
+fn read_theme_background(media: &Value, root: &Path) -> Result<Vec<u8>, String> {
+    let media = media.as_object().ok_or("Invalid theme background")?;
+    if media.get("type").and_then(Value::as_str) != Some("image")
+        || media.keys().any(|key| {
+            !matches!(
+                key.as_str(),
+                "type" | "src" | "maskOpacity" | "surfaceOpacity" | "blur"
+            )
+        })
+    {
+        return Err("Invalid theme background".into());
+    }
+    for (key, min, max) in [
+        ("maskOpacity", 0.0, 0.75),
+        ("surfaceOpacity", 0.35, 1.0),
+        ("blur", 0.0, 24.0),
+    ] {
+        if media
+            .get(key)
+            .is_some_and(|value| !value.as_f64().is_some_and(|n| (min..=max).contains(&n)))
+        {
+            return Err("Invalid theme background effect".into());
+        }
+    }
+    let src = media
+        .get("src")
+        .and_then(Value::as_str)
+        .ok_or("Theme background requires a package image")?;
+    if src.len() > 200
+        || src
+            .split('/')
+            .any(|part| part.is_empty() || part == "." || part == "..")
+        || !src
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'/' | b'.' | b'_' | b'-'))
+    {
+        return Err("Unsafe theme background path".into());
+    }
+    let relative = safe_relative(src)?;
+    let mut path = root.to_path_buf();
+    for part in relative.components() {
+        path.push(part);
+        let metadata =
+            fs::symlink_metadata(&path).map_err(|_| "Theme background image is missing")?;
+        if metadata.file_type().is_symlink() {
+            return Err("Theme background links are not allowed".into());
+        }
+    }
+    let metadata = fs::metadata(&path).map_err(|_| "Theme background image is missing")?;
+    if !metadata.is_file() || metadata.len() > MAX_FILE_BYTES {
+        return Err("Invalid theme background image size".into());
+    }
+    let mut bytes = Vec::new();
+    File::open(&path)
+        .and_then(|file| file.take(MAX_FILE_BYTES + 1).read_to_end(&mut bytes))
+        .map_err(|_| "Unable to read theme background")?;
+    let format_matches = match path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("png") => bytes.starts_with(b"\x89PNG\r\n\x1a\n"),
+        Some("jpg" | "jpeg") => bytes.starts_with(b"\xff\xd8\xff"),
+        Some("webp") => bytes.starts_with(b"RIFF") && bytes.get(8..12) == Some(b"WEBP"),
+        _ => false,
+    };
+    if !format_matches || bytes.len() as u64 > MAX_FILE_BYTES {
+        return Err("Invalid theme background image format".into());
+    }
+    Ok(bytes)
 }
 
 fn validate_theme(object: &serde_json::Map<String, Value>) -> Result<(), String> {
@@ -709,22 +802,23 @@ mod tests {
         }
     }
 
+    fn zip_with(entries: Vec<(&str, &[u8], u32)>) -> tempfile::NamedTempFile {
+        let file = tempfile::Builder::new().suffix(".zip").tempfile().unwrap();
+        {
+            let mut writer = zip::ZipWriter::new(file.reopen().unwrap());
+            for (name, bytes, mode) in entries {
+                writer
+                    .start_file(name, SimpleFileOptions::default().unix_permissions(mode))
+                    .unwrap();
+                writer.write_all(bytes).unwrap();
+            }
+            writer.finish().unwrap();
+        }
+        file
+    }
+
     #[test]
     fn zip_rejects_traversal_symlink_bomb_many_files_and_native_payload() {
-        fn zip_with(entries: Vec<(&str, &[u8], u32)>) -> tempfile::NamedTempFile {
-            let file = tempfile::NamedTempFile::new().unwrap();
-            {
-                let mut writer = zip::ZipWriter::new(file.reopen().unwrap());
-                for (name, bytes, mode) in entries {
-                    writer
-                        .start_file(name, SimpleFileOptions::default().unix_permissions(mode))
-                        .unwrap();
-                    writer.write_all(bytes).unwrap();
-                }
-                writer.finish().unwrap();
-            }
-            file
-        }
         let target = tempfile::tempdir().unwrap();
         let traversal = zip_with(vec![("../escape", b"x", 0o644)]);
         assert!(extract_validated_zip(traversal.path(), target.path()).is_err());
@@ -785,6 +879,67 @@ mod tests {
         assert!(validate_manifest(code, root.path())
             .unwrap_err()
             .contains("execute"));
+    }
+
+    #[test]
+    fn image_theme_reads_only_its_enabled_packaged_image() {
+        let data = tempfile::tempdir().unwrap();
+        let source = tempfile::tempdir().unwrap();
+        let manager = PluginManager::new(data.path().to_owned()).unwrap();
+        let id = "dev.example.image-skin";
+        let mut manifest = serde_json::json!({
+            "id": id, "name": "Image", "version": "1.0.0", "type": "theme", "moosVersion": "^0.1.0",
+            "slots": [], "permissions": [], "tokens": {}, "styles": {}, "assets": {},
+            "backgroundMedia": {"type": "image", "src": "assets/bg.png", "maskOpacity": 0.3}
+        });
+        assert!(validate_manifest(manifest.clone(), source.path())
+            .unwrap_err()
+            .contains("missing"));
+        let png = include_bytes!("../icons/moos-v1/32x32.png");
+        fs::create_dir(source.path().join("assets")).unwrap();
+        let image = source.path().join("assets/bg.png");
+        fs::write(&image, b"<svg />").unwrap();
+        assert!(validate_manifest(manifest.clone(), source.path())
+            .unwrap_err()
+            .contains("format"));
+        fs::write(&image, png).unwrap();
+        for src in [
+            "../bg.png",
+            "assets/../bg.png",
+            "/tmp/bg.png",
+            "https://example.test/bg.png",
+            "assets/bg.svg",
+        ] {
+            let mut invalid = manifest.clone();
+            invalid["backgroundMedia"]["src"] = src.into();
+            assert!(
+                validate_manifest(invalid, source.path()).is_err(),
+                "accepted {src}"
+            );
+        }
+        manifest["backgroundMedia"]["blur"] = 25.into();
+        assert!(validate_manifest(manifest.clone(), source.path())
+            .unwrap_err()
+            .contains("effect"));
+        manifest["backgroundMedia"]["blur"] = 8.into();
+        let serialized = serde_json::to_vec(&manifest).unwrap();
+        fs::write(source.path().join("plugin.json"), &serialized).unwrap();
+        assert!(!manager.install(source.path()).unwrap().enabled);
+        assert!(manager.theme_background(id).is_err());
+        manager.set_enabled(id, true).unwrap();
+        assert_eq!(manager.theme_background(id).unwrap(), png);
+        assert!(manager.entry(id).is_err());
+        let archive = zip_with(vec![
+            ("plugin.json", &serialized, 0o644),
+            ("assets/bg.png", png, 0o644),
+        ]);
+        assert!(manager.install(archive.path()).unwrap().enabled);
+        let restarted = PluginManager::new(data.path().to_owned()).unwrap();
+        assert_eq!(restarted.theme_background(id).unwrap(), png);
+        restarted.set_enabled(id, false).unwrap();
+        assert!(restarted.theme_background(id).is_err());
+        restarted.uninstall(id, false).unwrap();
+        assert!(restarted.theme_background(id).is_err());
     }
 
     #[test]

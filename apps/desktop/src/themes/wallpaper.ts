@@ -119,6 +119,17 @@ export async function validateWallpaper(file: File): Promise<WallpaperImage> {
   return (await readWallpaper(file, decodeWallpaper)).metadata;
 }
 
+export async function decodeThemeBackground(bytes: ArrayBuffer): Promise<string> {
+  if (!(bytes instanceof ArrayBuffer) || bytes.byteLength > 1024 * 1024) {
+    throw new Error('皮肤图片超过大小限制');
+  }
+  return (await readWallpaper(new Blob([bytes]), decodeWallpaper)).url;
+}
+
+export function normalizeWallpaperOptions(options: Partial<WallpaperOptions>): WallpaperOptions {
+  return checkedOptions(options, DEFAULT_WALLPAPER_OPTIONS);
+}
+
 function checkedOptions(input: Partial<WallpaperOptions>, base: Readonly<WallpaperOptions>): WallpaperOptions {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('背景参数无效');
   const options = { ...base };

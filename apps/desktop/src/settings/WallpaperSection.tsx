@@ -17,7 +17,7 @@ function readPreview(file: File, mime: string): Promise<string> {
   });
 }
 
-export default function WallpaperSection() {
+export default function WallpaperSection({ legacyOnly = false }: { legacyOnly?: boolean }) {
   const current = useSyncExternalStore(subscribeWallpaper, getWallpaper);
   const currentPreview = useSyncExternalStore(subscribeWallpaper, getWallpaperPreview);
   const loading = useSyncExternalStore(subscribeWallpaper, getWallpaperLoading);
@@ -93,11 +93,12 @@ export default function WallpaperSection() {
     setOptions(previous => ({ ...previous, [name]: value }));
     setStatus('');
   };
+  if (legacyOnly && !current && !loadError && !status) return null;
   return <section className={css.section} aria-labelledby={`${id}-wallpaper`}>
-    <h4 id={`${id}-wallpaper`}>背景图片</h4>
-    <p>支持 PNG、JPEG 和 WebP。图片与效果参数仅保存在本机。选图和调整效果会先显示预览，点击应用或保存后生效。</p>
+    <h4 id={`${id}-wallpaper`}>{legacyOnly ? '旧版背景图片' : '背景图片'}</h4>
+    <p>{legacyOnly ? '这是升级前保存的本机背景。应用图片皮肤时优先显示插件图片。' : '支持 PNG、JPEG 和 WebP。图片与效果参数仅保存在本机。选图和调整效果会先显示预览，点击应用或保存后生效。'}</p>
     <input ref={fileInput} type="file" hidden aria-label="选择本地背景图片" accept="image/png,image/jpeg,image/webp" onChange={choose} />
-    <button type="button" className={css.secondary} disabled={busy} onClick={() => fileInput.current?.click()}>选择本地图片</button>
+    {!legacyOnly && <button type="button" className={css.secondary} disabled={busy} onClick={() => fileInput.current?.click()}>选择本地图片</button>}
     {preview && <figure className={css.preview}>
       <div className={css.thumbnail}>
         <img src={preview} alt={selected ? '待应用背景图' : '当前背景图'} />
@@ -127,6 +128,6 @@ export default function WallpaperSection() {
     </div>
     <p className={css.note}>移除仅清理 Moos 保存的背景副本，原图仍在原处。</p>
     {(loading || pending || status) && <p role="status">{loading ? '正在读取已保存的背景…' : pending === 'choose' ? '正在读取图片…' : pending === 'apply' ? '正在保存背景…' : pending === 'remove' ? '正在移除背景…' : status}</p>}
-    {(error || loadError) && <p className={css.error} role="alert">{error || '读取已保存的背景失败。可以重新选择本地图片。'}</p>}
+    {(error || loadError) && <p className={css.error} role="alert">{error || (legacyOnly ? '读取旧版背景失败。' : '读取已保存的背景失败。可以重新选择本地图片。')}</p>}
   </section>;
 }

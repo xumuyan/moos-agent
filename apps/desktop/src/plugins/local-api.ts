@@ -12,5 +12,6 @@ export async function installLocalPlugin(path: string) { return invoke<LocalPlug
 export async function enableLocalPlugin(id: string, enabled: boolean) { return invoke<void>('set_local_plugin_enabled', { id, enabled }); }
 export async function uninstallLocalPlugin(id: string, clearConfig: boolean) { return invoke<void>('uninstall_local_plugin', { id, clearConfig }); }
 export async function loadLocalPluginEntry(id: string) { return invoke<string>('load_local_plugin_entry', { id }); }
+export async function loadLocalThemeBackground(id: string) { return invoke<ArrayBuffer>('load_local_theme_background', { id }); }
 export async function getLocalPluginConfig(id: string) { return invoke<Record<string, unknown>>('get_local_plugin_config', { id }); }
 export async function setLocalPluginConfig(id: string, value: unknown) { return invoke<void>('set_local_plugin_config', { id, value }); }
