@@ -4,6 +4,7 @@ import {
   createBashToolDefinition, createEditToolDefinition,
   createLsToolDefinition, createReadToolDefinition, createWriteToolDefinition,
 } from '@earendil-works/pi-coding-agent';
+import { sandboxToolchain } from './toolchain.mjs';
 
 const modes = new Set(['read-only', 'workspace-write', 'danger-full-access']);
 const shellQuote = value => "'" + value.replaceAll("'", "'\\''") + "'";
@@ -27,21 +28,22 @@ function within(root, target) {
   return path !== '..' && !path.startsWith('..' + sep) && !isAbsolute(path);
 }
 
-function seatbeltProfile(cwd, writable) {
+function seatbeltProfile(cwd, writable, tools) {
   if (process.platform !== 'darwin' || /[\x00-\x1f]/.test(cwd)) {
     throw new Error('当前平台没有可用的 PI 命令沙箱');
   }
-  const roots = [cwd, '/System', '/usr', '/bin', '/sbin', '/Library/Apple', '/private/var/db/dyld'];
+  const roots = [cwd, '/System', '/usr', '/bin', '/sbin', '/Library/Apple', '/private/var/db/dyld', ...tools.roots];
   const ancestors = [];
   for (let parent = dirname(cwd); ; parent = dirname(parent)) {
     ancestors.push('(literal ' + JSON.stringify(parent) + ')');
     if (parent === dirname(parent)) break;
   }
+  const toolFiles = tools.files.map(path => '(literal ' + JSON.stringify(path) + ')');
   return [
     '(version 1)', '(allow default)', '(deny network*)', '(deny appleevent-send)',
     '(deny file-read-data)', '(deny file-write*)',
     '(allow file-read-data (literal "/dev/null") (literal "/dev/random") (literal "/dev/urandom"))',
-    '(allow file-read-data ' + ancestors.join(' ') + ')',
+    '(allow file-read-data ' + [...ancestors, ...toolFiles].join(' ') + ')',
     `(allow file-read-data ${roots.map(path => '(subpath ' + JSON.stringify(path) + ')').join(' ')})`,
     '(allow file-write* (literal "/dev/null"))',
     ...(writable ? ['(allow file-write* (subpath ' + JSON.stringify(cwd) + '))'] : []),
@@ -88,10 +90,16 @@ export function workspaceTools(cwd, { getMode, approve }) {
     exposeSessionEnvironment: false,
     spawnHook({ command, env }) {
       const current = mode();
-      const effectiveCommand = current === 'danger-full-access' ? command :
-        'exec /usr/bin/sandbox-exec -p ' + shellQuote(seatbeltProfile(cwd, current === 'workspace-write'))
+      const environment = shellEnvironment(env, cwd);
+      if (current === 'danger-full-access') return { command, cwd, env: environment };
+      const toolchain = sandboxToolchain(environment.PATH);
+      const effectiveCommand = 'exec /usr/bin/sandbox-exec -p ' + shellQuote(seatbeltProfile(cwd, current === 'workspace-write', toolchain))
         + ' /bin/bash --noprofile --norc -c ' + shellQuote(command);
-      return { command: effectiveCommand, cwd, env: shellEnvironment(env, cwd) };
+      return { command: effectiveCommand, cwd, env: { ...environment, PATH: toolchain.path,
+        GIT_CONFIG_NOSYSTEM: '1', GIT_ATTR_NOSYSTEM: '1', GIT_OPTIONAL_LOCKS: '0',
+        npm_config_logs_max: '0', npm_config_update_notifier: 'false',
+        NODE_DISABLE_COMPILE_CACHE: '1',
+      } };
     },
   });
   const tools = [

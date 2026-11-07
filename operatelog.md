@@ -935,3 +935,13 @@
 - 同条件结果：Moos / 原版分别发出 10 / 12 次有效请求，均返回 HTTP 200。首个文字或工具参数响应为 12.28 / 3.06 秒，首个请求至最后一次用量返回为 160.93 / 178.09 秒。Moos 包含 45.17 秒审批等待，仅作扣除后的算术对照为 115.77 秒。服务报告 Token 为 78,551 / 140,563，其中缓存输入为 67,818 / 102,317。原版统计包含标题请求，Moos 标题由本地生成。原版被拦截的 Medium 请求未计入有效请求和用量。
 - 遗留问题：本轮是单对照样本，模型工具、系统提示、缓存和启动形态存在差异。默认工作区权限下的 npm 与 Git 工具链待修复，完成条件是保持原有隔离边界并用打包版复跑。脱敏请求元数据和外部验收日志在 `/tmp/moos-crossfile-bench.6W6M5y/`，结构化汇总已纳入仓库。
 - 对应 Git 提交：唯一说明 `test(P03.13): record matched online cross-file benchmark`，用 `git log --all --oneline --grep='^test(P03.13): record matched online cross-file benchmark$'` 查询。
+
+## 2026-11-08 02:34:56 +08:00｜P03.13.4 修复默认权限下的 npm 和 Git
+
+- 修改或新增内容：PI 的 macOS 受限 Bash 读取配套的 npm 程序目录和必要的 Git 运行文件。保留已配置的 PATH。最小 PATH 缺少 Node/npm 时识别常见安装位置。Apple Git 走已选开发工具的实际二进制，Homebrew Git 按其 Mach-O 依赖确定可读动态库。
+- 遇到的难题：独立复现 nvm 的 npm 入口被拒绝，Homebrew Git 读取 pcre2/gettext 动态库失败，Apple Git 的系统转发器还会尝试加载 Xcode 库及写 xcrun 缓存。首次全量运行时旧 Tauri PTY 的退出状态与租约释放断言再次出现时序失败。
+- 处理方式：npm 只开放配套程序目录，Git 只开放已匹配的程序或动态库文件。受限 Git 跳过系统配置和可选索引写锁，npm 测试关闭辅助日志及 Node 编译缓存。回归核对 npm 子进程仍不能读相邻文件，Git 只读模式不能暂存，现有回环网络及审批边界通过。并行工作结束后单线程完整复跑两套原生测试。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 21/21，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 最终 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 54/54。开发包构建、深度严格签名、随包工具链文件一致性和 Git 差异检查通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64，以 `PATH=/usr/bin:/bin:/usr/sbin:/sbin` 启动 `build-xVdpyZ`。复用 E52 同一 Git 基线及指令哈希，经同一线上中转使用 GPT-6.1 Sol High。默认工作区模式下 `npm test` 10/10，`git diff --check` 和 `git status --short` 退出 0，零审批。外部测试 10/10、独立验收 5/5，只修改指定的三个文件，无未跟踪文件。10 次请求均为 High 和 HTTP 200，首个响应动作 19.03 秒，首请求到末次用量 107.32 秒，服务报告 73,576 Token。
+- 遗留问题：这次只重跑了 Moos，缓存和模型行为存在波动。最小 PATH 环境中的 `rg` 和系统 Python 未覆盖，真实使用中分别出现找不到命令与加载库失败。其他 Node 安装器、不同系统以及旧 PTY 的时序问题仍待验。脱敏日志见 `/tmp/moos-toolchain-*.log`。
+- 对应 Git 提交：唯一说明 `fix(P03.13): enable confined npm and Git toolchains`，用 `git log --all --oneline --grep='^fix(P03.13): enable confined npm and Git toolchains$'` 查询。

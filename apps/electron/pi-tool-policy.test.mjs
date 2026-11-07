@@ -1,10 +1,42 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { workspaceTools } from '../../packages/pi-runtime/tool-policy.mjs';
+
+test('confined macOS shells can run npm tests and Git without exposing adjacent files', {
+  skip: process.platform !== 'darwin',
+}, async t => {
+  const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-toolchain-')));
+  t.after(() => rm(data, { recursive: true, force: true }));
+  const root = join(data, "toolchain ' project");
+  await mkdir(root);
+  await writeFile(join(data, 'private.txt'), 'outside');
+  await writeFile(join(root, 'package.json'), JSON.stringify({ private: true, scripts: { test: 'node --test verify.mjs' } }));
+  const fixture = `import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+assert.throws(() => readFileSync('../private.txt'), { code: 'EPERM' });
+`;
+  await writeFile(join(root, 'verify.mjs'), fixture);
+  const git = (...args) => execFileSync('/usr/bin/git', args, { cwd: root, encoding: 'utf8' });
+  git('init', '-q');
+  git('add', '.');
+  await writeFile(join(root, 'verify.mjs'), fixture + 'assert.equal(2 + 2, 4);\n');
+  let mode = 'workspace-write';
+  const shell = workspaceTools(root, { getMode: () => mode }).find(tool => tool.name === 'bash');
+  const run = command => shell.execute('toolchain-test', { command, timeout: 10 }, new AbortController().signal);
+  for (const command of ['npm test', 'git diff --check', 'git status --short']) {
+    const result = await run(command);
+    assert.equal(result.structuredContent.exit_code, 0, result.content[0].text);
+  }
+  assert.equal(git('ls-files', '--others', '--exclude-standard'), '');
+  mode = 'read-only';
+  assert.equal((await run('git diff --check')).structuredContent.exit_code, 0);
+  assert.equal((await run('git add verify.mjs')).isError, true);
+});
 
 test('PI file tools honor live permission, deny outside links and support project writes', async t => {
   const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-policy-')));
