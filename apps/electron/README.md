@@ -1,6 +1,6 @@
 # Moos Electron 本机开发版
 
-以 Moos 的 Electron 主进程打开 DSH 的原版工作台。macOS 开发构建使用已安装的 DeepSeek Harness Desktop 0.2.2-rc.1 提供 Electron 44.7.0 二进制及 DSH Host。准备脚本将启动器、渲染框架和本机 profile 模板组装为 Moos 应用包。
+以 Moos 的 Electron 主进程打开 DSH 的原版工作台。macOS 构建阶段从 DeepSeek Harness Desktop 0.2.2-rc.1 取得 Electron 44.7.0 和工作台 Host，组装为内置 PI、Host 与插件安装器的 Moos 应用包。
 
 ```sh
 npm --prefix apps/electron run prepare:local
@@ -14,7 +14,7 @@ npm --prefix apps/electron run prepare:local
 npm --prefix apps/electron test
 ```
 
-开发版从本机回环启动原版工作台。应用包使用本机临时签名，运行时依赖指定的上游 App。第三方代码许可及独立分发在打包阶段核验。
+开发版通过本机回环提供工作台。Host 和插件安装器使用应用包内的 Moos 可执行文件，不需要另外安装 DSH、Node.js 或 pnpm。应用包使用本机临时签名，面向其他用户的分发和签名另行验收。
 
 Moos 启动时在现有配置之后应用随包的 `execution.patch.yml`。它停用原版内置模型适配器、工具执行器和定时任务，清空四个内置预设的工具配置。会话仍使用原版的创建、恢复和显示协议。皮肤和普通界面插件仍通过原版宿主加载。其他执行类插件需要在 PI 接入后单独验收。
 
@@ -22,7 +22,7 @@ Moos 启动时在现有配置之后应用随包的 `execution.patch.yml`。它�
 
 默认启动的 Moos 已内置 PI SDK，由本机 Host 与 Moos 调度器执行普通文本会话。服务信息存于数据目录的 `providers.json`。API 密钥保存在本机 `private/credentials.json`，目录权限 0700，文件权限 0600。更改服务地址时需重新填写密钥。当前自动路由覆盖选模，升级与备用切换待验收。
 
-默认可见的已安装扩展只有皮肤中心。工作台保留项目、会话、文件树和插件安装器。原版的内置插件设置与未启用的预置实验扩展不再占用插件页，终端、网页搜索、浏览器、Office 预览等可选功能默认停用。需要扩展时，在侧栏「插件」中使用「添加插件」。当前本机开发版仍使用固定版本的外部 DSH Host，其原始安装文件由该 Host 提供。
+默认安装的用户扩展只有皮肤中心。构建会裁剪上游可选扩展、原执行器和附属的 Office、语音运行时。工作台保留项目、会话、文件树和插件安装器。需要扩展时，在侧栏「插件 → 添加插件」输入受信任的包名、GitHub 地址或本地路径。公开源安装已验证「自定义插件索引」，其他扩展的兼容性按插件验证。
 
 用以下方式启动内置 PI 调度验收。构建命令会输出验收版 `Moos.app` 的路径。运行命令中的路径替换为该应用包里的可执行文件。
 

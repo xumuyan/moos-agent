@@ -85,7 +85,8 @@ async function updateShellPlugin(resources, home, cli) {
 
 async function launch() {
   const resources = process.resourcesPath;
-  const { cli, includesPiFixture } = JSON.parse(await readFile(join(resources, 'moos-runtime.json'), 'utf8'));
+  const { includesPiFixture } = JSON.parse(await readFile(join(resources, 'moos-runtime.json'), 'utf8'));
+  const cli = join(resources, 'host-runtime', 'bin', 'dsh');
   const enableFixture = process.env.MOOS_ELECTRON_PI_FIXTURE === '1';
   if (enableFixture && (!includesPiFixture || !process.env.MOOS_ELECTRON_DATA)) {
     throw new Error('PI fixture requires a fixture build and an explicit data directory');

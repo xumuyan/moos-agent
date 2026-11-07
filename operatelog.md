@@ -860,3 +860,15 @@
 - GLM 实机复验：最终开发包 `build-HB4lrb` 使用「Moos PI · 自动选择」执行 GLM-5.3，同会话两轮调用 PI write。首轮验收输入只传入 ASCII 片段，写入内容未含换行。第二轮用完整英文指令，界面显示完成，核对文件为目标字符串加一个 LF，SQLite 状态为成功，记录 2 条真实用量事件、合计 2,436 Token，凭据文件权限 0600。PI SDK 单独调用同端点也通过精确文件写入。
 - 遗留问题：本轮对照只有一个小任务，不能据此推断大项目速度或费用。用量仍需接进原版设置汇总，设置中心的模型入口与诊断、DeepSeek 自定义服务、真实认证/额度错误、自动升级和备用切换待验。固定外部 Host 的可选插件文件、公开下载和独立发行按原计划推进。
 - 对应 Git 提交：唯一说明 `feat(P03.13): enable configured PI models in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): enable configured PI models in Electron$'` 查询。
+
+## 2026-11-08 00:54:35 +08:00｜P03.13.7 精简并随包提供 Electron Host
+
+- 修改或新增内容：从固定版 DSH 的归档提取工作台 Host 及安装器，改由随包 Moos 可执行文件在 Node 模式启动 Host 和 pnpm。裁剪上游可选插件、停用的旧执行器、Office 和语音运行时，并同步两份包清单与运行时库存。保留皮肤中心、工作台依赖及用户已有插件设置。
+- 遇到的难题：复制后立即执行尚未重新签名的 Moos 主程序被 macOS 终止。首个精简包已删掉可选包，但插件管理器另外读取 CLI 自身的安装清单，把已删插件显示为未安装的异常项。原前端全量并发运行首次有超时和模拟输入交错失败。
+- 处理方式：构建阶段用固定上游 Electron 生成模板，签名后用随包启动器验收。同步裁剪 Host 根和 CLI 安装清单，去掉之前用于遮盖预置实验扩展的样式，让按需装入的实验插件即使停用也能显示。以前端目录的测试命令直接传入单 worker 与测试时限参数，整套复跑通过。
+- 验证结果：`npm --prefix apps/electron test` 用随包 CLI 执行 13/13，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`npm run test:desktop-product` 30/30，`npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。构建、`codesign --verify --deep --strict` 与 Git 差异检查通过。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 使用开发包 `build-CJayJb`。将 PATH 限为 `/usr/bin:/bin`，上游应用路径指向不存在的位置，核对 Host 子进程来自包内 Moos。新配置只有皮肤中心及内部壳，抽查终端、实验插件、Office、LibreOffice、Sherpa 与随包 Python 文件均缺席。旧模板内的壳从 0.1.7 更新到 0.1.8，并成功启动 PI。界面以本地验收模型执行 PI write 和 bash，独立核对结果文件。
+- 按需安装实测：在界面以中国大陆公开 npm 镜像下载安装 `@deepseek-ai/dsh-experimental-plugin-market-bundle@0.2.2-rc.1`。启用后插件的两个组件运行，打开「发现」页看到未配置索引状态。卸载后「发现」消失，核对 profile 清单与文件恢复为皮肤中心及内部壳。未配置任何新索引。
+- 线上复验与体积：正常模式下选择自动路由，经随包 Host 的 PI 调用 GLM-5.3，9.30 秒完成单文件写入。核对文件精确字节、成功状态及 2 条真实用量事件（2,255 Token）。`du -sk` 的落盘分配值为 Moos 开发包 695,108 KiB、其中 Host 222,652 KiB。旧包单独 466,560 KiB，另依赖上游 App 1,042,528 KiB。上述是本机构建和落盘值，尚无正式下载包体积。
+- 遗留问题：公开安装验收覆盖一个工作台插件。插件调用 PI 工具的接口兼容、正式签名和发行、设置用量汇总及模型自动升级仍待验收。测试日志见 `/tmp/moos-slim-*.log`。
+- 对应 Git 提交：唯一说明 `feat(P03.13): bundle a slim Electron workbench host`，用 `git log --all --oneline --grep='^feat(P03.13): bundle a slim Electron workbench host$'` 查询。

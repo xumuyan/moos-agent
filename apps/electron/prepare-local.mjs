@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const source = dirname(fileURLToPath(import.meta.url));
 const repo = join(source, '..', '..');
 const dshApp = join(resolve(process.env.MOOS_ELECTRON_DSH_APP ?? '/Applications/DeepSeek Harness.app'), 'Contents');
-const cli = join(dshApp, 'Resources/runtime/cli/bin/dsh');
+const upstream = join(dshApp, 'MacOS', 'DeepSeek Harness');
 const dshVersion = execFileSync('/usr/libexec/PlistBuddy',
   ['-c', 'Print CFBundleShortVersionString', join(dshApp, 'Info.plist')], { encoding: 'utf8' }).trim();
 if (dshVersion !== '0.2.2-rc.1') throw new Error('The local Electron build requires DSH Desktop 0.2.2-rc.1');
@@ -31,11 +31,22 @@ await mkdir(resources, { recursive: true });
 for (const entry of ['MacOS', 'Frameworks', 'Info.plist', 'PkgInfo']) {
   execFileSync('/usr/bin/ditto', [join(electronContents, entry), join(contents, entry)]);
 }
+const hostRuntime = join(resources, 'host-runtime');
+execFileSync(upstream, [join(source, 'stage-dsh-runtime.cjs'), hostRuntime], {
+  env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit',
+});
+await cp(join(source, 'dsh-cli.mjs'), join(hostRuntime, 'cli.mjs'));
+await mkdir(join(hostRuntime, 'bin'));
+const cli = join(hostRuntime, 'bin', 'dsh');
+await cp(join(source, 'dsh-launcher.sh'), cli);
+await chmod(cli, 0o755);
 
 const template = join(resources, 'profile-template');
 await mkdir(template, { mode: 0o700 });
-const env = { ...process.env, DSH_HOME: template, DSH_TELEMETRY_DISABLED: '1' };
-execFileSync(cli, ['web', '--dump-config'], { env, cwd: build, stdio: 'ignore' });
+const env = { ...process.env, DSH_HOME: template, DSH_TELEMETRY_DISABLED: '1', ELECTRON_RUN_AS_NODE: '1' };
+const runBuildCli = (args, options) => execFileSync(upstream,
+  ['--expose-internals', join(hostRuntime, 'cli.mjs'), ...args], { ...options, env });
+runBuildCli(['web', '--dump-config'], { cwd: build, stdio: ['ignore', 'ignore', 'inherit'] });
 const webProfile = join(template, 'profiles', 'web');
 const bundles = join(webProfile, 'local-bundles');
 await mkdir(bundles, { recursive: true });
@@ -47,9 +58,9 @@ const clientSource = await readFile(pluginClient, 'utf8');
 await writeFile(pluginClient, clientSource.replace('__MOOS_SIDEBAR_ICON__', sidebarIcon.toString('base64')));
 const archive = execFileSync('npm', ['pack', stagedPlugin, '--pack-destination', bundles, '--silent'],
   { encoding: 'utf8' }).trim();
-execFileSync(cli, ['plugin', '--profile', 'web', 'add', `file:./local-bundles/${archive}`,
+runBuildCli(['plugin', '--profile', 'web', 'add', `file:./local-bundles/${archive}`,
   '@linxin666/dsh-client-ui-skin-center@0.4.5', '--save-exact'],
-{ env, cwd: webProfile, stdio: 'inherit' });
+{ cwd: webProfile, stdio: 'inherit' });
 
 // The CLI expands tarball specs from its invocation directory. Keep the seeded
 // profile movable between the signed app resources and the user's data folder.
@@ -82,7 +93,7 @@ for (const file of ['main.mjs', 'host.mjs', 'window-preload.cjs', 'model-setting
 }
 await cp(join(source, 'plugin/pi-models.js'), join(appSource, 'pi-models.js'));
 const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
-await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ cli, dshVersion, includesPiFixture }));
+await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ dshVersion, includesPiFixture }));
 await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));
 {
   const runtime = join(resources, 'pi-runtime');
@@ -128,7 +139,6 @@ for (const entry of await readdir(frameworks)) {
   });
 }
 await rename(join(contents, 'MacOS', executable), join(contents, 'MacOS', 'Moos'));
-
 const info = join(contents, 'Info.plist');
 for (const key of ['CFBundleURLTypes', 'ElectronAsarIntegrity', 'SUFeedURL']) {
   try { execFileSync('/usr/bin/plutil', ['-remove', key, info], { stdio: 'ignore' }); }
