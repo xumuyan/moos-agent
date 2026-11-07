@@ -171,3 +171,60 @@ test('Electron retry resumes PI after a tool and accepts only the latest eligibl
   assert.equal(await readFile(join(data, 'result.txt'), 'utf8'), 'interrupted\n');
   assert.match(JSON.stringify(requests[4].messages), /原始任务.*MOOS_FIXTURE_WRITE interrupted/);
 });
+
+test('DSH forks give PI exactly the selected history, with text fallback for older turns', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-electron-fork-')));
+  const project = join(root, 'project');
+  await mkdir(project);
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const requests = [];
+  const fixture = await startFixture({ onModelRequest: request => requests.push(request) });
+  const tasks = createPiTasks({ store, Scheduler, run: options => runPiSdk({
+    ...options, dataDir: join(root, 'sessions'),
+    provider: { id: 'moos-pi', name: 'Fixture', api: 'openai-completions', baseUrl: fixture.baseUrl,
+      model: 'moos-fixture', contextWindow: 128000, maxTokens: 8192 }, apiKey: fixture.apiKey,
+  }) });
+  t.after(async () => {
+    await tasks.close();
+    await fixture.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const user = (id, text) => ({ id, role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text }] });
+  function settledTurn(message, text) {
+    return [{ type: 'turn/start', data: {} }, { type: 'user/message', data: message },
+      { type: 'assistant/message', data: { message: { content: [{ type: 'text', text }] } } },
+      { type: 'turn/end', data: { reason: { kind: 'completed' } } }].map((event, index) => ({ ...event, time: index + 1 }));
+  }
+  const first = user('message-first', 'MOOS_FIXTURE_WRITE before');
+  const later = user('message-later', 'MOOS_FIXTURE_WRITE after');
+  const fullPrefix = [...settledTurn(first, 'Visible first reply'), ...settledTurn(later, 'Visible later reply')];
+  const legacy = settledTurn(user('message-old', 'Old prompt'), 'Old visible reply');
+  const adapter = createPiAdapter({ tasks, getSession(id) {
+    const events = id === 'legacy' ? legacy : fullPrefix;
+    return { header: { cwd: project, isSeeded: id !== 'parent' },
+      inheritedEventCount: 4, snapshotEvents: (from, to) => events.slice(from, to) };
+  } });
+  async function submit(sessionId, message) {
+    const start = requests.length;
+    const result = await collect(adapter.stream({ sessionId, messages: [message] }));
+    assert.equal(result.at(-1).reason.kind, 'stop');
+    return requests[start].messages;
+  }
+  await submit('parent', first);
+  await submit('parent', later);
+  const branched = await submit('child', user('message-child', 'MOOS_FIXTURE_WRITE child'));
+  const branchText = JSON.stringify(branched);
+  assert.match(branchText, /MOOS_FIXTURE_WRITE before/);
+  assert.ok(branched.some(message => message.role === 'tool'));
+  assert.doesNotMatch(branchText, /MOOS_FIXTURE_WRITE after|Visible first reply/);
+  const parent = JSON.stringify(await submit('parent', user('message-parent', 'MOOS_FIXTURE_WRITE parent')));
+  assert.match(parent, /MOOS_FIXTURE_WRITE after/);
+  assert.doesNotMatch(parent, /MOOS_FIXTURE_WRITE child/);
+  const child = JSON.stringify(await submit('child', user('message-child-next', 'MOOS_FIXTURE_WRITE childnext')));
+  assert.equal(child.match(/MOOS_FIXTURE_WRITE before/g).length, 1);
+  assert.match(child, /MOOS_FIXTURE_WRITE child"/);
+  const restored = await submit('legacy', user('message-legacy', 'MOOS_FIXTURE_WRITE legacy'));
+  assert.ok(restored.some(message => message.role === 'user' && JSON.stringify(message.content).includes('Old prompt')));
+  assert.ok(restored.some(message => message.role === 'assistant' && JSON.stringify(message.content).includes('Old visible reply')));
+  assert.ok(restored.every(message => message.role !== 'tool'));
+});

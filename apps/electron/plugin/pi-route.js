@@ -1,3 +1,5 @@
+import { forkPrefix } from './pi-fork.js';
+
 export const route = 'moos-pi';
 export const model = 'pi-fixture';
 
@@ -85,7 +87,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
         input: user.content.map(part => part.text).join('\n').trim(),
-        retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
+        messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '无法启动 PI 任务，请检查工作区和会话状态' } } } : rejected;

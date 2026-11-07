@@ -1,8 +1,8 @@
 import { lstat, readFile, realpath } from 'node:fs/promises';
-import { resolve, join, isAbsolute } from 'node:path';
+import { resolve, join, isAbsolute, basename } from 'node:path';
 import {
   createAgentSession, createExtensionRuntime, ModelRuntime,
-  SessionManager, SettingsManager,
+  SettingsManager,
 } from '@earendil-works/pi-coding-agent';
 import { Agent as UndiciAgent, setGlobalDispatcher } from 'undici';
 import { checkedProvider, context, privateDir, privateFile, proxyFor } from '../pi-adapter/index.mjs';
@@ -11,6 +11,7 @@ import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-po
 import { normalizeUsage } from '../../services/agent/usage.mjs';
 import { workspaceTools } from './tool-policy.mjs';
 import { repairRouting } from './repair-routing.mjs';
+import { openPiSession } from './session-fork.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
@@ -55,7 +56,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   const cwd = await realpath(project.path);
@@ -104,8 +105,8 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       entry.model = modelRuntime.getModel(id, entry.profile.model);
       if (!entry.model) throw new Error('PI SDK model unavailable');
     }
-    const sessionManager = SessionManager.continueRecent(cwd, root);
     const primary = routes.get(provider.id);
+    const sessionManager = await openPiSession({ cwd, root, dataDir, fork, model: primary.model });
     const backup = routes.get(routing?.backup?.provider.id);
     const repair = backup && routing.backup.repair ? repairRouting() : undefined;
     let active = primary;
@@ -178,7 +179,14 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         await session.prompt(prompt);
         await session.waitForIdle();
         if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
-        if (last?.stopReason === 'stop') return { text };
+        if (last?.stopReason === 'stop') {
+          if (captureCheckpoint) {
+            const leaf = sessionManager.getBranch().findLast(entry => entry.type === 'message')?.id;
+            const file = sessionManager.getSessionFile();
+            if (leaf && file) emit('pi_checkpoint', { leaf, file: basename(file) });
+          }
+          return { text };
+        }
         const code = active.proxy.failure() ??
           classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`)).code;
         if (!backup || active !== primary || progressed || !['rate_limit', 'quota', 'network'].includes(code)) {

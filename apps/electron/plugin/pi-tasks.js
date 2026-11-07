@@ -39,7 +39,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   });
   let closing;
 
-  async function open({ sessionId, turnStartSeq, cwd, input, retryOf, signal, permissions, provider, backup }) {
+  async function open({ sessionId, turnStartSeq, cwd, input, messageId, fork, retryOf, signal, permissions, provider, backup }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || (!retryOf && (typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)))) throw new Error('Invalid PI task');
@@ -68,13 +68,27 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
     if (retryOf && (previous?.id !== retryOf || !retryable.has(previous.status))) {
       throw new Error('PI retry target is no longer available');
     }
+    let origin;
+    if (fork?.checkpoint) {
+      const sourceId = store.getSetting('dsh-message:' + fork.checkpoint);
+      if (sourceId) {
+        const source = store.getTask(sourceId);
+        if (source.status === 'succeeded' && source.projectId === project.id && source.conversationId !== conversationId) {
+          const checkpoint = store.lastTaskEvent(source.id, 'pi_checkpoint');
+          if (checkpoint) origin = { ...checkpoint, conversationId: source.conversationId };
+        }
+      }
+    }
+    const captureCheckpoint = typeof messageId === 'string' && /^[a-zA-Z0-9_-]{1,160}$/.test(messageId);
     const task = scheduler.submit({ conversationId, message: previous?.message ?? input, onCreate(created) {
       if (Number.isSafeInteger(turnStartSeq) && turnStartSeq >= 0) {
         store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
       }
+      if (captureCheckpoint) store.setSetting('dsh-message:' + messageId, created.id);
       if (previous) store.appendEvent(created.id, 'task_retry', { previousTaskId: previous.id });
     } });
-    contextByTask.set(task.id, { permissions, provider, backup, retry: Boolean(previous) });
+    contextByTask.set(task.id, { permissions, provider, backup, retry: Boolean(previous), captureCheckpoint,
+      fork: fork && { origin, history: fork.history } });
     const pending = [];
     const settled = Promise.withResolvers();
     let done = false;

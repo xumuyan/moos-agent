@@ -289,6 +289,10 @@ export class Store {
       : this.#all('SELECT * FROM events WHERE taskId = ? AND id > ? ORDER BY id', taskId, after);
     return events.map(event => ({ ...event, payload: JSON.parse(event.payload) }));
   }
+  lastTaskEvent(taskId, type) {
+    const event = this.#one('SELECT payload FROM events WHERE taskId = ? AND type = ? ORDER BY id DESC LIMIT 1', taskId, type);
+    return event && JSON.parse(event.payload);
+  }
   taskTimeline({ conversationId, taskTimeline } = {}) {
     this.getConversation(conversationId);
     const task = this.getTask(taskTimeline?.taskId);

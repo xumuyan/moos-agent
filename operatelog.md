@@ -914,3 +914,13 @@
 - 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 运行 `build-ZvEMIz` 本地验收模式，按钮接续首次失败，核对追加文件只有一行及第二个文件内容。正常模式 `build-J0uj3J` 使用已有中转服务，核对首次追加成功后中继返回 503，退出 App 并重开原会话再继续。两次续跑共有六次真实 High 请求，均带已有工具结果、HTTP 200。旧轮次保持失败，最终轮次成功，`retry-counter.txt` 仅一行，`retry-proof.txt` 内容及结尾换行与预期一致。脱敏测试日志见 `/tmp/moos-pi-retry-*.log`。
 - 遗留问题：断开由受控中继触发，冷任务中断仅在自动测试中验证。已执行命令的效果仍由 PI 和模型结合持久化结果、当前工作区核对。分支历史、后台入口与更长任务的原版对照仍待验。
 - 对应 Git 提交：唯一说明 `feat(P03.13): continue failed PI turns in Electron`，用 `git log --all --oneline --grep='^feat(P03.13): continue failed PI turns in Electron$'` 查询。
+
+## 2026-11-08 02:09:31 +08:00｜P03.13.3 原版会话分支继承 PI 上下文
+
+- 修改或新增内容：为 Electron 成功轮次保存 PI 会话检查点。原版「在新对话中分支」创建独立会话，首次提交继承选中位置的上下文及真实工具结果。后续任务仍经 Moos 调度、权限及目录锁。
+- 遇到的难题：固定版 DSH 分支存的是选中位置的事件前缀，普通分支头部没有源会话 ID。PI 的完整工具结果在独立存储，直接加载父会话最新记录会带入选中位置之后的消息。旧任务也没有 PI 检查点。
+- 处理方式：以继承事件中的原始用户消息 ID 对应成功任务，核对工作区和 PI 叶节点后，用 PI SDK 在私有临时目录创建分支文件，再移入子会话目录。缺失检查点时继承已选前缀内最多 48 条可见文本，总量至多 64,000 字节。分支已有 PI 记录时沿用自己的记录。
+- 验证结果：`npm --prefix apps/electron test` 使用随包 CLI 20/20，`npm test` 137/137，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 53/53。开发包构建、深度严格签名和 Git 差异检查通过。自动测试核对精确切点、工具结果、父子后续历史隔离、旧会话文字回退。
+- 实际验收与工作区状态：提交前在 macOS 27.0.1 arm64 的 `build-g3rbU3` 正常模式，从有两轮的父会话选择第一轮分支。第一轮只在 read 工具结果出现测试代号，第二轮带独立标记。线上分支请求带第一轮真实工具结果并排除第二轮标记，助手正确回复代号。四次真实请求均为 GPT-6.1 Sol High、HTTP 200。SQLite 为两个会话、一个项目、三个成功任务，分支未再次读取。脱敏测试日志见 `/tmp/moos-pi-fork-*.log`。
+- 遗留问题：分支共享实际工作区文件，独立的是会话历史。分支界面保留继承的对话文字，继承轮次的 Moos 执行过程卡片仍在父会话查看。后台入口和较长任务原版对照待验。
+- 对应 Git 提交：唯一说明 `feat(P03.13): inherit PI context in Electron forks`，用 `git log --all --oneline --grep='^feat(P03.13): inherit PI context in Electron forks$'` 查询。
