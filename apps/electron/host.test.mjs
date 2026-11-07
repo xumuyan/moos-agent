@@ -77,7 +77,7 @@ test('the shell never exposes or dispatches upstream model tool calls', async ()
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;
-test('the shipped DSH overlay wins over saved settings and keeps historical preset IDs', {
+test('the shipped DSH overlay disables optional built-ins and keeps the package installer', {
   skip: !dshCli && 'Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned DSH CLI',
 }, async t => {
   const { home } = await hostFixture(t, '');
@@ -89,6 +89,10 @@ test('the shipped DSH overlay wins over saved settings and keeps historical pres
   disabled: false
 - id: schedule
   disabled: false
+- id: terminal-controller
+  disabled: false
+- id: ui-settings-plugin-inventory
+  disabled: false
 `);
   const { stdout } = await promisify(execFile)(dshCli, ['web', '--patch', overlay, '--dump-config'], {
     env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' },
@@ -98,8 +102,14 @@ test('the shipped DSH overlay wins over saved settings and keeps historical pres
     return [row.slice(0, end), row.slice(end + 1)];
   }));
   for (const id of ['llm-deepseek', 'llm-deepseek-account', 'llm-pi-ai',
-    'tool-executor-native', 'tool-executor-ptc', 'schedule', 'ui-schedule']) {
+    'tool-executor-native', 'tool-executor-ptc', 'schedule', 'ui-schedule',
+    'terminal-controller', 'ui-sidebar-terminal', 'ui-sidebar-browser', 'office-to-pdf',
+    'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins']) {
     assert.match(rows.get(id) ?? '', /^  disabled: true$/m, id);
+  }
+  for (const id of ['plugin-manager', 'ui-plugin-manager', 'ui-sidebar', 'ui-sidebar-files', 'ui-conversation']) {
+    assert.ok(rows.has(id), id);
+    assert.doesNotMatch(rows.get(id), /^  disabled: true$/m, id);
   }
   for (const id of ['standard', 'ptc', 'minimal', 'cordis']) {
     const preset = rows.get('preset-' + id) ?? '';

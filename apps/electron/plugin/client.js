@@ -24,10 +24,17 @@ window.__ModuleLoader__.load({
         ctx.slots.inject(name, () => ctx.slots.register({ name }, component));
       }
       const styles = document.createElement('style');
+      const inactiveShippedExtension = ':is([data-plugin-package^="@deepseek-ai/dsh-experimental-"], '
+        + '[data-plugin-package="@deepseek-ai/dsh-personalized-recommendations"])[data-plugin-status="disabled"]';
       styles.textContent = `
         [data-skin-chrome="titlebar-brand"] { display: none !important; }
         html[data-platform="darwin"] [data-sidebar-toggle] [data-moos-sidebar-icon] { display: none; }
         html[data-dsh-skin="maid-atelier"] [data-moos-sidebar-name] { color: #f3e3c0; }
+        [data-plugin-package="moos-electron-shell"],
+        [data-plugin-group="extensions"] ${inactiveShippedExtension},
+        [data-plugin-group="extensions"]:not(:has([data-plugin-package]:not(${inactiveShippedExtension}))) {
+          display: none !important;
+        }
       `;
       document.head.append(styles);
       const title = document.querySelector('title');

@@ -26,3 +26,56 @@
   disabled: true
 - id: llm-pi-ai
   disabled: true
+
+# The workbench keeps its core views and package installer. Optional upstream
+# tools and their settings are not part of the default Moos composition.
+- id: ui-settings-plugins
+  disabled: true
+- id: ui-settings-plugin-inventory
+  disabled: true
+- id: ui-settings-agent-loop
+  disabled: true
+- id: ui-settings-shell
+  disabled: true
+- id: ui-settings-subagent
+  disabled: true
+- id: ui-settings-web-search
+  disabled: true
+- id: plugin-package-inventory-deepseek
+  disabled: true
+- id: terminal-controller
+  disabled: true
+- id: ui-sidebar-terminal
+  disabled: true
+- id: ui-sidebar-browser
+  disabled: true
+- id: office-to-pdf
+  disabled: true
+- id: ui-sidebar-documentpreview
+  disabled: true
+- id: web
+  disabled: true
+- id: web-search-deepseek
+  disabled: true
+- id: web-deepseek-api
+  disabled: true
+- id: web-fetch-http
+  disabled: true
+- id: mcp-resources
+  disabled: true
+- id: ui-skill
+  disabled: true
+- id: subagent-model-selection-settings
+  disabled: true
+- id: ui-subagent
+  disabled: true
+- id: ui-workflow-run
+  disabled: true
+- id: goal-round-driver
+  disabled: true
+- id: ui-goal
+  disabled: true
+- id: job-controller
+  disabled: true
+- id: ui-jobs
+  disabled: true
