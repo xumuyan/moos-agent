@@ -1,0 +1,79 @@
+/* Adapted from deepseek-ai/deepseek-harness fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159:
+ * packages/client/ui-settings-general/src/client/SettingsRoot.module.css,
+ * packages/client/ui-primitives/src/settings-form/{SettingsForm,fields}.module.css.
+ * Copyright (c) 2026 DeepSeek. MIT license; see THIRD_PARTY_NOTICES.md.
+ * Moos keeps its own real sections, forms and Ant Design modal lifecycle. */
+.settings-dialog.dsh-settings-dialog { max-width: calc(100vw - 48px); padding: 0; }
+.dsh-settings-dialog .ant-modal-content {
+  padding: 0; overflow: hidden; border-radius: 20px;
+  background: var(--dsw-alias-bg-layer-2, var(--moos-panel, #fff));
+  color: var(--dsw-alias-label-primary, var(--moos-text, #202124));
+  box-shadow: 0 16px 64px #00000024;
+}
+.dsh-settings-dialog .ant-modal-header { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.dsh-settings-dialog .ant-modal-close { top: 20px; right: 14px; width: 28px; height: 28px; border-radius: 8px; color: inherit; }
+.dsh-settings-dialog .settings-center {
+  display: grid; grid-template-columns: 188px minmax(0, 1fr);
+  grid-template-rows: 54px minmax(0, 1fr);
+  grid-template-areas: 'title header' 'nav options';
+  height: min(800px, calc(100dvh - 48px)); min-height: 0; gap: 0;
+}
+.dsh-settings-dialog .settings-nav-title { grid-area: title; padding: 22px 12px 8px 24px; font-size: 16px; font-weight: 500; line-height: 24px; }
+.dsh-settings-dialog .settings-header { grid-area: header; }
+.dsh-settings-dialog .settings-nav {
+  grid-area: nav; display: flex; flex-direction: column; align-items: stretch;
+  min-height: 0; min-width: 0; gap: 4px; padding: 10px 12px 24px;
+  overflow-y: auto; border: 0; background: transparent;
+}
+.dsh-settings-dialog .settings-nav button {
+  display: flex; flex: none; align-items: center; height: 40px; min-height: 40px;
+  padding: 9px 16px 9px 12px; border: 0; border-radius: 12px;
+  background: transparent; color: inherit; font: inherit; font-size: 14px;
+  font-weight: 400; line-height: 22px; text-align: left; cursor: pointer;
+}
+.dsh-settings-dialog .settings-nav button:hover { background: var(--dsw-alias-interactive-bg-hover, var(--moos-hover, #f4f5f7)); }
+.dsh-settings-dialog .settings-nav button[aria-selected='true'] { background: var(--dsw-specific-sidebar-nav-item-active, var(--moos-selected, #ebeef2)); }
+.dsh-settings-dialog .settings-nav button:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary, #536af5); outline-offset: -2px; }
+.dsh-settings-dialog .settings-content { grid-area: options; min-width: 0; min-height: 0; padding: 0 24px 24px; overflow-y: auto; overflow-x: hidden; border: 0; background: transparent; }
+.dsh-settings-dialog .settings-content > section { display: flex; flex-direction: column; gap: 0; min-width: 0; padding: 0; border: 0; background: transparent; }
+.dsh-settings-dialog .settings-content h3 { margin: 10px 0 20px; font-size: 16px; line-height: 24px; font-weight: 500; }
+.dsh-settings-dialog .settings-content h4 { margin: 24px 0 8px; font-size: 13px; line-height: 20px; font-weight: 500; }
+.dsh-settings-dialog .settings-content p { margin: 0 0 12px; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary, var(--moos-text-secondary, #64666b)); }
+.dsh-settings-dialog .ant-form-item { margin-bottom: 0; padding: 12px 0; }
+.dsh-settings-dialog .ant-form-item + .ant-form-item { border-top: .5px solid var(--dsw-alias-border-l2, var(--moos-border, #ebecef)); }
+.dsh-settings-dialog .ant-form-item-label { padding-bottom: 6px; }
+.dsh-settings-dialog .ant-form-item-label > label, .dsh-settings-dialog .settings-content label { font-size: 13px; font-weight: 500; line-height: 1.5; }
+.dsh-settings-dialog .ant-input, .dsh-settings-dialog .ant-input-affix-wrapper,
+.dsh-settings-dialog .ant-select-single, .dsh-settings-dialog .settings-content select { min-height: 34px; border-radius: 12px; font-size: 13px; }
+.dsh-settings-dialog .ant-input-affix-wrapper .ant-input { min-height: 0; }
+.dsh-settings-dialog .ant-select-single .ant-select-selector { border-radius: 12px; }
+.dsh-settings-dialog .ant-btn { height: 32px; border-radius: 12px; padding: 5px 14px; font-size: 13px; }
+.dsh-settings-dialog .ant-btn-sm { height: 28px; padding: 2px 10px; }
+.dsh-settings-dialog .plugin-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border: 0; border-bottom: .5px solid var(--dsw-alias-border-l2, var(--moos-border, #ebecef)); border-radius: 0; background: transparent; }
+.dsh-settings-dialog .plugin-row > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.dsh-settings-dialog .plugin-row strong { font-size: 13px; font-weight: 500; }
+.dsh-settings-dialog .plugin-row .muted { font-size: 12px; line-height: 1.6; }
+.dsh-settings-dialog .theme-choices, .dsh-settings-dialog .usage-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.dsh-settings-dialog .usage-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.dsh-settings-dialog .usage-filters label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dsh-settings-dialog .usage-filters select { width: 100%; padding: 0 12px; border: .5px solid var(--dsw-alias-border-l4, var(--moos-border, #dcdfe4)); background: var(--dsw-alias-bg-layer-3, var(--moos-panel, #fff)); color: inherit; }
+@media (max-width: 767px) {
+  .settings-dialog.dsh-settings-dialog { max-width: calc(100vw - 24px); margin: 12px auto; }
+  .dsh-settings-dialog .settings-center { height: calc(100dvh - 24px); grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 54px auto minmax(0, 1fr); grid-template-areas: 'title header' 'nav nav' 'options options'; }
+  .dsh-settings-dialog .settings-nav { flex-direction: row; gap: 4px; padding: 12px 16px 14px; overflow-x: auto; overflow-y: hidden; }
+  .dsh-settings-dialog .settings-nav button { flex: 1 0 auto; min-width: 108px; justify-content: center; padding: 0 14px; }
+  .dsh-settings-dialog .settings-content { padding: 0 16px 24px; }
+}
+
+.dsh-settings-dialog .provider-list { margin: 12px 0; }
+.dsh-settings-dialog .provider-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: .5px solid var(--moos-border); }
+.dsh-settings-dialog .form-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 14px; }
+.dsh-settings-dialog .usage-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+@media (max-width: 520px) {
+  .dsh-settings-dialog .form-columns, .dsh-settings-dialog .usage-filters { grid-template-columns: minmax(0, 1fr); }
+  .dsh-settings-dialog .plugin-row { align-items: flex-start; flex-wrap: wrap; }
+}
+
+/* Retire the former standalone modal's negative margins and viewport cap. */
+.dsh-settings-dialog .settings-center { margin:0; }
+.dsh-settings-dialog .settings-content { max-height:none; }

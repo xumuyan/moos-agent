@@ -24,6 +24,17 @@ beforeEach(() => {
   });
 });
 describe('desktop assistant', () => {
+  it('keeps full-record recovery visible when oversized history has no visible messages', async () => {
+    state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
+    const empty = { total: 0, hasMore: false, before: null, requiresScopedPage: false, truncatedRows: [] };
+    const page = { conversationId: 'c1', messages: { ...empty, total: 1, truncatedRows: [{ id: 'oversize', originalBytes: 500000 }] }, tasks: empty, events: empty };
+    const original = bridge.getMockImplementation()!;
+    bridge.mockImplementation((method, params) => method === 'snapshot' ? Promise.resolve({ ...state, history: { pages: [page] } }) : original(method, params));
+    render(<App />);
+    await screen.findByRole('button', { name: '查看完整记录' });
+    expect(screen.getByText(/messages \/ oversize/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '查看更早记录' })).toBeDisabled();
+  });
   it('clears request errors on conversation and project switches and suppresses late failures', async () => {
     state.projects = [project, { id: 'p2', name: '另一项目', path: '/other' }];
     state.conversations = [conversation, { id: 'c2', projectId: 'p1', title: '另一会话' }, { id: 'c3', projectId: 'p2', title: '其他项目会话' }];
@@ -58,7 +69,7 @@ describe('desktop assistant', () => {
     await user.click(screen.getByRole('button', { name: '打开设置中心' }));
     await screen.findByRole('tab', { name: '插件' });
   });
-  it('removes the right inspector and keeps each turn’s confirmed files in the conversation', async () => {
+  it('keeps the right inspector closed until requested and keeps each turn’s confirmed files in the conversation', async () => {
     state.projects = [project]; state.conversations = [conversation]; state.providers = [provider];
     state.tasks = ['new', 'old'].map(id => ({ id, projectId: 'p1', conversationId: 'c1', message: id, status: 'succeeded' }));
     state.events = ['new', 'old'].flatMap(id => [
@@ -69,6 +80,10 @@ describe('desktop assistant', () => {
     await screen.findByText('new.ts');
     expect(screen.queryByRole('complementary', { name: '上下文面板' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '收起上下文面板' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '打开工具面板' }));
+    expect(screen.getByRole('complementary', { name: '上下文面板' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '关闭工具面板' }));
+    expect(screen.queryByRole('complementary', { name: '上下文面板' })).not.toBeInTheDocument();
     const records = screen.getAllByRole('region', { name: '任务执行记录' });
     expect(within(records[0]).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('new.ts');
     expect(within(records[0]).queryByText('old.ts')).not.toBeInTheDocument();

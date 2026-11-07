@@ -677,11 +677,31 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text()
         spec = (ROOT / 'docs/superpowers/specs/2026-11-07-dsh-full-frontend-design.md').read_text()
         for number in range(1, 6):
-            self.assertIn(f'- [ ] P03.{number} ', plan)
+            self.assertIn(f'- [x] P03.{number} ', plan)
         for term in ('右栏按需打开', 'Codex', 'Moos UI Adapter', 'fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159',
                      '不安装或启动DSH服务', 'private/credentials.json', '逐页对照', 'MIT'):
             self.assertIn(term, spec)
         self.assertIn('尚未实施', spec)
+
+
+    def test_dsh_transplant_records_source_license_and_installed_gui_limits(self):
+        report = json.loads((ROOT / 'apps/desktop/evidence/p03-dsh-frontend.json').read_text())
+        self.assertTrue(report['build']['allRegularFilesMatch'])
+        self.assertEqual(report['process']['nodeHostsOwnedByApp'], 1)
+        self.assertFalse(report['process']['newProductionWebServer'])
+        self.assertEqual(len(report['gui']['settingsSections']), 9)
+        for field in ('rightInitiallyClosed', 'rightFilesTaskPluginTabs', 'halfScreenRightOverlayVisibleAndCloseable',
+                      'localPiWriteAndBashTaskSucceeded', 'toolCancellation', 'cancelledToolExited', 'graphiteRestored'):
+            self.assertTrue(report['gui'][field])
+        self.assertFalse(report['limits']['allOriginalStatesPixelCompared'])
+        self.assertFalse(report['limits']['arbitraryFileEditorOrGitAdded'])
+        app = (ROOT / 'apps/desktop/src/App.tsx').read_text()
+        for old in ('workbench.css', 'codex-cards.css', 'dsh-alignment.css'):
+            self.assertNotIn(old, app)
+        notice = (ROOT / 'docs/third-party/dsh-full-frontend-sources.md').read_text()
+        self.assertIn('Copyright (c) 2026 DeepSeek', notice)
+        self.assertIn('Permission is hereby granted', notice)
+        self.assertIn('layout/dsh-columns.ts', notice)
 
 
 if __name__ == '__main__':

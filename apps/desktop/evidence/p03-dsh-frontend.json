@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "scope": "P03 DSH presentation transplant with Moos adapters; not upstream backend feature parity",
+  "upstreamCommit": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
+  "sourceMap": "docs/third-party/dsh-full-frontend-sources.md",
+  "reference": {
+    "sourceReviewed": true,
+    "nativeAppEmptyAndSettingsScreenshots": true,
+    "viewport": [
+      1280,
+      820
+    ],
+    "pixelDifferenceAutomation": false
+  },
+  "gui": {
+    "installedAppStarted": true,
+    "historyAndConfirmedFilesLoaded": true,
+    "nestedWorkspaceSessions": true,
+    "sidebarCollapseExpand": true,
+    "rightInitiallyClosed": true,
+    "rightFilesTaskPluginTabs": true,
+    "rightKeyboardWidthBefore": 300,
+    "rightKeyboardWidthAfter": 316,
+    "halfScreenViewport": [
+      962,
+      988
+    ],
+    "halfScreenRightOverlayVisibleAndCloseable": true,
+    "windowRestored": [
+      1280,
+      820
+    ],
+    "emptyHistoryToolbarHidden": true,
+    "centeredEmptyComposer": true,
+    "localPiWriteAndBashTaskSucceeded": true,
+    "fileMarker": "P03_DSH_FINAL",
+    "toolDetailsExpanded": true,
+    "toolCancellation": true,
+    "cancelledToolExited": true,
+    "permissionMenuThreeModes": true,
+    "settingsSections": [
+      "通用",
+      "模型服务",
+      "权限",
+      "用量",
+      "插件",
+      "主题",
+      "隐私",
+      "手机连接",
+      "高级"
+    ],
+    "defaultAndGraphiteApplied": true,
+    "graphiteRestored": true,
+    "builtinPluginDisableEnableRestoresSlot": true,
+    "realProviderSelectedAtEnd": "云桥",
+    "newPaidModelRequestSent": false,
+    "fixtureAddressRestored": true,
+    "fixtureStopped": true,
+    "finalHistoryRecoveryEntryVisible": true,
+    "finalEmptyHistoryToolbarHidden": true
+  },
+  "build": {
+    "binarySha256": "1e8c85d6ebffa8efd28d57e7bac1f4ca887273dc710875b270054a5f538022f0",
+    "allRegularFilesMatch": true,
+    "files": 15388,
+    "logicalBytes": 247446362,
+    "diskKiB": 285624
+  },
+  "process": {
+    "appPid": 96769,
+    "nodeHostPid": 96781,
+    "nodeHostsOwnedByApp": 1,
+    "newProductionWebServer": false
+  },
+  "tests": {
+    "corePassed": 137,
+    "uiPassed": 131,
+    "uiFiles": 41,
+    "nativePassed": 27,
+    "docsPendingFinalRun": false,
+    "docsPassed": 48
+  },
+  "limits": {
+    "originalBackendOrFeaturesCopied": false,
+    "officialBrandAssetsCopied": false,
+    "arbitraryFileEditorOrGitAdded": false,
+    "nativeVibrancyExactlyReplicated": false,
+    "allOriginalStatesPixelCompared": false,
+    "windowsOrIPhoneVerified": false,
+    "p029CompletedByThisChange": false
+  },
+  "privateEvidence": "/tmp/moos-dsh-reference-20261107/",
+  "evidenceCommitTitle": "feat(P03): port DSH frontend presentation to Moos"
+}

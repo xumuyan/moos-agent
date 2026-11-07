@@ -26,12 +26,12 @@ function ToolCard({ events, running }: { events: AgentEvent[]; running: boolean 
   const title = toolTitle(events);
   const confirmed = rows.every(row => row.done && !row.failed);
   const HeaderIcon = toolIcon(rows[0]?.name ?? '');
-  return <details className="codex-tool-card" key={String(active)} open={active ? true : undefined}>
+  return <details className="dsh-tool-card" key={String(active)} open={active ? true : undefined}>
     <summary data-scroll-anchor><HeaderIcon aria-hidden /><span>{confirmed ? title : title.replace(/了/g, '')}</span><DownOutlined className="process-chevron" aria-hidden /></summary>
-    <div className="codex-tool-rows">{rows.map(row => {
+    <div className="dsh-tool-rows">{rows.map(row => {
       const Icon = toolIcon(row.name);
-      return <div className="codex-tool-row" key={row.id}>
-        <Icon aria-hidden /><span className="codex-tool-label" title={row.path || row.commandLabel || undefined}>{activityLabel(row.name)}{row.commandLabel ? <span className="codex-command-label"> · {row.commandLabel}</span> : row.path ? <span className="codex-tool-path"> · {row.path}</span> : ''}</span>
+      return <div className="dsh-tool-row" key={row.id}>
+        <Icon aria-hidden /><span className="dsh-tool-label" title={row.path || row.commandLabel || undefined}>{activityLabel(row.name)}{row.commandLabel ? <span className="dsh-command-label"> · {row.commandLabel}</span> : row.path ? <span className="dsh-tool-path"> · {row.path}</span> : ''}</span>
         <small>{row.failed ? '失败' : row.done ? '已完成' : running ? '进行中' : '结果未记录'}</small>
       </div>;
     })}</div>
@@ -60,7 +60,7 @@ export default function TurnTimeline({ task, events: snapshotEvents, savedText, 
   const hasWork = progress.length > 0 || !!task.error || !!task.errorCode || running || timeline.busy || !!timeline.error || timeline.hasMore || (timelineMode !== 'off' && !timeline.loaded);
   const work = <>
     {progress.map(step => step.kind === 'text'
-      ? step.text.trim() && <div className="codex-narration-card" data-scroll-anchor key={step.id}><MessageContent text={step.text} /></div>
+      ? step.text.trim() && <div className="dsh-narration" data-scroll-anchor key={step.id}><MessageContent text={step.text} /></div>
       : <ToolCard key={step.id} events={step.events} running={running} />)}
     {running && progress.length === 0 && <p className="turn-empty-reply">正在处理你的任务…</p>}
     {timeline.busy && <p className="timeline-load-note" role="status">正在加载完整过程…</p>}
@@ -71,16 +71,16 @@ export default function TurnTimeline({ task, events: snapshotEvents, savedText, 
     {count > 0 && events.some(event => event.payload.toolName === 'bash' || event.payload.name === 'bash') && <p className="activity-note">文件清单不含命令产生的改动。</p>}
   </>;
   return <>
-    <section className="codex-turn-work" aria-label="实际工具轨迹" data-state={task.status}>
-      <div className="codex-work-control">
-        {hasWork ? <details className="codex-work-log" key={String(running)} open={running ? true : undefined}>
+    <section className="dsh-turn-work" aria-label="实际工具轨迹" data-state={task.status}>
+      <div className="dsh-work-control">
+        {hasWork ? <details className="dsh-work-log" key={String(running)} open={running ? true : undefined}>
           <summary data-scroll-anchor onClick={timelineMode !== 'off' ? event => { if (!(event.currentTarget.parentElement as HTMLDetailsElement).open) timeline.load(); } : undefined}><span role={task.status === 'failed' ? 'alert' : 'status'} title={duration ? '用时依据任务创建与最后状态更新时间，包含排队时间' : undefined}>{label}</span><DownOutlined className="process-chevron" aria-hidden /></summary>
-          <div className="codex-work-steps">{work}</div>
-        </details> : <div className="codex-run-label" role={task.status === 'failed' ? 'alert' : 'status'} data-scroll-anchor>{label}</div>}
+          <div className="dsh-work-steps">{work}</div>
+        </details> : <div className="dsh-run-label" role={task.status === 'failed' ? 'alert' : 'status'} data-scroll-anchor>{label}</div>}
         {running && <Button type="text" size="small" danger aria-label="停止此任务" onClick={onStop}>停止</Button>}
       </div>
     </section>
-    {(reply?.trim() || (!running && changedFiles(events).length > 0)) && <section className="codex-final-card" aria-label="本轮结果" data-scroll-anchor>
+    {(reply?.trim() || (!running && changedFiles(events).length > 0)) && <section className="dsh-response" aria-label="本轮结果" data-scroll-anchor>
       {reply?.trim() && <MessageContent text={reply} />}
       <TaskFiles events={events} finished={!running} />
       {(timeline.limited || timeline.hasMore) && changedFiles(events).length > 0 && <p className="activity-note">文件清单仅包含当前已加载并确认的修改。</p>}

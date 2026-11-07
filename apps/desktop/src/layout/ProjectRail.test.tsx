@@ -27,3 +27,16 @@ it('shows only confirmed changes and does not invent validation results', () => 
   expect(screen.getByText('失败')).toBeVisible();
   expect(screen.queryByText('测试通过')).not.toBeInTheDocument();
 });
+
+it('navigates real right-panel sections by keyboard and delegates explicit close', async () => {
+  const close = vi.fn();
+  render(<RightPanel projectName="临时项目" projectPath="/fixture" activeTasks={1} onClose={close} />);
+  const user = userEvent.setup();
+  const files = screen.getByRole('tab', { name: '变更' });
+  files.focus(); await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('tab', { name: '任务' })).toHaveFocus();
+  expect(screen.getByRole('tabpanel')).toHaveTextContent('/fixture');
+  await user.keyboard('{End}'); expect(screen.getByRole('tab', { name: '插件' })).toHaveFocus();
+  expect(screen.getByRole('tabpanel')).toHaveTextContent('已启用插件的工具面板');
+  await user.click(screen.getByRole('button', { name: '收起上下文面板' })); expect(close).toHaveBeenCalledOnce();
+});

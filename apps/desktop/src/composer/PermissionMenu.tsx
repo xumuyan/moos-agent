@@ -27,7 +27,7 @@ export default function PermissionMenu() {
     }}>
       <Button size="small" icon={<SafetyCertificateOutlined />} aria-label={`权限模式：${current.label}`}>{current.label}</Button>
     </Dropdown>
-    <span className="permission-note">执行策略后端接入计划中；此选择不能绕过 macOS 权限。</span>
+    <span className="permission-note" title="执行策略后端接入计划中；此选择不能绕过 macOS 权限。">执行策略后端接入计划中；此选择不能绕过 macOS 权限。</span>
     <Tag>计划中</Tag>
   </div>;
 }

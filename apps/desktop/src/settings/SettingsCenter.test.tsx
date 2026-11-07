@@ -30,3 +30,24 @@ it('keeps the restyled settings dialog dismissible without changing a setting', 
   expect(onClose).toHaveBeenCalledOnce();
   expect(changeTimeout).not.toHaveBeenCalled();
 });
+
+
+it('links each DSH navigation tab to the actual panel and supports arrow, home and end navigation', async () => {
+  const user = userEvent.setup();
+  render(<SettingsCenter open onClose={() => {}} modelContent={<div>真实模型配置</div>}
+    usageContent={<div>真实用量</div>} runtime={{ taskTimeoutMs: 7200000, allowedTaskTimeouts: [7200000] }} onTaskTimeoutChange={async () => true} />);
+  const models = screen.getByRole('tab', { name: '模型服务' });
+  models.focus();
+  expect(models).toHaveAttribute('tabindex', '0');
+  expect(screen.getByRole('tabpanel', { name: '模型服务' })).toHaveAttribute('id', models.getAttribute('aria-controls'));
+  await user.keyboard('{ArrowDown}');
+  expect(screen.getByRole('tab', { name: '权限' })).toHaveFocus();
+  expect(screen.getByRole('tabpanel', { name: '权限' })).toBeInTheDocument();
+  expect(models).toHaveAttribute('tabindex', '-1');
+  await user.keyboard('{End}');
+  expect(screen.getByRole('tabpanel', { name: '高级' })).toBeInTheDocument();
+  await user.keyboard('{ArrowDown}');
+  expect(screen.getByRole('tabpanel', { name: '通用' })).toBeInTheDocument();
+  await user.keyboard('{ArrowUp}{Home}');
+  expect(screen.getByRole('tab', { name: '通用' })).toHaveFocus();
+});

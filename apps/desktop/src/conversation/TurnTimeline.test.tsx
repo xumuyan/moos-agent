@@ -6,11 +6,15 @@ import type { AgentEvent, Task } from '../types';
 const task: Task = { id: 't', projectId: 'p', conversationId: 'c', message: '修复', status: 'succeeded', createdAt: '2026-11-06T00:00:00Z', updatedAt: '2026-11-06T00:01:05Z' };
 const event = (id: string, type: string, payload: Record<string, unknown>): AgentEvent => ({ id, type, payload, taskId: 't', projectId: 'p', conversationId: 'c' });
 const events = [event('1', 'text_delta', { delta: '先检查文件。' }), event('2', 'tool_start', { toolCallId: 'w', toolName: 'edit', args: { path: 'src/app.ts', newText: 'secret-code' } }), event('3', 'tool_end', { toolCallId: 'w', toolName: 'edit', isError: false }), event('4', 'text_delta', { delta: '修复完成。' })];
-it('folds process independently from final reply and files, and expands the chronological cards', async () => {
+it('folds process independently from final reply and files, and expands the chronological DSH rows', async () => {
   render(<TurnTimeline task={task} events={events} savedText="先检查文件。修复完成。" onStop={vi.fn()} />);
   expect(screen.getByRole('status')).toHaveTextContent('用时 1分5秒');
   expect(screen.getByText('先检查文件。')).not.toBeVisible();
   const result = screen.getByRole('region', { name: '本轮结果' });
+  expect(result).toHaveClass('dsh-response');
+  expect(screen.getByRole('region', { name: '实际工具轨迹' })).toHaveClass('dsh-turn-work');
+  expect(document.querySelector('.dsh-tool-card')).toBeInTheDocument();
+  expect(document.querySelector('[class*=codex-]')).not.toBeInTheDocument();
   expect(within(result).getByText('修复完成。')).toBeVisible();
   expect(within(result).getByRole('region', { name: '修改文件汇总' })).toHaveTextContent('src/app.ts');
   await userEvent.click(screen.getByText('用时 1分5秒'));

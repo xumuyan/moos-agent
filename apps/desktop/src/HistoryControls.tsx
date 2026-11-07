@@ -43,7 +43,7 @@ export default function HistoryControls({ conversationId, page, isOlder, loading
     }
   };
   return <>
-    {(page || isOlder) && <Space wrap className="history-controls">
+    {(isOlder || (page && collections.some(collection => page[collection].total > 0 || page[collection].hasMore || page[collection].requiresScopedPage || page[collection].truncatedRows.length > 0))) && <Space wrap className="history-controls">
       <span>{isOlder ? '正在查看历史页（不会被自动刷新覆盖）' : '最近记录'}</span>
       <Button disabled={loading || !page || !collections.some(c => page[c].hasMore && !page[c].requiresScopedPage)} loading={loading} onClick={onOlder}>查看更早记录</Button>
       {isOlder && <Button onClick={onLatest}>返回最新</Button>}

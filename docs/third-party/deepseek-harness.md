@@ -36,3 +36,7 @@ P02.1 只参考上游公开的模块划分思路，包括工作区/会话导航�
 - 不启动 DSH Web Server、Vite Server 或插件 Node Web Server 作为生产依赖。
 - 不使用 DeepSeek Harness、DeepSeek 或其图形资产作为 Moos 产品名称、图标或背书。
 - 不以布局相似性宣称模型、工具、插件、Usage 或 Computer Use 功能已经实现。
+
+### P03 原版展示层移植（2026-11-07）
+
+后续实施已经采用固定fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159原版列宽算法并适配主题/导航/对话输入/设置CSS。前面的“未复制”描述仅对应P02当时状态，不能当作当前状态。逐文件来源和完整MIT许可见 `docs/third-party/dsh-full-frontend-sources.md`；无官方品牌素材、运行框架、后端或服务接入。

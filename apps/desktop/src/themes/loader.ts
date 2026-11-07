@@ -3,7 +3,7 @@ import { validateTheme, type ThemeDefinition, type ThemeToken } from './schema';
 export const THEME_STORAGE_KEY = 'moos.theme.v1';
 export function initializeWorkbenchTheme() {
   if (localStorage.getItem('moos.workbench.v1') === '1') return;
-  resetTheme();
+  // A visual foundation update must not discard an explicitly saved skin.
   localStorage.setItem('moos.workbench.v1', '1');
 }
 const VARIABLES: Record<ThemeToken, string> = { accent: '--moos-accent', accentSoft: '--moos-accent-soft', border: '--moos-border', panel: '--moos-panel', sidebar: '--moos-sidebar', muted: '--moos-muted', radius: '--moos-radius', rightPanelWidth: '--moos-right-panel-width' };

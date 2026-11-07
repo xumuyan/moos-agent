@@ -1,0 +1,95 @@
+/* Adapted from DeepSeek Harness ui-theme at fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159.
+ * Copyright (c) 2026 DeepSeek. MIT; full notice and source map:
+ * docs/third-party/dsh-full-frontend-sources.md. No brand font assets imported.
+ * Keep the versioned --moos-* skin inputs on :root: validated inline theme
+ * overrides take precedence, and semantic aliases below follow those inputs. */
+:root {
+  --moos-accent: #0f1115;
+  --moos-accent-soft: #ebeef2;
+  --moos-border: rgba(0, 0, 0, 0.1);
+  --moos-panel: #fff;
+  --moos-sidebar: #f9fafb;
+  --moos-muted: #81858c;
+  --moos-radius: 12px;
+  --moos-right-panel-width: 300px;
+
+  --moos-font-text: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --moos-font-code: 'SF Mono', 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier, 'PingFang SC', 'Microsoft YaHei';
+  --moos-text: #0f1115;
+  --moos-text-secondary: #61666b;
+  --moos-text-tertiary: var(--moos-muted);
+  --dsh-text: var(--moos-text);
+  --dsh-text-secondary: var(--moos-text-secondary);
+  --dsh-text-tertiary: var(--moos-text-tertiary);
+  --dsh-hover: var(--moos-hover);
+  --dsh-selected: var(--moos-selected);
+  --moos-surface: var(--moos-panel);
+  --moos-surface-subtle: var(--moos-sidebar);
+  --moos-selected: var(--moos-accent-soft);
+  --moos-hover: rgba(38, 49, 72, 0.06);
+  --moos-active: rgba(38, 49, 72, 0.1);
+  --moos-border-subtle: rgba(0, 0, 0, 0.04);
+  --moos-border-strong: rgba(0, 0, 0, 0.16);
+  --moos-link: #4176e6;
+  --moos-success: #22c55e;
+  --moos-warning: #dd8629;
+  --moos-error: #ec1313;
+  --moos-focus: var(--moos-accent);
+  --moos-focus-ring-width: 2px;
+  --moos-radius-xs: 4px;
+  --moos-radius-sm: 8px;
+  --moos-radius-lg: 16px;
+  --moos-radius-panel: 28px;
+  --moos-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --moos-duration: 0.2s;
+  --moos-duration-fast: 0.1s;
+  --moos-scrollbar-thumb: #e5e5e5;
+  --moos-scrollbar-thumb-hover: #d4d4d4;
+  --moos-scrollbar-width: 5px;
+}
+
+body {
+  font-family: var(--moos-font-text);
+  color: var(--moos-text);
+  background: var(--moos-panel);
+}
+code, pre, kbd, samp { font-family: var(--moos-font-code); }
+:focus-visible {
+  outline-color: var(--moos-focus);
+  outline-width: var(--moos-focus-ring-width);
+}
+
+/* Standard scrollbar properties suppress WebKit pseudo-element hover paint.
+ * Keep the gutter fixed and reveal only paint; keyboard focus reveals its
+ * containing scroller too. Touch and forced-color users keep visible thumbs. */
+@supports not selector(::-webkit-scrollbar) {
+  body, body * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  body:hover, body *:hover, body:focus-within, body *:focus-within {
+    scrollbar-color: var(--moos-scrollbar-thumb) transparent;
+  }
+  @media (hover: none), (forced-colors: active) {
+    body, body * { scrollbar-color: auto; }
+  }
+}
+::-webkit-scrollbar { width: var(--moos-scrollbar-width); height: var(--moos-scrollbar-width); }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: transparent;
+}
+*:hover::-webkit-scrollbar-thumb,
+*:focus-within::-webkit-scrollbar-thumb {
+  background-color: var(--moos-scrollbar-thumb);
+}
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--moos-scrollbar-thumb-hover); }
+}
+@media (hover: none) {
+  ::-webkit-scrollbar-thumb { background-color: var(--moos-scrollbar-thumb); }
+}
+@media (forced-colors: active) {
+  ::-webkit-scrollbar-thumb { background-color: GrayText; }
+}
