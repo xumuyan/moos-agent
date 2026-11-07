@@ -98,5 +98,12 @@
     "pixelDiffAllStates": false,
     "windowsOrIphoneValidatedThisRound": false,
     "smallPackageGoalCompleted": false
+  },
+  "sourceCommit": "3703f1676b4e4ab9f09898007b02cd0604fc4ac6",
+  "delivery": {
+    "codeCommitVerifiedOnGitHubMain": "3703f1676b4e4ab9f09898007b02cd0604fc4ac6",
+    "firstPush": "403: osxkeychain selected an account without repository write access",
+    "resolution": "per-command gh auth git-credential using the existing authorized xumuyan session; no global credential changes",
+    "documentationFollowupSubject": "docs(P03.7): record verified delivery and credential helper recovery"
   }
 }

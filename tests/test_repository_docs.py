@@ -22,6 +22,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(evidence['gui']['finalReturnButtonClickedAndDisappeared'])
         self.assertTrue(evidence['installed']['allRegularFilesMatch'])
         self.assertEqual(evidence['checks']['uiFinalAffectedFile']['status'], 'passed')
+        self.assertEqual(evidence['delivery']['codeCommitVerifiedOnGitHubMain'], evidence['sourceCommit'])
+        self.assertIn('per-command', evidence['delivery']['resolution'])
         self.assertIn('证据：E32', (ROOT / 'PLAN.md').read_text())
         report = (ROOT / 'docs/third-party/dsh-direct-source-p037.md').read_text()
         for term in ('Lexical', 'IndexedDB', '2000万像素', '第三方hooks', '试穿页浏览器加载两次超时'):
