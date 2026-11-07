@@ -645,5 +645,18 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E29 |', (ROOT / 'PLAN.md').read_text())
 
 
+    def test_moos_icon_source_is_square_rgba_and_not_claimed_as_installed(self):
+        import struct
+        data = (ROOT / 'apps/desktop/design/moos-icon-v1.png').read_bytes()
+        self.assertEqual(data[:8], b'\x89PNG\r\n\x1a\n')
+        width, height, depth, color = struct.unpack('>IIBB', data[16:26])
+        self.assertEqual(width, height)
+        self.assertGreaterEqual(width, 1024)
+        self.assertEqual((depth, color), (8, 6))
+        note = (ROOT / 'apps/desktop/design/README.md').read_text()
+        self.assertIn('尚未替换', note)
+        self.assertIn('代码括号', note)
+
+
 if __name__ == '__main__':
     unittest.main()

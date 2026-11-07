@@ -591,3 +591,15 @@
 - 对应 Git 提交：唯一说明 `fix(P02.9): scope request errors and mark fallback theme`；查询 `git log --all --oneline --grep='^fix(P02.9): scope request errors and mark fallback theme$'`。全部适用验证通过后提交并推送GitHub main，核对远程，不预填自身哈希。
 
 - 本轮最终回归补记（2026-11-07 08:17）：完整UI重跑39文件122/122通过，文档44/44通过，核心137/137与原生27/27通过，`git diff --check`通过。安装GUI已通过对应两项修复验收；现有jsdom NaN高度和Vite大chunk警告不影响本轮结论，继续保留历史问题。
+
+
+## 2026-11-07 08:21:29 +08:00｜P02.V3：创建 Moos 应用图标源图
+
+- 修改或新增内容：使用imagegen生成原创图标并复制源图到apps/desktop/design/moos-icon-v1.png；代码括号组成M、中心智能节点、石墨底与米白/青绿，保留透明外边距。新增资产说明、PNG格式契约测试并同步PLAN。
+- 遇到的难题：生成工具实际输出1254×1254而非提示中1024；源图不能直接冒充规范尺寸的打包图标。
+- 处理方式：保留原始1254方形RGBA源图，明确仅为v1设计候选；不覆盖原有Tauri图标，不把待生成ICNS/ICO或未实测Dock状态标为完成。
+- 验证结果：已实际查看生成图，结构简洁、M轮廓与智能节点清楚；sips核对1254×1254及alpha；新增测试检查PNG签名、方形、至少1024、8-bit RGBA和未安装范围说明。完整自动检查完成后补记。
+- 遗留问题：尚未替换构建和安装图标，Dock、小尺寸和不同背景适配需在应用版本时验收；P02.9及小包保持原未完成状态。未包含任何凭据或原始抓包载荷。
+- 对应 Git 提交：唯一说明 `design(P02.V3): create Moos coding assistant icon source`；查询 `git log --all --oneline --grep='^design(P02.V3): create Moos coding assistant icon source$'`。验证后提交推送并核对远程，不预填自身哈希。
+
+- 本轮最终检查：`npm test`137/137、`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000`122/122、stable离线`npm run test:desktop-product`27/27、`npm run test:docs`45/45、`git diff --check`通过；源图视觉及PNG格式验收通过，不宣称已替换安装图标。
