@@ -50,3 +50,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## P03.6 细节复核补充来源
+
+继续使用以上固定提交和 MIT 许可：`ui-layout/src/client/AppFrame.module.css`、`ui-sidebar/src/client/SidebarRoot.module.css` 的300ms列宽/150ms退出/200ms展开；`ui-conversation/src/client/skeleton/{InputBar,HeroShell,ConversationRoot}.module.css` 的独立输入工具栏、卡片外统计与空态几何；`ui-primitives/src/markdown/MarkdownText.module.css` 与 `ui-chat/src/client/chat/TurnProcessNodeView.module.css` 的排版和微动效。Moos保留自有M图标，不复制鲸鱼动画；表格采用可聚焦横向滚动容器，未实现原版wide-breakout。系统窗口仍由Tauri创建，仅主窗口允许start-dragging，不开放文件或shell命令。
+
+P03.6 菜单与弹层还参考 `ui-primitives/src/{MenuSurface.tsx,MenuSurface.module.css,Modal.module.css}`：40/80ms菜单与200ms弹层淡入淡出，按Ant生命周期适配。

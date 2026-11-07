@@ -96,3 +96,24 @@ code, pre, kbd, samp { font-family: var(--moos-font-code); }
 
 /* Original layout cadence (ui-theme/styles/base.css): fast 100ms, slow 300ms. */
 :root { --dsh-motion-fast:100ms; --dsh-motion-slow:300ms; --dsh-motion-ease:cubic-bezier(.4,0,.2,1); }
+
+/* MenuSurface enter40/dismiss80ms and Modal fade200ms, adapted to Ant's
+ * lifecycle classes. Avoid its default scale/slide changing the reference feel. */
+body:has(.dsh-shell) :is(.ant-dropdown,.ant-select-dropdown):is(.ant-slide-up-enter,.ant-slide-up-appear,.ant-slide-down-enter,.ant-slide-down-appear) { animation-name:dsh-menu-fade-in!important; animation-duration:40ms!important; animation-timing-function:ease-out!important; transform:none!important; }
+body:has(.dsh-shell) :is(.ant-dropdown,.ant-select-dropdown):is(.ant-slide-up-leave,.ant-slide-down-leave) { animation-name:dsh-menu-fade-out!important; animation-duration:80ms!important; animation-timing-function:ease-in!important; transform:none!important; }
+@keyframes dsh-menu-fade-in { from { opacity:0; } to { opacity:1; } }
+@keyframes dsh-menu-fade-out { from { opacity:1; } to { opacity:0; } }
+@media(prefers-reduced-motion:reduce) { body:has(.dsh-shell) :is(.ant-dropdown,.ant-select-dropdown,.ant-modal-mask,.ant-modal-wrap *) { animation-duration:0s!important; transition-duration:0s!important; } }
+/* Explicit portal colors prevent Ant's primary-color algorithm from turning
+ * a selected item dark while its label still uses the light-theme text. */
+body:has(.dsh-shell) .ant-dropdown .ant-dropdown-menu { padding:6px; border-radius:16px; background:var(--moos-panel); color:var(--moos-text); box-shadow:0 8px 32px #0000001a; }
+body:has(.dsh-shell) .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item { position:relative; padding:8px 32px 8px 10px; border-radius:8px; color:var(--moos-text); }
+body:has(.dsh-shell) .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item-selected { background:var(--moos-accent-soft); color:var(--moos-text); }
+body:has(.dsh-shell) .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item-active { background:var(--moos-hover); }
+body:has(.dsh-shell) .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item-selected::after { content:'✓'; position:absolute; right:10px; top:10px; color:var(--moos-text-secondary); }
+body:has(.dsh-shell) .ant-dropdown-menu-item strong { font-size:13px; font-weight:500; line-height:20px; }
+body:has(.dsh-shell) .ant-dropdown-menu-item small { max-width:280px; font-size:12px; line-height:18px; color:var(--moos-text-secondary); }
+body:has(.dsh-shell) .ant-select-dropdown { min-width:240px!important; max-width:calc(100vw - 24px); padding:6px; border-radius:16px; background:var(--moos-panel); color:var(--moos-text); }
+body:has(.dsh-shell) .ant-select-dropdown .ant-select-item-option { min-height:34px; border-radius:8px; color:var(--moos-text); font-size:13px; }
+body:has(.dsh-shell) .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) { background:var(--moos-accent-soft); color:var(--moos-text); font-weight:500; }
+body:has(.dsh-shell) .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled):not(.ant-select-item-option-selected) { background:var(--moos-hover); }

@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "date": "2026-11-07",
+  "platform": "arm64/macOS 27.0.1",
+  "baselineCommit": "f50eaaa80d9063a9a8908293b80037ee950e2960",
+  "upstreamCommit": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
+  "report": "docs/design-reviews/2026-11-07-dsh-detail-audit.md",
+  "sourceMap": "docs/third-party/dsh-full-frontend-sources.md",
+  "privateEvidence": "/tmp/moos-dsh-detail-20261107/",
+  "reference": {
+    "originalRuntimeEmptyAndSettings": true,
+    "viewport": [
+      1280,
+      820
+    ],
+    "nativeOriginalTaskStatesCompared": false,
+    "pixelDiffAutomation": false
+  },
+  "gui": {
+    "emptyCardAndWorkspaceChip": true,
+    "modelPermissionSendSameRow": true,
+    "statisticsOutsideCard": true,
+    "nativeTitleOverlay": true,
+    "sidebarCollapseExpand": true,
+    "sidebarRapidReversalVerifiedBy": "automated timer test; native double click cannot prove it",
+    "rightTabsOpenClose": true,
+    "halfScreenViewport": [
+      962,
+      988
+    ],
+    "rightOverlayCloseable": true,
+    "windowRestored": [
+      1280,
+      820
+    ],
+    "settingsSections": [
+      "通用",
+      "模型服务",
+      "权限",
+      "用量",
+      "插件",
+      "主题",
+      "隐私",
+      "手机连接",
+      "高级"
+    ],
+    "defaultAndGraphiteCompared": true,
+    "graphiteRestored": true,
+    "markdownTaskSucceeded": true,
+    "markdownTitleListCodeTable": true,
+    "tableRegionKeyboardFocus": true,
+    "tableLastColumnVisibleAfterThumbDrag": true,
+    "nativeHorizontalWheelOrArrowVerified": false,
+    "historyFilesRetained": true,
+    "terminalNoOverlap": true,
+    "modelMenuReadable": true,
+    "permissionMenuReadableWithCheck": true,
+    "fixtureOriginalAddressRestored": true,
+    "fixtureServerStopped": true,
+    "realProviderRestored": "云桥",
+    "paidModelCalls": 0,
+    "finalSettingsSelectedColorAndNoBlur": true,
+    "finalTerminalSpacingAndPortalContrast": true
+  },
+  "motion": {
+    "columnMs": 300,
+    "sidebarFadeOutMs": 150,
+    "sidebarExpandMs": 200,
+    "railEnterMs": 150,
+    "menuEnterMs": 40,
+    "menuDismissMs": 80,
+    "modalPrimitiveFadeMs": 200,
+    "processHoverMs": 100,
+    "runningEnterMs": 140,
+    "durationBasis": "pinned source and CSS/timer tests, not frame timing measurements",
+    "reducedMotionAutomated": true,
+    "systemReducedMotionChanged": false,
+    "dragTransitionDisabled": true
+  },
+  "build": {
+    "binarySha256": "257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5",
+    "files": 15388,
+    "allRegularFilesMatch": true,
+    "logicalBytes": 247446378,
+    "diskKiB": 285624
+  },
+  "process": {
+    "appPid": 9670,
+    "nodeHostPid": 9676,
+    "ownedNodeHosts": 1,
+    "newProductionWebServer": false
+  },
+  "tests": {
+    "corePassed": 137,
+    "uiPreviousFullPassed": 135,
+    "uiFinalPending": false,
+    "nativePassed": 27,
+    "docsPassed": 50,
+    "uiCurrentTestsPassedAcrossRuns": 136,
+    "uiFinalFullRun": {
+      "files": 45,
+      "passed": 135,
+      "failed": 1,
+      "failure": "new icons test asserted visibility during Modal entrance"
+    },
+    "uiCorrectedIconsRetestPassed": 1,
+    "uiProductSourceUnchangedAfterFullRun": true
+  },
+  "limits": {
+    "upstreamBackendParity": false,
+    "nativeVibrancyReplicated": false,
+    "wideTableBreakoutImplemented": false,
+    "whaleAnimationCopied": false,
+    "windowsOrIPhoneVerified": false,
+    "allOriginalStatesPixelCompared": false
+  },
+  "commitTitles": [
+    "style(P03.6): align window chrome and panel motion",
+    "style(P03.6): align composer controls and readings",
+    "style(P03.6): restore markdown rhythm and scrollable tables",
+    "style(P03.6): align settings surfaces and navigation",
+    "style(P03.6): align portal menus and record visual acceptance"
+  ]
+}

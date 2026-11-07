@@ -689,3 +689,13 @@
 - 实际验收与工作区状态：arm64/macOS27.0.1，原版1280×820空态/设置与固定源码；Moos整合V01—V05后的组合工作区完成GUI，最终签名deep/strict通过、15388项常规文件逐一哈希匹配，主程序SHA256 `257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5`。App9670→单Node9676，无新增生产Web服务；.app232.42MiB、常规文件逻辑247446378字节/磁盘285624KiB，完整内置运行时。此前候选1138/f7ed哈希只为中间包，最终以此为准。证据apps/desktop/evidence/p03-dsh-detail.json，私有截图/tmp/moos-dsh-detail-20261107/；分项提交对应同一组合工作区验收，不声称每个单独中间提交另装过一次。
 - 遗留问题：未逐帧测量动画精确时长、未逐状态像素diff；系统减少动态效果未手工切换，仅媒体查询/时序自动测试。原版macOS零宽侧栏、native vibrancy、wide-table breakout及鲸鱼品牌动画未复制；保留Moos品牌/56px轨道和用户石墨。DSH后端、Windows/iPhone与P02.9/小包等原未完成项不由本轮勾选。
 - 对应 Git 提交：唯一说明 `style(P03.6): align settings surfaces and navigation`；查询 `git log --all --oneline --grep='^style(P03.6): align settings surfaces and navigation$'`。全部分项完成后推送GitHub main并核对远程HEAD；不预填自身哈希。
+
+## 2026-11-07 10:22:13 +08:00｜P03.6 V05：DSH逐项视觉/动效复核
+
+- 修改或新增内容：按原版MenuSurface映射40ms进入/80ms退出与弹层200ms淡入；Portal显式文字/中性选中背景/勾选、240px模型菜单。补逐项来源、差异、验收证据、原生权限最小边界与限制回归。
+- 遇到的难题：GUI发现Ant主色算法生成深灰选中底、文字仍暗，默认与石墨下均须显式Token；最终模型和权限菜单可读。原生输入测试端点首轮截断、标记AX延迟重复，均清空并核对完整值后才保存/提交。临时假模型53856结束、原测试地址64044恢复、石墨/云桥/1280×820/右栏关闭已恢复，未读取密钥或新建收费请求。
+- 处理方式：按固定源码与实拍差异修正，保留实际Moos能力，组合工作区验收后分项提交。
+- 验证结果：`npm test`137/137；stable离线`npm run test:desktop-product`27/27；`npm run test:docs`50/50；`npm run build:desktop`及Tauri.app构建通过。UI此前完整44文件135/135；加入图标测试后完整45文件135通过/1失败，失败只在新测试立即断言Modal可见，修正测试等待后`npm --prefix apps/desktop test -- src/settings/SettingsCenter.icons.test.tsx --maxWorkers=1 --testTimeout=60000`1/1通过，其余135及产品代码未再变化。当前136用例均成功执行，不将最后完整命令伪写为136/136。日志在/tmp/moos-dsh-detail-*.log。新增定向时序/位置/表格测试通过，既有大chunk与jsdom NaN高度警告保留。
+- 实际验收与工作区状态：arm64/macOS27.0.1，原版1280×820空态/设置与固定源码；Moos整合V01—V05后的组合工作区完成GUI，最终签名deep/strict通过、15388项常规文件逐一哈希匹配，主程序SHA256 `257aa4b20be4a27a285b4558cb482dc1ce94b93bc3cc1b8f00c0ca7f337e4fc5`。App9670→单Node9676，无新增生产Web服务；.app232.42MiB、常规文件逻辑247446378字节/磁盘285624KiB，完整内置运行时。此前候选1138/f7ed哈希只为中间包，最终以此为准。证据apps/desktop/evidence/p03-dsh-detail.json，私有截图/tmp/moos-dsh-detail-20261107/；分项提交对应同一组合工作区验收，不声称每个单独中间提交另装过一次。
+- 遗留问题：未逐帧测量动画精确时长、未逐状态像素diff；系统减少动态效果未手工切换，仅媒体查询/时序自动测试。原版macOS零宽侧栏、native vibrancy、wide-table breakout及鲸鱼品牌动画未复制；保留Moos品牌/56px轨道和用户石墨。DSH后端、Windows/iPhone与P02.9/小包等原未完成项不由本轮勾选。
+- 对应 Git 提交：唯一说明 `style(P03.6): align portal menus and record visual acceptance`；查询 `git log --all --oneline --grep='^style(P03.6): align portal menus and record visual acceptance$'`。全部分项完成后推送GitHub main并核对远程HEAD；不预填自身哈希。

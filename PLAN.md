@@ -18,12 +18,12 @@
 - [x] P03.4 设置九分区及插件/用量/皮肤逐页对齐，继续使用实际Moos能力。
 - [x] P03.5 自动全量与安装GUI逐页对照、签名/哈希/进程/体积验收后交付。
 
-- [ ] P03.6 逐项视觉/动画复核，以下明细依赖整合后的同一工作区构建和GUI证据，不将E30解释为所有细节一致。
+- [x] P03.6 逐项视觉/动画复核，以下明细依赖整合后的同一工作区构建和GUI证据，不将E30解释为所有细节一致。
 - [x] P03.6.V01 Overlay原生标题栏、50/40px页头、侧栏分阶段动画/右栏退场、拖动与减少动态效果。
 - [x] P03.6.V02 输入区工具同排、卡片外用量、空态工作区、终端展开间距。
 - [x] P03.6.V03 Markdown排版/可聚焦宽表横向滚动、过程微动效。
 - [x] P03.6.V04 设置圆角/导航图标/遮罩Token，九分区复验。
-- [ ] P03.6.V05 菜单40/80ms与选中项对比度、默认/石墨区分、完整回归/安装/证据。
+- [x] P03.6.V05 菜单40/80ms与选中项对比度、默认/石墨区分、完整回归/安装/证据。
 
 依赖与限制：P03.1→P03.2→P03.3/P03.4→P03.5；书面设计已获用户确认，本机依赖链已完成来源核对、实现、自动回归和安装GUI定性对照。原版实际截图基准为空态与设置框架，其他状态按原版源码及Moos实测核对；未执行全部原版状态的逐像素自动diff，不把该能力标为已验证。不增加DSH服务或第二个Node Web Server；文件编辑/Git等缺失后端不能用假入口冒充。P02.9遗留真实GLM/账单等保持独立，不因界面完成而勾选。
 
@@ -387,3 +387,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - [GLM 接入配置](https://zcode.z.ai/cn/docs/configuration)：Coding Plan 专用接口依据；与用户实际套餐区域核对。
 
 手机前置操作参考：[Apple 开发者模式](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)、[DCloud iOS 基座签名](https://uniapp.dcloud.net.cn/tutorial/run/ios-apple-certificate-signature.html)。开启开发者模式在 iPhone 设置 → 隐私与安全性 → 开发者模式中由用户操作并按提示重启确认；签名材料由用户在本机配置，证书存在不等于对应 app/profile 已匹配。
+
+| E31 | 2026-11-07，P03.6 V01—V05；原版空态/设置实拍+固定源码逐项复核，真实PI本地Markdown七列表格、窄窗拖条末列、终端/菜单/九设置/主题/侧栏右栏与最终安装通过。核心137、原生27、文档50；UI全量135通过/1新增入场断言失败，测试等待修正后定向1/1通过，其他135及产品源码未再变动。机器证据 `apps/desktop/evidence/p03-dsh-detail.json`，明细 `docs/design-reviews/2026-11-07-dsh-detail-audit.md` | 未做逐帧时长测量/全部原版状态像素diff；减少动态效果仅自动回归。保留56px轨道/Moos品牌与皮肤，无vibrancy或wide-breakout复刻；Windows/iPhone未验证。 |
