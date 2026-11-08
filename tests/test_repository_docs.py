@@ -29,6 +29,17 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, guide)
         self.assertIn('真实 DSH 安装器升级的数据保留与失败恢复仍待', plan)
 
+    def test_e82_keeps_verified_upgrade_and_unresolved_branch_and_native_failure_separate(self):
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-upgrade-data-recovery.json').read_text())
+        self.assertTrue(report['realInstaller']['passed'])
+        self.assertTrue(report['gui']['realStartupUpgradesOlderFixtureAndRetainsTwoTurns'])
+        self.assertTrue(report['gui']['branchSelectedTextHistory'])
+        self.assertFalse(report['gui']['branchInheritedProcessVisible'])
+        self.assertEqual(report['checks']['core']['failed'], 1)
+        self.assertEqual(report['checks']['electron']['skipped'], 0)
+        self.assertFalse(report['evidence']['screenshotsVisuallyReviewed'])
+        self.assertIn('继承轮次的 PI 过程卡片缺失', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

@@ -1,0 +1,78 @@
+{
+  "id": "E82",
+  "dateBeijing": "2026-11-08",
+  "system": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64",
+    "node": "24.15.0"
+  },
+  "source": {
+    "baseCommit": "5ca958b",
+    "state": "pre-commit workspace adds acceptance tests and runner; product startup code unchanged",
+    "build": "build-D68Dbn",
+    "signatureDeepStrict": "passed",
+    "qaVisibilityOverride": "Copied isolated QA bundle suppresses BrowserWindow.show(); re-signed ad hoc. No formal installation."
+  },
+  "realInstaller": {
+    "test": "apps/electron/upgrade-integration.test.mjs",
+    "passed": true,
+    "fixtureOlderVersion": "0.1.25",
+    "targetShellVersion": "0.1.26",
+    "setupMayDownloadDependencies": true,
+    "actualUpgradeOffline": true,
+    "userPluginDependencyPreserved": true,
+    "chatAndConfigSentinelsByteIdentical": true,
+    "sqliteByteIdenticalDuringUpgrade": true,
+    "reopenMessagesIdentical": true
+  },
+  "gui": {
+    "realStartupUpgradesOlderFixtureAndRetainsTwoTurns": true,
+    "restartTwoTurnsAndProcessOwnership": true,
+    "modelAndCredentialBytesPreserved": true,
+    "branchSelectedTextHistory": true,
+    "branchInheritedProcessVisible": false,
+    "maid-atelierRestoresTurnProcesses": true,
+    "phoebe-atelierRestoresTurnProcesses": true
+  },
+  "checks": {
+    "dependencyInstall": "npm ci --no-audit --no-fund passed; 125 packages",
+    "electron": {
+      "passed": 65,
+      "failed": 0,
+      "skipped": 0,
+      "packagedHostAndSkinFixturesEnabled": true
+    },
+    "core": {
+      "passed": 135,
+      "failed": 1,
+      "total": 136,
+      "failure": "M01 native permission probe: Swift compiler exits SIGTRAP before running probe"
+    },
+    "rust": {
+      "passed": 11,
+      "failed": 0,
+      "configuration": "offline stable 1.91.1; test-only TAURI_CONFIG removes externalBin/resources, not a packaged probe acceptance"
+    },
+    "bridge": 5,
+    "skinProbePython": 4
+  },
+  "evidence": {
+    "guiDirectory": "artifacts/upgrade-acceptance/gui/recovery-J1Twpk",
+    "guiReportSha256": "ca257022e69eb8e968c10907c8c3527d3f5bee72fbb6520b829366f7f221b80d",
+    "screenshots": {
+      "maid-atelier.png": "cc909c5adc95053949ab9032d1ed60f32de486435be504e00fc23e245e62a33d",
+      "phoebe-atelier.png": "f4fee291e88ccd2b7890a802519e3375293556c9c430dd29b93efcf659c57b67",
+      "restart.png": "a88be4614eb8d4af580ad5589effb64133a843ed744edd1f06c9eb5993f6fce9",
+      "branch.png": "2f69d4df371c0fbb5a72a8b841f0a77d2aa677785af22bec0522df58b9e6a111"
+    },
+    "screenshotsVisuallyReviewed": false,
+    "logs": "artifacts/upgrade-acceptance/"
+  },
+  "unresolved": [
+    "Branch inherits selected text history correctly but inherited PI process cards are missing.",
+    "Full core suite not passing due to Swift SIGTRAP; no global completion claimed.",
+    "Real installer failure rollback is not implemented or accepted.",
+    "Formal installation update and real user data were not used; no deployment.",
+    "QA runner initially had page hydration/input timing failures; fixed waits and final isolated run passed."
+  ]
+}
