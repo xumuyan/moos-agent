@@ -1147,3 +1147,12 @@
 - 验证结果：Electron 回归 30/30，含新增校验。执行 `npm --prefix apps/electron test` 时，`MOOS_ELECTRON_TEST_DSH_CLI` 指向安装包 CLI，`MOOS_ELECTRON_TEST_SKIN_CENTER` 指向本机 0.4.16 的插件目录，`MOOS_ELECTRON_TEST_REVIEWED_MAID` 指向上述提交的皮肤目录。`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。文档检查首次发现新增日志缺少规定的字段标记，补齐后重跑通过。
 - 遗留问题：正式窗口需重新加载后复核。当前证据覆盖本机 Host 与隔离 Chromium，P03.13.7 的其他插件兼容验收继续按计划进行。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify reviewed workspace skin hooks`，用 `git log --all --oneline --grep='^test(P03.13): verify reviewed workspace skin hooks$'` 查询。
+
+## 2026-11-08 08:50:51 +08:00｜P03.13.7 补录正式窗口皮肤验收
+
+- 修改或新增内容：同步 E73 的正式窗口验收结果，运行时代码沿用 `7e827cd`。
+- 遇到的难题：前一轮只有隔离工作台的渲染结果，正式窗口当时等待重启复核。
+- 处理方式：用户回复「已恢复」，确认重开正式 Moos 后「默认工作区」的蓝金横幅和盾牌均显示。具体重启时间未核实，本条时间为记录时间。
+- 验证结果：用户验收通过。`npm test` 139/139，`npm --prefix apps/electron test` 30/30（使用 E73 的安装包与皮肤夹具设置，并以已恢复的本机皮肤目录作为原包夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。首次并行运行时 Electron 的回环 Host 检查超时，独立复跑 Electron 套件全部通过。`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175。
+- 遗留问题：P03.13.7 的其他插件兼容性仍按计划分别验收。
+- 对应 Git 提交：唯一说明 `docs(P03.13): record workspace skin restart acceptance`，用 `git log --all --oneline --grep='^docs(P03.13): record workspace skin restart acceptance$'` 查询。
