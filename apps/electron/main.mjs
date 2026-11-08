@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session } from 'electron';
-import { cp, mkdir, readFile, lstat, rename, mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -8,6 +8,7 @@ import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
 import { createPiUsageReader } from './pi-usage.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
+import { seedHome, profileRecoveryMessage } from './profile-home.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -16,26 +17,6 @@ app.setPath('userData', data);
 
 let host;
 let hostStopped = false;
-
-async function seedHome(resources, home) {
-  await mkdir(home, { recursive: true, mode: 0o700 });
-  const profiles = join(home, 'profiles');
-  const existing = await lstat(profiles).catch(error => {
-    if (error.code !== 'ENOENT') throw error;
-  });
-  if (existing) {
-    if (!existing.isDirectory()) throw new Error('Invalid Moos profile directory');
-    return;
-  }
-  const staging = await mkdtemp(join(home, '.profile-'));
-  try {
-    await cp(join(resources, 'profile-template', 'profiles'), join(staging, 'profiles'), {
-      recursive: true, verbatimSymlinks: true,
-    });
-    try { await rename(join(staging, 'profiles'), profiles); }
-    catch (error) { if (!['EEXIST', 'ENOTEMPTY'].includes(error.code)) throw error; }
-  } finally { await rm(staging, { recursive: true, force: true }); }
-}
 
 async function updateShellPlugin(resources, home, cli) {
   const manifest = 'profiles/web/node_modules/moos-electron-shell/package.json';
@@ -197,7 +178,8 @@ app.on('before-quit', event => {
   void host.stop().finally(() => { hostStopped = true; app.quit(); });
 });
 if (!app.requestSingleInstanceLock()) app.quit();
-else void app.whenReady().then(launch).catch(() => {
-  dialog.showErrorBox('Moos', '无法打开工作台。请检查本机开发运行时后重试。');
+else void app.whenReady().then(launch).catch(error => {
+  dialog.showErrorBox('Moos', error?.code === 'MOOS_PROFILE_RECOVERY_REQUIRED'
+    ? profileRecoveryMessage : '无法打开工作台。请检查本机开发运行时后重试。');
   app.quit();
 });

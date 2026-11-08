@@ -48,3 +48,11 @@ MOOS_ELECTRON_PI_FIXTURE=1 MOOS_ELECTRON_DATA="$(mktemp -d)" "/path/to/Moos.app/
 验收模式默认选中「Moos PI · 本地调度验收」。可在默认工作区发送 `MOOS_FIXTURE_WRITE sample`，检查 `result.txt` 和对话中的工具结果。该模式只接受专用数据目录 `workspace` 下的项目和固定验收指令。PI 复用现有 Host 进程、SQLite 和 Moos 调度器。
 
 PI 读取会话当前的「仅可查看」「工作区内修改」「完全权限」。在临时项目中发送 `MOOS_FIXTURE_POLICY` 可检查项目内写入及 Bash 越界行为。发送 `MOOS_FIXTURE_APPROVAL` 可在受限模式下测试一次性命令审批。受限命令由 macOS 沙箱执行，搜索通过受限 Bash 调用系统工具。
+
+## 更新与用户数据保留
+
+修改后默认只交付源码和验证结果，不自动替换或重启正式安装；只有用户明确要求部署时才更新应用包。更新继续使用 `dev.moos.agent.electron` 数据目录，不换一个空目录冒充历史恢复成功。
+
+既有工作台配置不会被随包模板覆盖。聊天历史、PI 会话、模型服务及 `private/credentials.json`、皮肤、插件设置和工作区文件须保留。内置壳的离线升级仍可能更新其自身依赖元数据，不等于允许重置用户设置或卸载用户插件。若工作台配置缺失但发现旧数据，应用停止初始化并显示恢复提示，不自动创建一套新配置。恢复操作应先备份，再经用户明确同意处理，不应通过删除数据目录绕过提示。
+
+隔离回归：`node --test apps/electron/profile-home.test.mjs apps/electron/profile-history.test.mjs`。覆盖初始化不覆盖既有文件、异常目录拒绝重建及 SQLite 消息/过程/设置重启读回；不替代随包插件升级、整应用 GUI 或正式安装更新验收。

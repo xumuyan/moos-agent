@@ -9,6 +9,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_updates_require_user_deployment_and_preserve_chat_and_configuration(self):
+        rules = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        guide = (ROOT / 'apps/electron/README.md').read_text(encoding='utf-8')
+        for term in ('修改后先不部署', '用户明确', '聊天记录和配置文件', '不得静默', '独立临时目录'):
+            self.assertIn(term, rules)
+        self.assertIn('P03.13 数据保护子项', plan)
+        self.assertIn('P03.13 会话恢复子项', plan)
+        self.assertIn('不代表完整安装升级验收已完成', plan)
+        self.assertIn('不自动替换或重启正式安装', guide)
+        self.assertIn('内置壳', guide)
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
