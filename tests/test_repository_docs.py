@@ -69,6 +69,21 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('未读取成功结果前不得声称更新完成', plan)
         self.assertIn('不自动恢复或覆盖用户数据', plan)
 
+    def test_e84_installation_preserves_data_without_claiming_full_stage_pass(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-data-preservation.json').read_text())
+        self.assertEqual(evidence['shellVersion'], '0.1.27')
+        self.assertTrue(evidence['userAuthorizedStopAndUpdate'])
+        result = evidence['verification']
+        self.assertEqual(result['state'], 'success')
+        self.assertFalse(result['productionDataReset'])
+        self.assertFalse(result['automaticDataRestore'])
+        self.assertEqual(result['beforeCounts'], result['afterCounts'])
+        for key in ('apiAndCredentialsIdentical', 'chatFilesRetained', 'piHistoryFilesRetained',
+                    'skinsRetained', 'workspaceRetained', 'originalDatabaseRowsRetained',
+                    'userPluginDependenciesRetained'):
+            self.assertTrue(result[key])
+        self.assertIn('不扩大为完整阶段或 Swift 探针通过', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

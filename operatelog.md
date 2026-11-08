@@ -1307,3 +1307,12 @@
 - 验证结果：npm run build:app 的正式构建已通过，随包 moos-runtime.json 的 includesPiFixture=false。原安装及暂存包 codesign --verify --deep --strict 通过，bundle ID 均为 dev.moos.agent.electron。worker node --check 和 --preflight 通过，main.mjs 与 pi-turn.mjs 同仓库已验代码逐字匹配。预备份权限目录 0700、密钥文件 0600。此条提交前文档检查与差异检查以本批命令结果为证据；应用代码未变，沿用前次 Electron 70/70 和核心 135/136，未重跑或伪称全量通过。独立终端执行及最终结果尚待后续核对，不提前记录未知结果。
 - 遗留问题：安装续作会正常退出当前 Moos，因此当前对话可能中断。完成与否须读取 artifacts/installed-update/result.json，旧包与两份备份保留在受限目录，不将备份或私有校验清单提交 Git。数据保护/会话恢复整阶段与 Swift 探针等限制不因授权安装提前完成。授权仅本次更新，后续仍按默认先不部署。
 - 对应 Git 提交：唯一说明 docs(P03.13): prepare authorized standalone installation checkpoint；查询命令 git log --all --oneline --grep='^docs(P03.13): prepare authorized standalone installation checkpoint$'。本条为停止自身前的准备状态，后续实际安装证据另行补记。
+
+## 2026-11-08 19:44:45 +08:00｜P03.13 本机 0.1.27 更新完成与数据保留核对
+
+- 修改或新增内容：继续用户授权的安装任务，读取独立 Terminal 的实际完成结果，新增 E84、计划及文档契约检查。正式应用已由 build-5Y2ht7 更新，安装包和已加载内置壳均为 0.1.27。此轮不修改运行时代码，不再重复已完成的安装步骤。
+- 遇到的难题：前次依附 Moos Host 的退出命令会随应用一同中止；本次独立终端接手后当前对话关闭，需在新应用中核对结果，不能仅凭窗口重新出现认定成功。
+- 处理方式：独立 worker 先正常退出、等待 Host 收尾，停机备份原数据，保留旧应用，再原子移动暂存包并从原路径启动。只替换程序包，继续使用 dev.moos.agent.electron 用户数据目录，不初始化、清空或自动恢复数据。核对只返回布尔值及数量，不输出 API、密钥或聊天内容。旧包保存在 /Applications/.moos-update.NoVi8UcT/previous/Moos.app，停机完整备份在同目录 data-before-install，备份不进入 Git。
+- 验证结果：artifacts/installed-update/result.json 为 success，时间 2026-11-08T11:43:13.711Z（北京时间 19:43:13），terminal-update.log 显示停机备份确认、安装及 success 全部完成。安装前后数据库原有消息 42、会话 1、任务 22 一致，原消息/会话行及任务 ID 保留。API/密钥和保护配置字节相同，DSH/PI 历史原内容、皮肤、工作区与用户插件依赖保留，productionDataReset=false、automaticDataRestore=false。复查 /Applications/Moos.app 严格签名通过、标识不变，正式路径仅一个主进程及其 Host，实际加载壳 0.1.27。E84 记录脱敏结果与备份位置。提交前 Python 文档检查与差异检查以本批命令结果为证据；产品代码未变，沿用前轮 Electron 70/70、核心 135/136 的结果，不宣称本次全量通过。
+- 遗留问题：本次安装核对不包含真实 API 调用、GUI 目视完整验收或超限分支场景，不改变既有 Swift 探针失败及整阶段未完成状态。保留备份供恢复，不擅自删除。后续开发仍默认修改后不部署，需用户另行明确授权。
+- 对应 Git 提交：唯一说明 docs(P03.13): verify installed update preserves chat and API configuration；查询命令 git log --all --oneline --grep='^docs(P03.13): verify installed update preserves chat and API configuration$'。文档提交推送后核对远程 HEAD，不预填自身哈希。

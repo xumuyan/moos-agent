@@ -1,0 +1,48 @@
+{
+  "id": "E84",
+  "dateBeijing": "2026-11-08",
+  "completionTimeBeijing": "2026-11-08 19:43:13 +08:00",
+  "sourceBuild": "build-5Y2ht7",
+  "shellVersion": "0.1.27",
+  "bundleId": "dev.moos.agent.electron",
+  "installedPath": "/Applications/Moos.app",
+  "signatureDeepStrict": "passed",
+  "userAuthorizedStopAndUpdate": true,
+  "verification": {
+    "state": "success",
+    "targetShell": "0.1.27",
+    "userAuthorizedStop": true,
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "time": "2026-11-08T11:43:13.711Z",
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 42,
+      "conversations": 1,
+      "tasks": 22
+    },
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "originalDatabaseRowsRetained": true,
+    "afterCounts": {
+      "messages": 42,
+      "conversations": 1,
+      "tasks": 22
+    },
+    "userPluginDependenciesRetained": true,
+    "installedMainProcesses": 1
+  },
+  "backup": {
+    "oldApplication": "/Applications/.moos-update.NoVi8UcT/previous/Moos.app",
+    "stoppedData": "/Applications/.moos-update.NoVi8UcT/data-before-install",
+    "automaticDataRestore": false
+  },
+  "limits": [
+    "Checks describe the completed installation checkpoint, not a guarantee of immutable data during later normal use.",
+    "No real API request or GUI screenshot acceptance was added during this installation check.",
+    "Earlier Swift probe failure and other incomplete stage items remain open."
+  ]
+}
