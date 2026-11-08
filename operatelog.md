@@ -1243,3 +1243,13 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 32/32（打包 Host 和皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 61/61，Git 差异检查通过。隔离验收脚本输出 PASS 并关闭测试实例，外层 zsh 在收尾时给只读变量 status 赋值失败，脚本结果见上述日志。
 - 遗留问题：本轮未复验该布局在重启、分支历史及其他皮肤下的显示。正式安装验收覆盖签名、文件和运行版本，功能验收使用隔离数据。
 - 对应 Git 提交：唯一说明 `fix(P03.13): keep PI process in its conversation turn`，用 `git log --all --oneline --grep='^fix(P03.13): keep PI process in its conversation turn$'` 查询。
+
+## 2026-11-08 11:31:53 +08:00｜P03.13 正式桌面源码迁回原项目并清理缓存
+
+- 修改或新增内容：把「文档」中的原项目 `main` 快进到最新 Electron 开发版本，正式桌面统一使用 `apps/electron`。删除旧 Tauri 产品目录及其专用验证脚本，根目录构建切换为 `npm run build:app`，测试入口为 `npm run test:electron`。M01 独立 Tauri 探针保留。
+- 遇到的难题：原检出有一批旧版未提交改动，且 Electron 打包仍读取旧目录里的图标。历史验收和文档检查也引用了旧目录。
+- 处理方式：用 `git stash push --include-untracked` 保存旧改动，查询 `git stash list` 中的 `Moos original checkout before Electron migration 2026-11-08`。将打包图标迁入 Electron，历史证据和来源清单迁入 `docs/evidence/desktop/`，旧源码可通过 `d499316` 追溯。固定 DSH 构建输入移至 `~/Library/Application Support/dev.moos.agent.build-sources/`，保留重建路径。按路径核对 Git 忽略状态和跟踪状态，清理两个检出目录中的依赖、构建和测试缓存，保留运行中的 Moos、应用数据、iOS 签名材料与已有验收资料。
+- 实际验收：在原项目目录用 `npm run build:app` 构建 `build-3O7wq4`，通过 `codesign --verify --deep --strict`，图标与仓库资源一致。隔离 Electron 实测 PI 执行、完成、写文件和停止，截图和日志位于 `/private/tmp/moos-primary-migration.5a70IE/`。随后清理构建缓存，正式安装继续运行既有 0.1.26。
+- 验证结果：`npm ci --no-audit --no-fund && npm test` 134/134，`npm run test:electron` 32/32（使用新打包 Host 及皮肤夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。已退役的 Tauri 产品测试入口已删除，M01 探针测试继续执行。
+- 遗留问题：跨平台及发布验收仍按 P03.13 推进。清理后重新运行开发测试需按锁文件安装依赖。
+- 对应 Git 提交：唯一说明 `refactor(P03.13): retire the legacy Tauri desktop`，用 `git log --all --oneline --grep='^refactor(P03.13): retire the legacy Tauri desktop$'` 查询。

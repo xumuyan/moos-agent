@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { chmod, cp, mkdir, mkdtemp, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
@@ -5,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const source = dirname(fileURLToPath(import.meta.url));
 const repo = join(source, '..', '..');
-const dshApp = join(resolve(process.env.MOOS_ELECTRON_DSH_APP ?? '/Applications/DeepSeek Harness.app'), 'Contents');
+const localDsh = join(homedir(), 'Library/Application Support/dev.moos.agent.build-sources/DeepSeek Harness.app');
+const defaultDsh = existsSync(localDsh) ? localDsh : '/Applications/DeepSeek Harness.app';
+const dshApp = join(resolve(process.env.MOOS_ELECTRON_DSH_APP ?? defaultDsh), 'Contents');
 const upstream = join(dshApp, 'MacOS', 'DeepSeek Harness');
 const dshVersion = execFileSync('/usr/libexec/PlistBuddy',
   ['-c', 'Print CFBundleShortVersionString', join(dshApp, 'Info.plist')], { encoding: 'utf8' }).trim();
@@ -53,7 +57,7 @@ await mkdir(bundles, { recursive: true });
 const stagedPlugin = join(build, 'shell-plugin');
 await cp(join(source, 'plugin'), stagedPlugin, { recursive: true });
 const pluginClient = join(stagedPlugin, 'client.js');
-const sidebarIcon = await readFile(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/32x32.png'));
+const sidebarIcon = await readFile(join(source, 'assets', 'sidebar-icon.png'));
 const clientSource = await readFile(pluginClient, 'utf8');
 await writeFile(pluginClient, clientSource.replace('__MOOS_SIDEBAR_ICON__', sidebarIcon.toString('base64')));
 const archive = execFileSync('npm', ['pack', stagedPlugin, '--pack-destination', bundles, '--silent'],
@@ -115,7 +119,7 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
     await cp(join(source, 'pi-fixture.patch.yml'), join(runtime, 'profile.patch.yml'));
   }
 }
-await cp(join(repo, 'apps/desktop/src-tauri/icons/moos-v1/icon.icns'), join(resources, 'moos.icns'));
+await cp(join(source, 'assets', 'moos.icns'), join(resources, 'moos.icns'));
 
 const setInfo = async (info, fields) => {
   await chmod(info, 0o644);

@@ -25,7 +25,7 @@ arm64/macOS27.0.1，1280×820，应用`/Applications/Moos.app`。中间候选用
 6. 切换Moos默认主题后图片仍保留；移除背景仅清理测试副本，确认无图片恢复默认布局，原始PNG仍存在。最终恢复用户石墨主题、云桥模型与右栏关闭。
 7. 本地验收服务地址临时改为65057；结束后恢复原64044，未读取或修改凭据；本次临时服务已停止。
 
-私有截图和命令日志位于`/tmp/moos-p037-source-20261107/`及`/tmp/moos-p037-*.log`，不提交用户历史截图、完整AX或图片数据URL。最终验证数、签名/体积/哈希以`apps/desktop/evidence/p03-direct-source.json`为准。
+私有截图和命令日志位于`/tmp/moos-p037-source-20261107/`及`/tmp/moos-p037-*.log`，不提交用户历史截图、完整AX或图片数据URL。最终验证数、签名/体积/哈希以`docs/evidence/desktop/p03-direct-source.json`为准。
 
 ## 真实限制
 

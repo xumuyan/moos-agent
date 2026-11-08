@@ -1,5 +1,0 @@
-/* Host-only bridge: editor DOM differs from Lexical; upstream geometry stays in the copied modules. */
-.workspaceReadout { pointer-events:none; }
-.textarea { display:block; width:100%; resize:none; border:0; background:transparent; box-shadow:none; overflow:hidden; }
-.textarea::placeholder { color:var(--dsw-alias-label-quaternary,var(--moos-muted)); }
-.addonPanel:empty { display:none; }

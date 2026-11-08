@@ -23,33 +23,21 @@ class RepositoryDocsTests(unittest.TestCase):
                 self.assertNotIn(evidence[1], ('E36', 'E37'))
                 self.assertIn(f'| {evidence[1]} |', plan)
 
-    def test_image_skin_example_matches_native_package_contract(self):
-        root = ROOT / 'apps/desktop/examples/dusk-image-skin'
-        manifest = json.loads((root / 'plugin.json').read_text())
-        self.assertEqual(manifest['type'], 'theme')
-        self.assertEqual(manifest['permissions'], [])
-        self.assertNotIn('entry', manifest)
-        background = manifest['backgroundMedia']
-        self.assertEqual(background['type'], 'image')
-        data = (root / background['src']).read_bytes()
-        self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))
-        self.assertLessEqual(len(data), 1024 * 1024)
-        self.assertIn('docs/plugins/image-skin.md', (ROOT / 'PLAN.md').read_text())
+    def test_image_skin_guide_distinguishes_historical_and_current_desktop(self):
         guide = (ROOT / 'docs/plugins/image-skin.md').read_text()
-        self.assertIn('皮肤会自动启用并应用', guide)
-        self.assertNotIn('设置 → 主题', guide)
+        self.assertIn('已退役的 Tauri 桌面端', guide)
+        self.assertIn('../../apps/electron/README.md', guide)
         self.assertIn('DSH 皮肤中心发行的 v2 皮肤使用 `skin.json`', guide)
-        self.assertIn('DSH 静态皮肤', guide)
 
     def test_direct_source_copy_and_local_wallpaper_keep_provenance_and_boundaries(self):
-        lock = json.loads((ROOT / 'apps/desktop/src/vendor/dsh/upstream-source-lock.json').read_text())
+        lock = json.loads((ROOT / 'docs/evidence/desktop/tauri-upstream-source-lock.json').read_text())
         self.assertEqual(lock['license'], 'MIT')
         self.assertEqual(lock['commit'], 'fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159')
         copied = [item for item in lock['files'] if item['mode'] == 'verbatim']
         self.assertEqual(len(copied), 44)
         for item in copied:
-            self.assertEqual(hashlib.sha256((ROOT / item['local']).read_bytes()).hexdigest(), item['sha256'])
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p03-direct-source.json').read_text())
+            self.assertRegex(item['sha256'], r'^[a-f0-9]{64}$')
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-direct-source.json').read_text())
         self.assertTrue(evidence['gui']['restartImageAndMask38Restored'])
         self.assertTrue(evidence['gui']['finalReturnButtonClickedAndDisappeared'])
         self.assertTrue(evidence['installed']['allRegularFilesMatch'])
@@ -60,22 +48,18 @@ class RepositoryDocsTests(unittest.TestCase):
         report = (ROOT / 'docs/third-party/dsh-direct-source-p037.md').read_text()
         for term in ('Lexical', 'IndexedDB', '2000万像素', '第三方hooks', '试穿页浏览器加载两次超时'):
             self.assertIn(term, report)
-        app = (ROOT / 'apps/desktop/src/App.tsx').read_text()
-        self.assertIn("import './vendor/dsh/theme/index.css'", app)
-        self.assertIn('loadWallpaper()', app)
-        self.assertNotIn("import './style.css'", app)
 
     def test_user_override_uses_local_private_credentials_without_keychain_migration(self):
         rules = (ROOT / 'AGENTS.md').read_text()
-        main = (ROOT / 'apps/desktop/src-tauri/src/main.rs').read_text()
+        models = (ROOT / 'apps/electron/plugin/pi-models.js').read_text()
         self.assertIn('2026-11-06', rules)
         self.assertIn('private/credentials.json', rules)
-        self.assertIn('LocalCredentials::new', main)
-        self.assertNotIn('NativeKeychain', main)
+        self.assertIn("join(privateRoot, 'credentials.json')", models)
+        self.assertNotIn('NativeKeychain', models)
         self.assertIn('**/credentials.json', (ROOT / '.gitignore').read_text())
 
     def test_latest_ui_installation_keeps_scope_and_source_traceable(self):
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-installed-ui.json').read_text())
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-installed-ui.json').read_text())
         self.assertEqual(evidence['installedPath'], '/Applications/Moos.app')
         self.assertRegex(evidence['sourceCommit'], r'^[a-f0-9]{40}$')
         self.assertRegex(evidence['sourceAndInstalledExecutableSha256'], r'^[a-f0-9]{64}$')
@@ -138,30 +122,20 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('apps/desktop/src/ui-adapter/', source)
         self.assertIn('apps/desktop/src/layout/', source)
         self.assertIn('| E19 |', plan)
-        for path in ('apps/desktop/src/ui-adapter/snapshot.ts',
-                     'apps/desktop/src/ui-adapter/commands.ts',
-                     'apps/desktop/src/layout/AppShell.tsx',
-                     'apps/desktop/src/layout/RightPanel.tsx'):
-            self.assertTrue((ROOT / path).is_file(), path)
 
     def test_p02_2_records_truthful_settings_and_packaged_gui_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = (ROOT / 'apps/desktop/evidence/p02-workspace-experience.json').read_text(encoding='utf-8')
+        evidence = (ROOT / 'docs/evidence/desktop/p02-workspace-experience.json').read_text(encoding='utf-8')
         self.assertIn('- [x] P02.2 ', plan)
         self.assertIn('| E20 |', plan)
         for term in ('请求批准', '帮我批准', '完全访问权限', 'permissionPolicyBackendConnected',
                      'verifiedUsageImplemented', 'tauriReportedSizeMiB'):
             self.assertIn(term, evidence)
-        for path in ('apps/desktop/src/composer/PermissionMenu.tsx',
-                     'apps/desktop/src/conversation/TaskTrajectory.tsx',
-                     'apps/desktop/src/settings/SettingsCenter.tsx'):
-            self.assertTrue((ROOT / path).is_file(), path)
 
     def test_p02_3_records_single_sdk_runtime_and_process_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-sdk-runtime.json').read_text())
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-sdk-runtime.json').read_text())
         runtime = (ROOT / 'packages/pi-runtime/sdk-runtime.mjs').read_text(encoding='utf-8')
-        main = (ROOT / 'apps/desktop/src-tauri/src/main.rs').read_text(encoding='utf-8')
         self.assertIn('- [x] P02.3 ', plan)
         self.assertIn('| E21 |', plan)
         self.assertEqual(evidence['runtime']['piVersion'], '1.5.0')
@@ -172,12 +146,10 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(evidence['processAcceptance']['forcedAppSigkillStoppedNodeHost'])
         self.assertFalse(evidence['limits']['taskLongerThanTenMinutesTested'])
         self.assertIn('createAgentSession', runtime)
-        self.assertNotIn('DiagnosticAgent', main)
-        self.assertNotIn('launch_diagnostics', main)
 
     def test_p02_4_records_bounded_policy_safe_errors_and_actual_long_task(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-long-tasks.json').read_text())
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-long-tasks.json').read_text())
         self.assertIn('- [x] P02.4 ', plan)
         self.assertIn('| E22 |', plan)
         self.assertEqual(evidence['policy']['choicesMs'],
@@ -192,7 +164,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
     def test_p02_5_records_only_verified_usage_and_preserves_real_provider_limits(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-verified-usage.json').read_text())
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-verified-usage.json').read_text())
         usage = (ROOT / 'services/agent/usage.mjs').read_text(encoding='utf-8')
         self.assertIn('- [x] P02.5 ', plan)
         self.assertIn('| E23 |', plan)
@@ -206,17 +178,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
     def test_p02_6_records_typed_slots_builtin_plugin_and_safe_theme_limits(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-plugin-theme-core.json').read_text())
-        mounted_sources = '\n'.join(
-            (ROOT / path).read_text(encoding='utf-8')
-            for path in (
-                'apps/desktop/src/App.tsx',
-                'apps/desktop/src/layout/RightPanel.tsx',
-                'apps/desktop/src/settings/SettingsCenter.tsx',
-                'apps/desktop/src/settings/UsageSection.tsx',
-                'apps/desktop/src/conversation/ConversationTranscript.tsx',
-            )
-        )
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-plugin-theme-core.json').read_text())
         self.assertIn('- [x] P02.6 ', plan)
         self.assertIn('| E24 |', plan)
         self.assertEqual(len(evidence['slots']['approved']), 10)
@@ -227,8 +189,6 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(evidence['slots']['idempotentRevokeVerified'])
         self.assertTrue(evidence['slots']['disableCleanupVerified'])
         self.assertEqual(evidence['slots']['renderErrorLimit'], 3)
-        for slot in evidence['slots']['approved']:
-            self.assertIn(f'slot="{slot}"', mounted_sources)
         self.assertTrue(evidence['builtinPlugin']['runsInsideExistingWebView'])
         self.assertFalse(evidence['builtinPlugin']['startsNodeOrWebService'])
         self.assertTrue(evidence['builtinPlugin']['browserDisableRemovedContribution'])
@@ -243,9 +203,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
     def test_p02_7_records_local_installer_sandbox_lifecycle_and_limits(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        evidence = json.loads((ROOT / 'apps/desktop/evidence/p02-local-plugins.json').read_text())
-        rust = (ROOT / 'apps/desktop/src-tauri/src/plugins.rs').read_text(encoding='utf-8')
-        sandbox = (ROOT / 'apps/desktop/src/plugins/sandbox/runtime.ts').read_text(encoding='utf-8')
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p02-local-plugins.json').read_text())
         self.assertIn('- [x] P02.7 ', plan)
         self.assertIn('| E25 |', plan)
         self.assertTrue(evidence['installer']['folderInstallVerifiedInPackagedGui'])
@@ -259,10 +217,6 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(evidence['lifecycle']['installEnableDisableUpgradeRollbackUninstallAutomated'])
         self.assertFalse(evidence['lifecycle']['guiUninstallDestructiveConfirmationExecuted'])
         self.assertFalse(evidence['limits']['onlineMarketplaceImplemented'])
-        for term in ('enclosed_name', 'MAX_TOTAL_BYTES', 'nlink()', 'reject_executable'):
-            self.assertIn(term, rust)
-        for term in ('new Worker', 'message_limit', 'worker_unresponsive', '__TAURI_INTERNALS__'):
-            self.assertIn(term, sandbox)
 
     def test_dsh_implementation_plan_is_ordered_and_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
@@ -501,7 +455,7 @@ class RepositoryDocsTests(unittest.TestCase):
     def test_confirmed_execution_constraints_are_consistent(self):
         agents = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
-        for term in ('Tauri 2', 'Ant Design X', 'uni-app x', 'PI',
+        for term in ('Tauri 2', 'Electron', 'uni-app x', 'PI',
                      'GLM Coding Plan', 'OpenAI 中转站', '两轮修复',
                      '无需', '同一 Wi-Fi', '同一', '串行', '全局',
                      '停止', '凭据', '体积'):
@@ -641,15 +595,13 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [x] P02.8 ', plan)
         self.assertIn('- [ ] P02.9 ', plan)
-        report = json.loads((ROOT / 'apps/desktop/evidence/p02-native-terminal.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p02-native-terminal.json').read_text())
         for field in ('normalQuitOwnedProcessesGone', 'projectRemovalOtherProjectSurvives',
                       'twoTabsOutputIsolated', 'interruptAndContinue', 'relaunchDoesNotReplayCommands'):
             self.assertTrue(report['gui'][field])
         self.assertFalse(report['gui']['newPaidTaskSubmitted'])
         self.assertEqual(report['boundaries']['perProjectTabs'], 4)
         self.assertTrue(report['build']['allRegularFilesMatchBuiltBundle'])
-        config = json.loads((ROOT / 'apps/desktop/src-tauri/tauri.conf.json').read_text())
-        self.assertEqual(config['bundle']['resources']['../../../THIRD_PARTY_NOTICES.md'], 'THIRD_PARTY_NOTICES.md')
         notices = (ROOT / 'THIRD_PARTY_NOTICES.md').read_text()
         for text in ('portable-pty 0.9.0', '@xterm/xterm 6.0.0', '2018 Wez Furlong', 'The xterm.js authors'):
             self.assertIn(text, notices)
@@ -662,7 +614,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] P02.9 ', plan)
         self.assertIn('| E27 |', plan)
-        report = json.loads((ROOT / 'apps/desktop/evidence/p02-owner-death.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p02-owner-death.json').read_text())
         self.assertEqual(report['packagedRuntime']['shortTasks'], 20)
         self.assertGreater(report['packagedRuntime']['longElapsedMs'], 600000)
         self.assertTrue(report['packagedRuntime']['fixtureUsageOnly'])
@@ -679,7 +631,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] P02.9 ', plan)
         self.assertIn('| E28 |', plan)
-        report = json.loads((ROOT / 'apps/desktop/evidence/p02-gui-stability.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p02-gui-stability.json').read_text())
         self.assertEqual(report['gui']['shortTaskCount'], 20)
         self.assertGreater(report['gui']['longElapsedMs'], 600000)
         self.assertEqual(report['gui']['longHeartbeats'], 40)
@@ -702,7 +654,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
 
     def test_selection_state_fix_has_real_gui_evidence_and_remaining_scope(self):
-        report = json.loads((ROOT / 'apps/desktop/evidence/p02-selection-state.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p02-selection-state.json').read_text())
         for key in ('missingKeyErrorVisibleBeforeSwitch', 'conversationSwitchClearsError',
                     'projectSwitchClearsError', 'defaultThemeMarkedAppliedAfterLocalThemeDisabled', 'graphiteRestored'):
             self.assertTrue(report['gui'][key])
@@ -712,33 +664,30 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('| E29 |', (ROOT / 'PLAN.md').read_text())
 
 
-    def test_moos_icon_source_is_square_rgba_and_not_claimed_as_installed(self):
+    def test_electron_moos_icon_source_is_square_rgba(self):
         import struct
-        data = (ROOT / 'apps/desktop/design/moos-icon-v1.png').read_bytes()
+        data = (ROOT / 'apps/electron/assets/moos-icon-v1.png').read_bytes()
         self.assertEqual(data[:8], b'\x89PNG\r\n\x1a\n')
         width, height, depth, color = struct.unpack('>IIBB', data[16:26])
         self.assertEqual(width, height)
         self.assertGreaterEqual(width, 1024)
         self.assertEqual((depth, color), (8, 6))
-        note = (ROOT / 'apps/desktop/design/README.md').read_text()
-        self.assertIn('尚未替换', note)
-        self.assertIn('代码括号', note)
 
 
-    def test_packaged_moos_icon_uses_explicit_native_assets(self):
+    def test_packaged_moos_icon_uses_electron_owned_assets(self):
         import struct
-        config = json.loads((ROOT / 'apps/desktop/src-tauri/tauri.conf.json').read_text())
-        for name, size in [('32x32.png', 32), ('128x128.png', 128), ('128x128@2x.png', 256)]:
-            relative = f'icons/moos-v1/{name}'
-            self.assertIn(relative, config['bundle']['icon'])
-            data = (ROOT / 'apps/desktop/src-tauri' / relative).read_bytes()
-            self.assertEqual(struct.unpack('>II', data[16:24]), (size, size))
-            self.assertEqual(data[25], 6)
-        data = (ROOT / 'apps/desktop/src-tauri/icons/moos-v1/icon.icns').read_bytes()
+        assets = ROOT / 'apps/electron/assets'
+        sidebar = (assets / 'sidebar-icon.png').read_bytes()
+        self.assertEqual(sidebar[:8], b'\x89PNG\r\n\x1a\n')
+        self.assertEqual(struct.unpack('>II', sidebar[16:24]), (32, 32))
+        data = (assets / 'moos.icns').read_bytes()
         self.assertEqual(data[:4], b'icns')
         self.assertEqual(struct.unpack('>I', data[4:8])[0], len(data))
-        self.assertEqual((ROOT / 'apps/desktop/src-tauri/icons/moos-v1/icon.ico').read_bytes()[:4], b'\x00\x00\x01\x00')
-
+        packager = (ROOT / 'apps/electron/prepare-local.mjs').read_text()
+        for name in ('sidebar-icon.png', 'moos.icns'):
+            self.assertIn(f"join(source, 'assets', '{name}')", packager)
+        self.assertFalse((ROOT / 'apps/desktop').exists())
+        self.assertTrue((ROOT / 'probes/m01/desktop/src-tauri/Cargo.toml').is_file())
 
     def test_full_dsh_design_keeps_scope_and_rightbar_confirmation_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text()
@@ -752,7 +701,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
 
     def test_dsh_transplant_records_source_license_and_installed_gui_limits(self):
-        report = json.loads((ROOT / 'apps/desktop/evidence/p03-dsh-frontend.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-dsh-frontend.json').read_text())
         self.assertTrue(report['build']['allRegularFilesMatch'])
         self.assertEqual(report['process']['nodeHostsOwnedByApp'], 1)
         self.assertFalse(report['process']['newProductionWebServer'])
@@ -762,16 +711,13 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertTrue(report['gui'][field])
         self.assertFalse(report['limits']['allOriginalStatesPixelCompared'])
         self.assertFalse(report['limits']['arbitraryFileEditorOrGitAdded'])
-        app = (ROOT / 'apps/desktop/src/App.tsx').read_text()
-        for old in ('workbench.css', 'codex-cards.css', 'dsh-alignment.css'):
-            self.assertNotIn(old, app)
         notice = (ROOT / 'docs/third-party/dsh-full-frontend-sources.md').read_text()
         self.assertIn('Copyright (c) 2026 DeepSeek', notice)
         self.assertIn('Permission is hereby granted', notice)
         self.assertIn('layout/dsh-columns.ts', notice)
 
     def test_pi_online_benchmark_records_matched_inputs_and_separate_acceptance(self):
-        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-crossfile-benchmark.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-pi-crossfile-benchmark.json').read_text())
         self.assertIn('| E52 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['case']['allowedFiles'], ['parse-count.mjs', 'summary.mjs', 'summary.test.mjs'])
         self.assertEqual(report['case']['independentTests'], 5)
@@ -802,8 +748,8 @@ class RepositoryDocsTests(unittest.TestCase):
 
 
     def test_pi_desktop_benchmark_compares_native_apps_on_matching_inputs(self):
-        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-benchmark.json').read_text())
-        reference = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-crossfile-benchmark.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-pi-desktop-benchmark.json').read_text())
+        reference = json.loads((ROOT / 'docs/evidence/desktop/p03-pi-crossfile-benchmark.json').read_text())
         self.assertIn('| E55 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['runOrder'], ['dsh', 'moos'])
         for field in ('model', 'effort', 'case'):
@@ -837,8 +783,8 @@ class RepositoryDocsTests(unittest.TestCase):
 
 
     def test_pi_desktop_multiturn_comparison_records_each_round(self):
-        report = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-multiturn.json').read_text())
-        reference = json.loads((ROOT / 'apps/desktop/evidence/p03-pi-desktop-benchmark.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-pi-desktop-multiturn.json').read_text())
+        reference = json.loads((ROOT / 'docs/evidence/desktop/p03-pi-desktop-benchmark.json').read_text())
         self.assertIn('| E58 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['runOrder'], list(reversed(reference['runOrder'])))
         for field in ('model', 'effort', 'permissionLabel', 'sameEndpointAndCredential'):
@@ -870,7 +816,7 @@ class RepositoryDocsTests(unittest.TestCase):
 
 
     def test_pi_vision_probe_keeps_provider_capabilities_and_product_scope_separate(self):
-        evidence = ROOT / 'apps/desktop/evidence/p03-pi-vision-provider-probe.json'
+        evidence = ROOT / 'docs/evidence/desktop/p03-pi-vision-provider-probe.json'
         report = json.loads(evidence.read_text())
         self.assertIn('| E62 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['mode'], 'isolated-pi-sdk-probe')
@@ -900,7 +846,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(glm['image']['exact'])
 
     def test_pi_desktop_attachments_record_gui_routing_and_recovery_separately_from_benchmarks(self):
-        evidence = ROOT / 'apps/desktop/evidence/p03-pi-desktop-attachments.json'
+        evidence = ROOT / 'docs/evidence/desktop/p03-pi-desktop-attachments.json'
         report = json.loads(evidence.read_text())
         self.assertIn('| E65 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['mode'], 'electron-gui')
@@ -924,7 +870,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['limits']['supportsSpeedComparison'])
 
     def test_pi_desktop_ledger_benchmark_uses_equal_scope_and_independent_acceptance(self):
-        evidence = ROOT / 'apps/desktop/evidence/p03-pi-desktop-ledger-benchmark.json'
+        evidence = ROOT / 'docs/evidence/desktop/p03-pi-desktop-ledger-benchmark.json'
         report = json.loads(evidence.read_text())
         self.assertIn('| E66 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['runOrder'], ['dsh', 'moos'])
@@ -955,7 +901,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['limits']['supportsGeneralSpeedClaim'])
 
     def test_pi_electron_installation_distinguishes_local_acceptance_from_distribution(self):
-        evidence = ROOT / 'apps/desktop/evidence/p03-pi-electron-installation.json'
+        evidence = ROOT / 'docs/evidence/desktop/p03-pi-electron-installation.json'
         report = json.loads(evidence.read_text())
         self.assertIn('| E67 |', (ROOT / 'PLAN.md').read_text())
         self.assertEqual(report['installedPath'], '/Applications/Moos.app')

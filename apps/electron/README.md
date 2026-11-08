@@ -3,15 +3,15 @@
 以 Moos 的 Electron 主进程打开 DSH 的原版工作台。macOS 构建阶段从 DeepSeek Harness Desktop 0.2.2-rc.1 取得 Electron 44.7.0 和工作台 Host，组装为内置 PI、Host 与插件安装器的 Moos 应用包。
 
 ```sh
-npm --prefix apps/electron run prepare:local
+npm run build:app
 ```
 
-如果固定版本的 DeepSeek Harness 不在「应用程序」中，可以用 `MOOS_ELECTRON_DSH_APP` 指向本机对应的 `.app` 路径。构建仍检查 DSH 和 Electron 版本。
+构建优先读取 `~/Library/Application Support/dev.moos.agent.build-sources/DeepSeek Harness.app`，也可从 `/Applications/DeepSeek Harness.app` 读取。用 `MOOS_ELECTRON_DSH_APP` 可指定其他路径。构建会检查 DSH 和 Electron 版本。
 
 在 Finder 打开命令输出的 `Moos.app`。默认数据目录为 `~/Library/Application Support/dev.moos.agent.electron`。它包含独立 DSH 数据和默认工作区。第一次运行从随包模板加载插件设置。验收可为 Moos 主程序设置绝对路径 `MOOS_ELECTRON_DATA`，使用全新临时目录。
 
 ```sh
-npm --prefix apps/electron test
+npm run test:electron
 ```
 
 开发版通过本机回环提供工作台。Host 和插件安装器使用应用包内的 Moos 可执行文件，不需要另外安装 DSH、Node.js 或 pnpm。应用包使用本机临时签名，面向其他用户的分发和签名另行验收。
@@ -41,7 +41,7 @@ macOS 的受限命令可使用本机配套的 Node/npm 和 Git。保留已有 PA
 用以下方式启动内置 PI 调度验收。构建命令会输出验收版 `Moos.app` 的路径。运行命令中的路径替换为该应用包里的可执行文件。
 
 ```sh
-MOOS_ELECTRON_INCLUDE_PI_FIXTURE=1 npm --prefix apps/electron run prepare:local
+MOOS_ELECTRON_INCLUDE_PI_FIXTURE=1 npm run build:app
 MOOS_ELECTRON_PI_FIXTURE=1 MOOS_ELECTRON_DATA="$(mktemp -d)" "/path/to/Moos.app/Contents/MacOS/Moos"
 ```
 

@@ -1,5 +1,7 @@
 # 图片皮肤插件
 
+本文记录已退役的 Tauri 桌面端。当前 Electron 版从插件页使用 DSH 皮肤中心，见 [Moos Electron 本机开发版](../../apps/electron/README.md)。历史示例可在提交 `d499316` 查看。
+
 「设置 → 插件」可安装本地 ZIP 或文件夹。Moos 皮肤使用 `plugin.json`，DSH 皮肤中心发行的 v2 皮肤使用 `skin.json`。通过校验后，皮肤会自动启用并应用到当前窗口。重启会恢复正在使用的皮肤。在同一页点击「使用」可切换已启用的皮肤，点击「恢复默认外观」或停用正在使用的皮肤可移除它的背景。
 
 `apps/desktop/examples/dusk-image-skin` 是可直接安装的「薄暮」示例。制作自己的皮肤时复制该文件夹，为插件填写新的 `id` 和 `name`，替换 `assets/dusk.png`，并在 `backgroundMedia.src` 填写图片相对于包根目录的路径。使用 ZIP 时将 `plugin.json` 和 `assets/` 放在压缩包根目录。

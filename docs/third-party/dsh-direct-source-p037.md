@@ -2,7 +2,7 @@
 
 上游：https://github.com/deepseek-ai/deepseek-harness，固定 `fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`，MIT / Copyright (c) 2026 DeepSeek。完整许可在根目录 THIRD_PARTY_NOTICES.md。
 
-本次替换此前近似外观实现。`apps/desktop/src/vendor/dsh/upstream-source-lock.json` 列出44份逐字原版文件及SHA256、上游路径，并将其余文件明确标为Moos适配。包含基础主题、平台/滚动/焦点样式、三列布局、SidebarRoot/WorkspaceBrowser/Rows、InputBar/HeroShell、ConversationRoot/ChatView/用户气泡、Markdown/工具行、菜单、SettingsPanel/表单、SidebarRight/DockKit、SVG图标与可复用React原语。各子目录SOURCE.md或source-map.json补充具体来源。原版CSS保持字节一致，差异位于单独的Moos桥接文件。
+本次替换此前近似外观实现。`docs/evidence/desktop/tauri-upstream-source-lock.json` 列出44份逐字原版文件及SHA256、上游路径，并将其余文件明确标为Moos适配。包含基础主题、平台/滚动/焦点样式、三列布局、SidebarRoot/WorkspaceBrowser/Rows、InputBar/HeroShell、ConversationRoot/ChatView/用户气泡、Markdown/工具行、菜单、SettingsPanel/表单、SidebarRight/DockKit、SVG图标与可复用React原语。各子目录SOURCE.md或source-map.json补充具体来源。原版CSS保持字节一致，差异位于单独的Moos桥接文件。
 
 原版JSX表现结构经移植后接Moos项目、任务、会话、真实工具事件、用量、设置和插件插槽。原版Cordis框架、Lexical、服务端、账号、代理商、数据库、队列等未引入；输入编辑采用受控textarea，未具备的附件/计划/账号功能不显示为可用。React 19的inert布尔属性与原版React 18差异单独适配。保留Moos名称、图标；原版CSS引用的running-whale文件席位使用Moos自己的32px图标，未复制原版鲸鱼品牌资源或字体。业务设置表单保留Moos实际数据，外层采用原版SettingsPanel。
 
