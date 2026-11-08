@@ -1,6 +1,6 @@
 {
   "name": "moos-electron-shell",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "private": true,
   "type": "module",
   "main": "host.js",
@@ -13,6 +13,7 @@
       "inject": [
         "@deepseek-ai/dsh-client-ui-renderer",
         "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-settings-models",
         "@deepseek-ai/dsh-client-ui-sidebar",
         "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-workspace",

@@ -6,7 +6,17 @@ contextBridge.exposeInMainWorld('moosUsage', {
 });
 contextBridge.exposeInMainWorld('moosTurn', (sessionId, startSeq) => ipcRenderer.invoke('moos:pi-turn', sessionId, startSeq));
 contextBridge.exposeInMainWorld('moosActiveTasks', () => ipcRenderer.invoke('moos:pi-active'));
-contextBridge.exposeInMainWorld('moosOpenModelSettings', () => ipcRenderer.invoke('moos:open-model-settings'));
+contextBridge.exposeInMainWorld('moosModelSettings', {
+  list: () => ipcRenderer.invoke('moos:models:list'),
+  save: input => ipcRenderer.invoke('moos:models:save', input),
+  discover: input => ipcRenderer.invoke('moos:models:discover', input),
+  test: input => ipcRenderer.invoke('moos:models:test', input),
+  onOpen(callback) {
+    const listener = () => callback();
+    ipcRenderer.on('moos:open-model-settings', listener);
+    return () => ipcRenderer.removeListener('moos:open-model-settings', listener);
+  },
+});
 
 let fullscreen = false;
 function syncLayout() {

@@ -38,18 +38,134 @@ window.__ModuleLoader__.load({
       return result?.sessionId === sessionId ? result : undefined;
     }
 
-    function ModelSettings() {
-      const [failed, setFailed] = useState(false);
-      async function open() {
-        setFailed(false);
-        try { await window.moosOpenModelSettings(); }
-        catch { setFailed(true); }
+    const modelEfforts = [
+      ['off', '关闭'], ['minimal', 'Minimal'], ['low', 'Low'],
+      ['medium', 'Medium'], ['high', 'High'], ['xhigh', 'XHigh'],
+    ];
+    const newConnection = () => ({ name: '', baseUrl: '', api: 'openai-responses', service: 'openai', models: [] });
+
+    function ConnectionEditor({ connection, onSaved, onClose, t, editor }) {
+      const { ModelListEditor, styles } = editor;
+      const [draft, setDraft] = useState(connection);
+      const [apiKey, setApiKey] = useState('');
+      const [busy, setBusy] = useState(false);
+      const [discovering, setDiscovering] = useState(false);
+      const [testIndex, setTestIndex] = useState(0);
+      const [status, setStatus] = useState('');
+      const disabled = busy || discovering;
+      function change(field, value) {
+        setStatus('');
+        setDraft(current => ({ ...current, [field]: value }));
       }
-      return createElement('section', { 'data-moos-model-settings': '' },
-        createElement('h2', null, '模型服务'),
-        createElement('p', null, '配置 PI 使用的模型服务、推理档位和图片能力，并测试连接。'),
-        createElement(Button, { type: 'button', variant: 'outline', size: 'sm', onClick: open }, '管理模型服务'),
-        failed ? createElement('p', { role: 'status' }, '模型服务窗口未能打开，请重试。') : null);
+      const operations = {
+        async discoverModels() {
+          try {
+            const result = await window.moosModelSettings.discover({ ...draft, apiKey });
+            return result.ok
+              ? { kind: 'found', models: result.models.map(id => ({ id })) }
+              : { kind: 'refused', message: result.message };
+          } catch { return { kind: 'refused', message: '读取模型列表失败，请重试。' }; }
+        },
+      };
+      async function save(event) {
+        event.preventDefault();
+        if (disabled) return;
+        setBusy(true);
+        setStatus('');
+        try { onSaved(await window.moosModelSettings.save({ ...draft, apiKey })); }
+        catch { setStatus('保存失败。请检查服务地址、密钥、模型 ID 和容量。地址变更后需重新填写密钥。'); }
+        finally { setBusy(false); }
+      }
+      async function testModel() {
+        setBusy(true);
+        setStatus('正在测试连接…');
+        try {
+          const result = await window.moosModelSettings.test({ ...draft, apiKey, model: draft.models[testIndex] });
+          setStatus([result.message, result.status && 'HTTP ' + result.status, result.elapsedMs + ' 毫秒'].filter(Boolean).join(' · '));
+        } catch { setStatus('测试连接失败，请重试。'); }
+        finally { setBusy(false); }
+      }
+      function field(label, element) {
+        return createElement('label', { className: styles.field },
+          createElement('span', { className: styles.fieldLabel }, label), element);
+      }
+      const input = (name, props = {}) => createElement('input', {
+        className: styles.input, value: draft[name], disabled, required: true,
+        onChange: event => change(name, event.target.value), ...props,
+      });
+      const select = (value, onChange, options, props = {}) => createElement('select', {
+        className: styles.selectInput, value, disabled, onChange: event => onChange(event.target.value), ...props,
+      }, options.map(([id, label]) => createElement('option', { key: id, value: id }, label)));
+      return createElement('form', { className: styles.editor, onSubmit: save, 'data-moos-connection-editor': '' },
+        field('显示名称', input('name', { maxLength: 200 })),
+        field('服务地址', input('baseUrl', { type: 'url', placeholder: 'https://example.com/v1' })),
+        field('服务类型', select(draft.service, service => {
+          setStatus('');
+          setDraft(current => ({ ...current, service, api: service === 'openai' ? current.api : 'openai-completions' }));
+        }, [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']])),
+        field('协议', select(draft.api, api => change('api', api),
+          [['openai-responses', 'OpenAI Responses'], ['openai-completions', 'OpenAI Chat Completions']],
+          { disabled: disabled || draft.service !== 'openai' })),
+        field('API 密钥', createElement('input', {
+          className: styles.input, type: 'password', autoComplete: 'off', value: apiKey, disabled,
+          maxLength: 16384, required: !draft.id, placeholder: draft.id ? '留空以保留已保存的密钥' : undefined,
+          onChange: event => { setStatus(''); setApiKey(event.target.value); },
+        })),
+        createElement(ModelListEditor, {
+          models: draft.models, onChange: models => { change('models', models); setTestIndex(0); },
+          operations, probe: { settingsNs: 'moos', baseURL: draft.baseUrl }, t,
+          disabled: busy, onBusyChange: setDiscovering, defaultInput: ['text'], pickAllOnEmpty: false,
+          renderExtra: (model, position, onFieldChange) => field('推理强度',
+            select(model.thinkingLevel ?? 'off', value => onFieldChange('thinkingLevel', value), modelEfforts,
+              { 'aria-label': '推理强度 ' + position })),
+        }),
+        draft.models.length ? field('连接测试模型', select(String(testIndex), value => setTestIndex(Number(value)),
+          draft.models.map((model, index) => [String(index), model.name || model.id || '模型 ' + (index + 1)]))) : null,
+        createElement('div', { className: styles.editorActions },
+          createElement(Button, { type: 'button', variant: 'outline', disabled, onClick: onClose }, '取消'),
+          createElement(Button, { type: 'button', variant: 'outline', disabled: disabled || !draft.models[testIndex]?.id,
+            onClick: testModel }, '测试连接'),
+          createElement(Button, { type: 'submit', variant: 'primary', disabled: disabled || !draft.models.length ||
+            draft.models.some(model => !model.id?.trim()) }, '保存')),
+        status ? createElement('p', { role: 'status' }, status) : null);
+    }
+
+    function ModelSettings({ t, editor }) {
+      const { styles } = editor;
+      const [groups, setGroups] = useState();
+      const [active, setActive] = useState();
+      const [error, setError] = useState(false);
+      const [reload, setReload] = useState(0);
+      useEffect(() => {
+        let mounted = true;
+        window.moosModelSettings.list().then(rows => {
+          if (mounted) { setGroups(rows); setError(false); }
+        }, () => { if (mounted) setError(true); });
+        return () => { mounted = false; };
+      }, [reload]);
+      const close = () => setActive(undefined);
+      const onSaved = rows => { setGroups(rows); close(); };
+      const editorFor = connection => createElement(ConnectionEditor, { key: connection.id ?? 'new',
+        connection, onSaved, onClose: close, t, editor });
+      return createElement('section', { className: styles.section, 'data-moos-model-settings': '' },
+        createElement('h2', { className: styles.title }, '模型服务'),
+        createElement('p', { className: styles.intro }, '每个服务共用一套地址和密钥。可以选择多个模型，并分别设置推理强度。'),
+        error ? createElement(Button, { type: 'button', variant: 'outline',
+          onClick: () => setReload(value => value + 1) }, '读取失败，重试') : null,
+        !groups && !error ? createElement('p', { role: 'status' }, '正在读取模型服务…') : null,
+        groups ? createElement('ul', { className: styles.rows }, groups.map(group =>
+          createElement('li', { className: styles.rowCard, key: group.id },
+            createElement('div', { className: styles.rowHead },
+              createElement('span', { className: styles.rowIdentity },
+                createElement('span', { className: styles.rowName }, group.name),
+                createElement('span', { className: styles.rowTag }, group.models.length + ' 个模型')),
+              active === undefined ? createElement(Button, { type: 'button', variant: 'outline', size: 'sm',
+                onClick: () => setActive(group.id), 'aria-label': '编辑 ' + group.name }, '编辑') : null),
+            active === group.id ? editorFor(group) : createElement('p', { className: styles.advancedHint },
+              group.models.map(model => model.name + ' · ' + (modelEfforts.find(([id]) => id === model.thinkingLevel)?.[1] ?? '关闭')).join('、'))))) : null,
+        active === 'new' ? createElement('div', { className: styles.rowCard }, editorFor(newConnection())) : null,
+        groups && active === undefined ? createElement('div', { className: styles.addActions },
+          createElement('button', { type: 'button', className: styles.addButton, onClick: () => setActive('new') }, '添加模型服务')) : null);
     }
 
     function UsageSettings() {
@@ -210,10 +326,12 @@ window.__ModuleLoader__.load({
       ]) {
         ctx.slots.inject(name, () => ctx.slots.register({ name }, component));
       }
-      if (window.moosOpenModelSettings) {
+      if (window.moosModelSettings) {
+        const { moosEditor } = require('@deepseek-ai/dsh-client-ui-settings-models');
+        const t = ctx.locale.bind('settings.models');
         ctx.slots.inject('settings.section', () => ctx.slots.register({
-          name: 'settings.section', id: 'moos-models', order: 19, label: () => '模型服务',
-        }, ModelSettings));
+          name: 'settings.section', id: 'models', order: 10, label: () => '模型服务',
+        }, () => createElement(ModelSettings, { editor: moosEditor, t })));
       }
       if (window.moosUsage) {
         ctx.slots.inject('settings.section', () => ctx.slots.register({
@@ -256,7 +374,7 @@ window.__ModuleLoader__.load({
         html[data-dsh-skin="maid-atelier"] [data-moos-sidebar-name] { color: #f3e3c0; }
         [data-plugin-package="moos-electron-shell"] { display: none !important; }
         [data-moos-composer-usage] { display: flex; flex-wrap: wrap; gap: 0 12px; font-size: 12px; opacity: .75; }
-        [data-moos-usage-settings] h2, [data-moos-model-settings] h2 { margin: 0 0 8px; }
+        [data-moos-usage-settings] h2 { margin: 0 0 8px; }
         [data-moos-usage-settings] dl > div { display: flex; justify-content: space-between; padding: 8px 0; }
         [data-moos-usage-settings] dd { margin: 0; font-variant-numeric: tabular-nums; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
@@ -295,6 +413,6 @@ window.__ModuleLoader__.load({
         if (root.dataset.moosWindow === 'darwin') delete root.dataset.platform;
       });
     }
-    return { inject: ['slots', 'shortcuts', 'sessions', 'uiWorkspace'], apply };
+    return { inject: ['locale', 'slots', 'shortcuts', 'sessions', 'uiWorkspace'], apply };
   },
 });

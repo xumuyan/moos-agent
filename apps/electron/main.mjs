@@ -8,7 +8,6 @@ import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
 import { createPiUsageReader } from './pi-usage.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
-import { modelSettingsThemeCss, readWorkbenchTheme } from './model-settings-theme.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -17,75 +16,6 @@ app.setPath('userData', data);
 
 let host;
 let hostStopped = false;
-let modelWindow;
-
-function installModelSettings(resources, models, diagnoseProvider, workbench, origin) {
-  const assets = join(resources, 'app');
-  let ready;
-  let cssKey;
-  let themeRequest = 0;
-  function senderAllowed(event) {
-    if (!modelWindow || event.sender !== modelWindow.webContents || event.senderFrame !== event.sender.mainFrame) {
-      throw new Error('Untrusted Moos settings request');
-    }
-  }
-  ipcMain.handle('moos:models:list', event => {
-    senderAllowed(event);
-    return models.list();
-  });
-  ipcMain.handle('moos:models:save', (event, profile) => {
-    senderAllowed(event);
-    return models.save(profile);
-  });
-  ipcMain.handle('moos:models:test', (event, profile) => {
-    senderAllowed(event);
-    return models.testConnection(profile, diagnoseProvider);
-  });
-  async function syncTheme(window) {
-    const request = ++themeRequest;
-    let theme;
-    try {
-      if (new URL(workbench.webContents.getURL()).origin === origin) {
-        theme = await workbench.webContents.executeJavaScript(readWorkbenchTheme);
-      }
-    } catch { /* use the settings window's system colors while the workbench is unavailable */ }
-    if (window.isDestroyed() || request !== themeRequest) return;
-    const contents = window.webContents;
-    const key = await contents.insertCSS(modelSettingsThemeCss(theme));
-    if (window.isDestroyed()) return;
-    if (request !== themeRequest) { await contents.removeInsertedCSS(key); return; }
-    const previous = cssKey;
-    cssKey = key;
-    if (previous !== undefined) await contents.removeInsertedCSS(previous);
-  }
-
-  return async () => {
-    if (!modelWindow) {
-      const window = new BrowserWindow({
-        title: 'Moos 模型服务', width: 580, height: 700, minWidth: 420, minHeight: 480, show: false,
-        webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false,
-          preload: join(assets, 'model-settings-preload.cjs') },
-      });
-      modelWindow = window;
-      window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-      window.webContents.on('will-navigate', event => event.preventDefault());
-      window.webContents.on('will-redirect', event => event.preventDefault());
-      window.once('closed', () => { modelWindow = undefined; cssKey = undefined; });
-      ready = window.loadFile(join(assets, 'model-settings.html')).catch(error => {
-        if (!window.isDestroyed()) window.close();
-        throw error;
-      });
-      window.on('focus', () => { void syncTheme(window).catch(() => {}); });
-    }
-    const window = modelWindow;
-    await ready;
-    if (window.isDestroyed()) return;
-    await syncTheme(window).catch(() => {});
-    if (window.isDestroyed()) return;
-    window.show();
-    window.focus();
-  };
-}
 
 async function seedHome(resources, home) {
   await mkdir(home, { recursive: true, mode: 0o700 });
@@ -166,11 +96,15 @@ async function launch() {
       ...(mac ? { preload: join(resources, 'app', 'window-preload.cjs') } : {}),
     },
   });
-  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider), diagnoseProvider, win, address.origin);
+  const models = piModels(data, checkedProvider);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'Moos', submenu: [
       { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: () => {
-        void openModelSettings().catch(() => dialog.showErrorBox('Moos', '模型服务窗口未能打开，请重试。'));
+        if (!win.isDestroyed()) {
+          if (win.isMinimized()) win.restore();
+          win.focus();
+          win.webContents.send('moos:open-model-settings');
+        }
       } },
       { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
       { type: 'separator' }, { role: 'quit' },
@@ -198,15 +132,23 @@ async function launch() {
     verifyWorkbench(event);
     return turns.active();
   });
-  ipcMain.handle('moos:open-model-settings', event => {
-    verifyWorkbench(event);
-    return openModelSettings();
-  });
+  const modelHandlers = {
+    'moos:models:list': () => models.groups(),
+    'moos:models:save': input => models.saveGroup(input),
+    'moos:models:discover': input => models.diagnoseGroup('list_models', input, diagnoseProvider),
+    'moos:models:test': input => models.diagnoseGroup('test_provider', input, diagnoseProvider),
+  };
+  for (const [channel, handle] of Object.entries(modelHandlers)) {
+    ipcMain.handle(channel, (event, input) => {
+      verifyWorkbench(event);
+      return handle(input);
+    });
+  }
   win.once('closed', () => {
     ipcMain.removeHandler('moos:pi-usage');
     ipcMain.removeHandler('moos:pi-turn');
     ipcMain.removeHandler('moos:pi-active');
-    ipcMain.removeHandler('moos:open-model-settings');
+    for (const channel of Object.keys(modelHandlers)) ipcMain.removeHandler(channel);
     usage.close();
     turns.close();
   });

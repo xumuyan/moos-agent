@@ -1175,3 +1175,13 @@
 - 验证结果：`codesign --verify --deep --strict /Applications/Moos.app` 通过，`cmp` 核对三份相关文件一致，只观察到一个正式安装路径的 Moos 主进程。以正式安装包 CLI 和 E74 皮肤夹具复跑 `npm --prefix apps/electron test`，31/31 通过。`npm run test:docs` 60/60。其他测试沿用同一构建在 `4f6bbdb` 中的通过记录。
 - 遗留问题：正式窗口尚未完成目视核对。隔离界面的实测见 E74，可在当前 Moos 的「设置 → 模型服务 → 管理模型服务」核对本机皮肤。
 - 对应 Git 提交：唯一说明 `docs(P03.13): record model service theme installation`，用 `git log --all --oneline --grep='^docs(P03.13): record model service theme installation$'` 查询。
+
+## 2026-11-08 09:30:32 +08:00｜P03.13.5 原版模型设置与中转多模型
+
+- 修改或新增内容：模型服务回到 DSH 原版设置页，复用模型列表、获取模型后的勾选弹层、模型行和设置样式。单个中转可保存多项模型和各自的推理强度，保留测试连接和 macOS 菜单入口。内置 Moos 壳升级为 0.1.21。
+- 遇到的难题：原版编辑器依赖 DSH 的模型适配器设置，而 Moos 会话依赖 PI 的配置与稳定模型 ID。旧版本把地址和密钥按单模型保存。
+- 处理方式：在固定上游构建中复用原版界面控件，通过本机 IPC 接入 PI 配置。继续以平面模型列表供会话读取，中转内的模型共享凭据引用，编辑原模型保留 ID。变更地址需重新提供密钥。新增凭据先写入独立引用，旧配置在模型列表提交前继续可读。设置页读取结果只含模型和服务元数据。新密钥在设置页输入并通过本机 IPC 保存。
+- 实际验收：提交前在 macOS arm64 严格验签的 `build-8LLvhO` 上进行隔离 Electron 验收。用本地中转返回三个候选模型，通过原版列表勾选两项、分别设置 High 和 Low 后保存。同一工作台完成设置，配置文件中两项模型指向同一条凭据。关闭设置后，从会话模型菜单看到两项并实际切换到第二项。真实 PI SDK 集成回归核对本地中转收到的模型 ID 与实际推理档位。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（安装包和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：待当前正式 Moos 退出后替换安装。真实外部服务的目录和可用推理强度取决于相应中转和模型。
+- 对应 Git 提交：唯一说明 `feat(P03.13): configure multiple models per relay in DSH settings`，用 `git log --all --oneline --grep='^feat(P03.13): configure multiple models per relay in DSH settings$'` 查询。

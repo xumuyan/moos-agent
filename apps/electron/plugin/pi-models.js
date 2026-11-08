@@ -4,11 +4,13 @@ import { join } from 'node:path';
 
 const levels = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh']);
 const services = new Set(['openai', 'glm', 'deepseek']);
+const configId = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/;
+const maxConfigBytes = 262144;
 
 async function json(path, missing) {
   try {
     const info = await lstat(path);
-    if (!info.isFile() || info.size > 262144) throw new Error('Invalid Moos model configuration file');
+    if (!info.isFile() || info.size > maxConfigBytes) throw new Error('Invalid Moos model configuration file');
     return JSON.parse(await readFile(path, 'utf8'));
   } catch (error) {
     if (error.code === 'ENOENT') return missing;
@@ -36,6 +38,15 @@ export function piModels(data, checkedProvider) {
       throw new Error('Invalid Moos model profile');
     }
     provider.baseUrl = checkedProvider(provider);
+    if (row.connectionId !== undefined) {
+      if (typeof row.connectionId !== 'string' || !configId.test(row.connectionId) ||
+          typeof row.credentialId !== 'string' || !configId.test(row.credentialId) ||
+          typeof row.connectionName !== 'string' || !row.connectionName.trim() ||
+          row.connectionName.length > 200 || /[\x00-\x1f\x7f]/.test(row.connectionName)) {
+        throw new Error('Invalid Moos model connection');
+      }
+      Object.assign(provider, { connectionId: row.connectionId, connectionName: row.connectionName, credentialId: row.credentialId });
+    }
     return provider;
   }
 
@@ -90,7 +101,8 @@ export function piModels(data, checkedProvider) {
 
   async function credential(provider) {
     const keys = await credentials();
-    const entry = Object.hasOwn(keys, provider.id) && keys[provider.id];
+    const id = provider.credentialId ?? provider.id;
+    const entry = Object.hasOwn(keys, id) && keys[id];
     if (entry?.baseUrl !== provider.baseUrl || !validKey(entry.apiKey)) {
       throw new Error('Missing Moos model credential for this service address');
     }
@@ -110,23 +122,120 @@ export function piModels(data, checkedProvider) {
   }
 
   async function replace(path, value) {
+    const content = JSON.stringify(value, null, 2) + '\n';
+    if (Buffer.byteLength(content) > maxConfigBytes) throw new Error('Moos model configuration is too large');
     const temporary = path + '.' + randomUUID();
     try {
-      await writeFile(temporary, JSON.stringify(value, null, 2) + '\n', { mode: 0o600, flag: 'wx' });
+      await writeFile(temporary, content, { mode: 0o600, flag: 'wx' });
       await rename(temporary, path);
     } finally { await unlink(temporary).catch(error => { if (error.code !== 'ENOENT') throw error; }); }
   }
 
+  function serialize(write) {
+    const pending = writes.then(write);
+    writes = pending.catch(() => {});
+    return pending;
+  }
+
+  async function prepareCredentials() {
+    await mkdir(privateRoot, { recursive: true, mode: 0o700 });
+    if (!(await lstat(privateRoot)).isDirectory()) throw new Error('Invalid Moos credential directory');
+    await chmod(privateRoot, 0o700);
+    return credentials();
+  }
+
+  function connectionId(provider) { return provider.connectionId ?? provider.id; }
+
+  function groupProfiles(profiles) {
+    const groups = new Map();
+    for (const provider of profiles) {
+      const id = connectionId(provider);
+      if (!groups.has(id)) {
+        groups.set(id, { id, name: provider.connectionName ?? provider.name,
+          baseUrl: provider.baseUrl, api: provider.api, service: provider.service, models: [] });
+      }
+      groups.get(id).models.push({ profileId: provider.id, id: provider.model, name: provider.name,
+        thinkingLevel: provider.thinkingLevel, contextWindow: provider.contextWindow, maxTokens: provider.maxTokens,
+        ...(provider.imageInput ? { input: ['text', 'image'] } : {}) });
+    }
+    return [...groups.values()];
+  }
+
+  async function groups() { return groupProfiles(await list()); }
+
+  function connectionModel(input, row, id, connection) {
+    const model = row?.id?.trim();
+    const contextWindow = row?.contextWindow ?? 128000;
+    return validate({ ...connection, id, model, name: row?.name?.trim() || model,
+      baseUrl: input.baseUrl, api: input.api, service: input.service,
+      contextWindow, maxTokens: row?.maxTokens ?? Math.min(8192, contextWindow),
+      thinkingLevel: row?.thinkingLevel, imageInput: Array.isArray(row?.input) && row.input.includes('image') });
+  }
+
+  function saveGroup(input) {
+    return serialize(async () => {
+      if (!Array.isArray(input?.models) || !input.models.length || input.models.length > 32) {
+        throw new Error('A Moos connection needs 1 to 32 models');
+      }
+      const profiles = await list();
+      const existing = profiles.filter(provider => connectionId(provider) === input.id);
+      if (input.id && !existing.length) throw new Error('Moos connection no longer exists');
+      const id = input.id || randomUUID();
+      const first = existing[0];
+      const connectionName = input.name?.trim();
+      const connection = { connectionId: id, connectionName, credentialId: first?.credentialId ?? first?.id ?? id };
+      const allowedIds = new Set(existing.map(provider => provider.id));
+      let replacements = input.models.map(row => {
+        if (row?.profileId && !allowedIds.has(row.profileId)) throw new Error('Invalid Moos connection model');
+        return connectionModel(input, row, row?.profileId || randomUUID(), connection);
+      });
+      if (new Set(replacements.map(provider => provider.model)).size !== replacements.length ||
+          new Set(replacements.map(provider => provider.id)).size !== replacements.length) {
+        throw new Error('Duplicate Moos connection model');
+      }
+      if (profiles.length - existing.length + replacements.length > 32) throw new Error('Too many Moos model profiles');
+      const baseUrl = replacements[0].baseUrl;
+      if (input.apiKey === '' || input.apiKey === undefined) {
+        if (!first || first.baseUrl !== baseUrl) throw new Error('Missing Moos API key for this service address');
+        await credential(first);
+      } else {
+        if (!validKey(input.apiKey)) throw new Error('Invalid Moos API key');
+        const keys = await prepareCredentials();
+        const inUse = new Set(profiles.map(provider => provider.credentialId ?? provider.id));
+        // Keep credentials used by the current file until the new configuration is committed.
+        const retained = Object.fromEntries(Object.entries(keys).filter(([key]) => !key.startsWith('group-key-') || inUse.has(key)));
+        const credentialId = 'group-key-' + randomUUID();
+        await replace(credentialPath, { ...retained, [credentialId]: { baseUrl, apiKey: input.apiKey } });
+        replacements = replacements.map(provider => ({ ...provider, credentialId }));
+      }
+      const insertion = first ? profiles.indexOf(first) : profiles.length;
+      const next = [...profiles.slice(0, insertion), ...replacements,
+        ...profiles.slice(insertion).filter(provider => !allowedIds.has(provider.id))];
+      await replace(profilePath, next);
+      return groupProfiles(next);
+    });
+  }
+
+  async function diagnoseGroup(method, input, diagnoseProvider) {
+    let provider;
+    try {
+      const model = method === 'list_models' ? { id: 'discovery' } : input.model;
+      provider = connectionModel(input, model, 'diagnostic');
+    } catch { return diagnoseProvider(method); }
+    const first = (await list()).find(item => connectionId(item) === input.id);
+    const apiKey = input.apiKey || (first?.baseUrl === provider.baseUrl
+      ? await credential(first).catch(() => undefined) : undefined);
+    return diagnoseProvider(method, { provider, apiKey });
+  }
+
   function save(input) {
-    const pending = writes.then(async () => {
+    return serialize(async () => {
       const provider = validate(input);
       const profiles = await list();
       const index = profiles.findIndex(item => item.id === provider.id);
       if (index === -1 && profiles.length >= 32) throw new Error('Too many Moos model profiles');
-      await mkdir(privateRoot, { recursive: true, mode: 0o700 });
-      if (!(await lstat(privateRoot)).isDirectory()) throw new Error('Invalid Moos credential directory');
-      await chmod(privateRoot, 0o700);
-      const keys = await credentials();
+      if (provider.connectionId || profiles[index]?.connectionId) throw new Error('Use Moos connection settings');
+      const keys = await prepareCredentials();
       const previous = Object.hasOwn(keys, provider.id) && keys[provider.id];
       const key = input.apiKey === '' || input.apiKey === undefined
         ? (previous?.baseUrl === provider.baseUrl && previous.apiKey) : input.apiKey;
@@ -137,9 +246,7 @@ export function piModels(data, checkedProvider) {
       await replace(profilePath, profiles);
       return profiles;
     });
-    writes = pending.catch(() => {});
-    return pending;
   }
 
-  return { list, resolve, plan, credential, save, testConnection };
+  return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, diagnoseGroup };
 }

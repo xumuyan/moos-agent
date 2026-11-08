@@ -53,6 +53,16 @@ test('the carried Host drops optional packages and their inventory entries, but 
     '"aria-label": t("queue.steer"),',
     'ctx.slots.inject("settings.general.item", () => ctx.slots.register({\n\t\t\t\tname: "settings.general.item",\n\t\t\t\tid: "composer-enter",',
   ].join('\n'));
+  const modelClient = 'node_modules/@deepseek-ai/dsh-client-ui-settings-models/lib/client.js';
+  await write(join(dsh, modelClient), [
+    'ctx.slots.inject("settings.section", () => ctx.slots.register({',
+    'exports.refreshIfLoaded = refreshIfLoaded;',
+    'reasoningLevels: props.reasoningLevels,',
+    'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
+    'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
+  ].join('\n'));
+  const settingsClient = 'node_modules/@deepseek-ai/dsh-client-ui-settings-general/lib/client.js';
+  await write(join(dsh, settingsClient), 'const shellInstance = shellHandle.create();\ndisposeCommand();');
   await write(join(resources, 'runtime/bin/node'), 'node wrapper', 0o755);
   await write(join(resources, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'package manager');
   await write(join(resources, 'runtime/primary-runtime/dependencies/python/bin/python'), 'optional office runtime');
@@ -84,6 +94,11 @@ test('the carried Host drops optional packages and their inventory entries, but 
   assert.match(composer, /plainMessageDraft \? t\("input.send.queue"\)/);
   assert.equal(composer.match(/style: \{ display: "none" \}/g).length, 2);
   assert.match(composer, /false && ctx\.slots\.inject/);
+  const models = await readFile(join(built, modelClient), 'utf8');
+  assert.match(models, /exports\.moosEditor = \{ ModelListEditor, styles:/);
+  assert.match(models, /if \(!window\.moosModelSettings\)/);
+  assert.match(models, /props\.renderExtra\?\.\(model, position, props\.onFieldChange\)/);
+  assert.match(await readFile(join(built, settingsClient), 'utf8'), /shellInstance\.actions\.select\("models"\)/);
   assert.equal((await stat(join(target, 'runtime/bin/node'))).mode & 0o777, 0o755);
   assert.equal(await readFile(join(target, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'utf8'), 'package manager');
   await assert.rejects(stat(join(target, 'runtime/primary-runtime/dependencies/python')), { code: 'ENOENT' });

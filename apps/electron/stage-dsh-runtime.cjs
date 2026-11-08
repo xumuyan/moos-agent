@@ -60,6 +60,27 @@ function configurePiQueue(dsh) {
     renderer);
 }
 
+function configureModelSettings(dsh) {
+  const entry = { entry: 'client.js' };
+  const models = 'dsh-client-ui-settings-models';
+  patchBundledSource(dsh, models, 'ctx.slots.inject("settings.section", () => ctx.slots.register({',
+    'if (!window.moosModelSettings) ctx.slots.inject("settings.section", () => ctx.slots.register({', entry);
+  patchBundledSource(dsh, models, 'exports.refreshIfLoaded = refreshIfLoaded;',
+    'exports.refreshIfLoaded = refreshIfLoaded;\n\t\texports.moosEditor = { ModelListEditor, styles: ModelsSection_module_css_default };', entry);
+  patchBundledSource(dsh, models, 'reasoningLevels: props.reasoningLevels,',
+    'reasoningLevels: props.reasoningLevels,\n\t\t\t\t\t\t\trenderExtra: props.renderExtra,', entry);
+  patchBundledSource(dsh, models, 'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
+    'const pickedByDefault = (id) => props.pickAllOnEmpty !== false && configuredIds.size === 0 || configuredIds.has(id);', entry);
+  patchBundledSource(dsh, models, 'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
+    'props.renderExtra?.(model, position, props.onFieldChange),\n\t\t\t\t\t\t\t\tprops.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?', entry);
+  patchBundledSource(dsh, 'dsh-client-ui-settings-general', 'const shellInstance = shellHandle.create();',
+    'const shellInstance = shellHandle.create();\n' +
+    '\t\t\t\tconst offMoosModels = window.moosModelSettings?.onOpen(() => {\n' +
+    '\t\t\t\t\tshellInstance.actions.open();\n\t\t\t\t\tshellInstance.actions.select("models");\n\t\t\t\t});', entry);
+  patchBundledSource(dsh, 'dsh-client-ui-settings-general', 'disposeCommand();',
+    'offMoosModels?.();\n\t\t\t\t\tdisposeCommand();', entry);
+}
+
 function stageDshRuntime(resources, destination) {
   const source = join(resources, 'app.asar', 'dsh');
   const dsh = join(destination, 'dsh');
@@ -80,6 +101,7 @@ function stageDshRuntime(resources, destination) {
   }
   copy('');
   configurePiQueue(dsh);
+  configureModelSettings(dsh);
   // The Host and the registry must use the same adapter factory instance.
   const adapterDir = join(dsh, 'moos-pi');
   fs.mkdirSync(adapterDir);

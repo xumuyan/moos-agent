@@ -38,6 +38,40 @@ test('model settings test drafts safely without saving or forwarding a saved key
   assert.equal(await models.credential(saved), fixture.apiKey);
 });
 
+test('one connection shares a credential across models and retains legacy model IDs', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'moos-model-groups-'));
+  const fixture = await startFixture();
+  t.after(async () => { await fixture.close(); await rm(data, { recursive: true, force: true }); });
+  const models = piModels(data, checkedProvider);
+  const base = { name: 'Relay', baseUrl: fixture.baseUrl, api: 'openai-responses' };
+  await models.save({ ...base, id: 'existing', model: 'fixture', apiKey: fixture.apiKey });
+  const [legacy] = await models.groups();
+  const [group] = await models.saveGroup({ ...legacy, apiKey: '', models: [
+    { ...legacy.models[0], thinkingLevel: 'high' },
+    { id: 'other-model', thinkingLevel: 'low' },
+  ] });
+  assert.equal(group.id, 'existing');
+  assert.equal(group.models[0].profileId, 'existing');
+  assert.deepEqual(group.models.map(model => model.thinkingLevel), ['high', 'low']);
+  const second = await models.resolve(group.models[1].profileId);
+  assert.equal(await models.credential(second), fixture.apiKey);
+  assert.equal((await models.resolve('existing')).credentialId, second.credentialId);
+  assert.deepEqual((await models.diagnoseGroup('list_models', group, diagnoseProvider)).models, ['fixture']);
+  assert.equal((await models.diagnoseGroup('test_provider', { ...group, model: group.models[0] }, diagnoseProvider)).code, 'ok');
+  const moved = { ...group, baseUrl: fixture.baseUrl + '/other' };
+  await assert.rejects(models.saveGroup(moved), /API key/);
+  assert.equal((await models.diagnoseGroup('list_models', moved, diagnoseProvider)).code, 'missing_key');
+  assert.deepEqual(await models.groups(), [group]);
+  await assert.rejects(models.saveGroup({ ...group, models: [group.models[0], group.models[0]] }), /Duplicate/);
+  const [fresh] = await piModels(data, checkedProvider).groups();
+  assert.deepEqual(fresh, group);
+  const [edited] = await models.saveGroup({ ...group, models: [group.models[1]] });
+  assert.equal(edited.models[0].profileId, second.id);
+  assert.equal(await models.resolve('existing'), undefined);
+  assert.equal(await models.credential(await models.resolve(second.id)), fixture.apiKey);
+  assert.doesNotMatch(JSON.stringify(await models.groups()), /apiKey|credentialId/);
+});
+
 test('a configured desktop profile runs arbitrary workspace text through PI with native High', async t => {
   const data = await mkdtemp(join(tmpdir(), 'moos-pi-models-'));
   const cwd = join(data, 'workspace', 'project');
@@ -149,4 +183,17 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
     undefined, 'custom-deepseek')).kind, 'stop');
   assert.deepEqual(requests.slice(beforeDeepSeek).map(request => request.model), Array(3).fill('mock-deepseek'));
   assert.equal(await readFile(join(cwd, 'result.txt'), 'utf8'), 'custom_deepseek\n');
+
+  const [, , , shared] = await models.saveGroup({
+    name: 'Two models', baseUrl: fixture.baseUrl, api: 'openai-responses', apiKey: fixture.apiKey,
+    models: [{ id: 'relay-a', thinkingLevel: 'high' }, { id: 'relay-b', thinkingLevel: 'low' }],
+  });
+  assert.equal(shared.models.length, 2);
+  const beforeShared = requests.length;
+  for (const model of shared.models) {
+    assert.equal((await turn(model.profileId, [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }],
+      undefined, model.profileId)).kind, 'stop');
+  }
+  assert.deepEqual(requests.slice(beforeShared).map(({ model, effort }) => [model, effort]),
+    [['relay-a', 'high'], ['relay-b', 'low']]);
 });
