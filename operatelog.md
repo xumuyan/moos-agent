@@ -1378,7 +1378,18 @@
 ## 2026-11-08 21:05:37 +08:00｜P03.13 修改文件列表隐藏缓存
 
 - 修改或新增内容：按用户要求隐藏截图中的 .npm/_cacache。共享路径策略用于任务前后扫描及 pi-turn 历史展示，过滤明确的包/编译缓存和已知探针临时目录；正常源码、.npmrc、.gitignore、package-lock.json、Library/source.js 和 .local/project.js 保留，不宽泛忽略隐藏目录。更新打包复制依赖，壳 0.1.31。过滤只影响修改文件列表，不删磁盘文件、不改 Git 索引或 Gitignore、不隐藏工具动作记录。
-- 难题及处理：仅在新快照过滤不会隐藏历史记录，且缓存可能耗尽 2500 文件预算；因此过滤在预算检查之前，并同时作用于历史 workspace_changes 与 write/edit 回退结果。历史原事件不修改。合成 2510 个缓存文件及普通修改的集成测试通过，索引未改；历史和回退测试验证缓存不显示，正常字段保持。
+- 遇到的难题：仅在新快照过滤不会隐藏历史记录，且缓存可能耗尽 2500 文件预算。
+- 处理方式：过滤在预算检查之前，并同时作用于历史 workspace_changes 与 write/edit 回退结果。历史原事件不修改。合成 2510 个缓存文件及普通修改的集成测试通过，索引未改；历史和回退测试验证缓存不显示，正常字段保持。
 - 验证结果：证据对应本提交前工作区。npm run build:app（固定 DSH 来源，fixture=1，npm 缓存明确放 artifacts）构建 build-gQqYso，codesign --verify --deep --strict 通过。node artifacts/cache-filter-check/acceptance.mjs 在独立临时 SQLite 中实际调用打包 pi-turn 读取器，确认历史缓存隐藏、src/main.js 和 .npmrc 保留；证据 docs/evidence/desktop/p03-workspace-cache-filter.json。npm run test:electron 使用隔离 Host/皮肤夹具 72/72；npm test 138/139，唯一失败为 Swift 编译 SIGTRAP（上一轮工具超时本轮未复现）；RUST_TEST_THREADS=1 npm run test:desktop-native 11/11；node --test probes/dsh-electron-pi/index.test.mjs 5/5；Python 皮肤测试 4/4。完整日志 artifacts/cache-filter-check/。文档测试及差异检查见本提交前命令结果。
 - 遗留问题：Swift 探针失败未解决，恢复编译执行环境并重跑全部测试后方能全量验收。此次未 GUI 验收，未部署、未重启正式应用、未读写真实配置/聊天；正式包仍不包含本次过滤，需用户另行授权安装后生效。
 - 对应 Git 提交：唯一说明 fix(P03.13): hide generated cache paths from workspace changes；查询 git log --all --oneline --grep='^fix(P03.13): hide generated cache paths from workspace changes$'。提交后推送并核对 origin/main 与 HEAD；推送不是部署。
+
+
+## 2026-11-08 21:07:00 +08:00｜P03.13 缓存过滤交付日志检查更正（时间为记录近似值）
+
+- 修改或新增内容：补齐上一条日志必须的独立审计字段，仅修正文档字段格式，不改功能或历史失败结论。
+- 遇到的难题：3a1dfbb 提交前文档测试实际为 70/71，因“难题及处理”未拆分成规则要求的字段而失败，不能宣称通过；该提交已推送且远端一致。
+- 处理方式：保留失败事实，补齐字段并重新执行文档检查；本次不重复应用构建与验收，沿用 3a1dfbb 的相同源码及测试结果，核心 Swift 失败仍未解决。
+- 验证结果：PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 重新执行，结果见本次提交前输出；git diff --check 同步执行。此次只更正文档，不替代全量应用验收。
+- 遗留问题：正式应用未部署，Swift SIGTRAP 继续受阻。
+- 对应 Git 提交：唯一说明 docs(P03.13): correct cache-filter audit log fields；查询 git log --all --oneline --grep='^docs(P03.13): correct cache-filter audit log fields$'。
