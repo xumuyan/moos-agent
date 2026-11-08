@@ -1298,3 +1298,12 @@
 - 验证结果：gh repo view 返回仓库 xumuyan/moos-agent、viewerPermission=ADMIN。git push origin main 成功从 4540cbd 推至 9b9858e；git rev-parse HEAD 与 git ls-remote origin refs/heads/main 均为 9b9858e9294660b78bf3bd02c9f34b7006cc6b3f。源码同步成功不表示应用全量验收通过。此条提交前工作区执行 Python 文档检查及 git diff --check，实际结果以本批命令输出为证据；应用代码未变，未重跑产品测试，沿用前轮 70/70 Electron 和核心 135/136（Swift SIGTRAP 仍失败）的记录，不冒充本轮通过。
 - 遗留问题：分支整应用重启、超限前缀、安装器失败回滚和 Swift 探针继续按计划处理，不提前勾选。当前记录与文档测试随后提交并推送，再核对远程 HEAD；不会因 GitHub 推送自动部署或重启正式应用。
 - 对应 Git 提交：已远程核对的代码提交 9b9858e9294660b78bf3bd02c9f34b7006cc6b3f；本条唯一提交说明 docs(P03.13): record restored GitHub authorization and source delivery，查询命令 git log --all --oneline --grep='^docs(P03.13): record restored GitHub authorization and source delivery$'。
+
+## 2026-11-08 19:41:52 +08:00｜P03.13 用户授权安装的独立终端续作准备
+
+- 修改或新增内容：用户明确要求停止任务并更新且保留 API 与聊天。正式无 fixture 构建 build-5Y2ht7（内置壳 0.1.27）已生成并暂存，原数据预备份保存在 /Applications/.moos-update.NoVi8UcT/data-before-stop。追加计划与文档检查，明确剩余更新交独立 Terminal 执行，当前不预称已安装完成。
+- 遇到的难题：上次直接退出 Moos 导致执行命令中断。续作核对发现工具进程确实是 Moos Host 的后代，因此退出自身会取消安装命令；用户随后重开，当前仍是 0.1.26，previous 目录为空，新包未替换。
+- 处理方式：只核对文件元数据、字节一致性及数据库计数，不输出聊天或密钥内容。API providers.json 与 private/credentials.json 同预备份一致，消息未减少。编写仅本轮使用的忽略目录独立 worker，拒绝从 Moos 后代执行；正式退出后再备份全数据至 data-before-install，确认备份后才移走旧包、替换暂存包。沿用既有标识和用户数据，启动后检查配置/密钥原字节、聊天文件原内容前缀、SQLite 原有消息/会话/任务 ID、皮肤与用户插件。不自动恢复或重置数据；发生异常停止待人工核对。该 worker 不作为已完成的通用更新器交付。
+- 验证结果：npm run build:app 的正式构建已通过，随包 moos-runtime.json 的 includesPiFixture=false。原安装及暂存包 codesign --verify --deep --strict 通过，bundle ID 均为 dev.moos.agent.electron。worker node --check 和 --preflight 通过，main.mjs 与 pi-turn.mjs 同仓库已验代码逐字匹配。预备份权限目录 0700、密钥文件 0600。此条提交前文档检查与差异检查以本批命令结果为证据；应用代码未变，沿用前次 Electron 70/70 和核心 135/136，未重跑或伪称全量通过。独立终端执行及最终结果尚待后续核对，不提前记录未知结果。
+- 遗留问题：安装续作会正常退出当前 Moos，因此当前对话可能中断。完成与否须读取 artifacts/installed-update/result.json，旧包与两份备份保留在受限目录，不将备份或私有校验清单提交 Git。数据保护/会话恢复整阶段与 Swift 探针等限制不因授权安装提前完成。授权仅本次更新，后续仍按默认先不部署。
+- 对应 Git 提交：唯一说明 docs(P03.13): prepare authorized standalone installation checkpoint；查询命令 git log --all --oneline --grep='^docs(P03.13): prepare authorized standalone installation checkpoint$'。本条为停止自身前的准备状态，后续实际安装证据另行补记。

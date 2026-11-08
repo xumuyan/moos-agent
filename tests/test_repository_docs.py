@@ -62,6 +62,13 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('未部署', record)
         self.assertIn('未修改全局 Git 配置', record)
 
+    def test_authorized_update_checkpoint_does_not_preclaim_installation_success(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        self.assertIn('用户已明确授权停止当前任务并更新本机应用', plan)
+        self.assertIn('独立 Terminal', plan)
+        self.assertIn('未读取成功结果前不得声称更新完成', plan)
+        self.assertIn('不自动恢复或覆盖用户数据', plan)
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
