@@ -1185,3 +1185,13 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（安装包和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：待当前正式 Moos 退出后替换安装。真实外部服务的目录和可用推理强度取决于相应中转和模型。
 - 对应 Git 提交：唯一说明 `feat(P03.13): configure multiple models per relay in DSH settings`，用 `git log --all --oneline --grep='^feat(P03.13): configure multiple models per relay in DSH settings$'` 查询。
+
+## 2026-11-08 09:45:07 +08:00｜P03.13.5、P03.13.6 恢复原版模型与用量界面
+
+- 修改或新增内容：复用 DSH 原版「模型」设置面板、提供商卡片、删除确认、密钥控件、会话模型与推理等级菜单，以及 Token 用量明细。Moos 中转及模型配置仍由 PI 使用。内置壳升级为 0.1.22。
+- 遇到的难题：随包原版用量明细属于会话界面，原版账号页的账单依赖登录。原版模型页原先读 DSH 自己的适配器配置。
+- 处理方式：将 Moos 的中转及凭据状态映射为原版模型页数据，原版表单控件仍使用本机 IPC。给原版用量组件增加内嵌模式以显示 PI 本机汇总。会话可用原版菜单覆盖有默认推理强度的模型档位，覆盖只应用于当前会话请求。随包 DeepSeek 账号和凭据引导保持停用。
+- 实际验收：用户确认退出后，已安装 `d4eb8da` 对应的 `build-8LLvhO`，正式路径签名通过，单实例启动并核对壳版本 0.1.21。本轮原版对齐代码用签名构建 `build-fLlvvY` 隔离验收，创建合成中转、勾选两项模型、会话内切换模型和推理等级、显示原版用量明细，再经原版删除确认移除合成服务及密钥。界面未出现登录入口，PI 本地集成回归核对实际请求的推理强度。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（安装包和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：原版对齐版等待当前 Moos 退出后安装。Token 用量显示本机记录，账号账单与余额依赖原版账号。
+- 对应 Git 提交：唯一说明 `feat(P03.13): reuse original model and token usage interfaces`，用 `git log --all --oneline --grep='^feat(P03.13): reuse original model and token usage interfaces$'` 查询。

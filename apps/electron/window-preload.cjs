@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('moosActiveTasks', () => ipcRenderer.invoke('moo
 contextBridge.exposeInMainWorld('moosModelSettings', {
   list: () => ipcRenderer.invoke('moos:models:list'),
   save: input => ipcRenderer.invoke('moos:models:save', input),
+  remove: id => ipcRenderer.invoke('moos:models:remove', id),
   discover: input => ipcRenderer.invoke('moos:models:discover', input),
   test: input => ipcRenderer.invoke('moos:models:test', input),
   onOpen(callback) {

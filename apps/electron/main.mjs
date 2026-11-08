@@ -135,6 +135,7 @@ async function launch() {
   const modelHandlers = {
     'moos:models:list': () => models.groups(),
     'moos:models:save': input => models.saveGroup(input),
+    'moos:models:remove': id => models.removeGroup(id),
     'moos:models:discover': input => models.diagnoseGroup('list_models', input, diagnoseProvider),
     'moos:models:test': input => models.diagnoseGroup('test_provider', input, diagnoseProvider),
   };

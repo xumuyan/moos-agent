@@ -3,6 +3,9 @@ import { forkPrefix } from './pi-fork.js';
 export const route = 'moos-pi';
 export const model = 'pi-fixture';
 const adapters = new WeakSet();
+const reasoningEfforts = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh'].map(id => ({
+  id, name: id === 'off' ? '关闭' : id === 'xhigh' ? 'XHigh' : id[0].toUpperCase() + id.slice(1),
+}));
 
 export function isMoosPiAdapter(adapter) { return adapters.has(adapter); }
 
@@ -76,9 +79,11 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
   const modalities = enabled => enabled ? ['text', 'image'] : ['text'];
   const auto = profiles => ({ provider: route, id: 'auto', name: 'Moos PI · 自动选择',
     inputModalities: modalities(profiles.some(profile => profile.imageInput)) });
-  const modelInfo = profile => ({
+  const modelInfo = (profile, showReasoning = true) => ({
     provider: route, id: profile.id, name: profile.name, inputModalities: modalities(profile.imageInput),
     description: profile.thinkingLevel === 'off' ? undefined : '推理档位 ' + profile.thinkingLevel,
+    ...(showReasoning && profile.thinkingLevel && profile.thinkingLevel !== 'off'
+      ? { reasoning: { efforts: reasoningEfforts, defaultEffort: profile.thinkingLevel } } : {}),
     context: { contextWindow: profile.contextWindow }, defaultMaxTokens: profile.maxTokens,
   });
 
@@ -87,7 +92,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     if (id === 'auto') {
       const profile = await models.resolve(id);
       const automatic = auto(await models.list());
-      return profile ? { ...modelInfo(profile), ...automatic } : automatic;
+      return profile ? { ...modelInfo(profile, false), ...automatic } : automatic;
     }
     const profile = await models.resolve(id);
     if (!profile) throw new Error('找不到所选的 Moos PI 模型');
@@ -155,6 +160,10 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
           return;
         }
         await models.credential(plan.provider);
+        if (request.model !== 'auto' && request.reasoningEffort !== undefined &&
+            plan.provider.thinkingLevel !== 'off' && reasoningEfforts.some(({ id }) => id === request.reasoningEffort)) {
+          plan.provider = { ...plan.provider, thinkingLevel: request.reasoningEffort };
+        }
       } catch { yield selectionRequired; return; }
     }
     let task;
@@ -209,7 +218,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     listModels: async () => {
       if (!models) return [metadata];
       const profiles = await models.list();
-      return [auto(profiles), ...profiles.map(modelInfo)];
+      return [auto(profiles), ...profiles.map(profile => modelInfo(profile))];
     },
     resolveModel,
     prepareCall: async (provider, model) => ({ model: await resolveModel(provider, model), stream }),

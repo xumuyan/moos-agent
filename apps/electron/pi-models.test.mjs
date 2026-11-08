@@ -70,6 +70,11 @@ test('one connection shares a credential across models and retains legacy model 
   assert.equal(await models.resolve('existing'), undefined);
   assert.equal(await models.credential(await models.resolve(second.id)), fixture.apiKey);
   assert.doesNotMatch(JSON.stringify(await models.groups()), /apiKey|credentialId/);
+  assert.equal(edited.keyConfigured, true);
+  await models.removeGroup(group.id);
+  assert.deepEqual(await models.groups(), []);
+  assert.deepEqual(JSON.parse(await readFile(join(data, 'private', 'credentials.json'), 'utf8')), {});
+  await models.removeGroup(group.id);
 });
 
 test('a configured desktop profile runs arbitrary workspace text through PI with native High', async t => {
@@ -196,4 +201,15 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   }
   assert.deepEqual(requests.slice(beforeShared).map(({ model, effort }) => [model, effort]),
     [['relay-a', 'high'], ['relay-b', 'low']]);
+  const overrideId = shared.models[0].profileId;
+  assert.equal((await adapter.resolveModel('moos-pi', overrideId)).reasoning.defaultEffort, 'high');
+  assert.equal((await adapter.resolveModel('moos-pi', 'auto')).reasoning, undefined);
+  const overridden = [];
+  for await (const event of adapter.stream({ model: overrideId, reasoningEffort: 'medium', sessionId: 'override',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }] }] })) {
+    overridden.push(event);
+  }
+  assert.equal(overridden.at(-1).reason.kind, 'stop');
+  assert.deepEqual(requests.at(-1), { model: 'relay-a', effort: 'medium', thinking: undefined });
+  assert.equal((await models.resolve(overrideId)).thinkingLevel, 'high');
 });

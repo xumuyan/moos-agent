@@ -44,8 +44,8 @@ window.__ModuleLoader__.load({
     ];
     const newConnection = () => ({ name: '', baseUrl: '', api: 'openai-responses', service: 'openai', models: [] });
 
-    function ConnectionEditor({ connection, onSaved, onClose, t, editor }) {
-      const { ModelListEditor, styles } = editor;
+    function ConnectionEditor({ connection, onSaved, onClose, onBusyChange, t, editor }) {
+      const { ModelListEditor, ApiKeyInput, styles } = editor;
       const [draft, setDraft] = useState(connection);
       const [apiKey, setApiKey] = useState('');
       const [busy, setBusy] = useState(false);
@@ -53,6 +53,7 @@ window.__ModuleLoader__.load({
       const [testIndex, setTestIndex] = useState(0);
       const [status, setStatus] = useState('');
       const disabled = busy || discovering;
+      useEffect(() => { onBusyChange?.(disabled); }, [disabled, onBusyChange]);
       function change(field, value) {
         setStatus('');
         setDraft(current => ({ ...current, [field]: value }));
@@ -106,8 +107,8 @@ window.__ModuleLoader__.load({
         field('协议', select(draft.api, api => change('api', api),
           [['openai-responses', 'OpenAI Responses'], ['openai-completions', 'OpenAI Chat Completions']],
           { disabled: disabled || draft.service !== 'openai' })),
-        field('API 密钥', createElement('input', {
-          className: styles.input, type: 'password', autoComplete: 'off', value: apiKey, disabled,
+        field('API 密钥', createElement(ApiKeyInput, {
+          t, value: apiKey, disabled,
           maxLength: 16384, required: !draft.id, placeholder: draft.id ? '留空以保留已保存的密钥' : undefined,
           onChange: event => { setStatus(''); setApiKey(event.target.value); },
         })),
@@ -130,60 +131,62 @@ window.__ModuleLoader__.load({
         status ? createElement('p', { role: 'status' }, status) : null);
     }
 
-    function ModelSettings({ t, editor }) {
-      const { styles } = editor;
-      const [groups, setGroups] = useState();
-      const [active, setActive] = useState();
-      const [error, setError] = useState(false);
-      const [reload, setReload] = useState(0);
-      useEffect(() => {
-        let mounted = true;
-        window.moosModelSettings.list().then(rows => {
-          if (mounted) { setGroups(rows); setError(false); }
-        }, () => { if (mounted) setError(true); });
-        return () => { mounted = false; };
-      }, [reload]);
-      const close = () => setActive(undefined);
-      const onSaved = rows => { setGroups(rows); close(); };
-      const editorFor = connection => createElement(ConnectionEditor, { key: connection.id ?? 'new',
-        connection, onSaved, onClose: close, t, editor });
-      return createElement('section', { className: styles.section, 'data-moos-model-settings': '' },
-        createElement('h2', { className: styles.title }, '模型服务'),
-        createElement('p', { className: styles.intro }, '每个服务共用一套地址和密钥。可以选择多个模型，并分别设置推理强度。'),
-        error ? createElement(Button, { type: 'button', variant: 'outline',
-          onClick: () => setReload(value => value + 1) }, '读取失败，重试') : null,
-        !groups && !error ? createElement('p', { role: 'status' }, '正在读取模型服务…') : null,
-        groups ? createElement('ul', { className: styles.rows }, groups.map(group =>
-          createElement('li', { className: styles.rowCard, key: group.id },
-            createElement('div', { className: styles.rowHead },
-              createElement('span', { className: styles.rowIdentity },
-                createElement('span', { className: styles.rowName }, group.name),
-                createElement('span', { className: styles.rowTag }, group.models.length + ' 个模型')),
-              active === undefined ? createElement(Button, { type: 'button', variant: 'outline', size: 'sm',
-                onClick: () => setActive(group.id), 'aria-label': '编辑 ' + group.name }, '编辑') : null),
-            active === group.id ? editorFor(group) : createElement('p', { className: styles.advancedHint },
-              group.models.map(model => model.name + ' · ' + (modelEfforts.find(([id]) => id === model.thinkingLevel)?.[1] ?? '关闭')).join('、'))))) : null,
-        active === 'new' ? createElement('div', { className: styles.rowCard }, editorFor(newConnection())) : null,
-        groups && active === undefined ? createElement('div', { className: styles.addActions },
-          createElement('button', { type: 'button', className: styles.addButton, onClick: () => setActive('new') }, '添加模型服务')) : null);
+    function ModelSettings({ t, editor, renderSlot }) {
+      const [snapshot, setSnapshot] = useState({ status: 'loading', rows: [] });
+      async function load() {
+        try {
+          const groups = await window.moosModelSettings.list();
+          setSnapshot({ status: 'ready', rows: groups.map(connection => ({
+            connection,
+            entry: { provider: connection.id, displayName: connection.name, settingsNs: 'llm-pi-ai',
+              settingsPath: ['providers', connection.id], declared: true, active: true },
+            configured: true, removable: true,
+            apiKeyEnv: connection.id, credential: { configured: connection.keyConfigured, writable: false },
+          })) });
+        } catch { setSnapshot({ status: 'error', error: '无法读取本机模型服务。', rows: [] }); }
+      }
+      useEffect(() => { void load(); }, []);
+      function renderEditor(connection, { onClose, onBusyChange }) {
+        return createElement(ConnectionEditor, { key: connection.id ?? 'new', connection, editor, t, onBusyChange,
+          onSaved: () => onClose(true), onClose: () => onClose(false) });
+      }
+      const NewEditor = useRef();
+      NewEditor.current ??= props => renderEditor(newConnection(), props);
+      const operations = {
+        moosEditor: renderEditor,
+        moosNewEditor: NewEditor.current,
+        async writeSettings(_namespace, [operation]) {
+          try {
+            if (operation.op !== 'unset') throw new Error('Invalid operation');
+            await window.moosModelSettings.remove(operation.path[1]);
+            return { kind: 'written' };
+          } catch { return { kind: 'refused', message: '移除模型服务失败，请重试。' }; }
+        },
+      };
+      const state = { ...snapshot, writable: true, namespaces: new Map([['llm-pi-ai', {}]]) };
+      return createElement('div', { 'data-moos-model-settings': '' },
+        createElement(editor.ModelsSection, {
+          controller: { load, store: { getSnapshot: () => state } },
+          useSnapshot: select => select(state), operations, schema: {}, t, renderSlot,
+        }));
     }
 
-    function UsageSettings() {
+    function UsageSettings({ t, TurnUsagePanel, styles }) {
       const [refresh, setRefresh] = useState(0);
       const result = useUsage(null, refresh);
-      const rows = [
-        ['总 Token', 'totalTokens'], ['未缓存输入', 'inputTokens'], ['输出', 'outputTokens'],
-        ['缓存读取', 'cacheReadTokens'], ['缓存写入', 'cacheWriteTokens'], ['有用量记录的请求', 'requests'],
-      ];
-      return createElement('section', { 'data-moos-usage-settings': '' },
-        createElement('h2', null, 'Token 用量'),
-        createElement('p', null, '当前设备上的 PI 用量。只统计模型服务返回的记录。'),
-        result?.data?.requests ? createElement('dl', null, rows.map(([label, key]) =>
-          createElement('div', { key }, createElement('dt', null, label),
-            createElement('dd', null, count(result.data[key]))))) :
-          createElement('p', { role: 'status' }, result?.failed ? '用量读取失败，请刷新。'
-            : result ? '暂无用量记录' : '正在读取用量…'),
-        createElement('button', { type: 'button', onClick: () => setRefresh(value => value + 1) }, '刷新用量'));
+      const totals = result?.data;
+      return createElement('section', { className: styles.section, 'data-moos-usage-settings': '' },
+        createElement('h2', { className: styles.title }, t('stats.dialog.usageTitle')),
+        totals?.requests ? createElement(TurnUsagePanel, {
+          embedded: true,
+          t: (key, params) => t(key === 'message.turnUsage.title' ? 'stats.dialog.usageTitle' : key, params),
+          usage: { totalTokens: totals.totalTokens, uncachedInputTokens: totals.inputTokens,
+            outputTokens: totals.outputTokens, cacheReadTokens: totals.cacheReadTokens ?? undefined,
+            cacheWriteTokens: totals.cacheWriteTokens ?? undefined },
+        }) : createElement('p', { role: 'status' }, result?.failed ? '用量读取失败，请刷新。'
+          : result ? '暂无用量记录' : '正在读取用量…'),
+        createElement('div', null, createElement(Button, { type: 'button', size: 'sm', variant: 'outline',
+          onClick: () => setRefresh(value => value + 1) }, '刷新用量')));
     }
 
     function ComposerUsage({ sessionId }) {
@@ -326,17 +329,21 @@ window.__ModuleLoader__.load({
       ]) {
         ctx.slots.inject(name, () => ctx.slots.register({ name }, component));
       }
+      const { moosEditor } = require('@deepseek-ai/dsh-client-ui-settings-models');
       if (window.moosModelSettings) {
-        const { moosEditor } = require('@deepseek-ai/dsh-client-ui-settings-models');
         const t = ctx.locale.bind('settings.models');
         ctx.slots.inject('settings.section', () => ctx.slots.register({
-          name: 'settings.section', id: 'models', order: 10, label: () => '模型服务',
-        }, () => createElement(ModelSettings, { editor: moosEditor, t })));
+          name: 'settings.section', id: 'models', order: 10, label: () => t('nav'),
+          children: { 'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
+            'settings.models.footer': { kind: 'list', scope: 'root' } },
+        }, ({ renderSlot }) => createElement(ModelSettings, { editor: moosEditor, t, renderSlot })));
       }
       if (window.moosUsage) {
+        const { TurnUsagePanel } = require('@deepseek-ai/dsh-client-ui-chat');
+        const t = ctx.locale.bind('chat');
         ctx.slots.inject('settings.section', () => ctx.slots.register({
-          name: 'settings.section', id: 'moos-usage', order: 20, label: () => 'Token 用量',
-        }, UsageSettings));
+          name: 'settings.section', id: 'moos-usage', order: 20, label: () => t('stats.dialog.usageTitle'),
+        }, () => createElement(UsageSettings, { t, TurnUsagePanel, styles: moosEditor.styles })));
         ctx.slots.inject('conversation.composer.dock', () => ctx.slots.register({
           name: 'conversation.composer.dock', id: 'moos-usage',
           inject: sessionId => ({ sessionId }),
@@ -374,9 +381,6 @@ window.__ModuleLoader__.load({
         html[data-dsh-skin="maid-atelier"] [data-moos-sidebar-name] { color: #f3e3c0; }
         [data-plugin-package="moos-electron-shell"] { display: none !important; }
         [data-moos-composer-usage] { display: flex; flex-wrap: wrap; gap: 0 12px; font-size: 12px; opacity: .75; }
-        [data-moos-usage-settings] h2 { margin: 0 0 8px; }
-        [data-moos-usage-settings] dl > div { display: flex; justify-content: space-between; padding: 8px 0; }
-        [data-moos-usage-settings] dd { margin: 0; font-variant-numeric: tabular-nums; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-pi-retry] { display: flex; align-items: center; gap: 8px; font-size: 13px; }

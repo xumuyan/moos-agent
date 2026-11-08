@@ -52,8 +52,10 @@ test('the DSH client extension registers the Moos brand and model services in th
   assert.equal(document.documentElement.dataset.platform, 'darwin');
   assert.equal(renderers.get('sidebar.brand.name')().children[0], 'Moos');
   assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).children[0], 'M');
-  assert.equal(renderers.get('models')().props.editor, editor);
-  assert.equal(renderers.get('models')().props.t('addModel'), 'addModel');
+  const renderSlot = () => null;
+  assert.equal(renderers.get('models')({ renderSlot }).props.editor, editor);
+  assert.equal(renderers.get('models')({ renderSlot }).props.renderSlot, renderSlot);
+  assert.equal(renderers.get('models')({ renderSlot }).props.t('addModel'), 'addModel');
   assert.equal(document.title, 'Moos');
   document.title = '深海女仆工坊 · DeepSeek Harness';
   changed();

@@ -66,7 +66,20 @@ function configureModelSettings(dsh) {
   patchBundledSource(dsh, models, 'ctx.slots.inject("settings.section", () => ctx.slots.register({',
     'if (!window.moosModelSettings) ctx.slots.inject("settings.section", () => ctx.slots.register({', entry);
   patchBundledSource(dsh, models, 'exports.refreshIfLoaded = refreshIfLoaded;',
-    'exports.refreshIfLoaded = refreshIfLoaded;\n\t\texports.moosEditor = { ModelListEditor, styles: ModelsSection_module_css_default };', entry);
+    'exports.refreshIfLoaded = refreshIfLoaded;\n\t\texports.moosEditor = { ModelsSection, ModelListEditor, ApiKeyInput, styles: ModelsSection_module_css_default };', entry);
+  patchBundledSource(dsh, models, 'function renderProviderEditor({ target, row, ...props }) {',
+    'function renderProviderEditor({ target, row, ...props }) {\n\t\t\tif (props.operations.moosEditor) return props.operations.moosEditor(row.connection, props);', entry);
+  patchBundledSource(dsh, models, 'const protocols = protocolChoices(piAi, schema);',
+    'const protocols = operations.moosEditor ? ["openai-responses", "openai-completions"] : protocolChoices(piAi, schema);', entry);
+  patchBundledSource(dsh, models, 'const reasoningLevels = reasoningLevelChoices(piAi, schema);',
+    'const reasoningLevels = operations.moosEditor ? [] : reasoningLevelChoices(piAi, schema);', entry);
+  patchBundledSource(dsh, models, 'const catalogOffered = configurable.length > 0;',
+    'const catalogOffered = !operations.moosEditor && configurable.length > 0;', entry);
+  patchBundledSource(dsh, models, 'children: (0, react_jsx_runtime.jsx)(CustomProviderCard, {',
+    'children: (0, react_jsx_runtime.jsx)(operations.moosNewEditor ?? CustomProviderCard, {', entry);
+  patchBundledSource(dsh, models,
+    'deleteTarget.credentialRef === void 0 ? t("deleteDescription") : t("deleteDescriptionWithCredential")',
+    '!operations.moosEditor && deleteTarget.credentialRef === void 0 ? t("deleteDescription") : t("deleteDescriptionWithCredential")', entry);
   patchBundledSource(dsh, models, 'reasoningLevels: props.reasoningLevels,',
     'reasoningLevels: props.reasoningLevels,\n\t\t\t\t\t\t\trenderExtra: props.renderExtra,', entry);
   patchBundledSource(dsh, models, 'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
@@ -79,6 +92,24 @@ function configureModelSettings(dsh) {
     '\t\t\t\t\tshellInstance.actions.open();\n\t\t\t\t\tshellInstance.actions.select("models");\n\t\t\t\t});', entry);
   patchBundledSource(dsh, 'dsh-client-ui-settings-general', 'disposeCommand();',
     'offMoosModels?.();\n\t\t\t\t\tdisposeCommand();', entry);
+  patchBundledSource(dsh, 'dsh-client-ui-chat', 'exports.EMPTY_CHAT_SNAPSHOT = EMPTY_CHAT_SNAPSHOT;',
+    'exports.EMPTY_CHAT_SNAPSHOT = EMPTY_CHAT_SNAPSHOT;\n\t\texports.TurnUsagePanel = TurnUsagePanel;', entry);
+  const usage = 'dsh-client-ui-chat';
+  patchBundledSource(dsh, usage, 'function TurnUsagePanel({ usage, t }) {',
+    'function TurnUsagePanel({ usage, t, embedded = false }) {\n' +
+    '\t\t\tconst mount = panel => embedded ? panel : (0, react_dom.createPortal)(panel, document.body);', entry);
+  patchBundledSource(dsh, usage,
+    'className: TurnUsagePanel_module_css_default.root,\n\t\t\t\tchildren: [(0, react_jsx_runtime.jsxs)("button", {',
+    'className: TurnUsagePanel_module_css_default.root,\n\t\t\t\tstyle: embedded ? { display: "block" } : undefined,\n' +
+    '\t\t\t\tchildren: [!embedded && (0, react_jsx_runtime.jsxs)("button", {', entry);
+  patchBundledSource(dsh, usage,
+    '}), open && (0, react_dom.createPortal)((0, react_jsx_runtime.jsxs)("div", {\n\t\t\t\t\tref: panelRef,\n\t\t\t\t\tclassName: stat_dialog_module_css_default.panel,\n\t\t\t\t\trole: "dialog",\n\t\t\t\t\t"aria-label": t("message.turnUsage.title"),\n\t\t\t\t\tstyle: pos ?? MEASURE_STYLE,',
+    '}), (embedded || open) && mount((0, react_jsx_runtime.jsxs)("div", {\n\t\t\t\t\tref: panelRef,\n' +
+    '\t\t\t\t\tclassName: stat_dialog_module_css_default.panel,\n\t\t\t\t\trole: embedded ? "region" : "dialog",\n' +
+    '\t\t\t\t\t"aria-label": t("message.turnUsage.title"),\n\t\t\t\t\tstyle: embedded ? { position: "static", width: "100%", maxWidth: "none" } : pos ?? MEASURE_STYLE,', entry);
+  patchBundledSource(dsh, usage,
+    '}), document.body)]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js',
+    '}))]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js', entry);
 }
 
 function stageDshRuntime(resources, destination) {

@@ -48,6 +48,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   const draft = { name: 'Relay' };
   settings.list();
   settings.save(draft);
+  settings.remove('relay');
   settings.discover(draft);
   settings.test(draft);
   let opened = 0;
@@ -58,6 +59,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   assert.ok(!events.has('moos:open-model-settings'));
   assert.deepEqual(messages, [
     ['moos:pi-usage', null], ['moos:pi-usage', 'session-id'], ['moos:pi-turn', 'session-id', 12], ['moos:pi-active'],
-    ['moos:models:list'], ['moos:models:save', draft], ['moos:models:discover', draft], ['moos:models:test', draft],
+    ['moos:models:list'], ['moos:models:save', draft], ['moos:models:remove', 'relay'],
+    ['moos:models:discover', draft], ['moos:models:test', draft],
   ]);
 });

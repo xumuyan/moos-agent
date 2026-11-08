@@ -146,13 +146,16 @@ export function piModels(data, checkedProvider) {
 
   function connectionId(provider) { return provider.connectionId ?? provider.id; }
 
-  function groupProfiles(profiles) {
+  function groupProfiles(profiles, keys) {
     const groups = new Map();
     for (const provider of profiles) {
       const id = connectionId(provider);
       if (!groups.has(id)) {
+        const keyId = provider.credentialId ?? provider.id;
+        const key = Object.hasOwn(keys, keyId) && keys[keyId];
         groups.set(id, { id, name: provider.connectionName ?? provider.name,
-          baseUrl: provider.baseUrl, api: provider.api, service: provider.service, models: [] });
+          baseUrl: provider.baseUrl, api: provider.api, service: provider.service,
+          keyConfigured: key?.baseUrl === provider.baseUrl && validKey(key.apiKey), models: [] });
       }
       groups.get(id).models.push({ profileId: provider.id, id: provider.model, name: provider.name,
         thinkingLevel: provider.thinkingLevel, contextWindow: provider.contextWindow, maxTokens: provider.maxTokens,
@@ -161,7 +164,9 @@ export function piModels(data, checkedProvider) {
     return [...groups.values()];
   }
 
-  async function groups() { return groupProfiles(await list()); }
+  async function groups() {
+    return groupProfiles(await list(), await credentials());
+  }
 
   function connectionModel(input, row, id, connection) {
     const model = row?.id?.trim();
@@ -212,7 +217,24 @@ export function piModels(data, checkedProvider) {
       const next = [...profiles.slice(0, insertion), ...replacements,
         ...profiles.slice(insertion).filter(provider => !allowedIds.has(provider.id))];
       await replace(profilePath, next);
-      return groupProfiles(next);
+      return groups();
+    });
+  }
+
+  function removeGroup(id) {
+    return serialize(async () => {
+      if (typeof id !== 'string' || !configId.test(id)) throw new Error('Invalid Moos connection');
+      const profiles = await list();
+      const removed = profiles.filter(provider => connectionId(provider) === id);
+      if (!removed.length) return;
+      const kept = profiles.filter(provider => connectionId(provider) !== id);
+      const inUse = new Set(kept.map(provider => provider.credentialId ?? provider.id));
+      const keys = await credentials();
+      const removing = new Set(removed.flatMap(provider => [provider.id, provider.credentialId]));
+      const retained = Object.entries(keys).filter(([key]) =>
+        inUse.has(key) || !removing.has(key) && !key.startsWith('group-key-'));
+      if (retained.length !== Object.keys(keys).length) await replace(credentialPath, Object.fromEntries(retained));
+      await replace(profilePath, kept);
     });
   }
 
@@ -248,5 +270,5 @@ export function piModels(data, checkedProvider) {
     });
   }
 
-  return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, diagnoseGroup };
+  return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, removeGroup, diagnoseGroup };
 }
