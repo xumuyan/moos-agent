@@ -125,6 +125,9 @@ test('the carried Host drops optional packages and their inventory entries, but 
     'className: TurnUsagePanel_module_css_default.root,\n\t\t\t\tchildren: [(0, react_jsx_runtime.jsxs)("button", {',
     '}), open && (0, react_dom.createPortal)((0, react_jsx_runtime.jsxs)("div", {\n\t\t\t\t\tref: panelRef,\n\t\t\t\t\tclassName: stat_dialog_module_css_default.panel,\n\t\t\t\t\trole: "dialog",\n\t\t\t\t\t"aria-label": t("message.turnUsage.title"),\n\t\t\t\t\tstyle: pos ?? MEASURE_STYLE,',
     '}), document.body)]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js',
+    'function TurnProcessNodeView({ node, turnProcess, t }) {',
+    '\t\t});\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/token-format.js',
+    'key: "turn-process",\n\t\t\t\tlocale: NS',
   ].join('\n'));
   await write(join(resources, 'runtime/bin/node'), 'node wrapper', 0o755);
   await write(join(resources, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'package manager');
@@ -168,6 +171,8 @@ test('the carried Host drops optional packages and their inventory entries, but 
   assert.match(models, /if \(moos\) return moos\.save\(connection\)/);
   assert.match(await readFile(join(built, settingsClient), 'utf8'), /shellInstance\.actions\.select\("models"\)/);
   assert.match(await readFile(join(built, chatClient), 'utf8'), /\(embedded \|\| open\) && mount/);
+  assert.match(await readFile(join(built, chatClient), 'utf8'), /renderSlot\("conversation\.chat\.turnProcess", \{\s*startSeq: turn\.start\.seq, live: turn\.status !== "closed"/);
+  assert.match(await readFile(join(built, chatClient), 'utf8'), /"conversation\.chat\.turnProcess": \{ kind: "list", scope: "session" \}/);
   assert.equal((await stat(join(target, 'runtime/bin/node'))).mode & 0o777, 0o755);
   assert.equal(await readFile(join(target, 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs'), 'utf8'), 'package manager');
   await assert.rejects(stat(join(target, 'runtime/primary-runtime/dependencies/python')), { code: 'ENOENT' });

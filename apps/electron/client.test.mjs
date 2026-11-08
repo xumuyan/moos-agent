@@ -9,6 +9,9 @@ test('the DSH client extension registers the Moos brand and model services in th
   let changed;
   let cleanedUp = false;
   let dispose;
+  let turnResult;
+  let effect;
+  const turnReads = [];
   const document = {
     documentElement: { dataset: { moosWindow: 'darwin' } },
     title: 'DeepSeek Harness',
@@ -18,6 +21,7 @@ test('the DSH client extension registers the Moos brand and model services in th
   };
   runInNewContext(source, {
     document,
+    clearTimeout,
     MutationObserver: class {
       constructor(callback) { changed = callback; }
       observe() {}
@@ -26,6 +30,7 @@ test('the DSH client extension registers the Moos brand and model services in th
     window: {
       __ModuleLoader__: { load(value) { entry = value; } },
       moosModelSettings: {},
+      moosTurn: (...args) => { turnReads.push(args); },
     },
   });
 
@@ -33,18 +38,22 @@ test('the DSH client extension registers the Moos brand and model services in th
   const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-settings-models' ? { moosEditor: editor } : ({
     Button() {},
     createElement: (element, props, ...children) => ({ element, props, children }),
-    useState: value => [value],
-    useEffect() {},
+    useState: value => [turnResult ?? value],
+    useEffect: (callback, dependencies) => { effect = { callback, dependencies }; },
     useRef: () => ({}),
   }));
   assert.ok(plugin.inject.includes('shortcuts'));
   assert.equal(document.documentElement.dataset.platform, undefined);
   const renderers = new Map();
+  const slots = new Map();
   plugin.apply({
     locale: { bind: () => key => key },
     slots: {
       inject(_slot, register) { register(); },
-      register({ name, id }, component) { renderers.set(id ?? name, component); },
+      register({ name, id }, component) {
+        renderers.set(id ?? name, component);
+        slots.set(id ?? name, name);
+      },
     },
     on(event, callback) { if (event === 'dispose') dispose = callback; },
   });
@@ -67,6 +76,23 @@ test('the DSH client extension registers the Moos brand and model services in th
   const service = card.props.moos.serviceField('openai', () => {}, false).children[1];
   assert.equal(service.props.className, 'dsh-input dsh-select');
   assert.equal(service.props.value, 'openai');
+
+  assert.equal(slots.get('moos-pi-process'), 'conversation.chat.turnProcess');
+  assert.equal(slots.get('moos-pi-turn'), 'conversation.chat.turnTail');
+  assert.equal(slots.has('moos-pi-live'), false);
+  turnResult = { sessionId: 'test-session', startSeq: 12,
+    data: { status: 'running', actions: [{ label: '运行命令', state: 'running' }], files: [] } };
+  const process = renderers.get('moos-pi-process')({ sessionId: 'test-session', startSeq: 12, live: true });
+  assert.equal(process.element(process.props).element, 'details');
+  assert.deepEqual(Array.from(effect.dependencies), ['test-session', 12, true]);
+  effect.callback()();
+  assert.deepEqual(turnReads, [['test-session', 12]]);
+  const tail = renderers.get('moos-pi-turn');
+  const tailProps = { sessionId: 'test-session', turn: { start: { seq: 12 } } };
+  assert.equal(tail(tailProps), null);
+  turnResult.data.files.push({ path: 'result.txt', summary: '新增' });
+  assert.equal(tail(tailProps).children[0].element, 'section');
+
   assert.equal(document.title, 'Moos');
   document.title = '深海女仆工坊 · DeepSeek Harness';
   changed();

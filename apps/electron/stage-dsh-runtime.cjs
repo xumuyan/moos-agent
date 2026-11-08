@@ -147,6 +147,26 @@ function configureModelSettings(dsh) {
     '}))]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js', entry);
 }
 
+function configureTurnProcess(dsh) {
+  const chat = 'dsh-client-ui-chat';
+  const entry = { entry: 'client.js' };
+  patchBundledSource(dsh, chat, 'function TurnProcessNodeView({ node, turnProcess, t }) {',
+    'function TurnProcessNodeView({ node, turnProcess, t, renderSlot }) {\n' +
+    '\t\t\tconst turn = node.location.kind === "turn" || node.location.kind === "step" ? node.location.turn : void 0;\n' +
+    '\t\t\treturn (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [\n' +
+    '\t\t\t\tturn?.start === void 0 ? null : renderSlot("conversation.chat.turnProcess", {\n' +
+    '\t\t\t\t\tstartSeq: turn.start.seq, live: turn.status !== "closed"\n' +
+    '\t\t\t\t}), settledTurnProcess(node, turnProcess, t)\n' +
+    '\t\t\t] });\n\t\t});\n' +
+    '\t\tfunction settledTurnProcess(node, turnProcess, t) {', entry);
+  patchBundledSource(dsh, chat, '\t\t});\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/token-format.js',
+    '\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/token-format.js', entry);
+  patchBundledSource(dsh, chat, 'key: "turn-process",\n\t\t\t\tlocale: NS',
+    'key: "turn-process",\n\t\t\t\tlocale: NS,\n\t\t\t\tchildren: {\n' +
+    '\t\t\t\t\t"conversation.chat.turnProcess": { kind: "list", scope: "session" }\n' +
+    '\t\t\t\t}', entry);
+}
+
 function configureProviderCard(dsh, packageName, entry) {
   const path = join(dsh, 'node_modules/@deepseek-ai', packageName, 'lib', entry.entry);
   const source = fs.readFileSync(path, 'utf8');
@@ -219,6 +239,7 @@ function stageDshRuntime(resources, destination) {
   configurePiQueue(dsh);
   configureModelPicker(dsh);
   configureModelSettings(dsh);
+  configureTurnProcess(dsh);
   // The Host and the registry must use the same adapter factory instance.
   const adapterDir = join(dsh, 'moos-pi');
   fs.mkdirSync(adapterDir);

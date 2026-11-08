@@ -173,7 +173,7 @@ window.__ModuleLoader__.load({
         createElement('span', null, '上下文 ', count(reading?.promptTokens), ' / ', count(reading?.contextWindow)));
     }
 
-    function usePiTurn(sessionId, startSeq) {
+    function usePiTurn(sessionId, startSeq, live = false) {
       const [result, setResult] = useState();
       useEffect(() => {
         if (startSeq === undefined) return;
@@ -186,11 +186,11 @@ window.__ModuleLoader__.load({
           } catch {
             if (!closed) setResult(undefined);
           }
-          if (!closed && (startSeq === null || startSeq === 'retry')) timer = setTimeout(update, 1000);
+          if (!closed && (live || startSeq === 'retry')) timer = setTimeout(update, 1000);
         }
         void update();
         return () => { closed = true; clearTimeout(timer); };
-      }, [sessionId, startSeq]);
+      }, [sessionId, startSeq, live]);
       return result?.sessionId === sessionId && result.startSeq === startSeq ? result.data : undefined;
     }
 
@@ -213,8 +213,8 @@ window.__ModuleLoader__.load({
         data.limited ? createElement('p', null, '仅显示前 400 条工具事件') : null);
     }
 
-    function LivePiProcess({ sessionId }) {
-      return createElement(PiProcess, { data: usePiTurn(sessionId, null) });
+    function PiTurnProcess({ sessionId, startSeq, live }) {
+      return createElement(PiProcess, { data: usePiTurn(sessionId, startSeq, live) });
     }
 
     function PiRetry({ sessionId, submit }) {
@@ -249,14 +249,13 @@ window.__ModuleLoader__.load({
 
     function PiTurnTail({ sessionId, turn }) {
       const data = usePiTurn(sessionId, turn.start?.seq);
-      if (!data || (!data.actions.length && !data.files.length && !data.route)) return null;
+      if (!data?.files.length) return null;
       return createElement('div', { 'data-moos-pi-turn': '' },
-        createElement(PiProcess, { data }),
-        data.files.length ? createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },
+        createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },
           createElement('strong', null, data.workspaceChanges ? '工作区变化 · ' : '写入或编辑了 ', data.files.length, ' 个文件'),
           createElement('ul', null, data.files.map(file => createElement('li', { key: file.path },
             createElement('span', { className: 'moos-action-subject' }, file.path), createElement('small', null, file.summary)))),
-          data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null) : null);
+          data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null));
     }
 
     const taskPanel = 'moos-pi-tasks';
@@ -328,9 +327,9 @@ window.__ModuleLoader__.load({
       }
       if (window.moosTurn) {
         const sessionProps = sessionId => ({ sessionId });
-        ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
-          name: 'conversation.input.dock', id: 'moos-pi-live', inject: sessionProps,
-        }, LivePiProcess));
+        ctx.slots.inject('conversation.chat.turnProcess', () => ctx.slots.register({
+          name: 'conversation.chat.turnProcess', id: 'moos-pi-process', inject: sessionProps,
+        }, PiTurnProcess));
         ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
           name: 'conversation.input.dock', id: 'moos-pi-retry',
           inject: sessionId => ({ sessionId, submit: id => ctx.sessions.binding(sessionId)?.session.prompt(
@@ -359,6 +358,7 @@ window.__ModuleLoader__.load({
         [data-plugin-package="moos-electron-shell"] { display: none !important; }
         [data-moos-composer-usage] { display: flex; flex-wrap: wrap; gap: 0 12px; font-size: 12px; opacity: .75; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
+        [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-pi-retry] { display: flex; align-items: center; gap: 8px; font-size: 13px; }
         [data-moos-pi-retry] button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }

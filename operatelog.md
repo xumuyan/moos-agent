@@ -1233,3 +1233,13 @@
 - 验证结果：安装前后均通过 `codesign --verify --deep --strict`。用 `cmp` 核对模型选择器和 PI 适配器与验收构建一致。用 `pgrep` 核对正式路径只有一个主进程，`ps` 查到随包 Host 和渲染进程，本机配置加载壳版本 0.1.25。功能证据见 E79。安装后复跑 `npm test` 139/139，`npm --prefix apps/electron test` 32/32（已安装 Host 与皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 61/61。
 - 遗留问题：正式安装验收覆盖签名、文件、进程和壳版本。真实站点支持的推理档位仍按服务和模型分别实测。
 - 对应 Git 提交：安装包来自 `0a8a4d3`。本记录的唯一提交说明为 `docs(P03.13): record model picker installation`，用 `git log --all --oneline --grep='^docs(P03.13): record model picker installation$'` 查询。
+
+## 2026-11-08 11:14:46 +08:00｜P03.13.6 修正会话内的执行过程位置
+
+- 修改或新增内容：把 PI 的执行过程统一放进 DSH 原版对话的本轮过程节点。运行中、完成和停止时共用该节点，文件摘要仍在回复末尾。内置壳升级到 0.1.26。
+- 遇到的难题：实时过程原先挂在输入框工具区，宽度超出对话列。任务结束后另一份过程渲染在回复末尾，位置跳变且展开状态丢失。
+- 处理方式：在原版 TurnProcessNodeView 中加入会话级插槽，按会话 ID 和该轮起始序号读取 PI 记录。任务运行时轮询，结束时重新读取终态。保留原版用时控件和原有文件摘要入口。更新渲染器与打包补丁回归测试。
+- 实际验收：macOS 27.0.1 arm64。签名构建 `build-s4aD85` 的后台隔离界面应用女仆工坊皮肤，通过本地模型让 PI 运行、完成一条命令，完成时同一节点保持展开且位于最终回复上方。第二轮写入 `result.txt`，文件摘要出现在回复末尾。第三轮从界面停止，过程留在该轮并显示已停止。证据见 `/private/tmp/moos-inline-process.KDYdJD/gui.log` 及同目录 `evidence/`。用户确认退出后安装同一签名构建，严格验签、关键文件和已载入壳文件一致，正式路径仅一个主进程。上一版留在 `/Applications/.moos-update.KLaU4m/previous/Moos.app`。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 32/32（打包 Host 和皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 61/61，Git 差异检查通过。隔离验收脚本输出 PASS 并关闭测试实例，外层 zsh 在收尾时给只读变量 status 赋值失败，脚本结果见上述日志。
+- 遗留问题：本轮未复验该布局在重启、分支历史及其他皮肤下的显示。正式安装验收覆盖签名、文件和运行版本，功能验收使用隔离数据。
+- 对应 Git 提交：唯一说明 `fix(P03.13): keep PI process in its conversation turn`，用 `git log --all --oneline --grep='^fix(P03.13): keep PI process in its conversation turn$'` 查询。
