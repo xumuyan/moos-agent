@@ -603,3 +603,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E88 | P03.13.5 模型目录布局回归修复：新增能力区域独占整行，不再撑宽拖动列；ID 宽度从 22px 恢复至桌面 218.75px、较窄视口 202.4px。隔离女仆工坊实际保存重开保留模型 ID、图片标记及合成凭据原字节，桌面截图已目视核对。证据 `docs/evidence/desktop/p03-model-catalog-layout.json`，build-zNXXqB，壳 0.1.30。 | 未部署；Electron 71/71，核心 137/139，Swift SIGTRAP 与开发工具验收超时仍受阻，整阶段不勾选。 |
 
 | E89 | P03.13 修改文件列表隐藏已知缓存：采集前过滤 .npm、.cache、node_modules、Python/Node 编译缓存及已知探针临时目录，历史列表及写入回退同样过滤；保留 .npmrc、隐藏配置和源码，不删除文件或改 Git 索引。证据 `docs/evidence/desktop/p03-workspace-cache-filter.json`，隔离 0.1.31 构建及打包读取器 SQLite 实际验证通过。 | Electron 72/72、核心 138/139；Swift SIGTRAP 仍阻塞全量。未部署、未 GUI 验收，不勾选完整阶段。 |
+
+| E90 | 用户授权更新 0.1.31：非 fixture 正式 build-gbOQSU 构建及签名通过，独立 Terminal 复测完成，尚未交接安装脚本。证据 `docs/evidence/desktop/p03-installed-update-0131-preflight.json`。 | 更新受阻：核心 138/139（Swift SIGTRAP），Electron 70/72（运行时权限断言 0700/0755、真实升级命令失败）。须诊断并全部通过后再按规则正常退出、停机备份和只换程序。未退出、未替换、数据未改，正式仍 0.1.29。 |

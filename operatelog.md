@@ -1393,3 +1393,13 @@
 - 验证结果：PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 重新执行，结果见本次提交前输出；git diff --check 同步执行。此次只更正文档，不替代全量应用验收。
 - 遗留问题：正式应用未部署，Swift SIGTRAP 继续受阻。
 - 对应 Git 提交：唯一说明 docs(P03.13): correct cache-filter audit log fields；查询 git log --all --oneline --grep='^docs(P03.13): correct cache-filter audit log fields$'。
+
+
+## 2026-11-08 21:11:15 +08:00｜P03.13 用户授权更新 0.1.31 预检受阻
+
+- 修改或新增内容：用户明确要求按更新规则安装；准备非 fixture 正式 build-gbOQSU，新增 E90 预检证据与计划受阻项。没有安装或数据更改。
+- 遇到的难题：核心 Swift 编译 SIGTRAP 在独立 Terminal 仍复现，直接 Xcode swiftc --version 及 CommandLineTools xcrun 亦崩溃。独立 Terminal 在 umask 077 下 Electron 出现两项失败：runtime node 权限断言实际 0700、期望 0755；真实插件升级命令失败。此处尚未完整定位后者，不推断为用户配置问题。
+- 处理方式：遵守测试通过再安装，停止在替换前。不退出正式 Moos、不停止任务、不做重复备份或移动程序。先前 fixture 验证通过不能替代本次正式包复测。独立 Terminal 已验证祖先非 Moos；当前只执行 validate.command，未交接退出/安装脚本。可用空间约 22GiB，正式路径和原数据根不变。
+- 验证结果：npm run build:app 使用固定 DSH 输入、MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0，codesign --verify --deep --strict 通过，moos-runtime.json includesPiFixture=false。独立 Terminal 执行 artifacts/installed-update-0.1.31/validate.command：npm test 138/139，npm run test:electron 70/72，Rust 11/11，PI 桥 5/5，皮肤 Python 4/4，文档 71/71；未声明全量通过。原始日志及 result.json 在 artifacts/installed-update-0.1.31。证据对应本提交前工作区，仅新增脱敏文档。文档更新后再跑检查。
+- 遗留问题：安装尚未执行，正式仍 0.1.29；解除条件为诊断编译器及上述测试环境/升级失败，完整测试通过，再重新确认版本/签名/空闲状态并交接独立更新进程，完成停机备份和数据保留核对。未取得成功结果，不删除备份或宣称更新成功。
+- 对应 Git 提交：唯一说明 docs(P03.13): record authorized update preflight blockers；查询 git log --all --oneline --grep='^docs(P03.13): record authorized update preflight blockers$'。随后推送并核对远程 HEAD。

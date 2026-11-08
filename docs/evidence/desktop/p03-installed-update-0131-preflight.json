@@ -1,0 +1,30 @@
+{
+  "state": "blocked-before-install",
+  "targetShell": "0.1.31",
+  "userAuthorizedUpdate": true,
+  "productionQuitRequested": false,
+  "packageReplaced": false,
+  "productionDataModified": false,
+  "build": "build-gbOQSU",
+  "includesPiFixture": false,
+  "signatureVerified": true,
+  "validation": {
+    "core": 1,
+    "electron": 1,
+    "native": 0,
+    "bridge": 0,
+    "skin": 0,
+    "docs": 0
+  },
+  "tests": {
+    "core": "138/139; Swift compiler SIGTRAP",
+    "electron": "70/72; runtime node mode 0700 instead of 0755, real plugin upgrade command failure",
+    "native": "11/11",
+    "bridge": "5/5",
+    "skin": "4/4",
+    "docs": "71/71"
+  },
+  "independentTerminalValidation": true,
+  "installedShellUnchanged": "0.1.29",
+  "next": "Diagnose and pass full validation before independent installer handoff; no active-task stop authorized."
+}
