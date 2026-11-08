@@ -1,8 +1,8 @@
 {
   "task": "P03.13",
   "evidence": "E93",
-  "timeBeijing": "2026-11-09 00:02:36 +08:00",
-  "state": "preflight-passed-awaiting-independent-install",
+  "timeBeijing": "2026-11-09 00:07:13 +08:00",
+  "state": "installed-success",
   "userAuthorized": true,
   "fromShell": "0.1.31",
   "targetShell": "0.1.32",
@@ -53,6 +53,84 @@
     "No installation success until independent result verified",
     "No authenticated GLM request",
     "No formal screenshot or user-visible GLM connectivity acceptance yet",
-    "Historical 0.1.31 backups and results left unchanged"
-  ]
+    "Historical 0.1.31 backups and results left unchanged",
+    "The assistant verified the saved GLM configuration bytes match the official endpoint/protocol but did not send an authenticated GLM request; actual model listing/对话结果以用户实测为准",
+    "No formal screenshot acceptance; conclusions come from independent result/log and read-only file/process checks"
+  ],
+  "installedResult": {
+    "state": "success",
+    "targetShell": "0.1.32",
+    "userAuthorizedUpdate": true,
+    "stoppedActiveTasks": false,
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "time": "2026-11-08T16:04:17.605Z",
+    "fullBackupFilesVerified": 711,
+    "backupPermissionsVerified": true,
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 81,
+      "conversations": 1,
+      "tasks": 44
+    },
+    "loadedClientMatches": true,
+    "hostRunning": true,
+    "readableSavedModels": 12,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "originalDatabaseRowsRetained": true,
+    "afterCounts": {
+      "messages": 81,
+      "conversations": 1,
+      "tasks": 44
+    },
+    "userPluginDependenciesRetained": true,
+    "installedMainProcesses": 1
+  },
+  "independentVerification": {
+    "signature": "codesign --verify --deep --strict passed after install",
+    "identity": "dev.moos.agent.electron",
+    "installedShell": "0.1.32",
+    "loadedShell": "0.1.32",
+    "glmFixLive": {
+      "loadedClientGuidance": true,
+      "protocolLockOnlyDeepSeek": true,
+      "saveValidationOnlyDeepSeek": true
+    },
+    "savedModels": 13,
+    "credentialsReadable": true,
+    "userSavedGlm": {
+      "service": "glm",
+      "api": "openai-responses",
+      "baseUrl": "https://open.bigmodel.cn/api/v1",
+      "model": "glm-5.3",
+      "matchesOfficialCodexDoc": true
+    },
+    "liveCounts": {
+      "messages": 82,
+      "conversations": 1,
+      "tasks": 45
+    },
+    "normalAppendsSinceBackup": "1 message / 1 task from the new user conversation after restart",
+    "sqliteQuickCheck": "ok",
+    "credentialMode": "0600",
+    "mainProcesses": 1,
+    "hostRunning": true
+  },
+  "cleanup": {
+    "perRule": "success and original chats/model credentials verified readable in the new version",
+    "removed": [
+      "/Applications/.moos-update-0.1.32/data-before-install",
+      "/Applications/.moos-update-0.1.32/previous/Moos.app"
+    ],
+    "retained": [
+      "result.json",
+      "terminal-update.log",
+      "update.mjs",
+      "/Applications/.moos-update-0.1.31 (historical evidence and earlier backups, untouched)"
+    ]
+  }
 }

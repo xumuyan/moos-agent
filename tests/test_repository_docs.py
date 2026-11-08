@@ -20,6 +20,17 @@ class RepositoryDocsTests(unittest.TestCase):
         for key in ('backup', 'oldPackage', 'result', 'log'):
             self.assertIn('.moos-update-0.1.32/', evidence['handoff'][key])
         self.assertTrue(evidence['handoff']['oneTimeOnly'])
+        installed = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0132.json').read_text())
+        self.assertEqual(installed['state'], 'installed-success')
+        self.assertEqual(installed['installedResult']['state'], 'success')
+        for key in ('apiAndCredentialsIdentical', 'chatFilesRetained', 'piHistoryFilesRetained', 'skinsRetained',
+                    'workspaceRetained', 'originalDatabaseRowsRetained', 'userPluginDependenciesRetained'):
+            self.assertTrue(installed['installedResult'][key])
+        self.assertFalse(installed['installedResult']['stoppedActiveTasks'])
+        self.assertEqual(installed['independentVerification']['loadedShell'], '0.1.32')
+        self.assertEqual(installed['independentVerification']['userSavedGlm']['baseUrl'], 'https://open.bigmodel.cn/api/v1')
+        self.assertEqual(installed['independentVerification']['userSavedGlm']['api'], 'openai-responses')
+        self.assertTrue(installed['cleanup']['removed'])
         self.assertIn('| E93 |', (ROOT / 'PLAN.md').read_text())
 
     def test_glm_responses_fix_distinguishes_listing_from_generation_and_installation(self):

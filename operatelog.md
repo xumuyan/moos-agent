@@ -1463,3 +1463,13 @@
 - 验证结果：两包 codesign --verify --deep --strict 均通过，应用标识 dev.moos.agent.electron；正式及加载 0.1.31、目标 0.1.32，原 SQLite quick_check ok，凭据 0600；可用约 19GB，候选约 692304KiB/现有数据约 162680KiB，实际同卷；node --test artifacts/installed-update-0.1.32/checkpoint.test.mjs 4/4，更新脚本 --preflight PREFLIGHT_OK，语法检查通过。沿用同候选 E92 核心 139/139、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4，不重复成功构建/应用测试。本次文档测试提交前执行，证据对应当前工作区。
 - 遗留问题：本条记录为预检/交接状态，不是安装成功或 GLM 真网验收；提交推送后才启动独立 Terminal，任务自然结束后可继续执行。恢复必须先读 /Applications/.moos-update-0.1.32/result.json 和 terminal-update.log，成功再核对正式安装、加载及数据保留，不凭窗口判断；失败保留所有数据/旧包/备份，不自动恢复覆盖。旧 0.1.31 备份未触碰。
 - 对应 Git 提交：唯一说明 docs(P03.13): authorize and preflight isolated 0.1.32 update；查询 git log --all --oneline --grep='^docs(P03.13): authorize and preflight isolated 0.1.32 update$'。提交推送并核对远程后交接，最终结果另追加而非覆盖历史。
+
+
+## 2026-11-09 00:07:13 +08:00｜P03.13 0.1.32 安装成功核对、GLM 修复生效确认与本次备份清理（E93 续作）
+
+- 修改或新增内容：先读独立结果与日志确认 success，再做只读复核：正式安装与当前加载壳均 0.1.32、严格签名、应用标识不变、单实例和 Host 正常；打包保存校验与界面仅对 DeepSeek 锁定协议，GLM 官方端点提示已加载；13 个模型配置及对应凭据可读，凭据 0600，SQLite quick_check ok。用户已保存 GLM 配置且与官方文档一致（https://open.bigmodel.cn/api/v1 + openai-responses + glm-5.3）。按规则删除本次更新停机备份与旧包，保留 result/log/脚本及历史 0.1.31 证据。E93 证据、PLAN 与文档契约同步。
+- 遇到的难题：当前消息数 82/任务 45 比停机备份时多 1，是更新重启后新会话的正常追加，不是数据丢失；连接测试结果不落盘，无法从磁盘证明真实 GLM 请求已成功。曾误在壳 client.js 中找协议锁定补丁位置，实际位于 host-runtime 设置模型卡片，已用正确文件核实。
+- 处理方式：不凭窗口重现判定成功，全部结论来自独立结果文件、日志与只读检查；未发送真实模型请求、未改用户配置。清理仅限本次更新产物，历史 0.1.31 备份与失败证据未动。
+- 验证结果：result.json 00:04:17 success：711 文件备份校验、权限通过；前后 81 消息/1 会话/44 任务原行保留；apiAndCredentialsIdentical、chatFilesRetained、piHistoryFilesRetained、skinsRetained、workspaceRetained、originalDatabaseRowsRetained、userPluginDependenciesRetained 全真，stoppedActiveTasks=false。只读复核安装/加载 0.1.32、签名与数据保护项如上。文档检查在提交前重跑。
+- 遗留问题：真实 GLM 模型列表与对话、推理档位映射、上下文上限仍未由本助手实测，需用户实际使用验证；正式截图验收仍未执行（不阻塞本次安装结论）。
+- 对应 Git 提交：唯一说明 docs(P03.13): verify installed 0.1.32 success and clean this update backup；查询 git log --all --oneline --grep='^docs(P03.13): verify installed 0.1.32 success and clean this update backup$'。提交推送并核对远程 HEAD。
