@@ -51,6 +51,17 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('1600', (ROOT / 'apps/electron/README.md').read_text())
         self.assertIn('| E83 |', (ROOT / 'PLAN.md').read_text())
 
+    def test_github_authorization_recovery_is_source_delivery_not_deployment(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        log = (ROOT / 'operatelog.md').read_text(encoding='utf-8')
+        self.assertIn('9b9858e9294660b78bf3bd02c9f34b7006cc6b3f', plan)
+        self.assertIn('GitHub 认证阻塞已解除', plan)
+        self.assertIn('不表示 Swift 探针、完整会话恢复或应用部署通过', plan)
+        record = log.split('｜P03.13 GitHub 授权恢复与源码推送核对', 1)[1]
+        self.assertIn('四批提交', record)
+        self.assertIn('未部署', record)
+        self.assertIn('未修改全局 Git 配置', record)
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

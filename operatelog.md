@@ -1289,3 +1289,12 @@
 - 验证结果：证据对应本条提交前工作区。定向 node --test apps/electron/fork-process.test.mjs apps/electron/pi-turn.test.mjs scripts/verify-electron-recovery.test.mjs 10/10，涵盖嵌套分支、前缀排除、自有轮次优先、跨目录拒绝、不完整轮次和异常引用。MOOS_ELECTRON_DSH_APP=<固定输入> MOOS_ELECTRON_INCLUDE_PI_FIXTURE=1 npm run build:app 最终 build-O3IuQu 通过且 codesign --verify --deep --strict 通过；新包内置壳 0.1.27。启用新包 CLI、隔离皮肤中心及原包夹具的 npm run test:electron 70/70，无跳过。补充包内 rg 和已有 fd 的 PATH 后 npm test 136 项，135 通过、1 失败（M01 Swift SIGTRAP），不宣称全量通过。Rust 使用稳定 1.91.1、离线缓存及测试专用 TAURI_CONFIG 排除打包资源，11/11；PI 桥 5/5，皮肤探针 Python 4/4，文档 64/64。最终后台隔离 Electron GUI runner 在 recovery-KxU1Hf，通过真实新包启动升级、两轮重启恢复、分支首轮过程/排除次轮、页面刷新保持、任务数不增、两款皮肤恢复及模型/合成密钥字节保持。QA 包只修改 show() 并重签，不是正式安装；截图未作像素目视验收，哈希与位置见 docs/evidence/desktop/p03-fork-process-recovery.json。主进程前后仍为原正式实例，QA 实例已退出。语法与差异检查通过。
 - 遗留问题：继承超过末尾 1600 事件的更早轮次不在当前展示范围；分支整应用退出后再选择分支未独立实测，嵌套分支由自动测试覆盖。Swift 探针仍阻塞完整回归，真实安装器失败回滚继续待验；P03.13 总体和会话恢复子项未勾选。不部署、不修改真实配置。推送预检查 20 秒命令超时；提交后 GIT_TERMINAL_PROMPT=0 git push origin main 明确返回无法读取 GitHub 用户名，推送失败。git ls-remote 核对远程仍为 4540cbdda1a5f25349b37753adf00a1f94ca9897；本地保留四批提交，未推送。解除条件为恢复 GitHub 写入凭据后重试并核对远程 HEAD。
 - 对应 Git 提交：本批次唯一提交说明 fix(P03.13): show inherited PI processes in forked conversations；查询命令 git log --all --oneline --grep='^fix(P03.13): show inherited PI processes in forked conversations$'。本地提交保存已测修复与仍受阻项，不代表完整产品交付。
+
+## 2026-11-08 17:48:06 +08:00｜P03.13 GitHub 授权恢复与源码推送核对
+
+- 修改或新增内容：用户在真实 Mac 终端完成 GitHub CLI 官方授权后，核对账号 xumuyan 与仓库 ADMIN 权限，推送此前保留的四批提交 f8e8106、5ca958b、054f28b、9b9858e。同步 PLAN.md 认证解除和源码交付说明，增加文档契约测试。本轮不修改应用代码或功能验收结论。
+- 遇到的难题：工具默认 HOME 指向仓库，之前看不到真实用户的 CLI 认证；本轮另发现未跟踪的 .local/state/gh 目录，未查看其文件内容，不纳入 Git。
+- 处理方式：仅本次命令 HOME=/Users/xuguopeng，使用 gh auth git-credential 凭据助手进行 Git 推送，未修改全局 Git 配置，未输出真实令牌或读取模型密钥。日志不记录验证码、凭据或 CLI 原始认证输出。保留历史失败记录，追加当前成功事实。用户真实聊天、配置和正式 Moos 未操作、未部署。
+- 验证结果：gh repo view 返回仓库 xumuyan/moos-agent、viewerPermission=ADMIN。git push origin main 成功从 4540cbd 推至 9b9858e；git rev-parse HEAD 与 git ls-remote origin refs/heads/main 均为 9b9858e9294660b78bf3bd02c9f34b7006cc6b3f。源码同步成功不表示应用全量验收通过。此条提交前工作区执行 Python 文档检查及 git diff --check，实际结果以本批命令输出为证据；应用代码未变，未重跑产品测试，沿用前轮 70/70 Electron 和核心 135/136（Swift SIGTRAP 仍失败）的记录，不冒充本轮通过。
+- 遗留问题：分支整应用重启、超限前缀、安装器失败回滚和 Swift 探针继续按计划处理，不提前勾选。当前记录与文档测试随后提交并推送，再核对远程 HEAD；不会因 GitHub 推送自动部署或重启正式应用。
+- 对应 Git 提交：已远程核对的代码提交 9b9858e9294660b78bf3bd02c9f34b7006cc6b3f；本条唯一提交说明 docs(P03.13): record restored GitHub authorization and source delivery，查询命令 git log --all --oneline --grep='^docs(P03.13): record restored GitHub authorization and source delivery$'。
