@@ -1,6 +1,6 @@
 {
   "id": "E91",
-  "state": "resume-preflight-passed-not-installed",
+  "state": "installed-success",
   "targetShell": "0.1.31",
   "build": "build-92S1Rw",
   "firstAttempt": {
@@ -35,5 +35,49 @@
   "validation": "Existing same-code validation-final retained: core 139/139, Electron 72/72, Rust 11/11, bridge 5/5, skin 4/4, docs 71/71. No successful build or test repeated.",
   "screenshots": "screencapture failed; no formal GUI image verified.",
   "resultFile": "/Applications/.moos-update-0.1.31/result.json",
-  "logFile": "/Applications/.moos-update-0.1.31/resume-terminal.log"
+  "logFile": "/Applications/.moos-update-0.1.31/resume-terminal.log",
+  "installedResult": {
+    "state": "success",
+    "targetShell": "0.1.31",
+    "userAuthorizedUpdate": true,
+    "stoppedActiveTasks": false,
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "time": "2026-11-08T15:34:17.581Z",
+    "fullBackupFilesVerified": 691,
+    "backupPermissionsVerified": true,
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 75,
+      "conversations": 1,
+      "tasks": 41
+    },
+    "loadedClientMatches": true,
+    "hostRunning": true,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "originalDatabaseRowsRetained": true,
+    "afterCounts": {
+      "messages": 75,
+      "conversations": 1,
+      "tasks": 41
+    },
+    "userPluginDependenciesRetained": true,
+    "installedMainProcesses": 1
+  },
+  "readOnlyFollowup": {
+    "installedShell": "0.1.31",
+    "loadedShell": "0.1.31",
+    "signature": "codesign --verify --deep --strict passed",
+    "sqliteQuickCheck": "ok",
+    "savedModelsReadable": 12,
+    "savedCredentialsReadable": true,
+    "glmProfileSaved": false,
+    "glmCause": "Not determined. Unsaved draft and connection diagnostic result are not persisted. No live model test or configuration write performed.",
+    "gui": "No screenshot available; do not claim formal visual acceptance.",
+    "backups": "Preserved pending further confirmation; no cleanup performed during GLM diagnosis."
+  }
 }

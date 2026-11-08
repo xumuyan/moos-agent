@@ -1433,3 +1433,13 @@
 - 验证结果：artifacts/installed-update-0.1.31/checkpoint.test.mjs 合成目录实际验证缺失父目录下移动成功、旧包冲突与符号链接被拒绝，3/3。续作 preflight 通过；暂存 reader 与已测试 build-92S1Rw 原字节一致。既有 validation-final 全零，核心 139/139、Electron 72/72、Rust 11/11、桥 5/5、皮肤 4/4，不重跑。第一备份和当前 SQLite quick_check 均 ok，真实及备份凭据权限均 0600。无旧更新进程、previous 无已移动包、resume 备份尚不存在，故可在本任务结束后由独立 Terminal 正常退出并重取当次停机快照。再次 screencapture 失败，无正式截图；不声称看见正式 UI。
 - 遗留问题：尚未安装，必须独立续作结果 success 后再核对正式版本、原聊天/模型配置读取及数据保护项；任一异常保留原包和备份并停止，不用空数据重试。文档更新后运行检查；日志记录的是提交前状态。应用退出可能中断工具，对话恢复先读取结果，不重复已完成的备份/移动。
 - 对应 Git 提交：唯一说明 docs(P03.13): record failed install checkpoint and verified resume；查询 git log --all --oneline --grep='^docs(P03.13): record failed install checkpoint and verified resume$'。提交推送核对后启动独立续作。
+
+
+## 2026-11-08 23:39:38 +08:00｜P03.13 安装成功核对及 GLM 失败只读排查
+
+- 修改或新增内容：读取独立续作 result.json/resume-terminal.log，确认 success；更新 E91 成功结果与保留事项。用户新增 GLM 配置失败咨询，仅只读检查保存配置与诊断/表单代码，不写配置或使用密钥发请求。此时间为实际只读检查时间，文档整理在随后完成。
+- 遇到的难题：GLM 未落盘，连接测试绕过任务历史且不持久化结果，因此当前磁盘不能还原未保存表单与错误提示，不能把猜测当根因。GLM 服务选择会自动切 openai-completions；模型发现接口失败不等于模型聊天接口失败，需分清保存/列表/连接测试哪一步。
+- 处理方式：核对实际安装和加载均 0.1.31，不重复更新、备份或移动；保留 E91 首次 rename 失败证据。只查看模型公开参数、凭据是否可读的布尔结果及任务安全码，未打印密钥或聊天正文。GLM 具体根因待用户错误文案、基础地址/模型 ID/协议（不含密钥）核实，不自动改真实数据。
+- 验证结果：独立进程 2026-11-08 23:34:17 北京时间 success：691 文件完整停机备份核对、备份权限通过；前后 75 消息/1 会话/41 任务，原数据库记录保留；API/密钥/保护配置原字节一致，聊天、PI 历史、皮肤、工作区、用户插件保留，单实例与 Host 正常。当前安装及加载包 0.1.31，codesign --verify --deep --strict 通过，当前 SQLite quick_check ok，12 模型及对应凭据可读，无 GLM 已保存项。沿用同源码全量测试通过，未重复构建和应用测试；本次文档检查在提交前执行。
+- 遗留问题：GLM 失败根因尚未确定，需错误提示和不含密钥的参数；正式 GUI 截图此前未获取，不声明目视验收。旧包及两次停机备份暂保留，本轮专注故障定位未做清理，不重复或自动重启。
+- 对应 Git 提交：唯一说明 docs(P03.13): confirm installed update and scope GLM diagnosis；查询 git log --all --oneline --grep='^docs(P03.13): confirm installed update and scope GLM diagnosis$'。提交推送并核对远程 HEAD。
