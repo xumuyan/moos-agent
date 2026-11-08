@@ -84,6 +84,17 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(evidence['limits']['notarized'])
         self.assertFalse(evidence['limits']['nativePtyImplemented'])
 
+    def test_e79_separates_installed_build_checks_from_local_relay_acceptance(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        evidence = next(line for line in plan.splitlines() if line.startswith('| E79 |'))
+        for term in ('build-KA6RuZ', '0.1.25', '/Applications/Moos.app',
+                     '单实例', '本地合成中转', '真实站点的档位支持需分别验收'):
+            self.assertIn(term, evidence)
+        log = (ROOT / 'operatelog.md').read_text(encoding='utf-8')
+        record = log.split('｜P03.13.5 安装会话推理和站点分组版\n', 1)[1].split('\n## ', 1)[0]
+        for term in ('0a8a4d3', 'previous/Moos.app', 'codesign --verify --deep --strict', '一个主进程'):
+            self.assertIn(term, record)
+
     def test_confirmed_dsh_ui_plugin_design_keeps_implementation_unclaimed(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         design_path = ROOT / 'docs/superpowers/specs/2026-11-05-dsh-ui-plugin-design.md'

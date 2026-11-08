@@ -1224,3 +1224,12 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 32/32（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。构建通过严格验签，Git 差异检查通过。
 - 遗留问题：正式 Moos 仍运行，待退出后替换。此轮使用本地合成中转验证档位传递，各真实站点对档位的支持需分别实测。
 - 对应 Git 提交：唯一说明 `fix(P03.13): group model sites and restore session reasoning`，用 `git log --all --oneline --grep='^fix(P03.13): group model sites and restore session reasoning$'` 查询。
+
+## 2026-11-08 11:03:00 +08:00｜P03.13.5 安装会话推理和站点分组版
+
+- 修改或新增内容：用户确认退出后，把 E79 验收通过的签名构建 `build-KA6RuZ` 安装到 `/Applications/Moos.app`，启动一次。安装过程使用原有应用数据目录。更新 E79 并增加文档检查，区分本机安装与合成中转功能验收。
+- 遇到的难题：上轮正式 Moos 仍运行，需等待退出才能替换，避免打断会话。本轮替换前复查进程已退出。
+- 处理方式：先在同一卷验签并比对构建文件，再替换正式应用。上一版保留在 `/Applications/.moos-update.loJSkO/previous/Moos.app` 供回滚。
+- 验证结果：安装前后均通过 `codesign --verify --deep --strict`。用 `cmp` 核对模型选择器和 PI 适配器与验收构建一致。用 `pgrep` 核对正式路径只有一个主进程，`ps` 查到随包 Host 和渲染进程，本机配置加载壳版本 0.1.25。功能证据见 E79。安装后复跑 `npm test` 139/139，`npm --prefix apps/electron test` 32/32（已安装 Host 与皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 61/61。
+- 遗留问题：正式安装验收覆盖签名、文件、进程和壳版本。真实站点支持的推理档位仍按服务和模型分别实测。
+- 对应 Git 提交：安装包来自 `0a8a4d3`。本记录的唯一提交说明为 `docs(P03.13): record model picker installation`，用 `git log --all --oneline --grep='^docs(P03.13): record model picker installation$'` 查询。
