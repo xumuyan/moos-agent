@@ -42,93 +42,69 @@ window.__ModuleLoader__.load({
       ['off', '关闭'], ['minimal', 'Minimal'], ['low', 'Low'],
       ['medium', 'Medium'], ['high', 'High'], ['xhigh', 'XHigh'],
     ];
-    const newConnection = () => ({ name: '', baseUrl: '', api: 'openai-responses', service: 'openai', models: [] });
+    function providerField(styles, label, element) {
+      return createElement('label', { className: styles.field },
+        createElement('span', { className: styles.fieldLabel }, label), element);
+    }
 
-    function ConnectionEditor({ connection, onSaved, onClose, onBusyChange, t, editor }) {
-      const { ModelListEditor, ApiKeyInput, styles } = editor;
-      const [draft, setDraft] = useState(connection);
-      const [apiKey, setApiKey] = useState('');
+    function providerSelect(styles, value, onChange, options, props) {
+      return createElement('select', { className: styles.selectInput, value,
+        onChange: event => onChange(event.target.value), ...props,
+      }, options.map(([id, label]) => createElement('option', { key: id, value: id }, label)));
+    }
+
+    function ConnectionTest({ connection, disabled, styles }) {
+      const [selected, setSelected] = useState(0);
       const [busy, setBusy] = useState(false);
-      const [discovering, setDiscovering] = useState(false);
-      const [testIndex, setTestIndex] = useState(0);
-      const [status, setStatus] = useState('');
-      const disabled = busy || discovering;
-      useEffect(() => { onBusyChange?.(disabled); }, [disabled, onBusyChange]);
-      function change(field, value) {
-        setStatus('');
-        setDraft(current => ({ ...current, [field]: value }));
+      const [status, setStatus] = useState();
+      const index = Math.min(selected, connection.models.length - 1);
+      const model = connection.models[index];
+      const request = { id: connection.id, baseUrl: connection.baseUrl, api: connection.api,
+        service: connection.service, apiKey: connection.apiKey, model };
+      const revision = JSON.stringify(request);
+      async function test() {
+        setBusy(true);
+        setStatus(undefined);
+        try {
+          const result = await window.moosModelSettings.test(request);
+          setStatus({ revision, message: [result.message, result.status && 'HTTP ' + result.status,
+            result.elapsedMs + ' 毫秒'].filter(Boolean).join(' · ') });
+        } catch { setStatus({ revision, message: '测试连接失败，请重试。' }); }
+        finally { setBusy(false); }
       }
-      const operations = {
-        async discoverModels() {
+      if (!model) return null;
+      return createElement('div', { className: styles.field },
+        providerField(styles, '连接测试模型', providerSelect(styles, String(index), value => setSelected(Number(value)),
+          connection.models.map((item, at) => [String(at), item.name || item.id || '模型 ' + (at + 1)]), { disabled: disabled || busy })),
+        createElement(Button, { type: 'button', variant: 'outline', size: 'sm', onClick: test,
+          disabled: disabled || busy || !model.id }, busy ? '正在测试连接…' : '测试连接'),
+        status?.revision === revision ? createElement('p', { role: 'status' }, status.message) : null);
+    }
+
+    function NativeConnectionEditor({ connection, editor, ...props }) {
+      const { CustomProviderCard, styles } = editor;
+      const moos = {
+        connection,
+        async save(input) {
+          try { await window.moosModelSettings.save(input); }
+          catch { return '保存失败。请检查服务标识、地址、密钥、模型 ID 和容量。地址变更后需重新填写密钥。'; }
+        },
+        async discover(input) {
           try {
-            const result = await window.moosModelSettings.discover({ ...draft, apiKey });
-            return result.ok
-              ? { kind: 'found', models: result.models.map(id => ({ id })) }
+            const result = await window.moosModelSettings.discover(input);
+            return result.ok ? { kind: 'found', models: result.models.map(id => ({ id })) }
               : { kind: 'refused', message: result.message };
           } catch { return { kind: 'refused', message: '读取模型列表失败，请重试。' }; }
         },
+        serviceField: (service, change, disabled) => providerField(styles, '服务类型',
+          providerSelect(styles, service, change,
+            [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
+        modelExtra: (model, position, change, disabled) => providerField(styles, '推理强度',
+          providerSelect(styles, model.thinkingLevel ?? 'off', value => change('thinkingLevel', value),
+            modelEfforts, { disabled, 'aria-label': '推理强度 ' + position })),
+        testField: (input, disabled) => createElement(ConnectionTest, { connection: input, disabled, styles }),
       };
-      async function save(event) {
-        event.preventDefault();
-        if (disabled) return;
-        setBusy(true);
-        setStatus('');
-        try { onSaved(await window.moosModelSettings.save({ ...draft, apiKey })); }
-        catch { setStatus('保存失败。请检查服务地址、密钥、模型 ID 和容量。地址变更后需重新填写密钥。'); }
-        finally { setBusy(false); }
-      }
-      async function testModel() {
-        setBusy(true);
-        setStatus('正在测试连接…');
-        try {
-          const result = await window.moosModelSettings.test({ ...draft, apiKey, model: draft.models[testIndex] });
-          setStatus([result.message, result.status && 'HTTP ' + result.status, result.elapsedMs + ' 毫秒'].filter(Boolean).join(' · '));
-        } catch { setStatus('测试连接失败，请重试。'); }
-        finally { setBusy(false); }
-      }
-      function field(label, element) {
-        return createElement('label', { className: styles.field },
-          createElement('span', { className: styles.fieldLabel }, label), element);
-      }
-      const input = (name, props = {}) => createElement('input', {
-        className: styles.input, value: draft[name], disabled, required: true,
-        onChange: event => change(name, event.target.value), ...props,
-      });
-      const select = (value, onChange, options, props = {}) => createElement('select', {
-        className: styles.selectInput, value, disabled, onChange: event => onChange(event.target.value), ...props,
-      }, options.map(([id, label]) => createElement('option', { key: id, value: id }, label)));
-      return createElement('form', { className: styles.editor, onSubmit: save, 'data-moos-connection-editor': '' },
-        field('显示名称', input('name', { maxLength: 200 })),
-        field('服务地址', input('baseUrl', { type: 'url', placeholder: 'https://example.com/v1' })),
-        field('服务类型', select(draft.service, service => {
-          setStatus('');
-          setDraft(current => ({ ...current, service, api: service === 'openai' ? current.api : 'openai-completions' }));
-        }, [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']])),
-        field('协议', select(draft.api, api => change('api', api),
-          [['openai-responses', 'OpenAI Responses'], ['openai-completions', 'OpenAI Chat Completions']],
-          { disabled: disabled || draft.service !== 'openai' })),
-        field('API 密钥', createElement(ApiKeyInput, {
-          t, value: apiKey, disabled,
-          maxLength: 16384, required: !draft.id, placeholder: draft.id ? '留空以保留已保存的密钥' : undefined,
-          onChange: event => { setStatus(''); setApiKey(event.target.value); },
-        })),
-        createElement(ModelListEditor, {
-          models: draft.models, onChange: models => { change('models', models); setTestIndex(0); },
-          operations, probe: { settingsNs: 'moos', baseURL: draft.baseUrl }, t,
-          disabled: busy, onBusyChange: setDiscovering, defaultInput: ['text'], pickAllOnEmpty: false,
-          renderExtra: (model, position, onFieldChange) => field('推理强度',
-            select(model.thinkingLevel ?? 'off', value => onFieldChange('thinkingLevel', value), modelEfforts,
-              { 'aria-label': '推理强度 ' + position })),
-        }),
-        draft.models.length ? field('连接测试模型', select(String(testIndex), value => setTestIndex(Number(value)),
-          draft.models.map((model, index) => [String(index), model.name || model.id || '模型 ' + (index + 1)]))) : null,
-        createElement('div', { className: styles.editorActions },
-          createElement(Button, { type: 'button', variant: 'outline', disabled, onClick: onClose }, '取消'),
-          createElement(Button, { type: 'button', variant: 'outline', disabled: disabled || !draft.models[testIndex]?.id,
-            onClick: testModel }, '测试连接'),
-          createElement(Button, { type: 'submit', variant: 'primary', disabled: disabled || !draft.models.length ||
-            draft.models.some(model => !model.id?.trim()) }, '保存')),
-        status ? createElement('p', { role: 'status' }, status) : null);
+      return createElement(CustomProviderCard, { ...props, moos });
     }
 
     function ModelSettings({ t, editor, renderSlot }) {
@@ -146,12 +122,13 @@ window.__ModuleLoader__.load({
         } catch { setSnapshot({ status: 'error', error: '无法读取本机模型服务。', rows: [] }); }
       }
       useEffect(() => { void load(); }, []);
-      function renderEditor(connection, { onClose, onBusyChange }) {
-        return createElement(ConnectionEditor, { key: connection.id ?? 'new', connection, editor, t, onBusyChange,
-          onSaved: () => onClose(true), onClose: () => onClose(false) });
+      function renderEditor(connection, props) {
+        return createElement(NativeConnectionEditor, { ...props, key: connection?.id ?? 'new', connection, editor, t,
+          taken: snapshot.rows.map(row => row.connection.id),
+          protocols: ['openai-responses', 'openai-completions'], reasoningLevels: [] });
       }
       const NewEditor = useRef();
-      NewEditor.current ??= props => renderEditor(newConnection(), props);
+      NewEditor.current ??= props => createElement(NativeConnectionEditor, { ...props, editor, t });
       const operations = {
         moosEditor: renderEditor,
         moosNewEditor: NewEditor.current,

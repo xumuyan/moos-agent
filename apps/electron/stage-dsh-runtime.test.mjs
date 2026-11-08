@@ -66,6 +66,29 @@ test('the carried Host drops optional packages and their inventory entries, but 
     'reasoningLevels: props.reasoningLevels,',
     'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
     'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
+    'function CustomProviderCard(props) {',
+    'const [openedAt] = (0, react.useState)(() => props.revision);',
+    'const [route, setRoute] = (0, react.useState)("");',
+    'const [displayName, setDisplayName] = (0, react.useState)("");',
+    'const [baseURL, setBaseURL] = (0, react.useState)("");',
+    'const [protocol, setProtocol] = (0, react.useState)(protocols[0] ?? "");',
+    'const [models, setModels] = (0, react.useState)([]);',
+    'const [keyDraft, setKeyDraft] = (0, react.useState)("");',
+    'const routeInvalid = route.length > 0;',
+    'const routeTaken = taken.includes(route);',
+    'const disabled = props.readOnly || busy;',
+    'const ready = route.length > 0;',
+    'const createOnce = async () => {',
+    'placeholder: "acme-gateway",\n\t\t\t\t\t\t\t"aria-label": t("customRoute"),\n\t\t\t\t\t\t\tdisabled: profileDisabled,',
+    'className: ModelsSection_module_css_default["editor"],',
+    'value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled,',
+    '(0, react_jsx_runtime.jsx)(ModelListEditor, {',
+    'onChange: setModels,\n\t\t\t\t\t\treasoningLevels,',
+    'probeBlocked: baseUrlInvalid ? "customBaseUrlInvalid" : keyFailure === "keyBlank" ? "keyBlankNew" : keyFailure,\n\t\t\t\t\t\toperations,',
+    '(0, react_jsx_runtime.jsx)(EditorFooter, {',
+    'submitLabelKey: "create",',
+    'submitBusyLabelKey: "creating",',
+    '//#region lib/types/client/ProviderEditor.js',
   ].join('\n'));
   const settingsClient = 'node_modules/@deepseek-ai/dsh-client-ui-settings-general/lib/client.js';
   await write(join(dsh, settingsClient), 'const shellInstance = shellHandle.create();\ndisposeCommand();');
@@ -109,9 +132,10 @@ test('the carried Host drops optional packages and their inventory entries, but 
   assert.equal(composer.match(/style: \{ display: "none" \}/g).length, 2);
   assert.match(composer, /false && ctx\.slots\.inject/);
   const models = await readFile(join(built, modelClient), 'utf8');
-  assert.match(models, /exports\.moosEditor = \{ ModelsSection, ModelListEditor, ApiKeyInput, styles:/);
+  assert.match(models, /exports\.moosEditor = \{ ModelsSection, CustomProviderCard, styles:/);
   assert.match(models, /if \(!window\.moosModelSettings\)/);
-  assert.match(models, /props\.renderExtra\?\.\(model, position, props\.onFieldChange\)/);
+  assert.match(models, /props\.renderExtra\?\.\(model, position, props\.onFieldChange, disabled\)/);
+  assert.match(models, /if \(moos\) return moos\.save\(connection\)/);
   assert.match(await readFile(join(built, settingsClient), 'utf8'), /shellInstance\.actions\.select\("models"\)/);
   assert.match(await readFile(join(built, chatClient), 'utf8'), /\(embedded \|\| open\) && mount/);
   assert.equal((await stat(join(target, 'runtime/bin/node'))).mode & 0o777, 0o755);

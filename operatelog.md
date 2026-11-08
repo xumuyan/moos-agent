@@ -1195,3 +1195,13 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（安装包和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：原版对齐版等待当前 Moos 退出后安装。Token 用量显示本机记录，账号账单与余额依赖原版账号。
 - 对应 Git 提交：唯一说明 `feat(P03.13): reuse original model and token usage interfaces`，用 `git log --all --oneline --grep='^feat(P03.13): reuse original model and token usage interfaces$'` 查询。
+
+## 2026-11-08 09:54:09 +08:00｜P03.13.5 复用原版模型服务编辑卡并安装
+
+- 修改或新增内容：移除 Moos 自制服务表单，新增和编辑使用 DSH 原版 CustomProviderCard，保留服务类型、连接测试和各模型推理强度所需的 PI 字段。新增允许原版 Provider ID，编辑锁定 ID，壳升级到 0.1.23。
+- 遇到的难题：用户看到的正式安装仍是 0.1.21。待安装的 0.1.22 虽然复用了原版模型设置页，但内部仍替换了编辑表单。首轮隔离脚本在会话已选择模型后未能可靠重新打开推理菜单，相关档位请求仍由现有集成回归验证。
+- 处理方式：直接调用原版服务卡和其保存动作，只转接 PI 的保存、模型发现和诊断。服务 ID 经主进程检查重复与保留值。编辑复用既有模型 ID 和地址匹配的密钥。清理本轮被替代的本地构建副本以留出安装空间。
+- 实际验收：提交前验证签名包 `build-g3ROfB`。在隔离界面从原版卡创建合成中转，勾选两个模型并保存不同推理强度。重开原版编辑卡看到锁定的 ID 和空白密钥框，留空密钥修改显示名成功。聊天模型切换、Token 明细和删除合成服务的确认通过。用户同意更新且退出后，直接替换 `/Applications/Moos.app` 并启动一次，严格验签通过，进程来自正式路径，壳版本为 0.1.23。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：界面验收使用本地合成中转和隔离配置。正式窗口由用户按实际服务复核，上一版应用留作回滚。
+- 对应 Git 提交：唯一说明 `fix(P03.13): use the original provider editor card`，用 `git log --all --oneline --grep='^fix(P03.13): use the original provider editor card$'` 查询。

@@ -66,7 +66,7 @@ function configureModelSettings(dsh) {
   patchBundledSource(dsh, models, 'ctx.slots.inject("settings.section", () => ctx.slots.register({',
     'if (!window.moosModelSettings) ctx.slots.inject("settings.section", () => ctx.slots.register({', entry);
   patchBundledSource(dsh, models, 'exports.refreshIfLoaded = refreshIfLoaded;',
-    'exports.refreshIfLoaded = refreshIfLoaded;\n\t\texports.moosEditor = { ModelsSection, ModelListEditor, ApiKeyInput, styles: ModelsSection_module_css_default };', entry);
+    'exports.refreshIfLoaded = refreshIfLoaded;\n\t\texports.moosEditor = { ModelsSection, CustomProviderCard, styles: ModelsSection_module_css_default };', entry);
   patchBundledSource(dsh, models, 'function renderProviderEditor({ target, row, ...props }) {',
     'function renderProviderEditor({ target, row, ...props }) {\n\t\t\tif (props.operations.moosEditor) return props.operations.moosEditor(row.connection, props);', entry);
   patchBundledSource(dsh, models, 'const protocols = protocolChoices(piAi, schema);',
@@ -85,7 +85,8 @@ function configureModelSettings(dsh) {
   patchBundledSource(dsh, models, 'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
     'const pickedByDefault = (id) => props.pickAllOnEmpty !== false && configuredIds.size === 0 || configuredIds.has(id);', entry);
   patchBundledSource(dsh, models, 'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
-    'props.renderExtra?.(model, position, props.onFieldChange),\n\t\t\t\t\t\t\t\tprops.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?', entry);
+    'props.renderExtra?.(model, position, props.onFieldChange, disabled),\n\t\t\t\t\t\t\t\tprops.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?', entry);
+  configureProviderCard(dsh, models, entry);
   patchBundledSource(dsh, 'dsh-client-ui-settings-general', 'const shellInstance = shellHandle.create();',
     'const shellInstance = shellHandle.create();\n' +
     '\t\t\t\tconst offMoosModels = window.moosModelSettings?.onOpen(() => {\n' +
@@ -110,6 +111,56 @@ function configureModelSettings(dsh) {
   patchBundledSource(dsh, usage,
     '}), document.body)]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js',
     '}))]\n\t\t\t});\n\t\t}\n\t\t//#endregion\n\t\t//#region lib/types/client/chat/turn-assistant.js', entry);
+}
+
+function configureProviderCard(dsh, packageName, entry) {
+  const path = join(dsh, 'node_modules/@deepseek-ai', packageName, 'lib', entry.entry);
+  const source = fs.readFileSync(path, 'utf8');
+  const start = source.indexOf('function CustomProviderCard(props) {');
+  const end = source.indexOf('//#region lib/types/client/ProviderEditor.js', start);
+  if (start < 0 || end < 0) throw new Error('Unexpected DSH provider editor');
+  let card = source.slice(start, end);
+  const patch = (anchor, replacement) => {
+    if (card.split(anchor).length !== 2) throw new Error('Unexpected DSH provider editor anchor: ' + anchor);
+    card = card.replace(anchor, replacement);
+  };
+  patch('const [openedAt]', 'const moos = props.moos;\n\t\t\tconst existing = moos?.connection;\n\t\t\tconst [openedAt]');
+  for (const [name, setter, initial, field] of [
+    ['route', 'setRoute', '""', 'id'],
+    ['displayName', 'setDisplayName', '""', 'name'],
+    ['baseURL', 'setBaseURL', '""', 'baseUrl'],
+    ['protocol', 'setProtocol', 'protocols[0] ?? ""', 'api'],
+    ['models', 'setModels', '[]', 'models'],
+  ]) {
+    const before = `const [${name}, ${setter}] = (0, react.useState)(`;
+    patch(before + initial + ');', before + `existing?.${field} ?? (${initial}));`);
+  }
+  patch('const [keyDraft, setKeyDraft]', 'const [service, setService] = (0, react.useState)(existing?.service ?? "openai");\n\t\t\tconst [keyDraft, setKeyDraft]');
+  patch('const routeInvalid = route.length', 'const routeInvalid = !existing && route.length');
+  patch('const routeTaken = taken.includes(route);', 'const routeTaken = !existing && taken.includes(route);');
+  patch('const disabled = props.readOnly || busy;', 'const disabled = props.readOnly || busy || (moos && listBusy);');
+  patch('const ready = route.length', 'const ready = (!moos || !!existing || keyValue.length > 0) && route.length');
+  patch('const createOnce = async () => {',
+    'const connection = { id: existing?.id, route, name: displayName.trim() || route, baseUrl: normalizedBaseURL, api: protocol, service, apiKey: keyValue, models };\n' +
+    '\t\t\tconst createOnce = async () => {\n\t\t\t\tif (moos) return moos.save(connection);');
+  patch('placeholder: "acme-gateway",\n\t\t\t\t\t\t\t"aria-label": t("customRoute"),\n\t\t\t\t\t\t\tdisabled: profileDisabled,',
+    'placeholder: "acme-gateway",\n\t\t\t\t\t\t\t"aria-label": t("customRoute"),\n\t\t\t\t\t\t\tdisabled: profileDisabled || !!existing,');
+  patch('className: ModelsSection_module_css_default["editor"],',
+    'className: ModelsSection_module_css_default["editor"],\n\t\t\t\t"data-moos-provider-card": moos ? "" : undefined,');
+  patch('value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled,',
+    'value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled || (moos && service !== "openai"),');
+  patch('(0, react_jsx_runtime.jsx)(ModelListEditor, {',
+    'moos?.serviceField(service, next => {\n\t\t\t\t\t\tsetService(next);\n\t\t\t\t\t\tif (next !== "openai") setProtocol("openai-completions");\n\t\t\t\t\t}, profileDisabled),\n' +
+    '\t\t\t\t\t(0, react_jsx_runtime.jsx)(ModelListEditor, {');
+  patch('onChange: setModels,\n\t\t\t\t\t\treasoningLevels,',
+    'onChange: setModels,\n\t\t\t\t\t\treasoningLevels,\n\t\t\t\t\t\trenderExtra: moos?.modelExtra,\n\t\t\t\t\t\tpickAllOnEmpty: !moos,\n\t\t\t\t\t\tdefaultInput: moos ? ["text"] : undefined,');
+  patch('probeBlocked: baseUrlInvalid ? "customBaseUrlInvalid" : keyFailure === "keyBlank" ? "keyBlankNew" : keyFailure,\n\t\t\t\t\t\toperations,',
+    'probeBlocked: baseUrlInvalid ? "customBaseUrlInvalid" : keyFailure === "keyBlank" ? "keyBlankNew" : keyFailure,\n' +
+    '\t\t\t\t\t\toperations: moos ? { discoverModels: () => moos.discover(connection) } : operations,');
+  patch('(0, react_jsx_runtime.jsx)(EditorFooter, {', 'moos?.testField(connection, disabled),\n\t\t\t\t\t(0, react_jsx_runtime.jsx)(EditorFooter, {');
+  patch('submitLabelKey: "create",', 'submitLabelKey: existing ? "apply" : "create",');
+  patch('submitBusyLabelKey: "creating",', 'submitBusyLabelKey: existing ? "applying" : "creating",');
+  fs.writeFileSync(path, source.slice(0, start) + card + source.slice(end));
 }
 
 function stageDshRuntime(resources, destination) {

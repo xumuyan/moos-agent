@@ -75,6 +75,14 @@ test('one connection shares a credential across models and retains legacy model 
   assert.deepEqual(await models.groups(), []);
   assert.deepEqual(JSON.parse(await readFile(join(data, 'private', 'credentials.json'), 'utf8')), {});
   await models.removeGroup(group.id);
+  const draft = { ...base, route: 'test-relay', apiKey: fixture.apiKey, models: [{ id: 'fixture' }] };
+  const [created] = await models.saveGroup(draft);
+  assert.equal(created.id, 'test-relay');
+  await assert.rejects(models.saveGroup(draft), /duplicate/);
+  await assert.rejects(models.saveGroup({ ...draft, route: 'auto' }), /Invalid/);
+  const [renamed] = await models.saveGroup({ ...created, route: 'other-relay', name: 'New display name' });
+  assert.equal(renamed.id, 'test-relay');
+  assert.equal(renamed.models[0].profileId, created.models[0].profileId);
 });
 
 test('a configured desktop profile runs arbitrary workspace text through PI with native High', async t => {

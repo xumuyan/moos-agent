@@ -185,7 +185,13 @@ export function piModels(data, checkedProvider) {
       const profiles = await list();
       const existing = profiles.filter(provider => connectionId(provider) === input.id);
       if (input.id && !existing.length) throw new Error('Moos connection no longer exists');
-      const id = input.id || randomUUID();
+      const id = input.id || input.route || randomUUID();
+      if (!input.id && input.route !== undefined &&
+          (typeof input.route !== 'string' || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(id) ||
+          !configId.test(id) || id === 'auto' || id === 'pi-fixture' ||
+          profiles.some(provider => connectionId(provider) === id))) {
+        throw new Error('Invalid or duplicate Moos connection ID');
+      }
       const first = existing[0];
       const connectionName = input.name?.trim();
       const connection = { connectionId: id, connectionName, credentialId: first?.credentialId ?? first?.id ?? id };
