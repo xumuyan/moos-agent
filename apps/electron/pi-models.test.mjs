@@ -274,3 +274,38 @@ test('image input survives unrelated group edits but is not inferred or transfer
     apiKey: 'other-synthetic-key', models: [movedModel] });
   assert.equal((await models.plan(originalId, true)).provider, undefined);
 });
+
+test('GLM Responses groups save, reopen and run diagnostics without changing service or protocol', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'moos-glm-responses-'));
+  const fixture = await startFixture();
+  t.after(async () => { await fixture.close(); await rm(data, { recursive: true, force: true }); });
+  const models = piModels(data, checkedProvider);
+  const [group] = await models.saveGroup({ route: 'glm-responses', name: 'GLM Coding Plan',
+    baseUrl: fixture.baseUrl, api: 'openai-responses', service: 'glm', apiKey: fixture.apiKey,
+    models: [{ id: 'fixture' }] });
+  const [reopened] = await piModels(data, checkedProvider).groups();
+  assert.deepEqual(reopened, group);
+  assert.equal(reopened.service, 'glm');
+  assert.equal(reopened.api, 'openai-responses');
+  const before = await readFile(join(data, 'private/credentials.json'));
+  assert.equal((await models.diagnoseGroup('test_provider', { ...reopened, model: reopened.models[0] }, diagnoseProvider)).code, 'ok');
+  assert.deepEqual(await readFile(join(data, 'private/credentials.json')), before);
+  const [edited] = await models.saveGroup({ ...reopened, models: [{ ...reopened.models[0], name: 'Renamed' }] });
+  assert.equal(edited.api, 'openai-responses');
+  assert.deepEqual(await readFile(join(data, 'private/credentials.json')), before);
+  const cwd = join(data, 'workspace');
+  await mkdir(cwd);
+  const store = new Store({ dbPath: join(data, 'moos.sqlite') });
+  const tasks = createPiTasks({ store, Scheduler, run: async options => runPiSdk({
+    ...options, dataDir: join(data, 'sessions'), apiKey: await models.credential(options.provider),
+  }) });
+  t.after(() => tasks.close());
+  const adapter = createPiAdapter({ tasks, models, getSession: () => ({ header: { cwd } }),
+    getPermissions: () => ({ getMode: () => 'workspace-write' }) });
+  const call = await adapter.prepareCall('moos-pi', edited.models[0].profileId);
+  const chunks = [];
+  for await (const event of call.stream({ model: edited.models[0].profileId, sessionId: 'glm-responses',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }] }] })) chunks.push(event);
+  assert.equal(chunks.at(-1).reason.kind, 'stop');
+  assert.ok(chunks.some(chunk => chunk.text?.includes('Responses SDK ready')));
+});

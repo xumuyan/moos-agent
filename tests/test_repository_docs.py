@@ -9,6 +9,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_glm_responses_fix_distinguishes_listing_from_generation_and_installation(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-responses-settings.json').read_text())
+        self.assertEqual(evidence['documentation']['codexProtocol'], 'openai-responses')
+        self.assertEqual(evidence['documentation']['codexEndpoint'], 'https://open.bigmodel.cn/api/v1')
+        for key in ('protocolSelectEnabled', 'bothProtocolsSelectable', 'saveReopenGlmResponses', 'credentialsUnchanged'):
+            self.assertTrue(evidence['acceptance'][key])
+        self.assertFalse(evidence['acceptance']['externalApiTested'])
+        self.assertIn('not-installed', evidence['state'])
+        self.assertIn('| E92 |', (ROOT / 'PLAN.md').read_text())
+        guide = (ROOT / 'apps/electron/README.md').read_text()
+        self.assertIn('失败不等于模型不可用', guide)
+        self.assertIn('尚未安装至正式 Moos', guide)
+
     def test_update_resume_preserves_failed_checkpoint_and_uses_new_stopped_snapshot(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0131-resume.json').read_text())
         self.assertFalse(evidence['firstAttempt']['packageWasSwitched'])

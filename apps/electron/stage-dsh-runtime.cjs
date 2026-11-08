@@ -205,9 +205,9 @@ function configureProviderCard(dsh, packageName, entry) {
   patch('className: ModelsSection_module_css_default["editor"],',
     'className: ModelsSection_module_css_default["editor"],\n\t\t\t\t"data-moos-provider-card": moos ? "" : undefined,');
   patch('value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled,',
-    'value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled || (moos && service !== "openai"),');
+    'value: protocol,\n\t\t\t\t\t\t\t"aria-label": t("customApi"),\n\t\t\t\t\t\t\tdisabled: profileDisabled || (moos && service === "deepseek"),');
   patch('(0, react_jsx_runtime.jsx)(ModelListEditor, {',
-    'moos?.serviceField(service, next => {\n\t\t\t\t\t\tsetService(next);\n\t\t\t\t\t\tif (next !== "openai") setProtocol("openai-completions");\n\t\t\t\t\t}, profileDisabled),\n' +
+    'moos?.serviceField(service, next => {\n\t\t\t\t\t\tsetService(next);\n\t\t\t\t\t\tif (next === "deepseek") setProtocol("openai-completions");\n\t\t\t\t\t}, profileDisabled),\n' +
     '\t\t\t\t\t(0, react_jsx_runtime.jsx)(ModelListEditor, {');
   patch('onChange: setModels,\n\t\t\t\t\t\treasoningLevels,',
     'onChange: setModels,\n\t\t\t\t\t\treasoningLevels,\n\t\t\t\t\t\trenderExtra: moos?.modelExtra,\n\t\t\t\t\t\tpickAllOnEmpty: !moos,\n\t\t\t\t\t\tdefaultInput: moos ? ["text"] : undefined,');

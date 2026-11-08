@@ -74,3 +74,12 @@ E83 分支过程修复：Host 从实际继承前缀的消息 ID 与轮次边界�
 「设置 → 模型 → 编辑服务」的每个模型行现在直接显示「启用图片输入」，不必展开高级选项。确认当前服务地址、协议和模型确实支持图片后勾选并保存，会话能力与 PI 图片路由随保存的标记更新；自动模式只从已启用图片的配置中选择。未勾选表示尚未启用，并不证明模型不支持。短文本连接测试与只含模型 ID 的发现列表不能验证图片能力，不按 GPT 名称自动启用。既有配置未被此更新自动修改。
 
 同模型、同地址、同协议和服务类型的无关编辑，若未提供输入能力字段则保留已有启用值；显式取消勾选仍会关闭，换模型或端点不自动沿用。对图片生成模型和其他媒体能力需分别验证，本开关只声明图片输入，不提供图片生成接口。
+
+
+### GLM Coding Plan：协议与模型列表（E92 / 壳 0.1.32 源码）
+
+GLM 不只支持 Chat Completions。官方 [Codex 接入](https://docs.bigmodel.cn/cn/coding-plan/tool/codex.md) 与 [Response API](https://docs.bigmodel.cn/cn/guide/develop/responses/introduction.md) 文档说明：此接入使用基础地址 `https://open.bigmodel.cn/api/v1`，协议选择 **OpenAI Responses**；不要填成网站地址或 `https://open.bigmodel.cn/api/`，也不要附加 `/responses`（程序会追加）。Chat Completions 则需对应端点，不能混搭。个人、团队 Coding Plan 和标准 API 的密钥按产品区分。
+
+获取可用模型使用 `GET <基础地址>/models`，不是生成请求；失败不等于模型不可用，也未证明正确端点提供模型发现。可点击“添加模型”手动填写官方支持且套餐有权访问的 ID（如文档列出的 `glm-5.3`），再测试连接。不要据 Codex 的 `max` 推理值或元数据直接推断 PI 档位映射、真实窗口、工具和图片能力。
+
+0.1.32 解除 GLM 协议锁定并允许保存 Responses；保留既有 Chat Completions 选择，不自动修改用户端点或凭据。E92 仅为隔离构建/界面保存重开和本地模拟请求验收，尚未安装至正式 Moos，也未用真实 GLM 密钥验证。当前正式 0.1.31 若需临时绕过旧版限制，可选“OpenAI 兼容”+ Responses 并手动添加模型，但这会使用通用服务分类，不等于 GLM 专属错误处理和路由验收。

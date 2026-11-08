@@ -93,12 +93,15 @@ window.__ModuleLoader__.load({
           try {
             const result = await window.moosModelSettings.discover(input);
             return result.ok ? { kind: 'found', models: result.models.map(id => ({ id })) }
-              : { kind: 'refused', message: result.message };
+              : { kind: 'refused', message: result.message + ' 获取模型列表失败不代表模型不可用；可点击“添加模型”手动填写模型 ID，再测试连接。' };
           } catch { return { kind: 'refused', message: '读取模型列表失败，请重试。' }; }
         },
-        serviceField: (service, change, disabled) => providerField(styles, '服务类型',
-          providerSelect(styles, service, change,
-            [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
+        serviceField: (service, change, disabled) => createElement('div', null,
+          providerField(styles, '服务类型',
+            providerSelect(styles, service, change,
+              [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
+          service === 'glm' ? createElement('p', { role: 'note' },
+            'GLM 支持不同端点：按官方 Codex 文档接入时，地址为 https://open.bigmodel.cn/api/v1，协议选 OpenAI Responses。Chat Completions 须使用对应端点。密钥须来自相应 Coding Plan 套餐，不能混用标准 API 密钥。模型列表不可用时可手动添加模型并测试连接。') : null),
         modelExtra: (model, position, change, disabled) => createElement('div', {
           'data-moos-model-capabilities': '',
           // This is a child of the upstream model-row grid, not an auto-sized identity column.

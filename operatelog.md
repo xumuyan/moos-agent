@@ -1443,3 +1443,13 @@
 - 验证结果：独立进程 2026-11-08 23:34:17 北京时间 success：691 文件完整停机备份核对、备份权限通过；前后 75 消息/1 会话/41 任务，原数据库记录保留；API/密钥/保护配置原字节一致，聊天、PI 历史、皮肤、工作区、用户插件保留，单实例与 Host 正常。当前安装及加载包 0.1.31，codesign --verify --deep --strict 通过，当前 SQLite quick_check ok，12 模型及对应凭据可读，无 GLM 已保存项。沿用同源码全量测试通过，未重复构建和应用测试；本次文档检查在提交前执行。
 - 遗留问题：GLM 失败根因尚未确定，需错误提示和不含密钥的参数；正式 GUI 截图此前未获取，不声明目视验收。旧包及两次停机备份暂保留，本轮专注故障定位未做清理，不重复或自动重启。
 - 对应 Git 提交：唯一说明 docs(P03.13): confirm installed update and scope GLM diagnosis；查询 git log --all --oneline --grep='^docs(P03.13): confirm installed update and scope GLM diagnosis$'。提交推送并核对远程 HEAD。
+
+
+## 2026-11-08 23:53:40 +08:00｜P03.13 GLM Responses 与模型发现提示修复（E92）
+
+- 修改或新增内容：用户提供截图和官方 Codex 文档后，先获取官方 llms.txt 再阅读 Responses 兼容与 Codex 接入页；确认截图基础地址 /api/ 不符合该文档 /api/v1 + Responses。修正先前“GLM 只能 Chat Completions”的错误建议。0.1.32 源码解除 GLM 协议选择及保存限制（DeepSeek 限制保持），不替换已保存协议；增加 GLM 端点/密钥类型提示及模型发现失败手动添加引导。补充 UI/分组保存重开/合成密钥保留/真实 PI SDK 本地 Responses 测试、文档契约及 E92 证据。
+- 遇到的难题：截图只给格式异常，无上游状态或载荷，不能认定服务器实际返回 HTML 或模型列表端点缺失。新测试最初确实复现两项限制；修复后诊断用例仍失败，因为本地 fixture 只接受名为 fixture 的诊断模型，不接受 glm-5.3，属于测试输入而非实际接口结论。
+- 处理方式：保留发现与生成分别验证的边界，不静态伪造可用模型列表、不自动改 URL/配置/密钥。修正隔离测试模型 ID 后，在本地 fixture 上跑通真实 PI SDK Responses；隔离 GUI 使用独立数据与合成密钥切换两个协议、保存和重开。读取实际 PNG，确认 GLM 与可操作 Responses 同时显示；不是正式用户界面截图。未对真实密钥发请求，未安装/退出/重启正式应用。
+- 验证结果：回归前 2 项失败如实保留 before.log；定向修复后 8 通过/3 打包测试因缺环境跳过，随后独立 Terminal 正确环境全量验证打包项全部通过且无跳过：npm test 139/139；npm run test:electron 73/73；npm run test:desktop-native 11/11；node --test probes/dsh-electron-pi/index.test.mjs 5/5；Python 皮肤 4/4；当时文档 72/72，新增 E92 契约后提交前重跑。MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app 生成 build-8faVYK，严格 codesign 验证通过；artifacts/glm-responses-check/gui.mjs 隔离界面实际验收通过，glm-report.json/PNG 可核对，合成凭据原字节保留。所有证据对应提交前本工作区，原失败及历史不覆盖。
+- 遗留问题：源码修复不等于用户已更新，正式仍 0.1.31；遵循不自动部署。真实 GLM 模型列表、连通/工具能力、官方 max 与 PI 档位映射及上下文上限未验证，不能据文档宣称已实测。可先按官方地址+Responses手动添加模型，旧版临时用 OpenAI 兼容分类绕过限制但不等于完整 GLM 分类能力。
+- 对应 Git 提交：唯一说明 fix(P03.13): allow GLM Responses and explain model discovery failures；查询 git log --all --oneline --grep='^fix(P03.13): allow GLM Responses and explain model discovery failures$'。本次提交包含代码、测试、计划与日志；提交后推送并核对远程 HEAD，应用未部署。

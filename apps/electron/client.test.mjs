@@ -6,6 +6,7 @@ import { runInNewContext } from 'node:vm';
 test('the DSH client extension registers the Moos brand and model services in the original settings section', async () => {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;
+  const modelSettings = {};
   let changed;
   let cleanedUp = false;
   let dispose;
@@ -29,7 +30,7 @@ test('the DSH client extension registers the Moos brand and model services in th
     },
     window: {
       __ModuleLoader__: { load(value) { entry = value; } },
-      moosModelSettings: {},
+      moosModelSettings: modelSettings,
       moosTurn: (...args) => { turnReads.push(args); },
     },
   });
@@ -73,9 +74,16 @@ test('the DSH client extension registers the Moos brand and model services in th
   const provider = section.props.operations.moosNewEditor({});
   const card = provider.element(provider.props);
   assert.equal(card.element, editor.CustomProviderCard);
-  const service = card.props.moos.serviceField('openai', () => {}, false).children[1];
+  const service = card.props.moos.serviceField('openai', () => {}, false).children[0].children[1];
   assert.equal(service.props.className, 'dsh-input dsh-select');
   assert.equal(service.props.value, 'openai');
+  const glmNote = card.props.moos.serviceField('glm', () => {}, false).children[1];
+  assert.match(glmNote.children[0], /https:\/\/open.bigmodel.cn\/api\/v1/);
+  assert.match(glmNote.children[0], /OpenAI Responses/);
+  modelSettings.discover = async () => ({ ok: false, message: '模型服务返回格式异常', code: 'protocol' });
+  const discovery = await card.props.moos.discover({});
+  assert.equal(discovery.kind, 'refused');
+  assert.match(discovery.message, /添加模型.*手动.*测试连接/);
   const edits = [];
   const extra = card.props.moos.modelExtra({ id: 'gpt-fixture', input: ['text', 'image'] }, 1,
     (...args) => edits.push(args), false);

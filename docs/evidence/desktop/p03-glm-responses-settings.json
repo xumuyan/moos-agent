@@ -1,0 +1,82 @@
+{
+  "task": "P03.13",
+  "evidence": "E92",
+  "timeBeijing": "2026-11-08 23:53:40 +08:00",
+  "state": "source-fixed-isolated-accepted-not-installed",
+  "shellVersion": "0.1.32",
+  "reportedFailure": {
+    "operation": "list_models",
+    "baseUrl": "https://open.bigmodel.cn/api/",
+    "api": "openai-completions",
+    "service": "glm",
+    "message": "模型服务返回格式异常或响应过大，请检查协议配置",
+    "requestPathFromCode": "/api/models",
+    "limits": "No captured upstream body/status; cannot establish what server returned or whether correct endpoint supports listing."
+  },
+  "documentation": {
+    "indexFetchedFirst": "https://docs.bigmodel.cn/llms.txt",
+    "pages": [
+      "https://docs.bigmodel.cn/cn/coding-plan/tool/codex.md",
+      "https://docs.bigmodel.cn/cn/guide/develop/responses/introduction.md"
+    ],
+    "codexEndpoint": "https://open.bigmodel.cn/api/v1",
+    "codexProtocol": "openai-responses",
+    "localHashes": {
+      "llms.txt": "cc12083b8bc75f626a8f4e6b118cf47ab6be724d1e87b1606fad437a225b2e7c",
+      "others.md": "935bb54a3dfda2cc15b16e1cdc5a602721862723049bf8424d220b252392cd7a",
+      "introduction.md": "92584dba6298fb144b4c6c593aaa06201a4324379b78fd65fdb1e55bb5163af8",
+      "codex.md": "df54f05b9b8253da9b5cb5f61a99b3bc87d504b3f3ed396e61aa1a2b007de842"
+    }
+  },
+  "changes": [
+    "Allow GLM Responses in UI and profile validation; retain DeepSeek restriction",
+    "Retain explicit chosen protocol, never rewrite saved GLM or migrate credentials",
+    "Show GLM endpoint/protocol/key guidance and manual-model fallback for discovery failure"
+  ],
+  "acceptance": {
+    "targetVersion": "0.1.32",
+    "initial": {
+      "disabled": false,
+      "value": "openai-responses",
+      "notes": [
+        "GLM 支持不同端点：按官方 Codex 文档接入时，地址为 https://open.bigmodel.cn/api/v1，协议选 OpenAI Responses。Chat Completions 须使用对应端点。密钥须来自相应 Coding Plan 套餐，不能混用标准 API 密钥。模型列表不可用时可手动添加模型并测试连接。"
+      ]
+    },
+    "protocolSelectEnabled": true,
+    "bothProtocolsSelectable": true,
+    "saveReopenGlmResponses": true,
+    "credentialsUnchanged": true,
+    "externalApiTested": false
+  },
+  "regression": {
+    "before": "2 failures: GLM profile rejected, protocol selector locked",
+    "intermediate": "Test fixture rejected glm-5.3 (only diagnostic model fixture accepted); corrected test ID, no product workaround",
+    "full": {
+      "core": "139/139",
+      "electron": "73/73, no skips",
+      "native": "11/11",
+      "bridge": "5/5",
+      "skin": "4/4",
+      "docsBeforeEvidence": "72/72"
+    },
+    "commands": "artifacts/glm-responses-check/validate.command; same checked HOME/TMPDIR and isolated fixtures as E90",
+    "targeted": "8 passed, 3 packaged tests skipped without candidate env; packaged tests subsequently passed in full run"
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-8faVYK/Moos.app",
+    "command": "MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app",
+    "signature": "codesign --verify --deep --strict passed"
+  },
+  "gui": {
+    "system": "arm64 macOS 27.0.1",
+    "screenshot": "artifacts/glm-responses-check/gui/recovery-ES1JcV/glm.png",
+    "reviewed": true,
+    "observation": "Actual isolated image shows GLM Coding Plan together with enabled OpenAI Responses selector; synthetic loopback endpoint and no real credentials. Hint extends below current scroll viewport.",
+    "isolatedOnly": true
+  },
+  "limits": [
+    "No authenticated request to GLM, no real model listing, reasoning-level or token-limit verification",
+    "No official user-data mutation, quit/restart or installation; formal remains 0.1.31",
+    "Do not claim correct endpoint provides GET /models or all Codex metadata maps directly to PI"
+  ]
+}

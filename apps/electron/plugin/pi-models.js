@@ -34,7 +34,7 @@ export function piModels(data, checkedProvider) {
     };
     if (!levels.has(provider.thinkingLevel) || !services.has(provider.service) ||
         provider.id === 'auto' || provider.id === 'pi-fixture' ||
-        provider.service !== 'openai' && provider.api !== 'openai-completions') {
+        provider.service === 'deepseek' && provider.api !== 'openai-completions') {
       throw new Error('Invalid Moos model profile');
     }
     provider.baseUrl = checkedProvider(provider);

@@ -613,3 +613,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E91 | 0.1.31 安装续作预检：第一次 659 文件停机备份通过，但旧包父目录缺失导致 rename 失败，程序未替换。保留失败证据及原备份；续作检查目录/同卷/旧包冲突并以 data-before-install-resume 备份新增对话，脚本测试 3/3、预检通过，沿用全量测试通过及正式 build-92S1Rw。证据 `docs/evidence/desktop/p03-installed-update-0131-resume.json`。 | 待独立续作结果；不可重跑原脚本或覆盖旧备份。恢复先读 result.json 和 resume-terminal.log，不提前宣称安装或正式 GUI 验收通过。 |
 
 2026-11-08 E91 续作结果已只读核对：独立更新于北京时间 23:34:17 success，正式安装与加载壳均 0.1.31，单实例和 Host 通过；新停机备份 691 文件校验，更新前后 75 消息/1 会话/41 任务及原记录保留，API/凭据字节一致，聊天/PI 历史、皮肤、工作区和用户插件保留。严格验签、SQLite quick_check、12 模型配置与相应凭据可读。备份暂保留，未做正式截图验收。用户新报 GLM 配置失败，目前无已保存 GLM，未保存草稿/诊断结果不持久化，原因待错误提示/参数核实，不改用户配置、不发送线上测试请求。证据沿用 E91（保留首轮失败结果）。
+
+| E92 | P03.13 GLM Responses 配置修复：截图证实 GET 模型列表失败时基础地址为 /api/，不符官方 Codex /api/v1 + Responses；移除 GLM 协议强制降为 Chat Completions 的 UI/保存限制，增加端点与手动模型提示，不迁移配置。证据 `docs/evidence/desktop/p03-glm-responses-settings.json`。 | 隔离 0.1.32 build-8faVYK 严格签名通过，真实隔离界面切换/保存/重开及合成密钥保留通过；核心 139/139、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4。真实 GLM 请求、正确端点模型发现、推理值映射未验证；未安装，正式仍 0.1.31，不勾选完整阶段。 |

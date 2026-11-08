@@ -170,6 +170,9 @@ test('the carried Host drops optional packages and their inventory entries, but 
   assert.match(models, /if \(!window\.moosModelSettings\)/);
   assert.match(models, /props\.renderExtra\?\.\(model, position, props\.onFieldChange, disabled\)/);
   assert.match(models, /if \(moos\) return moos\.save\(connection\)/);
+  assert.match(models, /disabled: profileDisabled \|\| \(moos && service === "deepseek"\)/);
+  assert.match(models, /if \(next === "deepseek"\) setProtocol\("openai-completions"\)/);
+  assert.doesNotMatch(models, /service !== "openai"|next !== "openai"/);
   assert.match(await readFile(join(built, settingsClient), 'utf8'), /shellInstance\.actions\.select\("models"\)/);
   assert.match(await readFile(join(built, chatClient), 'utf8'), /\(embedded \|\| open\) && mount/);
   assert.match(await readFile(join(built, chatClient), 'utf8'), /renderSlot\("conversation\.chat\.turnProcess", \{\s*startSeq: turn\.start\.seq, live: turn\.status !== "closed"/);
