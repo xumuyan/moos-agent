@@ -1,0 +1,51 @@
+{
+  "id": "E87",
+  "completionTimeBeijing": "2026-11-08 20:34:40 +08:00",
+  "sourceCommit": "5e9263328876dd80b607921dc5c0e8255232288c",
+  "sourceBuild": "build-t1M9Zp",
+  "previousShellVersion": "0.1.27",
+  "shellVersion": "0.1.29",
+  "bundleId": "dev.moos.agent.electron",
+  "installedPath": "/Applications/Moos.app",
+  "signatureDeepStrict": "passed",
+  "independentTerminal": true,
+  "rollbackPackageRetained": true,
+  "stoppedDataBackupRetained": true,
+  "rendererRunning": true,
+  "verification": {
+    "state": "success",
+    "targetShell": "0.1.29",
+    "userAuthorizedUpdate": true,
+    "stoppedActiveTasks": false,
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "time": "2026-11-08T12:34:40.786Z",
+    "fullBackupFilesVerified": 634,
+    "backupPermissionsVerified": true,
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 51,
+      "conversations": 1,
+      "tasks": 28
+    },
+    "loadedClientMatches": true,
+    "hostRunning": true,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "originalDatabaseRowsRetained": true,
+    "afterCounts": {
+      "messages": 51,
+      "conversations": 1,
+      "tasks": 28
+    },
+    "userPluginDependenciesRetained": true,
+    "installedMainProcesses": 1
+  },
+  "limits": {
+    "realRelayRequestSubmitted": false,
+    "existingOverLimitConversationRetried": false
+  }
+}

@@ -84,6 +84,27 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertTrue(result[key])
         self.assertIn('不扩大为完整阶段或 Swift 探针通过', (ROOT / 'PLAN.md').read_text())
 
+    def test_e87_installed_long_context_fix_preserves_original_data(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-context-update-installation.json').read_text())
+        self.assertEqual(evidence['shellVersion'], '0.1.29')
+        self.assertEqual(evidence['signatureDeepStrict'], 'passed')
+        self.assertTrue(evidence['independentTerminal'])
+        self.assertTrue(evidence['rollbackPackageRetained'])
+        self.assertTrue(evidence['stoppedDataBackupRetained'])
+        result = evidence['verification']
+        self.assertEqual(result['state'], 'success')
+        self.assertEqual(result['installedMainProcesses'], 1)
+        self.assertGreater(result['fullBackupFilesVerified'], 0)
+        self.assertEqual(result['beforeCounts'], result['afterCounts'])
+        for key in ('backupVerified', 'backupPermissionsVerified', 'loadedClientMatches',
+                    'apiAndCredentialsIdentical', 'originalDatabaseRowsRetained', 'piHistoryFilesRetained',
+                    'chatFilesRetained', 'skinsRetained', 'workspaceRetained', 'userPluginDependenciesRetained'):
+            self.assertTrue(result[key], key)
+        for key in ('stoppedActiveTasks', 'productionDataReset', 'automaticDataRestore'):
+            self.assertFalse(result[key], key)
+        self.assertFalse(evidence['limits']['existingOverLimitConversationRetried'])
+        self.assertIn('| E87 |', (ROOT / 'PLAN.md').read_text())
+
     def test_authorized_installation_procedure_requires_independent_worker_and_data_checks(self):
         rules = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
         section = rules.split('### 已验证的 Mac 应用更新流程', 1)[1].split('\n## ', 1)[0]

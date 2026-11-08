@@ -595,3 +595,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E85 | macOS 27.0.1 arm64，build-inm6Es、壳 0.1.28。模型图片开关无需展开高级项即可见，保存重开保留，合成凭据原字节不变；手动/自动模型能力与 PI 带图回归通过。Electron 71/71，核心 135/136。证据 `docs/evidence/desktop/p03-image-input-settings.json`。 | 无生产数据写入、未部署；不凭 GPT 名称推断图片支持，外部服务本轮未验。Swift 探针仍失败。 |
 
 | E86 | 2026-11-08，P03.13.5、P03.13.6。macOS arm64 的签名构建 `build-t1M9Zp`，壳 0.1.29。模拟中转让同一 PI 会话先积累历史，再返回溢出，验证一次压缩和重试后继续。Electron 隔离女仆工坊窗口实测明确的上下文失败和 222 px 重试控件，窗口宽 1240 px。代理验证超过旧 2 MiB 的 JSON 可转发，超过新 8 MiB 的请求仍被拦截。 | 证据 `/private/tmp/moos-context-fix.RWCW4b/`。真实中转的 Token 与请求体限制以及用户原会话恢复待实测；正式安装未更新。 |
+
+| E87 | 2026-11-08 20:34:40（北京时间），用户授权按 E84 流程更新。独立 Terminal 等到无任务后正常退出，整份停机备份核对 634 个文件或链接。签名构建 `build-t1M9Zp` 正式安装，单实例及 Host、渲染进程、加载壳 0.1.29 已核对。原有 51 条消息、1 个会话及 28 个任务 ID 保留，模型及密钥配置字节一致。 | 证据 `docs/evidence/desktop/p03-context-update-installation.json`。旧包和停机备份保留；真实中转和用户超长原会话续聊仍待验证。 |

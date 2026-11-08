@@ -1344,3 +1344,13 @@
 - 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（最终包 Host 与皮肤夹具），`npm run test:docs` 69/69，PI 探针 5/5、皮肤探针 4/4。Rust 探针首轮缺少清理掉的打包资源，运行 `npm run prepare:runtime` 后重跑 `RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11。最终包严格验签和 Git 差异检查通过。
 - 遗留问题：真实中转支持的 Token 数和请求字节限制待用对应端点核实，未对用户原会话提交模型请求或改写记录，未部署。多请求或缺少原始用量字段的压缩本轮不计入用量统计。
 - 对应 Git 提交：唯一说明 `fix(P03.13): recover long PI conversations and compact the retry notice`，用 `git log --all --oneline --grep='^fix(P03.13): recover long PI conversations and compact the retry notice$'` 查询。
+
+## 2026-11-08 20:34:40 +08:00｜P03.13.5、P03.13.6 安装长会话恢复与重试样式修复
+
+- 修改或新增内容：按用户授权及 E84 流程，用签名构建 `build-t1M9Zp` 替换正式 `/Applications/Moos.app`，壳从 0.1.27 升级到 0.1.29。追加 E87 与文档契约检查。
+- 遇到的难题：正式 Moos 已运行并带有真实会话和模型配置，更新需独立于该实例，并先核实任务与旧数据状态。
+- 处理方式：为本次版本重新生成一次性独立 Terminal 脚本。预检确认旧包、新包身份和签名一致，磁盘空间充足，队列无活动任务。正常退出后等待 Host 结束，停机复制并核对整份数据，再同卷替换程序。旧包和停机备份均保留于 `/Applications/.moos-update.WtJCbOuI/`。
+- 实际验收：独立结果 `artifacts/installed-update-0.1.29/result.json` 为 success，日志核实停机、完整备份与一次启动。634 个备份文件或符号链接核对通过，目录及敏感文件权限正确。旧消息 51 条、会话 1 个、任务 28 个 ID 保留，模型配置和密钥原字节一致，聊天、PI 历史、皮肤、应用工作区及用户插件保留。正式路径严格验签、关键程序文件比对、单实例及 Host 和渲染器核验均通过，加载壳与包内版本均为 0.1.29。脱敏结果见 `docs/evidence/desktop/p03-context-update-installation.json`。
+- 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（用已安装 Host 与皮肤夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 70/70，Git 差异检查通过。
+- 遗留问题：正式安装验收覆盖进程、程序和原有数据保留。真实中转与用户超长会话的续聊仍待实测，功能布局在 E86 的隔离环境验收。
+- 对应 Git 提交：安装包来自 `5e92633`。本记录唯一说明 `docs(P03.13): verify the installed long-context update`，用 `git log --all --oneline --grep='^docs(P03.13): verify the installed long-context update$'` 查询。
