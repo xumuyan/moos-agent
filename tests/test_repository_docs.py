@@ -9,6 +9,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_authorized_0132_install_keeps_distinct_checkpoints_and_does_not_claim_completion(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0132.json').read_text())
+        self.assertTrue(evidence['userAuthorized'])
+        self.assertEqual(evidence['targetShell'], '0.1.32')
+        self.assertEqual(evidence['fromShell'], '0.1.31')
+        self.assertFalse(evidence['preflight']['fixture'])
+        self.assertTrue(evidence['preflight']['candidateFileBytesMatchAccepted'])
+        self.assertEqual(evidence['preflight']['checkpointTests'], '4/4')
+        for key in ('backup', 'oldPackage', 'result', 'log'):
+            self.assertIn('.moos-update-0.1.32/', evidence['handoff'][key])
+        self.assertTrue(evidence['handoff']['oneTimeOnly'])
+        self.assertIn('| E93 |', (ROOT / 'PLAN.md').read_text())
+
     def test_glm_responses_fix_distinguishes_listing_from_generation_and_installation(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-responses-settings.json').read_text())
         self.assertEqual(evidence['documentation']['codexProtocol'], 'openai-responses')

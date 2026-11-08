@@ -1453,3 +1453,13 @@
 - 验证结果：回归前 2 项失败如实保留 before.log；定向修复后 8 通过/3 打包测试因缺环境跳过，随后独立 Terminal 正确环境全量验证打包项全部通过且无跳过：npm test 139/139；npm run test:electron 73/73；npm run test:desktop-native 11/11；node --test probes/dsh-electron-pi/index.test.mjs 5/5；Python 皮肤 4/4；当时文档 72/72，新增 E92 契约后提交前重跑。MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app 生成 build-8faVYK，严格 codesign 验证通过；artifacts/glm-responses-check/gui.mjs 隔离界面实际验收通过，glm-report.json/PNG 可核对，合成凭据原字节保留。所有证据对应提交前本工作区，原失败及历史不覆盖。
 - 遗留问题：源码修复不等于用户已更新，正式仍 0.1.31；遵循不自动部署。真实 GLM 模型列表、连通/工具能力、官方 max 与 PI 档位映射及上下文上限未验证，不能据文档宣称已实测。可先按官方地址+Responses手动添加模型，旧版临时用 OpenAI 兼容分类绕过限制但不等于完整 GLM 分类能力。
 - 对应 Git 提交：唯一说明 fix(P03.13): allow GLM Responses and explain model discovery failures；查询 git log --all --oneline --grep='^fix(P03.13): allow GLM Responses and explain model discovery failures$'。本次提交包含代码、测试、计划与日志；提交后推送并核对远程 HEAD，应用未部署。
+
+
+## 2026-11-09 00:02:36 +08:00｜P03.13 用户授权 0.1.32 独立更新预检（E93）
+
+- 修改或新增内容：用户“那你直接更新吧”明确授权本次更新。只读核对 E91 success，不重复 0.1.31 安装。将 E92 已全量验证的非 fixture build-8faVYK 暂存到同卷 /Applications/.moos-update-0.1.32/Moos.app，制作当次独立 Terminal 一次性脚本、结果与日志路径；新备份和旧包目录与历史完全分开。计划及 E93 证据同步。
+- 遇到的难题：当前对话属于唯一活跃任务，不能用强制停止实现更新。最初预检文件比对误用 app/plugin/pi-models.js，ENOENT 拦截发生于退出/备份/移包之前，不能当成已安装。
+- 处理方式：脚本等待任务自然结束后正常退出并等 Host，重新完整停机备份、校验及限制备份权限，只更换程序；门禁验证配置/凭据可读和原权限、同卷、可用空间、目标身份/版本、关键文件与已验包字节一致，失败停止保留。将错误路径修正为实际 app/pi-models.js，并新增实际候选文件路径回归检查；历史失败/备份不删、不覆写。禁止用原版本一次性脚本直接重跑。
+- 验证结果：两包 codesign --verify --deep --strict 均通过，应用标识 dev.moos.agent.electron；正式及加载 0.1.31、目标 0.1.32，原 SQLite quick_check ok，凭据 0600；可用约 19GB，候选约 692304KiB/现有数据约 162680KiB，实际同卷；node --test artifacts/installed-update-0.1.32/checkpoint.test.mjs 4/4，更新脚本 --preflight PREFLIGHT_OK，语法检查通过。沿用同候选 E92 核心 139/139、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4，不重复成功构建/应用测试。本次文档测试提交前执行，证据对应当前工作区。
+- 遗留问题：本条记录为预检/交接状态，不是安装成功或 GLM 真网验收；提交推送后才启动独立 Terminal，任务自然结束后可继续执行。恢复必须先读 /Applications/.moos-update-0.1.32/result.json 和 terminal-update.log，成功再核对正式安装、加载及数据保留，不凭窗口判断；失败保留所有数据/旧包/备份，不自动恢复覆盖。旧 0.1.31 备份未触碰。
+- 对应 Git 提交：唯一说明 docs(P03.13): authorize and preflight isolated 0.1.32 update；查询 git log --all --oneline --grep='^docs(P03.13): authorize and preflight isolated 0.1.32 update$'。提交推送并核对远程后交接，最终结果另追加而非覆盖历史。

@@ -1,0 +1,58 @@
+{
+  "task": "P03.13",
+  "evidence": "E93",
+  "timeBeijing": "2026-11-09 00:02:36 +08:00",
+  "state": "preflight-passed-awaiting-independent-install",
+  "userAuthorized": true,
+  "fromShell": "0.1.31",
+  "targetShell": "0.1.32",
+  "sourceCommit": "1567834e914fecf3c1f2280192449e591be90664",
+  "candidate": ".generated/moos-electron/build-8faVYK/Moos.app",
+  "staged": "/Applications/.moos-update-0.1.32/Moos.app",
+  "dataRoot": "/Users/xuguopeng/Library/Application Support/dev.moos.agent.electron",
+  "preflight": {
+    "signatureBoth": "codesign --verify --deep --strict passed",
+    "identity": "dev.moos.agent.electron",
+    "fixture": false,
+    "sameVolume": true,
+    "freeSpaceKiB": 19907476,
+    "candidateKiB": 692304,
+    "existingDataKiB": 162680,
+    "loadedShell": "0.1.31",
+    "sqliteQuickCheck": "ok",
+    "credentialPermissions": "0600",
+    "candidateFileBytesMatchAccepted": true,
+    "checkpointTests": "4/4",
+    "originalSingleInstance": true,
+    "activeTask": "1, wait naturally; do not cancel"
+  },
+  "validation": {
+    "inherited": "E92 same unchanged candidate: core 139/139, Electron 73/73 no skips, native 11/11, bridge 5/5, skin 4/4, docs 73/73",
+    "commands": "artifacts/glm-responses-check/validate.command; node --test artifacts/installed-update-0.1.32/checkpoint.test.mjs; node /Applications/.moos-update-0.1.32/update.mjs --preflight",
+    "preflightFailureCorrected": "Initial candidate byte comparison referenced nonexistent app/plugin/pi-models.js. Stopped preflight without quitting/data changes; corrected to app/pi-models.js and added packaged-path regression test."
+  },
+  "handoff": {
+    "script": "/Applications/.moos-update-0.1.32/update.mjs",
+    "sha256": "bbc6ec14fddc0127ec5fbf6ee782af28dac0f2ef40f589c30a4785c9dbc739af",
+    "launcher": "/Applications/.moos-update-0.1.32/update.command",
+    "result": "/Applications/.moos-update-0.1.32/result.json",
+    "log": "/Applications/.moos-update-0.1.32/terminal-update.log",
+    "backup": "/Applications/.moos-update-0.1.32/data-before-install",
+    "oldPackage": "/Applications/.moos-update-0.1.32/previous/Moos.app",
+    "oneTimeOnly": true,
+    "resume": "Read result and log first; never rerun after a completed checkpoint or use earlier version scripts."
+  },
+  "preservation": [
+    "Wait for idle and normal quit/Host shutdown",
+    "New full stopped-data backup, private permission tightening only on backup",
+    "Same-volume app-only rename; no data migration or automatic restore",
+    "Verify protected bytes, chat/PI prefix retention, SQLite original rows, skins/workspace/plugin dependencies, shell/client/Host/single instance",
+    "Verify existing saved model and credential readability without sending model requests"
+  ],
+  "limitations": [
+    "No installation success until independent result verified",
+    "No authenticated GLM request",
+    "No formal screenshot or user-visible GLM connectivity acceptance yet",
+    "Historical 0.1.31 backups and results left unchanged"
+  ]
+}
