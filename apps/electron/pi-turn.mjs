@@ -1,3 +1,4 @@
+import { isWorkspaceChangeVisible } from './plugin/pi-workspace-changes.js';
 import { DatabaseSync } from 'node:sqlite';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -116,7 +117,7 @@ export function createPiTurnReader(dbPath, timelinePayload) {
       ]);
       return { status: task.status, actions: [...actions.values()], route, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
-        files: [...mergedFiles].map(([path, summary]) => ({ path, summary })) };
+        files: [...mergedFiles].filter(([path]) => isWorkspaceChangeVisible(path)).map(([path, summary]) => ({ path, summary })) };
     },
     close() {
       db?.close();

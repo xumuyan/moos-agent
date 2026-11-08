@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,7 +7,7 @@ import test from 'node:test';
 import { Store } from '../../services/agent/store.mjs';
 import { timelinePayload } from '../../services/agent/timeline-view.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
-import { withWorkspaceChanges } from './plugin/pi-workspace-changes.js';
+import { isWorkspaceChangeVisible, withWorkspaceChanges } from './plugin/pi-workspace-changes.js';
 
 test('PI turn summaries keep verified actions and workspace paths while excluding tool inputs and outputs', async t => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-turn-')));
@@ -40,6 +40,7 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
     });
   }
   record('write-one', 'write', { path: join(root, 'a.txt'), content: 'private input' }, false);
+  record('cache-write', 'write', { path: '.npm/_cacache/hidden' }, false);
   record('edit-one', 'edit', { path: './a.txt', newText: 'private input' }, false);
   record('edit-failed', 'edit', { path: 'b.txt' }, true);
   record('read-outside', 'read', { path: '/outside-private' }, true);
@@ -48,7 +49,7 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
   assert.equal(live.status, 'running');
   assert.deepEqual(live.actions.at(-1), { label: '运行命令', path: undefined, command: 'git status', state: 'running' });
   assert.deepEqual(live.files, [{ path: 'a.txt', summary: '写入文件、局部修改' }]);
-  assert.equal(live.actions[2].state, 'failed');
+  assert.equal(live.actions[3].state, 'failed');
   assert.doesNotMatch(JSON.stringify(live), /private|user input/);
   store.updateTask(task.id, { status: 'cancelled' });
   assert.equal(reader.read('session-one', null), null);
@@ -59,6 +60,12 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
   assert.equal(settled.actions.at(-1).state, 'unrecorded');
   reader.close();
   assert.deepEqual(reader.read('session-one', 12), settled);
+  store.appendEvent(task.id, 'workspace_changes', { files: [
+    { path: '.npm/_cacache/historical', summary: '新增' },
+    { path: 'a.txt', summary: '修改' },
+  ], limited: false });
+  assert.deepEqual(reader.read('session-one', 12).files, [{ path: 'a.txt', summary: '修改' }]);
+
   store.createTask({ conversationId: conversation.id, message: 'newer task' });
   assert.equal(reader.read('session-one', 'retry'), null);
 });
@@ -79,6 +86,9 @@ test('the workspace summary detects command changes without including pre-existi
   await withWorkspaceChanges(root, new AbortController().signal, async () => {
     await writeFile(join(root, 'existing.txt'), 'new');
     await writeFile(join(root, 'shell-created.txt'), 'created');
+    await mkdir(join(root, '.npm/_cacache'), { recursive: true });
+    await Promise.all(Array.from({ length: 2510 }, (_, i) => writeFile(join(root, '.npm/_cacache', String(i)), 'cache')));
+
     await rm(join(root, 'remove.txt'));
   }, value => { report = value; });
   assert.deepEqual(report, { files: [
@@ -122,4 +132,12 @@ test('the background panel reads live PI work across projects and excludes finis
   assert.deepEqual(rows().map(row => [row.id, row.status]), [[queued.id, 'running']]);
   store.updateTask(queued.id, { status: 'failed' });
   assert.deepEqual(rows(), []);
+});
+
+test('cache visibility filters known generated paths, not ordinary hidden configuration or source', () => {
+  for (const path of ['.npm/_cacache/entry', 'apps/ui/node_modules/pkg/index.js', '.cache/data',
+    '__pycache__/x.pyc', 'node-compile-cache/a', 'node-addon-native-custom-loader-501/a',
+    'dsh-workspace-changes-abc123/a', 'moos-m01-abc123/a']) assert.equal(isWorkspaceChangeVisible(path), false, path);
+  for (const path of ['.github/workflows/test.yml', '.gitignore', '.npmrc', 'src/cache.js',
+    'package-lock.json', 'Library/source.js', '.local/project.js']) assert.equal(isWorkspaceChangeVisible(path), true, path);
 });

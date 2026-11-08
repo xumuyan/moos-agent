@@ -95,6 +95,8 @@ for (const file of ['main.mjs', 'host.mjs', 'pi-usage.mjs', 'pi-turn.mjs', 'prof
   await cp(join(source, file), join(appSource, file));
 }
 await cp(join(source, 'plugin/pi-models.js'), join(appSource, 'pi-models.js'));
+await mkdir(join(appSource, 'plugin'));
+await cp(join(source, 'plugin/pi-workspace-changes.js'), join(appSource, 'plugin/pi-workspace-changes.js'));
 const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ dshVersion, includesPiFixture }));
 await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));

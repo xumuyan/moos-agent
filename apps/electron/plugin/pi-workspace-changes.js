@@ -10,6 +10,15 @@ const maxFiles = 2500;
 const maxFileBytes = 4 * 1024 * 1024;
 const maxScanBytes = 64 * 1024 * 1024;
 
+// Presentation-only exclusions: never delete files or change Git's index/ignore rules.
+export function isWorkspaceChangeVisible(path) {
+  if (typeof path !== 'string') return false;
+  const parts = path.replaceAll('\\', '/').split('/');
+  const caches = new Set(['.npm', '.cache', 'node_modules', '__pycache__', 'node-compile-cache']);
+  return !parts.some(part => caches.has(part) || /^node-addon-native-custom-loader-\d+$/.test(part)
+    || /^dsh-workspace-changes-[A-Za-z0-9]+$/.test(part) || /^moos-m01-[A-Za-z0-9]+$/.test(part));
+}
+
 function within(cwd, path) {
   const name = relative(cwd, path);
   return name !== '..' && !name.startsWith('..' + sep) && !isAbsolute(name);
@@ -39,7 +48,7 @@ async function snapshot(cwd, signal, previous = []) {
     '--cached', '--others', '--exclude-standard', '--', '.'], {
     cwd, env: { ...env, GIT_OPTIONAL_LOCKS: '0' }, signal, timeout: 5000, maxBuffer: 1024 * 1024,
   });
-  const names = new Set([...stdout.split('\0').filter(Boolean), ...previous]);
+  const names = new Set([...stdout.split('\0').filter(Boolean), ...previous].filter(isWorkspaceChangeVisible));
   if (names.size > maxFiles) return null;
   let remaining = maxScanBytes;
   const files = new Map();

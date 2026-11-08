@@ -1,0 +1,31 @@
+{
+  "id": "E89",
+  "state": "pre-commit workspace; shell 0.1.31; isolated fixture build-gQqYso",
+  "scope": "Only modification-list visibility; no deletion, Git index/ignore change, production-data modification or deployment.",
+  "acceptance": {
+    "packagedReader": true,
+    "historicalCacheHidden": true,
+    "sourceAndNpmrcVisible": true,
+    "productionDataModified": false,
+    "result": [
+      {
+        "path": "src/main.js",
+        "summary": "修改"
+      },
+      {
+        "path": ".npmrc",
+        "summary": "修改"
+      }
+    ]
+  },
+  "regression": "2510 synthetic .npm cache files do not consume the 2500-file budget; normal changes still report, historical events and write/edit fallback both filtered.",
+  "tests": {
+    "electron": "72/72",
+    "core": "138/139; Swift compiler SIGTRAP remains",
+    "rust": "11/11",
+    "bridge": "5/5",
+    "skin": "4/4"
+  },
+  "gui": "Not GUI accepted or installed. Actual packaged reader tested with synthetic SQLite; source/config preserved.",
+  "logs": "artifacts/cache-filter-check/"
+}

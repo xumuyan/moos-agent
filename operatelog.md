@@ -1373,3 +1373,12 @@
 - 验证结果：证据对应本条提交前工作区。定向 client 测试 1/1；npm run build:app 固定 DSH 输入、fixture=1 构建 build-zNXXqB，严格验签通过。隔离女仆工坊 1240/820 视口中 ID 恢复至 218.75/202.4px，与按钮不重叠，能力区域完整跨行；展开后名称可读，保存重开 ID 与图片标记保持、合成密钥原字节不变。桌面截图已通过图片工具目视核对。原始验收脚本、前后日志和截图在 artifacts/model-catalog-check/，脱敏证据 docs/evidence/desktop/p03-model-catalog-layout.json。启用新包 Host/隔离皮肤夹具 npm run test:electron 71/71；Rust 原命令 RUST_TEST_THREADS=1 npm run test:desktop-native 11/11，PI 桥 5/5，Python 皮肤 4/4。npm test 首轮及补正 PATH/HOME 后均为 137/139，失败为 Swift 编译 SIGTRAP 和开发工具任务超时，不宣称全量通过。PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 71/71，git diff --check 通过。
 - 遗留问题：完整核心验收因上述两项仍受阻，解除条件为恢复 Swift 编译执行环境及定位工具任务超时后重跑；不因本次 UI 修复勾选完整阶段。正式安装仍为 0.1.29，此次未部署；用户配置、聊天未改写。仅发现新的未跟踪 .npm 缓存，不提交或删除其他已有目录。
 - 对应 Git 提交：唯一说明 fix(P03.13): preserve model catalog identity columns；查询 git log --all --oneline --grep='^fix(P03.13): preserve model catalog identity columns$'。提交后推送 GitHub 并核对远程 HEAD，代码推送不等于应用部署。
+
+
+## 2026-11-08 21:05:37 +08:00｜P03.13 修改文件列表隐藏缓存
+
+- 修改或新增内容：按用户要求隐藏截图中的 .npm/_cacache。共享路径策略用于任务前后扫描及 pi-turn 历史展示，过滤明确的包/编译缓存和已知探针临时目录；正常源码、.npmrc、.gitignore、package-lock.json、Library/source.js 和 .local/project.js 保留，不宽泛忽略隐藏目录。更新打包复制依赖，壳 0.1.31。过滤只影响修改文件列表，不删磁盘文件、不改 Git 索引或 Gitignore、不隐藏工具动作记录。
+- 难题及处理：仅在新快照过滤不会隐藏历史记录，且缓存可能耗尽 2500 文件预算；因此过滤在预算检查之前，并同时作用于历史 workspace_changes 与 write/edit 回退结果。历史原事件不修改。合成 2510 个缓存文件及普通修改的集成测试通过，索引未改；历史和回退测试验证缓存不显示，正常字段保持。
+- 验证结果：证据对应本提交前工作区。npm run build:app（固定 DSH 来源，fixture=1，npm 缓存明确放 artifacts）构建 build-gQqYso，codesign --verify --deep --strict 通过。node artifacts/cache-filter-check/acceptance.mjs 在独立临时 SQLite 中实际调用打包 pi-turn 读取器，确认历史缓存隐藏、src/main.js 和 .npmrc 保留；证据 docs/evidence/desktop/p03-workspace-cache-filter.json。npm run test:electron 使用隔离 Host/皮肤夹具 72/72；npm test 138/139，唯一失败为 Swift 编译 SIGTRAP（上一轮工具超时本轮未复现）；RUST_TEST_THREADS=1 npm run test:desktop-native 11/11；node --test probes/dsh-electron-pi/index.test.mjs 5/5；Python 皮肤测试 4/4。完整日志 artifacts/cache-filter-check/。文档测试及差异检查见本提交前命令结果。
+- 遗留问题：Swift 探针失败未解决，恢复编译执行环境并重跑全部测试后方能全量验收。此次未 GUI 验收，未部署、未重启正式应用、未读写真实配置/聊天；正式包仍不包含本次过滤，需用户另行授权安装后生效。
+- 对应 Git 提交：唯一说明 fix(P03.13): hide generated cache paths from workspace changes；查询 git log --all --oneline --grep='^fix(P03.13): hide generated cache paths from workspace changes$'。提交后推送并核对 origin/main 与 HEAD；推送不是部署。
