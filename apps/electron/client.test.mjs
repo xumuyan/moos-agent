@@ -79,6 +79,9 @@ test('the DSH client extension registers the Moos brand and model services in th
   const edits = [];
   const extra = card.props.moos.modelExtra({ id: 'gpt-fixture', input: ['text', 'image'] }, 1,
     (...args) => edits.push(args), false);
+  assert.equal(extra.props.style.gridColumn, '1 / -1', 'capabilities must not expand the drag-handle auto column');
+  assert.equal(extra.props.style.minWidth, 0);
+  assert.equal(extra.children[1].props.style.flexDirection, 'row');
   const image = extra.children[1].children[1];
   assert.equal(image.props.type, 'checkbox');
   assert.equal(image.props.checked, true);

@@ -9,6 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_model_catalog_layout_preserves_identity_and_records_actual_acceptance(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-model-catalog-layout.json').read_text())
+        self.assertTrue(evidence['acceptance']['modelIdRetained'])
+        self.assertTrue(evidence['acceptance']['imageFlagSaveReopen'])
+        self.assertTrue(evidence['acceptance']['credentialsUnchanged'])
+        for layout in evidence['acceptance']['layouts']:
+            field = next(item for item in layout['fields'] if item['label'] == '模型 ID 1')
+            self.assertGreaterEqual(field['rect']['width'], 120)
+        self.assertIn('| E88 |', (ROOT / 'PLAN.md').read_text())
+
     def test_updates_require_user_deployment_and_preserve_chat_and_configuration(self):
         rules = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')

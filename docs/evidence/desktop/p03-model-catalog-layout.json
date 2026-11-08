@@ -1,0 +1,290 @@
+{
+  "id": "E88",
+  "sourceState": "pre-commit workspace; build-zNXXqB; shell 0.1.30",
+  "system": "macOS arm64",
+  "cause": "An unpositioned extra grid child expanded the auto drag column to 403px, collapsing model ID/name tracks; measured input widths were 22px.",
+  "fix": "Capabilities explicitly span gridColumn 1 / -1 with minWidth 0; image checkbox uses a horizontal label. Upstream identity row and model data are unchanged.",
+  "acceptance": {
+    "layouts": [
+      {
+        "width": 1240,
+        "row": {
+          "x": 470,
+          "y": 863,
+          "width": 483,
+          "height": 179,
+          "top": 863,
+          "right": 953,
+          "bottom": 1042,
+          "left": 470
+        },
+        "extra": {
+          "x": 470,
+          "y": 901,
+          "width": 483,
+          "height": 141,
+          "top": 901,
+          "right": 953,
+          "bottom": 1042,
+          "left": 470
+        },
+        "grid": "28px 218.75px 156.25px 28px 28px",
+        "fields": [
+          {
+            "label": "调整模型顺序 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 470,
+              "y": 865,
+              "width": 28,
+              "height": 28,
+              "top": 865,
+              "right": 498,
+              "bottom": 893,
+              "left": 470
+            }
+          },
+          {
+            "label": "模型 ID 1",
+            "type": "text",
+            "value": "moos-fixture",
+            "rect": {
+              "x": 504,
+              "y": 863,
+              "width": 218.75,
+              "height": 32,
+              "top": 863,
+              "right": 722.75,
+              "bottom": 895,
+              "left": 504
+            }
+          },
+          {
+            "label": "模型选项 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 891,
+              "y": 865,
+              "width": 28,
+              "height": 28,
+              "top": 865,
+              "right": 919,
+              "bottom": 893,
+              "left": 891
+            }
+          },
+          {
+            "label": "删除模型 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 925,
+              "y": 865,
+              "width": 28,
+              "height": 28,
+              "top": 865,
+              "right": 953,
+              "bottom": 893,
+              "left": 925
+            }
+          },
+          {
+            "label": "显示名称 1",
+            "type": "text",
+            "value": "隔离恢复验收",
+            "rect": {
+              "x": 728.75,
+              "y": 863,
+              "width": 156.25,
+              "height": 32,
+              "top": 863,
+              "right": 885,
+              "bottom": 895,
+              "left": 728.75
+            }
+          },
+          {
+            "label": "推理强度 1",
+            "type": "select-one",
+            "value": "off",
+            "rect": {
+              "x": 474,
+              "y": 931,
+              "width": 240,
+              "height": 32,
+              "top": 931,
+              "right": 714,
+              "bottom": 963,
+              "left": 474
+            }
+          },
+          {
+            "label": "启用图片输入 1",
+            "type": "checkbox",
+            "value": false,
+            "rect": {
+              "x": 558,
+              "y": 974,
+              "width": 13,
+              "height": 13,
+              "top": 974,
+              "right": 571,
+              "bottom": 987,
+              "left": 558
+            }
+          }
+        ]
+      },
+      {
+        "width": 820,
+        "row": {
+          "x": 274,
+          "y": 561,
+          "width": 455,
+          "height": 179,
+          "top": 561,
+          "right": 729,
+          "bottom": 740,
+          "left": 274
+        },
+        "extra": {
+          "x": 274,
+          "y": 599,
+          "width": 455,
+          "height": 141,
+          "top": 599,
+          "right": 729,
+          "bottom": 740,
+          "left": 274
+        },
+        "grid": "28px 202.406px 144.578px 28px 28.0156px",
+        "fields": [
+          {
+            "label": "调整模型顺序 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 274,
+              "y": 563,
+              "width": 28,
+              "height": 28,
+              "top": 563,
+              "right": 302,
+              "bottom": 591,
+              "left": 274
+            }
+          },
+          {
+            "label": "模型 ID 1",
+            "type": "text",
+            "value": "moos-fixture",
+            "rect": {
+              "x": 308,
+              "y": 561,
+              "width": 202.40625,
+              "height": 32,
+              "top": 561,
+              "right": 510.40625,
+              "bottom": 593,
+              "left": 308
+            }
+          },
+          {
+            "label": "模型选项 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 666.984375,
+              "y": 563,
+              "width": 28,
+              "height": 28,
+              "top": 563,
+              "right": 694.984375,
+              "bottom": 591,
+              "left": 666.984375
+            }
+          },
+          {
+            "label": "删除模型 1",
+            "type": "button",
+            "value": "",
+            "rect": {
+              "x": 700.984375,
+              "y": 563,
+              "width": 28,
+              "height": 28,
+              "top": 563,
+              "right": 728.984375,
+              "bottom": 591,
+              "left": 700.984375
+            }
+          },
+          {
+            "label": "显示名称 1",
+            "type": "text",
+            "value": "隔离恢复验收",
+            "rect": {
+              "x": 516.40625,
+              "y": 561,
+              "width": 144.578125,
+              "height": 32,
+              "top": 561,
+              "right": 660.984375,
+              "bottom": 593,
+              "left": 516.40625
+            }
+          },
+          {
+            "label": "推理强度 1",
+            "type": "select-one",
+            "value": "off",
+            "rect": {
+              "x": 278,
+              "y": 629,
+              "width": 240,
+              "height": 32,
+              "top": 629,
+              "right": 518,
+              "bottom": 661,
+              "left": 278
+            }
+          },
+          {
+            "label": "启用图片输入 1",
+            "type": "checkbox",
+            "value": false,
+            "rect": {
+              "x": 362,
+              "y": 672,
+              "width": 13,
+              "height": 13,
+              "top": 672,
+              "right": 375,
+              "bottom": 685,
+              "left": 362
+            }
+          }
+        ]
+      }
+    ],
+    "modelIdRetained": true,
+    "imageFlagSaveReopen": true,
+    "credentialsUnchanged": true,
+    "screenshotsVisuallyReviewed": true
+  },
+  "evidenceDirectory": "artifacts/model-catalog-check/after/recovery-HcuQWz",
+  "screenshots": {
+    "catalog-820.png": "acd2fe7217ca8c4de2f6d151a68f3a8efb41b0b5d6bd65f70b8d7199a05ab8a5",
+    "catalog-1240.png": "5a2919e5512df4cdc05e051a793f553596245b7ad744268cbce7794572fc72b2"
+  },
+  "tests": {
+    "electron": "71/71",
+    "core": "137/139; Swift SIGTRAP and development-tool timeout remain after retry",
+    "rust": "11/11",
+    "bridge": "5/5",
+    "skin": "4/4"
+  },
+  "deployment": "Not deployed; production configuration and credentials not modified."
+}

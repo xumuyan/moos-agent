@@ -1364,3 +1364,12 @@
 - 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（已安装 Host 与皮肤夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 70/70，Git 差异检查通过。
 - 遗留问题：这两次更新的本地停机备份与对应旧程序包已按授权删除。真实中转的超长会话仍按 E87 的范围另行验证。
 - 对应 Git 提交：唯一说明 `docs(P03.13): allow cleanup after verifying app updates`，用 `git log --all --oneline --grep='^docs(P03.13): allow cleanup after verifying app updates$'` 查询。
+
+## 2026-11-08 20:59:07 +08:00｜P03.13.5 模型目录身份列布局回归修复
+
+- 修改或新增内容：按用户截图优先修复模型目录。新增能力区域显式占据原版网格整行、minWidth 为 0，避免撑宽拖动列；图片开关改为水平标签，说明文字允许换行。保留原版模型 ID、名称、排序、展开和删除控件，壳升至 0.1.30。新增单元断言、E88、计划与证据契约检查，不改真实模型配置及密钥。
+- 遇到的难题：E85 只验开关可见而未量测模型身份字段，遗漏布局退化。隔离旧包复现拖动列宽 403px、模型 ID 与名称输入仅 22px，造成截图所示空白，配置本身未丢失。核心测试首次错误使用新包不存在的 rg 路径，补充正式包 rg 与 fd、真实 HOME 后仍有工具验收超时和 Swift SIGTRAP。
+- 处理方式：新增测试先观察 gridColumn 缺失失败，再以能力区域内联布局独占下一行，不更改上游模型身份字段和用户数据；新增图片区标签只作用于本控件。隔离 runner 使用合成模型及密钥、历史隔离皮肤，后台 QA 包抑制 show 并重签。仅在 artifacts 测试目录保存图片和结果，不替换正式 Moos、不重启原进程。
+- 验证结果：证据对应本条提交前工作区。定向 client 测试 1/1；npm run build:app 固定 DSH 输入、fixture=1 构建 build-zNXXqB，严格验签通过。隔离女仆工坊 1240/820 视口中 ID 恢复至 218.75/202.4px，与按钮不重叠，能力区域完整跨行；展开后名称可读，保存重开 ID 与图片标记保持、合成密钥原字节不变。桌面截图已通过图片工具目视核对。原始验收脚本、前后日志和截图在 artifacts/model-catalog-check/，脱敏证据 docs/evidence/desktop/p03-model-catalog-layout.json。启用新包 Host/隔离皮肤夹具 npm run test:electron 71/71；Rust 原命令 RUST_TEST_THREADS=1 npm run test:desktop-native 11/11，PI 桥 5/5，Python 皮肤 4/4。npm test 首轮及补正 PATH/HOME 后均为 137/139，失败为 Swift 编译 SIGTRAP 和开发工具任务超时，不宣称全量通过。PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 71/71，git diff --check 通过。
+- 遗留问题：完整核心验收因上述两项仍受阻，解除条件为恢复 Swift 编译执行环境及定位工具任务超时后重跑；不因本次 UI 修复勾选完整阶段。正式安装仍为 0.1.29，此次未部署；用户配置、聊天未改写。仅发现新的未跟踪 .npm 缓存，不提交或删除其他已有目录。
+- 对应 Git 提交：唯一说明 fix(P03.13): preserve model catalog identity columns；查询 git log --all --oneline --grep='^fix(P03.13): preserve model catalog identity columns$'。提交后推送 GitHub 并核对远程 HEAD，代码推送不等于应用部署。
