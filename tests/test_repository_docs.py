@@ -21,6 +21,14 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('不自动替换或重启正式安装', guide)
         self.assertIn('内置壳', guide)
 
+    def test_shell_upgrade_documentation_distinguishes_fixture_from_real_installer(self):
+        guide = (ROOT / 'apps/electron/README.md').read_text(encoding='utf-8')
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        for term in ('版本相同不运行安装器', '不静默补装', '拒绝意外降级',
+                     '不是实际 DSH 插件安装器', '没有实现或宣称自动回滚用户配置'):
+            self.assertIn(term, guide)
+        self.assertIn('真实 DSH 安装器升级的数据保留与失败恢复仍待', plan)
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

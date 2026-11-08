@@ -1,14 +1,13 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session } from 'electron';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
 import { createPiUsageReader } from './pi-usage.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
 import { seedHome, profileRecoveryMessage } from './profile-home.mjs';
+import { updateShellPlugin, shellUpdateMessage } from './shell-update.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -17,21 +16,6 @@ app.setPath('userData', data);
 
 let host;
 let hostStopped = false;
-
-async function updateShellPlugin(resources, home, cli) {
-  const manifest = 'profiles/web/node_modules/moos-electron-shell/package.json';
-  const readVersion = async root => JSON.parse(await readFile(join(root, manifest), 'utf8')).version;
-  const version = await readVersion(join(resources, 'profile-template'));
-  const installed = await readVersion(home).catch(error => {
-    if (error.code !== 'ENOENT') throw error;
-  });
-  if (installed === version) return;
-  const archive = join(resources, 'profile-template', 'profiles', 'web', 'local-bundles',
-    `moos-electron-shell-${version}.tgz`);
-  await promisify(execFile)(cli, ['plugin', '--profile', 'web', 'add', archive, '--offline', '--save-exact'], {
-    env: { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' }, timeout: 30000,
-  });
-}
 
 async function launch() {
   const resources = process.resourcesPath;
@@ -180,6 +164,7 @@ app.on('before-quit', event => {
 if (!app.requestSingleInstanceLock()) app.quit();
 else void app.whenReady().then(launch).catch(error => {
   dialog.showErrorBox('Moos', error?.code === 'MOOS_PROFILE_RECOVERY_REQUIRED'
-    ? profileRecoveryMessage : '无法打开工作台。请检查本机开发运行时后重试。');
+    ? profileRecoveryMessage : error?.code === 'MOOS_SHELL_UPDATE_FAILED'
+      ? shellUpdateMessage : '无法打开工作台。请检查本机开发运行时后重试。');
   app.quit();
 });
