@@ -1166,3 +1166,12 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（启用安装包及皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：当前正式 Moos 仍运行，签名新版已构建，等待当前窗口退出后替换本机安装。其他皮肤按 P03.13.7 继续验收。
 - 对应 Git 提交：唯一说明 `fix(P03.13): theme model service controls`，用 `git log --all --oneline --grep='^fix(P03.13): theme model service controls$'` 查询。
+
+## 2026-11-08 09:16:43 +08:00｜P03.13.5 安装模型服务皮肤适配版
+
+- 修改或新增内容：用户确认退出后，将 `4f6bbdb` 对应的 `build-rd0cmy` 替换到 `/Applications/Moos.app`，打开一次。保留旧包供回滚。本次仓库改动只更新安装与验收记录。
+- 遇到的难题：桌面自动化把正式安装路径解析为旧版应用标识，按 Electron 标识查找又命中多个历史构建，未能进入设置窗口。
+- 处理方式：先校验构建和暂存包签名再替换，安装后核对签名、主进程路径、主题代码与模型服务表单。确认用户数据目录中的 Moos 壳已升级到 0.1.20。
+- 验证结果：`codesign --verify --deep --strict /Applications/Moos.app` 通过，`cmp` 核对三份相关文件一致，只观察到一个正式安装路径的 Moos 主进程。以正式安装包 CLI 和 E74 皮肤夹具复跑 `npm --prefix apps/electron test`，31/31 通过。`npm run test:docs` 60/60。其他测试沿用同一构建在 `4f6bbdb` 中的通过记录。
+- 遗留问题：正式窗口尚未完成目视核对。隔离界面的实测见 E74，可在当前 Moos 的「设置 → 模型服务 → 管理模型服务」核对本机皮肤。
+- 对应 Git 提交：唯一说明 `docs(P03.13): record model service theme installation`，用 `git log --all --oneline --grep='^docs(P03.13): record model service theme installation$'` 查询。
