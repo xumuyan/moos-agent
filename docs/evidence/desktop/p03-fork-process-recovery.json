@@ -1,0 +1,50 @@
+{
+  "id": "E83",
+  "dateBeijing": "2026-11-08",
+  "machine": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64"
+  },
+  "source": {
+    "baseCommit": "054f28b",
+    "state": "pre-commit workspace with fork-process fix",
+    "shellVersion": "0.1.27",
+    "build": "build-O3IuQu",
+    "signature": "deep strict passed"
+  },
+  "gui": {
+    "realStartupUpgradesOlderFixtureAndRetainsTwoTurns": true,
+    "restartTwoTurnsAndProcessOwnership": true,
+    "modelAndCredentialBytesPreserved": true,
+    "branchSelectedTextHistory": true,
+    "branchInheritedProcessVisible": true,
+    "branchDoesNotReplayTasks": true,
+    "branchProcessSurvivesPageReload": true,
+    "maid-atelierRestoresTurnProcesses": true,
+    "phoebe-atelierRestoresTurnProcesses": true
+  },
+  "scope": {
+    "qaVisibilityOverride": "copied QA bundle suppresses show() and is re-signed ad hoc",
+    "model": "real PI SDK against local fixture only",
+    "productionDataTouched": false,
+    "deploymentPerformed": false,
+    "screenshotsVisuallyReviewed": false
+  },
+  "limits": [
+    "At most the last 1600 inherited events are examined; only completed turns with known successful PI source tasks are referenced.",
+    "Fork display reload covered, full application restart while reopening the fork not independently covered.",
+    "Missing/deleted source history has no fabricated process.",
+    "M01 Swift compiler still exits SIGTRAP; full core suite not passing.",
+    "Real installer failure rollback remains unverified."
+  ],
+  "evidence": {
+    "directory": "artifacts/fork-process-check/gui/recovery-KxU1Hf",
+    "reportSha256": "8bd17848fe8264558ea38218fc2c4e9eebe69c2b61543f2c1f524e4d6b5664e7",
+    "screenshots": {
+      "maid-atelier.png": "f9b1a9ea132601c7b585775cd1526dff1d4195aa1e33d202135680edccc02b65",
+      "phoebe-atelier.png": "091cdd7d212934daca61518605eba1f9261e72e75ae68fe732cc91ad6881760f",
+      "restart.png": "82ba9298f3359f4ee30dfef67163818e15ae97210201536f9cb4dd81ff7c76af",
+      "branch.png": "925327e4dcabcdfd986ccdf10efa50699935da7fc6f91361bd88db6ca49bb659"
+    }
+  }
+}

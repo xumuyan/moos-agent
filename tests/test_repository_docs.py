@@ -40,6 +40,17 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(report['evidence']['screenshotsVisuallyReviewed'])
         self.assertIn('继承轮次的 PI 过程卡片缺失', (ROOT / 'PLAN.md').read_text())
 
+    def test_e83_fork_process_fix_does_not_overwrite_historical_failure(self):
+        old = json.loads((ROOT / 'docs/evidence/desktop/p03-upgrade-data-recovery.json').read_text())
+        report = json.loads((ROOT / 'docs/evidence/desktop/p03-fork-process-recovery.json').read_text())
+        self.assertFalse(old['gui']['branchInheritedProcessVisible'])
+        for key in ('branchInheritedProcessVisible', 'branchDoesNotReplayTasks', 'branchProcessSurvivesPageReload'):
+            self.assertTrue(report['gui'][key])
+        self.assertFalse(report['scope']['productionDataTouched'])
+        self.assertFalse(report['scope']['deploymentPerformed'])
+        self.assertIn('1600', (ROOT / 'apps/electron/README.md').read_text())
+        self.assertIn('| E83 |', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

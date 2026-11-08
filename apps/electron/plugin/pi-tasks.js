@@ -130,8 +130,54 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
     };
   }
 
+  async function inheritTurns(session) {
+    const id = session?.id;
+    const parent = session?.header?.parentSession;
+    const end = session?.inheritedEventCount;
+    const validId = value => typeof value === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(value);
+    if (!session?.header?.isSeeded || !validId(id) || parent !== undefined && (!validId(parent) || id === parent)
+      || !Number.isSafeInteger(end) || end <= 0) return;
+    const cwd = await verifyWorkspace(session.header.cwd);
+    const events = session.snapshotEvents(Math.max(0, end - 1600), end);
+    const inherited = [];
+    let start;
+    let message;
+    for (const event of events) {
+      if (!Number.isSafeInteger(event.seq) || event.seq < 0 || event.seq >= end) continue;
+      if (event.type === 'turn/start') { start = event.seq; message = undefined; }
+      else if (start !== undefined && event.type === 'user/message' && event.data?.source?.kind === 'user') {
+        message = event.data.id;
+      } else if (event.type === 'turn/end') {
+        if (start !== undefined && event.data?.reason?.kind === 'completed'
+          && typeof message === 'string' && /^[a-zA-Z0-9_-]{1,160}$/.test(message)) {
+          const direct = parent && store.getSetting('dsh-turn:' + parent + ':' + start);
+          let sourceId = direct;
+          if (parent && !sourceId) {
+            const saved = store.getSetting('dsh-inherited-turn:' + parent + ':' + start);
+            try { sourceId = saved && JSON.parse(saved).taskId; } catch { /* Invalid legacy metadata stays hidden. */ }
+          }
+          // Ordinary DSH forks omit parentSession. In that case the trusted
+          // inherited user-message ID locates the original PI task directly.
+          if (!parent) sourceId = store.getSetting('dsh-message:' + message);
+          if (sourceId && store.getSetting('dsh-message:' + message) === sourceId) {
+            const source = store.getTask(sourceId);
+            if (source.status === 'succeeded' && store.getProject(source.projectId).path === cwd) {
+              inherited.push([start, { taskId: source.id, projectId: source.projectId, messageId: message }]);
+            }
+          }
+        }
+        start = undefined; message = undefined;
+      }
+    }
+    // Presentation references only: do not duplicate messages, tasks, events or
+    // usage; a newly forked conversation must not replay its parent's work.
+    store.transaction(() => {
+      for (const [seq, value] of inherited) store.setSetting('dsh-inherited-turn:' + id + ':' + seq, JSON.stringify(value));
+    });
+  }
+
   return {
-    open,
+    open, inheritTurns,
     retryImage(sessionId, retryOf) {
       const value = store.getSetting('dsh-image:' + retryTask(sessionId, retryOf).id);
       return value && JSON.parse(value);

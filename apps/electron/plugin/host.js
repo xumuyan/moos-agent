@@ -63,6 +63,9 @@ export async function apply(ctx) {
   });
   try {
     store.interruptUnfinished();
+    ctx.on('agent/created', async ({ agent }) => {
+      await tasks.inheritTurns(agent.session);
+    }, { global: true });
     const release = ctx.llm.registerAdapter([route], createPiAdapter({
       tasks, models, getSession: id => ctx.agents.get(id)?.session,
       readFile: (ref, signal) => ctx.get('attachments')?.readFileStream(ref, signal),

@@ -66,3 +66,5 @@ PI 读取会话当前的「仅可查看」「工作区内修改」「完全权�
 将 `MOOS_ELECTRON_TEST_DSH_CLI` 指向当前隔离构建的 `Contents/Resources/host-runtime/bin/dsh` 后，运行 `node --test apps/electron/upgrade-integration.test.mjs`。此项使用真实随包安装器，准备合成旧壳及用户插件（准备阶段可能下载依赖），实际升级使用离线命令；只操作自动创建的临时数据。
 
 显式 GUI 验收：`node scripts/verify-electron-recovery.mjs <仓库.generated/moos-electron下的Moos.app> <仓库artifacts下的输出父目录> [隔离皮肤夹具目录]`。拒绝正式安装路径；复制 QA 包并仅抑制 show() 后重签，使用 CDP 在后台窗口输入固定本地模型任务，正常退出重开并选择原会话，核对模型/合成密钥原字节、旧壳启动升级、两轮过程归属和可选皮肤；截图只存 artifacts。不能将后台窗口 DOM 检查称为正式窗口目视验收。E82 中继承分支的过程卡片缺失仍未解决，真实安装器失败回滚与完整 Swift 探针也不在通过范围。
+
+E83 分支过程修复：Host 从实际继承前缀的消息 ID 与轮次边界查找原 PI 成功任务，并核对规范化工作目录，仅新增展示引用，不复制任务、消息、工具事件或用量，不执行父任务。普通 DSH 分支不一定带 parentSession，因此不依赖该字段；有父标识时进一步核验对应轮次。最多检查继承末尾 1600 条事件，未知或不完整来源不伪造卡片。已在隔离 Electron 验证单轮分支、排除后续轮次及刷新恢复；分支整应用重启及超限前缀仍需另验。E82 中过程卡片缺失属于修复前证据，保持原记录。

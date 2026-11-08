@@ -6,6 +6,7 @@ import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { DatabaseSync } from 'node:sqlite';
 import { startFixture } from '../services/agent/fixture.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { checkedProvider } from '../packages/pi-adapter/index.mjs';
@@ -25,6 +26,7 @@ const scratch = await mkdtemp(join(resolve(output), 'recovery-'));
 const app = join(scratch, 'Moos.app');
 execFileSync('/usr/bin/ditto', [build, app]);
 const resources = join(app, 'Contents/Resources');
+const targetVersion = JSON.parse(await readFile(join(resources, 'profile-template/profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version;
 const entry = join(resources, 'app/main.mjs');
 // Only visibility is changed in this copied QA bundle. Production lifecycle,
 // IPC, renderer, PI and data paths remain the newly built modules.
@@ -144,7 +146,7 @@ try {
   assert.equal(JSON.parse(await readFile(join(home, 'profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version, '0.1.25');
   gui = await launch();
   await gui.openSaved();
-  assert.equal(JSON.parse(await readFile(join(home, 'profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version, '0.1.26');
+  assert.equal(JSON.parse(await readFile(join(home, 'profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version, targetVersion);
   report.checks.realStartupUpgradesOlderFixtureAndRetainsTwoTurns = true;
   const restored = await until(async () => { const rows = await gui.rows(); return rows.length === 2 && rows; }, 'history after normal restart');
   assert.deepEqual(restored, before);
@@ -157,12 +159,26 @@ try {
   await writeFile(join(scratch, 'restart.png'), Buffer.from((await gui.call('Page.captureScreenshot')).data, 'base64'));
   const controls = await gui.evaluate(`[...document.querySelectorAll('button')].map(el=>({label:el.getAttribute('aria-label'),title:el.title,text:el.innerText})).filter(x=>/分支|branch|fork/i.test(JSON.stringify(x)))`);
   report.branchControls = controls;
+  function taskCount() {
+    const db = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try { return db.prepare('SELECT count(*) AS count FROM tasks').get().count; }
+    finally { db.close(); }
+  }
+  const tasksBeforeBranch = taskCount();
   assert.equal(controls.length, 2);
   await gui.evaluate(`document.querySelector('button[aria-label="在新对话中分支"]').click()`);
   await until(() => gui.evaluate(`document.body.innerText.includes('完成 recovery_first') && !document.body.innerText.includes('完成 recovery_second')`), 'selected fork history excludes later parent turn');
   report.checks.branchSelectedTextHistory = true;
-  report.checks.branchInheritedProcessVisible = (await gui.rows()).length > 0;
+  const inheritedRows = await until(async () => { const rows = await gui.rows(); return rows.length === 1 && rows; }, 'exactly the selected inherited PI process');
+  assert.deepEqual(inheritedRows, before.slice(0, 1));
+  report.checks.branchInheritedProcessVisible = true;
+  assert.equal(taskCount(), tasksBeforeBranch, 'opening a fork must not replay parent tasks');
+  report.checks.branchDoesNotReplayTasks = true;
   await writeFile(join(scratch, 'branch.png'), Buffer.from((await gui.call('Page.captureScreenshot')).data, 'base64'));
+  await gui.call('Page.reload');
+  const reloadedBranch = await until(async () => { const rows = await gui.rows(); return rows.length === 1 && rows; }, 'fork process after page reload');
+  assert.deepEqual(reloadedBranch, inheritedRows);
+  report.checks.branchProcessSurvivesPageReload = true;
   await gui.stop();
   for (const skin of skinFixture ? ['maid-atelier', 'phoebe-atelier'] : []) {
     await writeFile(join(home, 'skin-center-active.json'), JSON.stringify({ active: skin, initialized: true }));

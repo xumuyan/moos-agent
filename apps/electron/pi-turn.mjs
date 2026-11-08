@@ -42,13 +42,31 @@ export function createPiTurnReader(dbPath, timelinePayload) {
         return latest && ['failed', 'cancelled', 'interrupted'].includes(latest.status) ? latest : null;
       }
       const live = startSeq === null;
-      const task = db.prepare(`
+      let task = db.prepare(`
         SELECT tasks.id, tasks.status, projects.path
         FROM tasks JOIN projects ON projects.id = tasks.projectId
         WHERE tasks.conversationId = (SELECT value FROM settings WHERE key = ?)
           AND ${live ? "tasks.status IN ('queued', 'running')" : 'tasks.id = (SELECT value FROM settings WHERE key = ?)'}
         ORDER BY tasks.rowid DESC LIMIT 1
       `).get('dsh-session:' + sessionId, ...(live ? [] : ['dsh-turn:' + sessionId + ':' + startSeq]));
+      if (!task && !live) {
+        // Written by the Host only after checking the actual seeded prefix,
+        // source message identity and canonical workspace. Never follow a
+        // renderer-supplied parent/session ID or use inherited work as live work.
+        const saved = db.prepare('SELECT value FROM settings WHERE key = ?')
+          .get('dsh-inherited-turn:' + sessionId + ':' + startSeq);
+        let ref;
+        try { ref = saved && JSON.parse(saved.value); } catch { /* Hide malformed references. */ }
+        if (ref && typeof ref.taskId === 'string' && typeof ref.projectId === 'string'
+          && typeof ref.messageId === 'string') task = db.prepare(`
+          SELECT tasks.id, tasks.status, projects.path
+          FROM tasks JOIN projects ON projects.id = tasks.projectId
+          WHERE tasks.id = ? AND tasks.projectId = ?
+            AND tasks.id = (SELECT value FROM settings WHERE key = ?)
+            AND tasks.status = 'succeeded'
+          LIMIT 1
+        `).get(ref.taskId, ref.projectId, 'dsh-message:' + ref.messageId);
+      }
       if (!task) return null;
 
       // Select only presentation inputs. Source code and tool output never
