@@ -29,12 +29,14 @@ async function launch() {
   const piFixture = enableFixture ? piRuntime : undefined;
   const home = join(data, 'dsh');
   const workspace = join(data, 'workspace');
+  const tempDir = join(data, 'host-tmp');
   await mkdir(workspace, { recursive: true, mode: 0o700 });
+  await mkdir(tempDir, { recursive: true, mode: 0o700 });
   await seedHome(resources, home);
   await updateShellPlugin(resources, home, cli);
 
   host = startHost({
-    cli, home, cwd: workspace, piRuntime, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
+    cli, home, cwd: workspace, tempDir, piRuntime, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
     onUnexpectedExit() {
       dialog.showErrorBox('Moos', '本机工作台服务已退出，请重启 Moos。');
       app.quit();

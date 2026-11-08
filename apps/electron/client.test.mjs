@@ -92,6 +92,7 @@ test('the DSH client extension registers the Moos brand and model services in th
 
   assert.equal(slots.get('moos-pi-process'), 'conversation.chat.turnProcess');
   assert.equal(slots.get('moos-pi-turn'), 'conversation.chat.turnTail');
+  assert.equal(slots.get('moos-pi-retry'), 'conversation.composer.dock');
   assert.equal(slots.has('moos-pi-live'), false);
   turnResult = { sessionId: 'test-session', startSeq: 12,
     data: { status: 'running', actions: [{ label: '运行命令', state: 'running' }], files: [] } };

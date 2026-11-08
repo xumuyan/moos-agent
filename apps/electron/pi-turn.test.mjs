@@ -52,7 +52,7 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
   assert.doesNotMatch(JSON.stringify(live), /private|user input/);
   store.updateTask(task.id, { status: 'cancelled' });
   assert.equal(reader.read('session-one', null), null);
-  assert.deepEqual({ ...reader.read('session-one', 'retry') }, { id: task.id, status: 'cancelled' });
+  assert.deepEqual({ ...reader.read('session-one', 'retry') }, { id: task.id, status: 'cancelled', errorCode: null });
   assert.equal(reader.read('session-two', 'retry'), null);
   const settled = reader.read('session-one', 12);
   assert.equal(settled.status, 'cancelled');

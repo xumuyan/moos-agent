@@ -15,9 +15,10 @@ export function parseBootstrap(line) {
   } catch { return null; }
 }
 
-export function startHost({ cli, home, cwd, executionPatch, piRuntime, piFixture, onUnexpectedExit, timeoutMs = 30000 }) {
+export function startHost({ cli, home, cwd, tempDir, executionPatch, piRuntime, piFixture, onUnexpectedExit, timeoutMs = 30000 }) {
   const env = {
     ...process.env,
+    ...(tempDir && { TMPDIR: tempDir }),
     DSH_HOME: home,
     DSH_SKINS_HOME: `${home}/skins`,
     DSH_SKINS_DIR: `${home}/skins`,

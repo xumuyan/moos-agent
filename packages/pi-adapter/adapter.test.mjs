@@ -110,7 +110,7 @@ test('proxy enforces authentication, exact paths, body cap and no CORS', { timeo
   assert.equal(unauth.status, 401); assert.equal(unauth.headers.get('access-control-allow-origin'), null);
   for (const path of ['/responses', '/chat/completions?x=1', '/other']) assert.equal((await fetch(baseUrl + path, { method: 'POST', headers, body: '{}' })).status, 404);
   const endpoint = baseUrl + '/chat/completions';
-  const oversized = 'x'.repeat(2 * 1024 * 1024 + 1);
+  const oversized = 'x'.repeat(8 * 1024 * 1024 + 1);
   const declared = await fetch(endpoint, { method: 'POST', headers, body: oversized });
   assert.equal(declared.status, 413);
   assert.notEqual(declared.headers.get('connection'), 'close');
@@ -242,4 +242,64 @@ test('provider failures are not reported as prompt success', { timeout: 20000 },
   const { runPi } = await load();
   await assert.rejects(runPi(f), error => /failed|error/i.test(error.message) && !error.message.includes(secret));
   for (const path of await files(f.dataDir)) assert.ok(!(await readFile(path, 'utf8')).includes(secret));
+});
+
+test('PI SDK compacts a rejected long history once and continues without replaying prior turns', { timeout: 30000 }, async t => {
+  const { runPiSdk } = await import('../pi-runtime/sdk-runtime.mjs');
+  let requests = 0;
+  const events = [];
+  const f = await fixture(t, async (req, res) => {
+    const input = await body(req);
+    requests++;
+    if (requests === 4) {
+      res.writeHead(400, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: { code: 'context_length_exceeded', message: secret } }));
+    } else if (requests === 5) {
+      assert.equal(input.tools?.length ?? 0, 0);
+      stream(res, [{ content: 'Retained work summary' }]);
+    } else if (requests === 6) {
+      assert.match(JSON.stringify(input.messages), /Retained work summary/);
+      assert.match(JSON.stringify(input.messages), /Next instruction/);
+      assert.doesNotMatch(JSON.stringify(input.messages), /Earliest turn marker/);
+      stream(res, [{ content: 'Resumed' }]);
+    } else {
+      stream(res, [{ content: 'Saved' }]);
+    }
+  });
+  for (const marker of ['Earliest turn marker', 'Middle turn', 'Latest turn']) {
+    await runPiSdk({ ...f, task: { text: marker + ' ' + 'a'.repeat(40000) } });
+  }
+  const result = await runPiSdk({ ...f, task: { text: 'Next instruction' },
+    emit: (type, payload) => events.push({ type, payload }) });
+  assert.equal(result.text, 'Resumed');
+  assert.equal(requests, 6);
+  assert.ok(events.some(event => event.type === 'usage' && event.payload.kind === 'compaction'));
+  assert.doesNotMatch(JSON.stringify(events), new RegExp(secret));
+});
+
+test('PI SDK reports a context limit when there is no older history to compact', async t => {
+  const { runPiSdk } = await import('../pi-runtime/sdk-runtime.mjs');
+  const f = await fixture(t, async (req, res) => {
+    await body(req);
+    res.writeHead(400, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'context_length_exceeded', message: secret } }));
+  });
+  await assert.rejects(runPiSdk(f), { code: 'context_limit' });
+});
+
+test('the long-context proxy forwards a JSON body larger than the former 2 MiB limit', async t => {
+  const f = await fixture(t, async (req, res) => {
+    const input = await body(req);
+    assert.equal(input.content.length, 2 * 1024 * 1024);
+    res.end('{}');
+  });
+  const { proxyFor } = await load();
+  const proxy = await proxyFor(f.provider, f.provider.baseUrl, f.apiKey);
+  t.after(() => proxy.close());
+  const response = await fetch(proxy.baseUrl + '/chat/completions', {
+    method: 'POST', headers: { authorization: 'Bearer ' + proxy.token },
+    body: JSON.stringify({ content: 'x'.repeat(2 * 1024 * 1024) }),
+  });
+  assert.equal(response.status, 200);
+  await response.text();
 });

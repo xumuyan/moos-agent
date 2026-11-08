@@ -35,7 +35,7 @@ function collectUsage(incoming, queue) {
 
 const cli = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'cli.js');
 const busy = new Set();
-const BODY_LIMIT = 2 * 1024 * 1024;
+const BODY_LIMIT = 8 * 1024 * 1024;
 export function checkedProvider(p) {
   const text = (s, n) => typeof s === 'string' && s.length > 0 && s.length <= n && !/[\x00-\x1f\x7f]/.test(s);
   if (!p || !text(p.id, 80) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(p.id) || !text(p.name, 200) || !text(p.model, 200) || !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$/.test(p.model) || !text(p.baseUrl, 2048) || !['openai-completions', 'openai-responses'].includes(p.api) || !Number.isSafeInteger(p.contextWindow) || p.contextWindow < 1 || p.contextWindow > 10000000 || !Number.isSafeInteger(p.maxTokens) || p.maxTokens < 1 || p.maxTokens > p.contextWindow) throw new Error('Invalid provider configuration');
@@ -78,17 +78,20 @@ export async function proxyFor(provider, baseUrl, apiKey) {
       // Drain oversize uploads without resetting the connection while the client writes.
       if (status !== 413) headers.connection = 'close';
       res.writeHead(status, headers);
-      res.end(JSON.stringify({ error: { message: `Proxy rejected request (${status})` } }));
+      res.end(JSON.stringify({ error: { message: failure === 'context_limit' && [400, 413, 422].includes(status)
+        ? 'Input exceeds the context window or request size limit' : `Proxy rejected request (${status})` } }));
       req.resume();
     };
     if (req.headers.authorization !== `Bearer ${token}`) return reject(401);
     if (req.url !== '/v1' + path || req.method !== 'POST' || req.headers.origin) return reject(404);
-    if (Number(req.headers['content-length']) > BODY_LIMIT) return reject(413);
+    failure = undefined;
+    if (Number(req.headers['content-length']) > BODY_LIMIT) { failure = 'context_limit'; return reject(413); }
     let length = 0; const chunks = [];
     try {
       for await (const chunk of req.iterator({ destroyOnReturn: false })) {
         length += chunk.length;
         if (length > BODY_LIMIT) {
+          failure = 'context_limit';
           reject(413);
           return;
         }
@@ -96,7 +99,6 @@ export async function proxyFor(provider, baseUrl, apiKey) {
       }
       const body = Buffer.concat(chunks);
       JSON.parse(body.toString('utf8'));
-      failure = undefined;
       const target = new URL(baseUrl + path);
       const upstream = (target.protocol === 'https:' ? httpsRequest : httpRequest)(target, { method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', 'content-length': body.length, accept: 'text/event-stream' } });
       upstreams.add(upstream);
@@ -110,8 +112,8 @@ export async function proxyFor(provider, baseUrl, apiKey) {
         // Never forward provider error payloads: they may echo authentication headers.
         if (incoming.statusCode < 200 || incoming.statusCode >= 300) {
           const status = incoming.statusCode;
-          if (status === 429 || status === 402) {
-            failure = status === 402 ? 'quota' : 'rate_limit';
+          if ([400, 402, 413, 422, 429].includes(status)) {
+            failure = status === 402 ? 'quota' : status === 429 ? 'rate_limit' : status === 413 ? 'context_limit' : undefined;
             const chunks = [];
             let bytes = 0;
             let finished = false;
@@ -123,6 +125,11 @@ export async function proxyFor(provider, baseUrl, apiKey) {
                 const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
                 if (value?.error?.code === 'insufficient_quota' || value?.error?.type === 'insufficient_quota') failure = 'quota';
                 failure = glmRejection(provider.service, status, value?.error) ?? failure;
+                if ((status === 400 || status === 422) && (
+                  ['context_length_exceeded', 'context_window_exceeded', '1261'].includes(String(value?.error?.code)) ||
+                  /(?:maximum context length|context window exceeded|exceeds the context window|prompt (?:is )?too long|prompt exceeds max length)/i
+                    .test(typeof value?.error?.message === 'string' ? value.error.message : '')
+                )) failure = 'context_limit';
               } catch { /* Only a recognized code refines the status. */ }
               if (!res.destroyed) reject(status);
             };

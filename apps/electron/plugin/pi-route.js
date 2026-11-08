@@ -13,6 +13,7 @@ const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验
   contextWindow: 128000, inputModalities: ['text'] };
 const errors = {
   model_capability: { code: 'INVALID_REQUEST', message: '所选模型没有通过本次图片输入请求' },
+  context_limit: { code: 'CONTEXT_LIMIT', message: '上下文过长。请核对模型服务的实际窗口；也可缩短附件或新建会话。' },
   auth: { code: 'AUTHENTICATION', message: '模型服务认证失败' },
   rate_limit: { code: 'RATE_LIMIT', message: '模型服务请求限流' },
   quota: { code: 'QUOTA', message: '模型服务额度不足' },

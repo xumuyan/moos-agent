@@ -42,12 +42,13 @@ test('runs the host on loopback and waits for its actual shutdown', async t => {
         || process.env.DSH_HOME !== process.cwd() || process.env.MOOS_ELECTRON_WORKSPACE_ROOT !== process.cwd()
         || process.env.DSH_TELEMETRY_DISABLED !== '1' || process.env.PI_OFFLINE !== '1'
         || process.env.MOOS_ELECTRON_PARENT_PIPE !== '1'
+        || process.env.TMPDIR !== process.cwd() + '/host-tmp'
         || process.env.MOOS_ELECTRON_PI_RUNTIME) process.exit(8);
     console.log('dsh web: http://example.test:43123/?token=${token}');
     console.log(${JSON.stringify(line)});
     setInterval(() => {}, 1000);
   `);
-  const host = startHost({ ...config, timeoutMs: 2000,
+  const host = startHost({ ...config, tempDir: join(config.cwd, 'host-tmp'), timeoutMs: 2000,
     onUnexpectedExit: () => assert.fail('intentional stop must not be reported as a crash') });
   t.after(() => host.stop());
   assert.equal((await host.ready).searchParams.get('token'), token);

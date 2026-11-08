@@ -36,7 +36,7 @@ export function createPiTurnReader(dbPath, timelinePayload) {
       }
       db ??= new DatabaseSync(dbPath, { readOnly: true });
       if (startSeq === 'retry') {
-        const latest = db.prepare(`SELECT id, status FROM tasks
+        const latest = db.prepare(`SELECT id, status, errorCode FROM tasks
           WHERE conversationId = (SELECT value FROM settings WHERE key = ?) ORDER BY rowid DESC LIMIT 1`)
           .get('dsh-session:' + sessionId);
         return latest && ['failed', 'cancelled', 'interrupted'].includes(latest.status) ? latest : null;

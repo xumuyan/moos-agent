@@ -37,11 +37,12 @@ test('usage totals include every recorded request while context follows only the
     cacheReadTokens: 10, cacheWriteTokens: 5, contextWindow: 128000 });
   store.appendEvent(other, 'usage', { totalTokens: 12, inputTokens: 9, outputTokens: 3,
     cacheReadTokens: null, cacheWriteTokens: null, contextWindow: 64000 });
+  store.appendEvent(first, 'usage', { kind: 'compaction', totalTokens: 8, inputTokens: 6, outputTokens: 2 });
   store.appendEvent(other, 'tool_end', { totalTokens: 9999 });
 
   assert.deepEqual(usage.read('first'), { promptTokens: 40, contextWindow: 128000, cacheHitRate: 0.25 });
   assert.deepEqual(usage.read('other'), { promptTokens: 9, contextWindow: 64000, cacheHitRate: null });
-  const summary = { requests: 3, totalTokens: 87, inputTokens: 46, outputTokens: 18,
+  const summary = { requests: 4, totalTokens: 95, inputTokens: 52, outputTokens: 20,
     cacheReadTokens: null, cacheWriteTokens: null };
   assert.deepEqual(usage.read(null), summary);
   usage.close();

@@ -27,7 +27,7 @@ export function createPiUsageReader(dbPath) {
           json_extract(payload, '$.contextWindow') AS contextWindow,
           json_extract(payload, '$.cacheReadTokens') AS cacheReadTokens
         FROM events
-        WHERE type = 'usage' AND conversationId = (SELECT value FROM settings WHERE key = ?)
+        WHERE type = 'usage' AND json_extract(payload, '$.kind') IS NOT 'compaction' AND conversationId = (SELECT value FROM settings WHERE key = ?)
         ORDER BY id DESC LIMIT 1
       `);
       db = connection;

@@ -1334,3 +1334,13 @@
 - 验证结果：提交前工作区 E85。定向 client/pi-models 测试最终 5/5，通过手动及自动模型 inputModalities、PI 图片请求及文本模型拒绝回归；初轮两个新增断言失败已保留日志。npm run build:app 使用固定 DSH 输入与 fixture 标记生成隔离 build-inm6Es，严格签名通过；未安装到正式路径。启用该包 Host 和隔离皮肤夹具的 npm run test:electron 71/71，无跳过。npm test 136 项，135 通过、1 失败，仍为独立 M01 Swift SIGTRAP；Rust 测试专用 TAURI_CONFIG 排除随包资源后 11/11，PI 桥 5/5、皮肤 Python 4/4。文档检查 69/69，语法和差异检查通过。后台隔离 Electron recovery-6DqRtD 验证无需展开高级项即见图片开关、保存重开保持、合成凭据字节不变；截图仅记录哈希，未目视验收。证据 docs/evidence/desktop/p03-image-input-settings.json；日志 artifacts/image-capability-check/。原正式 Moos 主进程不变。
 - 遗留问题：正式安装仍为 0.1.27，0.1.28 需用户明确部署后才影响正式应用。既有 GPT 配置仍未自动启用图片，需要用户确认实际服务支持后保存；本轮未调用真实 GPT 图片端点，不据本地 fixture 证明线上能力。Swift 完整回归失败和整阶段未完成状态保留。
 - 对应 Git 提交：唯一说明 fix(P03.13): expose image input configuration and retain model capability；查询命令 git log --all --oneline --grep='^fix(P03.13): expose image input configuration and retain model capability$'。源码推送与应用部署分别报告。
+
+## 2026-11-08 20:26:44 +08:00｜P03.13.5、P03.13.6 修复长会话续聊和重试提示
+
+- 修改或新增内容：启用 PI SDK 原生上下文压缩及有界溢出恢复。代理请求体上限从 2 MiB 提高到 8 MiB，识别 HTTP 413 和常见中转上下文错误。将失败重试控件放入输入框下方状态区，并为 DSH Host 设置应用数据目录下的专用临时目录。壳升级到 0.1.29。
+- 遇到的难题：用户截图显示上次有效请求 449,622 输入 Token、本机档案配置 128,000。只读检查旧会话发现两条脱敏 HTTP 413，旧代理没有区分本地与上游来源，不能追溯是哪一端拒绝。旧实现关闭压缩，错误被映射为 INTERNAL。DSH 工作区差异临时文件曾出现在仓库目录并进入文件摘要。
+- 处理方式：沿用已保存的上下文窗口，官网标称规格只作参照。先保留较近会话，再由 PI 压缩旧历史；识别溢出时最多压缩重试一次。代理只转发安全错误文案，历史压缩用量单独标记并排除在输入框最近普通请求读数之外。新 Host 暂存文件写入专用目录，原仓库里已经存在的临时路径留给原任务核对。
+- 实际验收：签名构建 `build-t1M9Zp`。真实 PI SDK 接本地合成中转，长历史被拒后调用一次压缩，同一会话继续，过早历史已替换为摘要，保留新指令。无可压缩历史时返回明确错误。macOS 27.0.1 arm64 的隔离女仆工坊窗口中，失败行显示上下文原因，重试控件宽 222 px，窗口宽 1240 px。证据位于 `/private/tmp/moos-context-fix.RWCW4b/`。
+- 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（最终包 Host 与皮肤夹具），`npm run test:docs` 69/69，PI 探针 5/5、皮肤探针 4/4。Rust 探针首轮缺少清理掉的打包资源，运行 `npm run prepare:runtime` 后重跑 `RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11。最终包严格验签和 Git 差异检查通过。
+- 遗留问题：真实中转支持的 Token 数和请求字节限制待用对应端点核实，未对用户原会话提交模型请求或改写记录，未部署。多请求或缺少原始用量字段的压缩本轮不计入用量统计。
+- 对应 Git 提交：唯一说明 `fix(P03.13): recover long PI conversations and compact the retry notice`，用 `git log --all --oneline --grep='^fix(P03.13): recover long PI conversations and compact the retry notice$'` 查询。

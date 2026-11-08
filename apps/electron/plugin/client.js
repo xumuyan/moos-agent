@@ -250,7 +250,7 @@ window.__ModuleLoader__.load({
         } finally { pending.current = false; }
       }
       return createElement('div', { 'data-moos-pi-retry': '' },
-        createElement('span', null, '上次任务', turnStates[target.status]),
+        createElement('span', null, target.errorCode === 'context_limit' ? '上次任务上下文过长' : '上次任务' + turnStates[target.status]),
         createElement('button', { type: 'button', disabled: state === 'sending', onClick: retry },
           state === 'sending' ? '正在提交…' : '继续上次任务'),
         state === 'error' ? createElement('span', { role: 'status' }, '提交失败，请重试。') : null);
@@ -339,8 +339,8 @@ window.__ModuleLoader__.load({
         ctx.slots.inject('conversation.chat.turnProcess', () => ctx.slots.register({
           name: 'conversation.chat.turnProcess', id: 'moos-pi-process', inject: sessionProps,
         }, PiTurnProcess));
-        ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
-          name: 'conversation.input.dock', id: 'moos-pi-retry',
+        ctx.slots.inject('conversation.composer.dock', () => ctx.slots.register({
+          name: 'conversation.composer.dock', id: 'moos-pi-retry',
           inject: sessionId => ({ sessionId, submit: id => ctx.sessions.binding(sessionId)?.session.prompt(
             [{ type: 'text', text: '继续上次 PI 任务' }], 'queue', undefined, 'moos-pi-retry:' + id + ':' + crypto.randomUUID(),
           ) }),
@@ -369,7 +369,7 @@ window.__ModuleLoader__.load({
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
-        [data-moos-pi-retry] { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        [data-moos-pi-retry] { display: inline-flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 2px 8px; border-radius: 10px; color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-module-platform); font-size: 12px; }
         [data-moos-pi-retry] button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
         [data-moos-pi-tasks] { box-sizing: border-box; height: 100%; overflow: auto; padding: 32px clamp(18px, 5vw, 56px); }
         [data-moos-pi-tasks] > div { max-width: 720px; padding: 20px; border-radius: 14px; background: var(--dsw-alias-bg-module-platform, Canvas); }

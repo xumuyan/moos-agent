@@ -42,7 +42,7 @@ function resourceLoader(instructions) {
 
 export function sdkSettings(duration) {
   return SettingsManager.inMemory({ httpIdleTimeoutMs: taskTimeout(duration),
-    compaction: { enabled: false }, retry: { enabled: false, provider: { timeoutMs: taskTimeout(duration) } } });
+    compaction: { enabled: true }, retry: { enabled: false, provider: { timeoutMs: taskTimeout(duration) } } });
 }
 
 function validate({ task, project, conversation, dataDir, apiKey }) {
@@ -112,7 +112,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const backup = routes.get(routing?.backup?.provider.id);
     const repair = backup && routing.backup.repair ? repairRouting() : undefined;
     let active = primary;
-    let text = ''; let last; let progressed = false;
+    let text = ''; let last; let lastFailure; let progressed = false;
     const switched = (reason) => {
       active = backup;
       emit('model_route', { from: primary.profile.name, to: backup.profile.name, reason });
@@ -156,12 +156,23 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         } else if (event.type === 'message_end' && event.message?.role === 'assistant') {
           last = event.message;
           const used = routes.get(last.provider) ?? active;
+          lastFailure = used.proxy.failure();
           const rawUsage = used.proxy.takeUsage();
           if (last.usage && rawUsage) {
             try {
               emit('usage', { ...normalizeUsage(last.usage, rawUsage), providerId: used.profile.id,
                 model: used.profile.model, contextWindow: used.profile.contextWindow });
             } catch { /* Missing or malformed provider usage is never estimated. */ }
+          }
+        } else if (event.type === 'compaction_end') {
+          const raw = active.proxy.takeUsage();
+          const extra = active.proxy.takeUsage();
+          if (extra) while (active.proxy.takeUsage()) { /* Clear summary usage before the next reply. */ }
+          if (event.result?.usage && raw && !extra) {
+            try {
+              emit('usage', { ...normalizeUsage(event.result.usage, raw), providerId: active.profile.id,
+                model: active.profile.model, contextWindow: active.profile.contextWindow, kind: 'compaction' });
+            } catch { /* Incomplete compaction usage is not estimated. */ }
           }
         } else if (event.type === 'tool_execution_start') {
           progressed = true;
@@ -180,7 +191,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       for (;;) {
         await createSession();
         if (controller.signal.aborted) throw aborted();
-        last = undefined;
+        last = undefined; lastFailure = undefined;
         let prompt = message;
         if (retry) {
           const previous = session.messages.findLast(item => item.role === 'user')?.content;
@@ -200,7 +211,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
           }
           return { text };
         }
-        const code = active.proxy.failure() ??
+        const code = lastFailure ?? active.proxy.failure() ??
           classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`)).code;
         if (!backup || active !== primary || progressed || !['rate_limit', 'quota', 'network'].includes(code)) {
           throw new TaskFailure(code);
