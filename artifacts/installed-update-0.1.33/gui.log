@@ -1,0 +1,9 @@
+file:///Users/xuguopeng/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/artifacts/glm-responses-check/gui.mjs:59
+  throw new Error('Did not observe ' + label);
+        ^
+
+Error: Did not observe model list ready
+    at until (file:///Users/xuguopeng/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/artifacts/glm-responses-check/gui.mjs:59:9)
+    at async file:///Users/xuguopeng/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/artifacts/glm-responses-check/gui.mjs:131:2
+
+Node.js v24.15.0

@@ -1,0 +1,13 @@
+✔ missing parent (4.598042ms)
+✔ existing old package (1.849166ms)
+✔ symlink parent (1.188417ms)
+✔ candidate paths point to the accepted packaged files, including the packaged PI diagnostics (2.130459ms)
+✔ candidate carries the GLM probe fix, the smaller hint styles, and a zero validation gate (0.710791ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.340916
