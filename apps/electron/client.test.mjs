@@ -80,6 +80,8 @@ test('the DSH client extension registers the Moos brand and model services in th
   const glmNote = card.props.moos.serviceField('glm', () => {}, false).children[1];
   assert.match(glmNote.children[0], /https:\/\/open.bigmodel.cn\/api\/v1/);
   assert.match(glmNote.children[0], /OpenAI Responses/);
+  assert.equal(glmNote.props.style.fontSize, 12);
+  assert.match(source, /role: 'status', style: noteStyle/);
   modelSettings.discover = async () => ({ ok: false, message: '模型服务返回格式异常', code: 'protocol' });
   const discovery = await card.props.moos.discover({});
   assert.equal(discovery.kind, 'refused');

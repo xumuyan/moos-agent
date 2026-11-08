@@ -621,3 +621,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 2026-11-09 00:07 北京时间 E93 续作结果：独立更新 0.1.32 success（00:04:17）。停机备份 711 文件校验、备份权限通过；更新前后 81 消息/1 会话/44 任务原记录保留，API/凭据字节一致，聊天/PI 历史、皮肤、工作区、用户插件保留，单实例和 Host 正常。只读复核：安装与加载壳均 0.1.32、严格签名、GLM 修复已生效（仅 DeepSeek 锁定协议、官方端点提示在位），13 个模型配置及凭据可读；用户已按官方文档保存 GLM（/api/v1 + Responses + glm-5.3），助手未发送真实 GLM 请求。按规则删除本次停机备份与旧包，保留结果/日志/脚本及历史 0.1.31 证据目录。
 
 | E94 | GLM Responses 测试连接误报修复：官方文档证实 max_output_tokens 含思维链且默认思考 max，16 预算被推理耗尽导致 HTTP 200 + incomplete 误报格式错误；GLM 探测改用 minimal 思考 + 256 预算，其余协议不变。证据 `docs/evidence/desktop/p03-glm-responses-probe.json`。 | 定向 59/59，独立 Terminal 全量核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；0.1.33 build-fTNdrM 严格签名、非 fixture、包内修复核实。未发真实认证请求，未安装，正式仍 0.1.32；真实测试连接结果待用户在安装后确认。 |
+
+| E95 | 模型设置两段提示文字缩小：GLM 服务提示与测试连接结果共用 noteStyle（12px），隔离界面截图目视确认渲染变小；候选并入未发布的 0.1.33（build-uy2KoB，取代从未安装的 build-fTNdrM）。证据 `docs/evidence/desktop/p03-model-settings-text-size.json`。 | 验证门禁全零（核心 140/140、Electron 73/73 无跳过）；隔离 GUI 首跑冷启动超时如实保留，重跑 PASS 并目视核对 glm.png。未安装，真实窗口样式待安装后由用户确认。 |

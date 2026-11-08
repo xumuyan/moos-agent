@@ -17,6 +17,16 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(evidence['build']['includesPiFixture'])
         self.assertTrue(evidence['notInstalled'])
         self.assertIn('| E94 |', (ROOT / 'PLAN.md').read_text())
+
+    def test_model_settings_text_size_evidence_records_candidate_and_visual_check(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-model-settings-text-size.json').read_text())
+        self.assertTrue(evidence['change'][0].startswith('client.js 新增共享 noteStyle'))
+        self.assertIn('build-uy2KoB', evidence['candidate']['build'])
+        gui = evidence['tests']['isolatedGui']
+        self.assertTrue(gui['retry'].startswith('PASS'))
+        self.assertIn('FAIL', gui['firstRun'])
+        self.assertTrue(evidence['notInstalled'])
+        self.assertIn('| E95 |', (ROOT / 'PLAN.md').read_text())
         guide = (ROOT / 'apps/electron/README.md').read_text()
         self.assertIn('不影响实际聊天通道', guide)
 

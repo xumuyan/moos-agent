@@ -53,6 +53,8 @@ window.__ModuleLoader__.load({
       }, options.map(([id, label]) => createElement('option', { key: id, value: id }, label)));
     }
 
+    const noteStyle = { fontSize: 12, lineHeight: 1.5, margin: '4px 0 0' };
+
     function ConnectionTest({ connection, disabled, styles }) {
       const [selected, setSelected] = useState(0);
       const [busy, setBusy] = useState(false);
@@ -78,7 +80,7 @@ window.__ModuleLoader__.load({
           connection.models.map((item, at) => [String(at), item.name || item.id || '模型 ' + (at + 1)]), { disabled: disabled || busy })),
         createElement(Button, { type: 'button', variant: 'outline', size: 'sm', onClick: test,
           disabled: disabled || busy || !model.id }, busy ? '正在测试连接…' : '测试连接'),
-        status?.revision === revision ? createElement('p', { role: 'status' }, status.message) : null);
+        status?.revision === revision ? createElement('p', { role: 'status', style: noteStyle }, status.message) : null);
     }
 
     function NativeConnectionEditor({ connection, editor, ...props }) {
@@ -100,7 +102,7 @@ window.__ModuleLoader__.load({
           providerField(styles, '服务类型',
             providerSelect(styles, service, change,
               [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
-          service === 'glm' ? createElement('p', { role: 'note' },
+          service === 'glm' ? createElement('p', { role: 'note', style: noteStyle },
             'GLM 支持不同端点：按官方 Codex 文档接入时，地址为 https://open.bigmodel.cn/api/v1，协议选 OpenAI Responses。Chat Completions 须使用对应端点。密钥须来自相应 Coding Plan 套餐，不能混用标准 API 密钥。模型列表不可用时可手动添加模型并测试连接。') : null),
         modelExtra: (model, position, change, disabled) => createElement('div', {
           'data-moos-model-capabilities': '',

@@ -1483,3 +1483,14 @@
 - 验证结果：定向 node --test provider-diagnostics/pi-models/client 59/59（含新增断言 reasoning.effort=minimal、max_output_tokens=256、无 reasoning_effort 字段）。MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app 生成 build-fTNdrM，严格 codesign 通过，包内 pi-runtime/services/agent/provider-diagnostics.mjs 含修复，moos-runtime.json includesPiFixture=false。独立 Terminal artifacts/installed-update-0.1.33/validate.command 全零：核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；当时文档 74/74，新增 E94 契约后提交前重跑。证据对应当前工作区。
 - 遗留问题：0.1.33 未安装，正式仍 0.1.32，真实“测试连接”与聊天图片能力待用户实测；未安装前用户可直接在聊天中发图片验证（不依赖测试连接按钮）。安装需用户再次明确授权。
 - 对应 Git 提交：唯一说明 fix(P03.13): bound GLM Responses probe so reasoning models answer within budget；查询 git log --all --oneline --grep='^fix(P03.13): bound GLM Responses probe so reasoning models answer within budget$'。提交推送并核对远程 HEAD。
+
+
+## 2026-11-09 00:22:03 +08:00｜P03.13 模型设置提示文字缩小（E95）
+
+- 修改或新增内容：用户贴出 GLM 端点提示与“模型服务返回格式异常 · HTTP 200 · 1171 毫秒”截图，要求缩小这些提示文字。client.js 新增共享 noteStyle（fontSize 12、lineHeight 1.5、margin 4px 0 0），同时用于 role:note 的 GLM 服务提示和 role:status 的测试连接结果段；新增测试断言 note 元素 style.fontSize=12 及 status 段引用 noteStyle。
+- 遗留候选说明：该样式改动并入尚未安装的 0.1.33 候选，新候选 build-uy2KoB 取代 build-fTNdrM（后者从未安装）；E94 记录的历史构建路径保持原样。
+- 遇到的难题：隔离界面脚本首跑在“模型列表就绪”处冷启动超时失败；单元测试均通过，无代码回归证据。
+- 处理方式：原样保留首跑日志（gui.log），用同一脚本重跑；重跑 PASS（recovery-5UmH8i），并目视核对 glm.png：GLM 提示字号小于表单标签，协议选择、保存重开断言不变。
+- 验证结果：定向 client/pi-models/stage-dsh-runtime 19 过 0 败 3 跳过（跳过为既有需 MOOS_ELECTRON_TEST_DSH_CLI 的打包项）；独立 Terminal 验证门禁全零：核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；当时文档 74/74，新增 E95 契约后提交前重跑。严格 codesign 通过，包内 client.js 含 noteStyle。
+- 遗留问题：0.1.33 未安装，正式仍 0.1.32；真实窗口中的字号效果与测试连接结果样式待安装后由用户确认。安装需用户明确授权。
+- 对应 Git 提交：唯一说明 style(P03.13): shrink model settings hints and connection result text；查询 git log --all --oneline --grep='^style(P03.13): shrink model settings hints and connection result text$'。
