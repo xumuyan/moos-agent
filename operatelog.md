@@ -1423,3 +1423,13 @@
 - 验证结果：npm run build:app 固定 DSH 来源、fixture=0，build-92S1Rw 严格验签通过。独立 Terminal 执行 validate.command，结果 artifacts/installed-update-0.1.31/validation-final/validation.json 全零：核心 139/139、Electron 72/72、Rust 11/11、PI 桥 5/5、皮肤 Python 4/4、文档 71/71。新候选包 preflight 通过。与先前相同应用源码，仅构建与验证环境修正，失败历史保留。
 - 遗留问题：安装待交接独立 Terminal，先等待活跃任务自然结束，不授权强制停止；正常退出后完整停机备份再替换，异常停止，不恢复覆盖数据。结果 /Applications/.moos-update-0.1.31/result.json，日志同目录 terminal-update.log。宿主退出可能中断当前对话，恢复先读结果和日志，不重复退出/备份/移动。需成功并核对聊天/模型可读后才能清理本次备份和旧包；正式截图此前失败，不能宣称 GUI 验收完成。
 - 对应 Git 提交：唯一说明 docs(P03.13): resolve update validation environment and prepare handoff；查询 git log --all --oneline --grep='^docs(P03.13): resolve update validation environment and prepare handoff$'。提交推送核对后才启动独立安装。
+
+
+## 2026-11-08 23:32:09 +08:00｜P03.13 首次安装失败核对与断点续作准备
+
+- 修改或新增内容：按用户要求先核对工作区和现有工具结果。保留 E90/失败历史，新增 E91 及文档断言；产品代码无改动。已通过的正式构建与全量测试不重做。
+- 遇到的难题：首次独立更新正常退出和 659 文件停机备份均完成，但 previous 父目录不存在，rename 在移动原包前 ENOENT。result.json stopped-for-review、packageWasSwitched=false，安装和加载都仍 0.1.29。旧版已重开且消息从备份 72 增至当时读取 73，不能拿旧停机快照继续换包而忽视新增数据。
+- 处理方式：独立续作脚本检查/创建旧包父目录，拒绝符号链接、跨卷和已有旧包，移包前再次检查。新备份使用 data-before-install-resume，保留第一次 data-before-install 与 first-attempt-result.json/first-attempt-terminal.log；新停机备份递归目录 0700、文件 0600，不改真实凭据权限。不覆盖、恢复或重置用户数据。修正脚本在 /Applications/.moos-update-0.1.31/resume.mjs，启动器 resume.command，结果 result.json、日志 resume-terminal.log。
+- 验证结果：artifacts/installed-update-0.1.31/checkpoint.test.mjs 合成目录实际验证缺失父目录下移动成功、旧包冲突与符号链接被拒绝，3/3。续作 preflight 通过；暂存 reader 与已测试 build-92S1Rw 原字节一致。既有 validation-final 全零，核心 139/139、Electron 72/72、Rust 11/11、桥 5/5、皮肤 4/4，不重跑。第一备份和当前 SQLite quick_check 均 ok，真实及备份凭据权限均 0600。无旧更新进程、previous 无已移动包、resume 备份尚不存在，故可在本任务结束后由独立 Terminal 正常退出并重取当次停机快照。再次 screencapture 失败，无正式截图；不声称看见正式 UI。
+- 遗留问题：尚未安装，必须独立续作结果 success 后再核对正式版本、原聊天/模型配置读取及数据保护项；任一异常保留原包和备份并停止，不用空数据重试。文档更新后运行检查；日志记录的是提交前状态。应用退出可能中断工具，对话恢复先读取结果，不重复已完成的备份/移动。
+- 对应 Git 提交：唯一说明 docs(P03.13): record failed install checkpoint and verified resume；查询 git log --all --oneline --grep='^docs(P03.13): record failed install checkpoint and verified resume$'。提交推送核对后启动独立续作。

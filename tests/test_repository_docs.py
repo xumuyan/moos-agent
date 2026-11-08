@@ -9,6 +9,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_update_resume_preserves_failed_checkpoint_and_uses_new_stopped_snapshot(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0131-resume.json').read_text())
+        self.assertFalse(evidence['firstAttempt']['packageWasSwitched'])
+        self.assertTrue(evidence['firstAttempt']['backupVerified'])
+        self.assertTrue(evidence['resume']['oldBackupPreserved'])
+        self.assertEqual(evidence['resume']['newBackup'], 'data-before-install-resume')
+        self.assertIn('3/3', evidence['resume']['moveDestinationTests'])
+
     def test_model_catalog_layout_preserves_identity_and_records_actual_acceptance(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-model-catalog-layout.json').read_text())
         self.assertTrue(evidence['acceptance']['modelIdRetained'])

@@ -609,3 +609,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 2026-11-08 23:18 北京时间 E90 续作更正：独立 Terminal 更新器曾进入 waiting-for-idle，但因完整测试未通过已停止本次更新进程（未退出 Moos、未备份/替换程序或数据）。当次结果 `/Applications/.moos-update-0.1.31/result.json` 为 paused-before-quit、installed=false；正式仍 0.1.29。直接 screencapture 失败，未取得正式截图，不认定 GUI 验收通过。须先解除测试阻塞，恢复时重新检查状态，禁止盲重跑脚本。
 
 2026-11-08 23:24 北京时间 E90 续作：诊断 TMPDIR 指向仓库导致 Swift SIGTRAP、umask 077 导致测试夹具权限差异；旧构建 HOME 指向仓库导致 pnpm store 与真实用户目录不一致。正确 HOME/TMPDIR 重构正式非 fixture build-92S1Rw 后独立 Terminal 全测试通过：核心 139/139、Electron 72/72、Rust 11/11、桥 5/5、皮肤 4/4、文档 71/71。新候选包暂存且预检通过，待独立安装结果，不记为已安装。结果 `/Applications/.moos-update-0.1.31/result.json`，日志同目录 terminal-update.log，脚本加入 validation-final 全零门禁；恢复只读核对结果，不重复已完成步骤。
+
+| E91 | 0.1.31 安装续作预检：第一次 659 文件停机备份通过，但旧包父目录缺失导致 rename 失败，程序未替换。保留失败证据及原备份；续作检查目录/同卷/旧包冲突并以 data-before-install-resume 备份新增对话，脚本测试 3/3、预检通过，沿用全量测试通过及正式 build-92S1Rw。证据 `docs/evidence/desktop/p03-installed-update-0131-resume.json`。 | 待独立续作结果；不可重跑原脚本或覆盖旧备份。恢复先读 result.json 和 resume-terminal.log，不提前宣称安装或正式 GUI 验收通过。 |

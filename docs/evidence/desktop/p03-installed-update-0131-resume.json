@@ -1,0 +1,39 @@
+{
+  "id": "E91",
+  "state": "resume-preflight-passed-not-installed",
+  "targetShell": "0.1.31",
+  "build": "build-92S1Rw",
+  "firstAttempt": {
+    "state": "stopped-for-review",
+    "targetShell": "0.1.31",
+    "userAuthorizedUpdate": true,
+    "stoppedActiveTasks": false,
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "time": "2026-11-08T15:25:49.710Z",
+    "fullBackupFilesVerified": 659,
+    "backupPermissionsVerified": true,
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 72,
+      "conversations": 1,
+      "tasks": 39
+    },
+    "failure": "ENOENT: no such file or directory, rename '/Applications/Moos.app' -> '/Applications/.moos-update-0.1.31/previous/Moos.app'",
+    "packageWasSwitched": false
+  },
+  "cause": "Rollback parent directory was missing; first rename failed before application replacement.",
+  "resume": {
+    "script": "/Applications/.moos-update-0.1.31/resume.mjs",
+    "sha256": "ab4527faa892be99fdae24f4cc7d2beafefd5dc745195ff1ba9270e554eb17cd",
+    "oldBackupPreserved": true,
+    "newBackup": "data-before-install-resume",
+    "reason": "Original app restarted and new conversation data exists. New stopped snapshot required; no restoration or overwrite.",
+    "moveDestinationTests": "3/3: missing parent created and replacement succeeds; existing old package and symlink parent rejected.",
+    "preflight": "passed; same volume, signatures, original 0.1.29, staged 0.1.31, no fixture, no old application already moved."
+  },
+  "validation": "Existing same-code validation-final retained: core 139/139, Electron 72/72, Rust 11/11, bridge 5/5, skin 4/4, docs 71/71. No successful build or test repeated.",
+  "screenshots": "screencapture failed; no formal GUI image verified.",
+  "resultFile": "/Applications/.moos-update-0.1.31/result.json",
+  "logFile": "/Applications/.moos-update-0.1.31/resume-terminal.log"
+}
