@@ -1137,3 +1137,13 @@
 - 验证结果：`MOOS_ELECTRON_TEST_DSH_CLI=<安装包 CLI> npm --prefix apps/electron test` 复跑 29/29，回环 Host 定向连续三次通过，`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：自定义 DeepSeek 只验本地兼容端点，真实端点需要可用的独立配置。性能差异限现有配对样本。正式发行、整机离线及其他平台按原计划继续验收。
 - 对应 Git 提交：唯一说明 `test(P03.13): verify live manual and automatic PI routing`，用 `git log --all --oneline --grep='^test(P03.13): verify live manual and automatic PI routing$'` 查询。
+
+## 2026-11-08 08:46:11 +08:00｜P03.13.7 恢复深海女仆工坊工作区装饰
+
+- 修改或新增内容：更新本机 Moos 的深海女仆工坊皮肤目录，保留旧目录供回滚。仓库增加皮肤脚本校验回归及 P03.13.7 证据，应用包和皮肤中心版本保持原值。
+- 遇到的难题：安装模板使用皮肤中心 0.4.5，本机已使用 0.4.16。此前从旧上游分支安装的皮肤清单仍匹配 0.4.16 的校验记录，但脚本内容已变。实际 Host 为旧脚本返回 HTTP 403，背景和静态样式仍能加载，导致「默认工作区」只显示普通文件夹。
+- 处理方式：从皮肤中心 0.4.16 发布包记录的提交 `5f51988d1249173509c77129670e3be5cfd514a8` 取得上游原目录，核对清单和脚本哈希符合现有信任校验后替换本机皮肤。测试证明脚本字节变化仍会被拒绝。第三方皮肤文件留在本机。首次推送时默认 Git 凭据缺少仓库写权限并返回 HTTP 403，改用本机已授权的 GitHub CLI 凭据，推送后通过远端提交校验。[皮肤上游原目录](https://github.com/zhu1090093659/dsh-skins/tree/5f51988d1249173509c77129670e3be5cfd514a8/skins/maid-atelier)
+- 实际验收：提交前在 macOS 27.0.1 arm64，以安装版 `build-DV6dkR` 的 Host 和独立 Chromium 配置完成前后对比。修复后脚本、盾牌和横幅素材返回 HTTP 200，工作区渲染出蓝金横幅和盾牌。两次从菲比切回女仆工坊均复现正常绘制。正式配置中替换后的皮肤文件与原目录逐一匹配，0.4.16 信任校验通过。原有 Moos 进程保持运行。
+- 验证结果：Electron 回归 30/30，含新增校验。执行 `npm --prefix apps/electron test` 时，`MOOS_ELECTRON_TEST_DSH_CLI` 指向安装包 CLI，`MOOS_ELECTRON_TEST_SKIN_CENTER` 指向本机 0.4.16 的插件目录，`MOOS_ELECTRON_TEST_REVIEWED_MAID` 指向上述提交的皮肤目录。`npm test` 139/139，`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。文档检查首次发现新增日志缺少规定的字段标记，补齐后重跑通过。
+- 遗留问题：正式窗口需重新加载后复核。当前证据覆盖本机 Host 与隔离 Chromium，P03.13.7 的其他插件兼容验收继续按计划进行。
+- 对应 Git 提交：唯一说明 `test(P03.13): verify reviewed workspace skin hooks`，用 `git log --all --oneline --grep='^test(P03.13): verify reviewed workspace skin hooks$'` 查询。
