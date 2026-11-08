@@ -2,6 +2,7 @@ window.__ModuleLoader__.load({
   id: 'moos-electron-shell',
   factory(require) {
     const { createElement, useEffect, useRef, useState } = require('react');
+    const { Button } = require('@deepseek-ai/dsh-client-ui-primitives');
     const sidebarIcon = ({ size }) => createElement('img', {
       src: 'data:image/png;base64,__MOOS_SIDEBAR_ICON__',
       alt: '', width: size, height: size, draggable: false, 'data-moos-sidebar-icon': '',
@@ -47,7 +48,7 @@ window.__ModuleLoader__.load({
       return createElement('section', { 'data-moos-model-settings': '' },
         createElement('h2', null, '模型服务'),
         createElement('p', null, '配置 PI 使用的模型服务、推理档位和图片能力，并测试连接。'),
-        createElement('button', { type: 'button', onClick: open }, '管理模型服务'),
+        createElement(Button, { type: 'button', variant: 'outline', size: 'sm', onClick: open }, '管理模型服务'),
         failed ? createElement('p', { role: 'status' }, '模型服务窗口未能打开，请重试。') : null);
     }
 

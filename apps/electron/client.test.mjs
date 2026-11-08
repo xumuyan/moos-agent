@@ -35,7 +35,8 @@ test('the DSH client extension registers the Moos brand and opens model services
     },
   });
 
-  const plugin = entry.factory(() => ({
+  const Button = () => {};
+  const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-primitives' ? { Button } : ({
     createElement: (element, props, ...children) => ({ element, props, children }),
     useState: () => [failed, value => { failed = value; }],
   }));
@@ -57,8 +58,10 @@ test('the DSH client extension registers the Moos brand and opens model services
   assert.equal(renderers.get('sidebar.brand.name')().children[0], 'Moos');
   assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).children[0], 'M');
   const models = renderers.get('moos-models');
-  const button = models().children.find(child => child?.element === 'button');
+  const button = models().children.find(child => child?.element === Button);
   assert.equal(button.children[0], '管理模型服务');
+  assert.equal(button.props.variant, 'outline');
+  assert.equal(button.props.size, 'sm');
   await button.props.onClick();
   assert.equal(calls, 1);
   assert.equal(failed, false);

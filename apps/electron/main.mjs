@@ -8,6 +8,7 @@ import { startHost } from './host.mjs';
 import { piModels } from './pi-models.js';
 import { createPiUsageReader } from './pi-usage.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
+import { modelSettingsThemeCss, readWorkbenchTheme } from './model-settings-theme.mjs';
 
 app.setName('Moos');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -18,8 +19,11 @@ let host;
 let hostStopped = false;
 let modelWindow;
 
-function installModelSettings(resources, models, diagnoseProvider) {
+function installModelSettings(resources, models, diagnoseProvider, workbench, origin) {
   const assets = join(resources, 'app');
+  let ready;
+  let cssKey;
+  let themeRequest = 0;
   function senderAllowed(event) {
     if (!modelWindow || event.sender !== modelWindow.webContents || event.senderFrame !== event.sender.mainFrame) {
       throw new Error('Untrusted Moos settings request');
@@ -37,20 +41,49 @@ function installModelSettings(resources, models, diagnoseProvider) {
     senderAllowed(event);
     return models.testConnection(profile, diagnoseProvider);
   });
-  return () => {
-    if (modelWindow) { modelWindow.focus(); return; }
-    modelWindow = new BrowserWindow({
-      title: 'Moos 模型服务', width: 580, height: 640, minWidth: 450, minHeight: 600,
-      webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false,
-        preload: join(assets, 'model-settings-preload.cjs') },
-    });
-    modelWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-    modelWindow.webContents.on('will-navigate', event => event.preventDefault());
-    modelWindow.webContents.on('will-redirect', event => event.preventDefault());
-    modelWindow.once('closed', () => { modelWindow = undefined; });
-    void modelWindow.loadFile(join(assets, 'model-settings.html')).catch(() => {
-      modelWindow?.close();
-    });
+  async function syncTheme(window) {
+    const request = ++themeRequest;
+    let theme;
+    try {
+      if (new URL(workbench.webContents.getURL()).origin === origin) {
+        theme = await workbench.webContents.executeJavaScript(readWorkbenchTheme);
+      }
+    } catch { /* use the settings window's system colors while the workbench is unavailable */ }
+    if (window.isDestroyed() || request !== themeRequest) return;
+    const contents = window.webContents;
+    const key = await contents.insertCSS(modelSettingsThemeCss(theme));
+    if (window.isDestroyed()) return;
+    if (request !== themeRequest) { await contents.removeInsertedCSS(key); return; }
+    const previous = cssKey;
+    cssKey = key;
+    if (previous !== undefined) await contents.removeInsertedCSS(previous);
+  }
+
+  return async () => {
+    if (!modelWindow) {
+      const window = new BrowserWindow({
+        title: 'Moos 模型服务', width: 580, height: 700, minWidth: 420, minHeight: 480, show: false,
+        webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false,
+          preload: join(assets, 'model-settings-preload.cjs') },
+      });
+      modelWindow = window;
+      window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      window.webContents.on('will-navigate', event => event.preventDefault());
+      window.webContents.on('will-redirect', event => event.preventDefault());
+      window.once('closed', () => { modelWindow = undefined; cssKey = undefined; });
+      ready = window.loadFile(join(assets, 'model-settings.html')).catch(error => {
+        if (!window.isDestroyed()) window.close();
+        throw error;
+      });
+      window.on('focus', () => { void syncTheme(window).catch(() => {}); });
+    }
+    const window = modelWindow;
+    await ready;
+    if (window.isDestroyed()) return;
+    await syncTheme(window).catch(() => {});
+    if (window.isDestroyed()) return;
+    window.show();
+    window.focus();
   };
 }
 
@@ -118,17 +151,6 @@ async function launch() {
     import(pathToFileURL(join(piRuntime, 'services/agent/timeline-view.mjs')).href),
     import(pathToFileURL(join(piRuntime, 'services/agent/provider-diagnostics.mjs')).href),
   ]);
-  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider), diagnoseProvider);
-  Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'Moos', submenu: [
-      { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: openModelSettings },
-      { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
-      { type: 'separator' }, { role: 'quit' },
-    ] },
-    { role: 'editMenu' },
-    { role: 'windowMenu' },
-  ]));
-
   const partition = session.fromPartition('persist:moos-workbench');
   partition.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   partition.setPermissionCheckHandler(() => false);
@@ -144,6 +166,18 @@ async function launch() {
       ...(mac ? { preload: join(resources, 'app', 'window-preload.cjs') } : {}),
     },
   });
+  const openModelSettings = installModelSettings(resources, piModels(data, checkedProvider), diagnoseProvider, win, address.origin);
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { label: 'Moos', submenu: [
+      { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: () => {
+        void openModelSettings().catch(() => dialog.showErrorBox('Moos', '模型服务窗口未能打开，请重试。'));
+      } },
+      { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
+      { type: 'separator' }, { role: 'quit' },
+    ] },
+    { role: 'editMenu' },
+    { role: 'windowMenu' },
+  ]));
   const dbPath = join(data, enableFixture ? 'pi-fixture' : 'pi', 'moos.sqlite');
   const usage = createPiUsageReader(dbPath);
   const turns = createPiTurnReader(dbPath, timelinePayload);
@@ -166,7 +200,7 @@ async function launch() {
   });
   ipcMain.handle('moos:open-model-settings', event => {
     verifyWorkbench(event);
-    openModelSettings();
+    return openModelSettings();
   });
   win.once('closed', () => {
     ipcMain.removeHandler('moos:pi-usage');

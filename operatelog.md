@@ -1156,3 +1156,13 @@
 - 验证结果：用户验收通过。`npm test` 139/139，`npm --prefix apps/electron test` 30/30（使用 E73 的安装包与皮肤夹具设置，并以已恢复的本机皮肤目录作为原包夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。首次并行运行时 Electron 的回环 Host 检查超时，独立复跑 Electron 套件全部通过。`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175。
 - 遗留问题：P03.13.7 的其他插件兼容性仍按计划分别验收。
 - 对应 Git 提交：唯一说明 `docs(P03.13): record workspace skin restart acceptance`，用 `git log --all --oneline --grep='^docs(P03.13): record workspace skin restart acceptance$'` 查询。
+
+## 2026-11-08 09:09:40 +08:00｜P03.13.5 模型服务按钮与弹窗皮肤适配
+
+- 修改或新增内容：管理模型服务按钮换为 DSH 的 Button，内置壳升级到 0.1.20。独立模型服务窗口按当前皮肤渲染背景、文字、边框和强调色，表单增加圆角、键盘焦点和窄宽布局。入口和原生菜单继续复用单个配置窗口。
+- 遇到的难题：原入口渲染为浏览器默认按钮，独立文件窗口只继承系统色。DSH 在正文节点提供皮肤变量，Electron 注入样式的初始优先级也低于表单默认值。隔离验收分别复现了配色读取为空和配色被覆盖。
+- 处理方式：从工作台正文解析六项配色和明暗模式。主进程仅允许固定字段和十六进制色值，再应用到本地表单，表单仍通过原有隔离接口读写配置。窗口打开和重新聚焦时同步色板，已有窗口保留表单状态。
+- 实际验收：提交前在 macOS 27.0.1 arm64 构建 `build-rd0cmy` 并通过严格签名检查。复制同构建的应用做无前台窗口的验收，实际点击 DSH 设置按钮打开模型窗口。女仆工坊和菲比浅色采用各自背景与强调色，两次打开只有一个模型窗口且保留合成草稿。模拟深色状态验证弹窗配色和 390px 布局。Chromium 另通过实际设置切换深色，确认工作台产生相应色板。模型配置仅使用空白验收数据。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（启用安装包及皮肤夹具），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
+- 遗留问题：当前正式 Moos 仍运行，签名新版已构建，等待当前窗口退出后替换本机安装。其他皮肤按 P03.13.7 继续验收。
+- 对应 Git 提交：唯一说明 `fix(P03.13): theme model service controls`，用 `git log --all --oneline --grep='^fix(P03.13): theme model service controls$'` 查询。
