@@ -1413,3 +1413,13 @@
 - 验证结果：日志仅 waiting-for-idle，无 normal-quit-requested、备份或替换阶段；更新进程退出已核对，正式主进程 13217 保持，未请求应用退出、未做停机备份、未替换应用或用户数据。暂存包和一次性脚本留在 0700 暂存目录，不应自动重新运行。完整核心与 Electron 失败继续沿用 E90，不宣称通过；本次文档检查及差异检查在提交前执行。
 - 遗留问题：先诊断并消除 E90 测试阻塞，再重新验证当前状态及更新参数；恢复时不得把此次预检当成安装完成。截图无法获取，需可工作的合法屏幕捕获入口或用户重新附图，不能以虚构视觉检查替代。
 - 对应 Git 提交：唯一说明 docs(P03.13): pause premature update handoff and record screenshot failure；查询 git log --all --oneline --grep='^docs(P03.13): pause premature update handoff and record screenshot failure$'。
+
+
+## 2026-11-08 23:24:23 +08:00｜P03.13 更新测试阻塞解除并准备独立交接
+
+- 修改或新增内容：按用户继续更新授权定位环境问题，重建非 fixture 正式 build-92S1Rw；此处只更新事实和交接检查点，不记安装完成。没有修改产品源代码。
+- 遇到的难题：工具 HOME 和 TMPDIR 均指向仓库，导致 Swift driver 崩溃及随包模板 pnpm store 与真实用户环境不一致；独立测试脚本 umask 077 导致夹具 node 权限为 0700。直接在合成 profile 执行 pnpm 定位 ERR_PNPM_UNEXPECTED_STORE；使用 env -i HOME=/Users/xuguopeng TMPDIR=/private/tmp 后 Swift 版本命令正常。
+- 处理方式：独立 Terminal 测试 HOME=/Users/xuguopeng、TMPDIR=/private/tmp、umask 022；正式重构同样用正确环境，不改用户实际 pnpm 全局配置或数据。旧暂存候选包改名 rejected-build-gbOQSU.app，只更新当次尚未安装的暂存候选，不动正式应用。修订当次脚本携带正确 TMPDIR 并增加 validation-final.json 全零门禁；已确认没有等待中的旧更新进程，没有 backup/previous 或已完成替换步骤，才允许本次交接。
+- 验证结果：npm run build:app 固定 DSH 来源、fixture=0，build-92S1Rw 严格验签通过。独立 Terminal 执行 validate.command，结果 artifacts/installed-update-0.1.31/validation-final/validation.json 全零：核心 139/139、Electron 72/72、Rust 11/11、PI 桥 5/5、皮肤 Python 4/4、文档 71/71。新候选包 preflight 通过。与先前相同应用源码，仅构建与验证环境修正，失败历史保留。
+- 遗留问题：安装待交接独立 Terminal，先等待活跃任务自然结束，不授权强制停止；正常退出后完整停机备份再替换，异常停止，不恢复覆盖数据。结果 /Applications/.moos-update-0.1.31/result.json，日志同目录 terminal-update.log。宿主退出可能中断当前对话，恢复先读结果和日志，不重复退出/备份/移动。需成功并核对聊天/模型可读后才能清理本次备份和旧包；正式截图此前失败，不能宣称 GUI 验收完成。
+- 对应 Git 提交：唯一说明 docs(P03.13): resolve update validation environment and prepare handoff；查询 git log --all --oneline --grep='^docs(P03.13): resolve update validation environment and prepare handoff$'。提交推送核对后才启动独立安装。
