@@ -1403,3 +1403,13 @@
 - 验证结果：npm run build:app 使用固定 DSH 输入、MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0，codesign --verify --deep --strict 通过，moos-runtime.json includesPiFixture=false。独立 Terminal 执行 artifacts/installed-update-0.1.31/validate.command：npm test 138/139，npm run test:electron 70/72，Rust 11/11，PI 桥 5/5，皮肤 Python 4/4，文档 71/71；未声明全量通过。原始日志及 result.json 在 artifacts/installed-update-0.1.31。证据对应本提交前工作区，仅新增脱敏文档。文档更新后再跑检查。
 - 遗留问题：安装尚未执行，正式仍 0.1.29；解除条件为诊断编译器及上述测试环境/升级失败，完整测试通过，再重新确认版本/签名/空闲状态并交接独立更新进程，完成停机备份和数据保留核对。未取得成功结果，不删除备份或宣称更新成功。
 - 对应 Git 提交：唯一说明 docs(P03.13): record authorized update preflight blockers；查询 git log --all --oneline --grep='^docs(P03.13): record authorized update preflight blockers$'。随后推送并核对远程 HEAD。
+
+
+## 2026-11-08 23:18:00 +08:00｜P03.13 截图尝试与更新交接暂停更正
+
+- 修改或新增内容：用户要求继续且授权截图。尝试 /usr/sbin/screencapture -x artifacts/installed-update-0.1.31/current-screen.png，退出 1、提示 could not create image from display，没有生成可审阅截图；不能声称看到正式界面，先前对占位截图的视觉描述不成立。
+- 遇到的难题：全量测试阻塞尚未解除，却过早准备并启动独立更新器；这是执行顺序错误，不能把 preflight 通过当成完整测试通过。未核实录屏失败的具体系统原因，不推断为已经获得或缺失权限。
+- 处理方式：在 /Applications/.moos-update-0.1.31 同卷暂存正式 build-gbOQSU，核对签名并生成当次版本脚本（不是原样重跑旧脚本），preflight 通过。独立 Terminal 更新进程停在 waiting-for-idle，识别未通过全量验收后，仅 SIGTERM 本次更新脚本 Node PID 43939；未结束 Moos 或其 Host，不停止用户任务。result.json 明确改记 paused-before-quit 及 installed=false，避免遗留自动退出应用的等待进程。
+- 验证结果：日志仅 waiting-for-idle，无 normal-quit-requested、备份或替换阶段；更新进程退出已核对，正式主进程 13217 保持，未请求应用退出、未做停机备份、未替换应用或用户数据。暂存包和一次性脚本留在 0700 暂存目录，不应自动重新运行。完整核心与 Electron 失败继续沿用 E90，不宣称通过；本次文档检查及差异检查在提交前执行。
+- 遗留问题：先诊断并消除 E90 测试阻塞，再重新验证当前状态及更新参数；恢复时不得把此次预检当成安装完成。截图无法获取，需可工作的合法屏幕捕获入口或用户重新附图，不能以虚构视觉检查替代。
+- 对应 Git 提交：唯一说明 docs(P03.13): pause premature update handoff and record screenshot failure；查询 git log --all --oneline --grep='^docs(P03.13): pause premature update handoff and record screenshot failure$'。
