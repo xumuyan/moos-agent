@@ -76,6 +76,19 @@ test('the DSH client extension registers the Moos brand and model services in th
   const service = card.props.moos.serviceField('openai', () => {}, false).children[1];
   assert.equal(service.props.className, 'dsh-input dsh-select');
   assert.equal(service.props.value, 'openai');
+  const edits = [];
+  const extra = card.props.moos.modelExtra({ id: 'gpt-fixture', input: ['text', 'image'] }, 1,
+    (...args) => edits.push(args), false);
+  const image = extra.children[1].children[1];
+  assert.equal(image.props.type, 'checkbox');
+  assert.equal(image.props.checked, true);
+  image.props.onChange({ target: { checked: false } });
+  image.props.onChange({ target: { checked: true } });
+  assert.deepEqual(Array.from(edits[0][1]), ['text']);
+  assert.deepEqual(Array.from(edits[1][1]), ['text', 'image']);
+  const off = card.props.moos.modelExtra({ id: 'unknown-gpt' }, 2, () => {}, true).children[1].children[1];
+  assert.equal(off.props.checked, false, 'never infer image capability from the model name');
+  assert.equal(off.props.disabled, true);
 
   assert.equal(slots.get('moos-pi-process'), 'conversation.chat.turnProcess');
   assert.equal(slots.get('moos-pi-turn'), 'conversation.chat.turnTail');

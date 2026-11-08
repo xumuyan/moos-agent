@@ -163,6 +163,8 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   const vision = createPiAdapter({ tasks, models, getSession: () => ({ header: { cwd } }),
     readImage: async () => ({ data: imageData }), getPermissions: () => ({ getMode: () => 'workspace-write' }) });
   assert.deepEqual((await vision.resolveModel('moos-pi', 'auto')).inputModalities, ['text', 'image']);
+  assert.deepEqual((await vision.resolveModel('moos-pi', 'relay')).inputModalities, ['text', 'image']);
+  assert.deepEqual((await vision.resolveModel('moos-pi', 'glm')).inputModalities, ['text']);
   const image = { type: 'image', attachment: { attachmentId: 'sha256:' + 'a'.repeat(64),
     mediaType: 'image/png', width: 64, height: 32, bytes: imageData.length } };
   async function turn(model, content, rpcId, sessionId = 'vision') {
@@ -244,4 +246,31 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   assert.equal(offEvents.at(-1).reason.kind, 'stop');
   assert.deepEqual(requests.at(-1), { model: 'relay-a', effort: 'high', thinking: undefined });
   assert.equal((await models.resolve(offId)).thinkingLevel, 'off');
+});
+
+test('image input survives unrelated group edits but is not inferred or transferred to another model or endpoint', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'moos-image-capability-'));
+  t.after(() => rm(data, { recursive: true, force: true }));
+  const models = piModels(data, checkedProvider);
+  const base = { route: 'vision-relay', name: 'Vision Relay', service: 'openai',
+    api: 'openai-completions', baseUrl: 'https://fixture.example/v1', apiKey: 'synthetic-fixture-key' };
+  let [group] = await models.saveGroup({ ...base, models: [{ id: 'gpt-fixture', input: ['text', 'image'] }] });
+  const originalId = group.models[0].profileId;
+  const credentials = await readFile(join(data, 'private/credentials.json'));
+  const { input, ...textEdit } = group.models[0];
+  [group] = await models.saveGroup({ ...group, models: [{ ...textEdit, thinkingLevel: 'high' }] });
+  assert.deepEqual(group.models[0].input, ['text', 'image']);
+  assert.equal(group.models[0].profileId, originalId);
+  assert.deepEqual(await readFile(join(data, 'private/credentials.json')), credentials);
+  assert.equal((await models.plan(originalId, true)).provider.id, originalId);
+  [group] = await models.saveGroup({ ...group, models: [{ ...group.models[0], input: ['text'] }] });
+  assert.equal((await models.plan(originalId, true)).provider, undefined);
+  [group] = await models.saveGroup({ ...group, models: [{ ...group.models[0], input: ['text', 'image'] }] });
+  [group] = await models.saveGroup({ ...group, models: [{ ...textEdit, id: 'another-gpt' }] });
+  assert.equal((await models.plan(originalId, true)).provider, undefined);
+  [group] = await models.saveGroup({ ...group, models: [{ ...group.models[0], input: ['text', 'image'] }] });
+  const { input: _ignored, ...movedModel } = group.models[0];
+  [group] = await models.saveGroup({ ...group, baseUrl: 'https://other-fixture.example/v1',
+    apiKey: 'other-synthetic-key', models: [movedModel] });
+  assert.equal((await models.plan(originalId, true)).provider, undefined);
 });

@@ -73,6 +73,7 @@ test('the carried Host drops optional packages and their inventory entries, but 
   ].join('\n'));
   const client = 'node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/client.js';
   await write(join(dsh, client), [
+    '"image.modelUnsupported": "当前模型不支持图片，请切换支持图片的模型"',
     'const steeringAvailable = subagent === null || subagent.address.mode === "continuable";',
     'running && steeringAvailable && !disabled && !uploadsPending && plainMessageDraft ? t(primarySubmitMode === "steer" ? "input.send.steer" : "input.send.queue")',
     '"aria-label": t("queue.steer"),',
@@ -91,7 +92,7 @@ test('the carried Host drops optional packages and their inventory entries, but 
     'deleteTarget.credentialRef === void 0 ? t("deleteDescription") : t("deleteDescriptionWithCredential")',
     'reasoningLevels: props.reasoningLevels,',
     'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
-    'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
+    'modelField("name"),',
     'function CustomProviderCard(props) {',
     'const [openedAt] = (0, react.useState)(() => props.revision);',
     'const [route, setRoute] = (0, react.useState)("");',

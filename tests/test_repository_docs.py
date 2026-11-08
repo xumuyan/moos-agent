@@ -95,6 +95,16 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, section)
         self.assertIn('更新流程已固化到 AGENTS.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_image_input_configuration_does_not_infer_support_from_gpt_name(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-image-input-settings.json').read_text())
+        self.assertTrue(evidence['gui']['visibleWithoutAdvanced'])
+        self.assertTrue(evidence['gui']['savedAndReopened'])
+        self.assertTrue(evidence['gui']['credentialBytesUnchanged'])
+        guide = (ROOT / 'apps/electron/README.md').read_text()
+        for term in ('不按 GPT 名称自动启用', '既有配置未被此更新自动修改', '不提供图片生成接口'):
+            self.assertIn(term, guide)
+        self.assertIn('| E85 |', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]

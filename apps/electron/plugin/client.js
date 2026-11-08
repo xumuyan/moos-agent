@@ -99,9 +99,18 @@ window.__ModuleLoader__.load({
         serviceField: (service, change, disabled) => providerField(styles, '服务类型',
           providerSelect(styles, service, change,
             [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
-        modelExtra: (model, position, change, disabled) => providerField(styles, '推理强度',
-          providerSelect(styles, model.thinkingLevel ?? 'off', value => change('thinkingLevel', value),
-            modelEfforts, { disabled, 'aria-label': '推理强度 ' + position })),
+        modelExtra: (model, position, change, disabled) => createElement('div', { 'data-moos-model-capabilities': '' },
+          providerField(styles, '推理强度',
+            providerSelect(styles, model.thinkingLevel ?? 'off', value => change('thinkingLevel', value),
+              modelEfforts, { disabled, 'aria-label': '推理强度 ' + position })),
+          providerField(styles, '启用图片输入', createElement('input', {
+            type: 'checkbox', checked: model.input?.includes('image') === true, disabled,
+            'aria-label': '启用图片输入 ' + position,
+            onChange: event => change('input', event.target.checked ? ['text', 'image'] : ['text']),
+          })),
+          createElement('small', null, model.input?.includes('image')
+            ? '已启用图片输入。实际可用性以当前服务、协议和模型的图片请求为准。'
+            : '图片输入未启用；不代表模型不支持。确认当前服务支持后勾选并保存，文本连接测试不能验证图片能力。')),
         testField: (input, disabled) => createElement(ConnectionTest, { connection: input, disabled, styles }),
       };
       return createElement(CustomProviderCard, { ...props, moos });

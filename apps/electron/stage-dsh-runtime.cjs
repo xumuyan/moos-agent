@@ -118,8 +118,11 @@ function configureModelSettings(dsh) {
     'reasoningLevels: props.reasoningLevels,\n\t\t\t\t\t\t\trenderExtra: props.renderExtra,', entry);
   patchBundledSource(dsh, models, 'const pickedByDefault = (id) => configuredIds.size === 0 || configuredIds.has(id);',
     'const pickedByDefault = (id) => props.pickAllOnEmpty !== false && configuredIds.size === 0 || configuredIds.has(id);', entry);
-  patchBundledSource(dsh, models, 'props.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?',
-    'props.renderExtra?.(model, position, props.onFieldChange, disabled),\n\t\t\t\t\t\t\t\tprops.reasoningLevels !== void 0 && props.reasoningLevels.length > 0 ?', entry);
+  patchBundledSource(dsh, models, 'modelField("name"),',
+    'modelField("name"),\n\t\t\t\t\t\tprops.renderExtra?.(model, position, props.onFieldChange, disabled),', entry);
+  patchBundledSource(dsh, 'dsh-client-ui-conversation',
+    '"image.modelUnsupported": "当前模型不支持图片，请切换支持图片的模型"',
+    '"image.modelUnsupported": "当前模型未启用图片输入；请在设置 → 模型中确认并启用，或切换到已启用图片的模型"', entry);
   configureProviderCard(dsh, models, entry);
   patchBundledSource(dsh, 'dsh-client-ui-settings-general', 'const shellInstance = shellHandle.create();',
     'const shellInstance = shellHandle.create();\n' +

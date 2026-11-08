@@ -198,7 +198,13 @@ export function piModels(data, checkedProvider) {
       const allowedIds = new Set(existing.map(provider => provider.id));
       let replacements = input.models.map(row => {
         if (row?.profileId && !allowedIds.has(row.profileId)) throw new Error('Invalid Moos connection model');
-        return connectionModel(input, row, row?.profileId || randomUUID(), connection);
+        const previous = existing.find(provider => provider.id === row?.profileId);
+        const sameEndpoint = previous && previous.baseUrl === new URL(input.baseUrl).href.replace(/\/$/, '')
+          && previous.api === input.api && previous.service === (input.service ?? 'openai')
+          && previous.model === row?.id?.trim();
+        const preserved = row?.input === undefined && sameEndpoint && previous.imageInput
+          ? { ...row, input: ['text', 'image'] } : row;
+        return connectionModel(input, preserved, row?.profileId || randomUUID(), connection);
       });
       if (new Set(replacements.map(provider => provider.model)).size !== replacements.length ||
           new Set(replacements.map(provider => provider.id)).size !== replacements.length) {

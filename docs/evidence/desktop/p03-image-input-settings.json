@@ -1,0 +1,38 @@
+{
+  "id": "E85",
+  "dateBeijing": "2026-11-08",
+  "system": "macOS 27.0.1 arm64",
+  "sourceState": "pre-commit workspace; build-inm6Es; shell 0.1.28",
+  "diagnosis": "Configured profiles lack imageInput; UI text-only declaration is not proof that upstream lacks image support. No capability is inferred from a GPT model name.",
+  "changes": [
+    "Visible per-model image input checkbox outside the advanced disclosure.",
+    "Disabled-image message identifies configuration state and recovery steps.",
+    "Preserve an existing enabled flag on omitted input during unrelated same-model/same-endpoint edits, but never transfer it to changed model/endpoint/protocol."
+  ],
+  "gui": {
+    "visibleWithoutAdvanced": true,
+    "savedAndReopened": true,
+    "credentialBytesUnchanged": true,
+    "modelCapabilitiesFlag": true,
+    "screenshotsVisuallyReviewed": false
+  },
+  "checks": {
+    "electron": "71/71 with packaged Host and reviewed skin fixtures",
+    "core": "135/136; M01 Swift compiler SIGTRAP remains",
+    "rust": "11/11 with test-only resource exclusions",
+    "bridge": "5/5",
+    "skinPython": "4/4",
+    "buildSignature": "deep strict passed"
+  },
+  "evidence": {
+    "directory": "artifacts/image-capability-check/gui/recovery-6DqRtD",
+    "imageSettingSha256": "2ad3da8c4882fc4f278699e9caaa6daf902f8f686da5ba23913c6a6fac8d2931",
+    "logs": "artifacts/image-capability-check/"
+  },
+  "limits": [
+    "No production providers or credentials written, no deployment or formal app restart.",
+    "Local fixture PI image requests are covered; this change did not retest external GPT image endpoints.",
+    "Existing profiles remain text-only until the user explicitly enables images and saves after confirming the service capability.",
+    "Model discovery IDs alone do not verify image capability."
+  ]
+}

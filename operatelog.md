@@ -1325,3 +1325,12 @@
 - 验证结果：新增测试先运行因规则段不存在而失败，再补文档后 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 68/68 通过；git diff --check 通过。实际文档验收逐项对照 E84、停机备份/只换程序/结果文件规则及一次性脚本边界。本轮仅改规则、计划、日志和文档检查，未修改应用代码、未重新构建或安装；原正式 Moos 进程仍在，不用文档检查冒充应用全量测试。此前 Electron 70/70 和核心 135/136 是历史执行结果，本轮未重跑。
 - 遗留问题：通用更新器、安装器失败回滚、Swift 探针及计划其他未完成项保持原状态；后续更新按本次规则且仍需用户明确授权。备份未删除，用户数据未修改。提交推送及远程一致性按命令核对，不预填自身哈希。
 - 对应 Git 提交：唯一说明 docs(P03.13): codify standalone data-preserving application updates；查询命令 git log --all --oneline --grep='^docs(P03.13): codify standalone data-preserving application updates$'。
+
+## 2026-11-08 20:02:48 +08:00｜P03.13.5 图片输入配置可见性与标记保留
+
+- 修改或新增内容：排查用户反馈 GPT 支持图片但界面显示不支持。只读模型元数据确认当前配置未保存 imageInput，未读取或输出密钥。将每模型图片输入开关与推理档位放到高级选项之外，解释未启用不等于不支持；会话拒绝提示改为指引到模型设置。保存同模型同端点无关修改时，未提供 input 则保留原图片标记，显式关闭仍生效，换模型或端点不自动继承。内置壳版本 0.1.28，新增回归、E85、README 与计划记录。本轮未部署或更改真实模型配置。
+- 遇到的难题：多模型原版卡片将输入能力藏在高级选项，用户无法从拒绝提示区分配置关闭和上游能力不支持；模型发现只返回 ID，不能据 GPT 名称猜测能力。省略 input 的无关编辑会使已有标记消失。隔离 GUI 首轮使用错误的“应用”按钮文本等待失败，原版实际编辑保存为“保存”。
+- 处理方式：沿用原版模型编辑和 Moos 配置边界，增加直接可见的显式开关，不强改用户数据、不自动迁移图片能力，不声称图片生成接口可用。先运行新增测试观察 UI 结构与标记保留两项失败，再修正。隔离 GUI 脚本只在 artifacts 中生成合成配置，点击实际开关、保存并重开核对；密钥原字节一致。用户需要在当前已确认支持的模型设置中主动勾选图片输入并保存，短文本连接测试不证明视觉能力。
+- 验证结果：提交前工作区 E85。定向 client/pi-models 测试最终 5/5，通过手动及自动模型 inputModalities、PI 图片请求及文本模型拒绝回归；初轮两个新增断言失败已保留日志。npm run build:app 使用固定 DSH 输入与 fixture 标记生成隔离 build-inm6Es，严格签名通过；未安装到正式路径。启用该包 Host 和隔离皮肤夹具的 npm run test:electron 71/71，无跳过。npm test 136 项，135 通过、1 失败，仍为独立 M01 Swift SIGTRAP；Rust 测试专用 TAURI_CONFIG 排除随包资源后 11/11，PI 桥 5/5、皮肤 Python 4/4。文档检查 69/69，语法和差异检查通过。后台隔离 Electron recovery-6DqRtD 验证无需展开高级项即见图片开关、保存重开保持、合成凭据字节不变；截图仅记录哈希，未目视验收。证据 docs/evidence/desktop/p03-image-input-settings.json；日志 artifacts/image-capability-check/。原正式 Moos 主进程不变。
+- 遗留问题：正式安装仍为 0.1.27，0.1.28 需用户明确部署后才影响正式应用。既有 GPT 配置仍未自动启用图片，需要用户确认实际服务支持后保存；本轮未调用真实 GPT 图片端点，不据本地 fixture 证明线上能力。Swift 完整回归失败和整阶段未完成状态保留。
+- 对应 Git 提交：唯一说明 fix(P03.13): expose image input configuration and retain model capability；查询命令 git log --all --oneline --grep='^fix(P03.13): expose image input configuration and retain model capability$'。源码推送与应用部署分别报告。
