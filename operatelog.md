@@ -1316,3 +1316,12 @@
 - 验证结果：artifacts/installed-update/result.json 为 success，时间 2026-11-08T11:43:13.711Z（北京时间 19:43:13），terminal-update.log 显示停机备份确认、安装及 success 全部完成。安装前后数据库原有消息 42、会话 1、任务 22 一致，原消息/会话行及任务 ID 保留。API/密钥和保护配置字节相同，DSH/PI 历史原内容、皮肤、工作区与用户插件依赖保留，productionDataReset=false、automaticDataRestore=false。复查 /Applications/Moos.app 严格签名通过、标识不变，正式路径仅一个主进程及其 Host，实际加载壳 0.1.27。E84 记录脱敏结果与备份位置。提交前 Python 文档检查与差异检查以本批命令结果为证据；产品代码未变，沿用前轮 Electron 70/70、核心 135/136 的结果，不宣称本次全量通过。
 - 遗留问题：本次安装核对不包含真实 API 调用、GUI 目视完整验收或超限分支场景，不改变既有 Swift 探针失败及整阶段未完成状态。保留备份供恢复，不擅自删除。后续开发仍默认修改后不部署，需用户另行明确授权。
 - 对应 Git 提交：唯一说明 docs(P03.13): verify installed update preserves chat and API configuration；查询命令 git log --all --oneline --grep='^docs(P03.13): verify installed update preserves chat and API configuration$'。文档提交推送后核对远程 HEAD，不预填自身哈希。
+
+## 2026-11-08 19:48:30 +08:00｜P03.13 固化独立终端保留数据更新规则
+
+- 修改或新增内容：按用户要求，在 AGENTS.md 新增「已验证的 Mac 应用更新流程」，固定独立 Terminal/进程祖先检查、授权与任务等待、签名和身份预检、停机完整备份、同卷只替换程序、原数据目录、启动后逐项数据核对、结果文件确认及异常停止规则。同步 PLAN.md，新增流程文档契约测试。E84 作为实际证据，明确一次性脚本不能当成通用更新器原样复用。
+- 遇到的难题：若只写“备份后更新”，仍可能再次从 Moos 自己的工具进程退出应用而中断；运行时预备份、消息计数相同或窗口重现也不能单独证明更新成功。历史脚本含固定版本与路径，直接重复运行不安全。
+- 处理方式：将授权、独立执行、停机备份确认、数据原字节及记录身份核对、异常保留与续作检查点逐条写成约束；区分应用包回退和用户数据恢复，禁止自动覆盖数据。保留每次明确部署授权要求，不把本次流程记录解释为新的部署指令；真实密钥与聊天不进入日志或测试。
+- 验证结果：新增测试先运行因规则段不存在而失败，再补文档后 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 68/68 通过；git diff --check 通过。实际文档验收逐项对照 E84、停机备份/只换程序/结果文件规则及一次性脚本边界。本轮仅改规则、计划、日志和文档检查，未修改应用代码、未重新构建或安装；原正式 Moos 进程仍在，不用文档检查冒充应用全量测试。此前 Electron 70/70 和核心 135/136 是历史执行结果，本轮未重跑。
+- 遗留问题：通用更新器、安装器失败回滚、Swift 探针及计划其他未完成项保持原状态；后续更新按本次规则且仍需用户明确授权。备份未删除，用户数据未修改。提交推送及远程一致性按命令核对，不预填自身哈希。
+- 对应 Git 提交：唯一说明 docs(P03.13): codify standalone data-preserving application updates；查询命令 git log --all --oneline --grep='^docs(P03.13): codify standalone data-preserving application updates$'。

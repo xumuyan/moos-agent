@@ -84,6 +84,17 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertTrue(result[key])
         self.assertIn('不扩大为完整阶段或 Swift 探针通过', (ROOT / 'PLAN.md').read_text())
 
+    def test_authorized_installation_procedure_requires_independent_worker_and_data_checks(self):
+        rules = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+        section = rules.split('### 已验证的 Mac 应用更新流程', 1)[1].split('\n## ', 1)[0]
+        for term in ('独立 Terminal', '进程祖先', '正常退出', '停机完整备份',
+                     '0700', '0600', '同一卷', '只替换应用包',
+                     'providers.json', 'private/credentials.json', '原有消息',
+                     '任务 ID', '用户插件', '单实例', '不自动恢复',
+                     '结果文件', '不能仅凭窗口重新出现', '一次性脚本', 'E84'):
+            self.assertIn(term, section)
+        self.assertIn('更新流程已固化到 AGENTS.md', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
