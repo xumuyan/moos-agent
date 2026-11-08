@@ -29,10 +29,13 @@ test('the DSH client extension registers the Moos brand and model services in th
     },
   });
 
-  const editor = { ModelListEditor() {}, styles: {} };
+  const editor = { ModelsSection() {}, CustomProviderCard() {}, styles: { input: 'dsh-input', selectInput: 'dsh-select' } };
   const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-settings-models' ? { moosEditor: editor } : ({
     Button() {},
     createElement: (element, props, ...children) => ({ element, props, children }),
+    useState: value => [value],
+    useEffect() {},
+    useRef: () => ({}),
   }));
   assert.ok(plugin.inject.includes('shortcuts'));
   assert.equal(document.documentElement.dataset.platform, undefined);
@@ -56,6 +59,14 @@ test('the DSH client extension registers the Moos brand and model services in th
   assert.equal(renderers.get('models')({ renderSlot }).props.editor, editor);
   assert.equal(renderers.get('models')({ renderSlot }).props.renderSlot, renderSlot);
   assert.equal(renderers.get('models')({ renderSlot }).props.t('addModel'), 'addModel');
+  const settings = renderers.get('models')({ renderSlot });
+  const section = settings.element(settings.props).children[0];
+  const provider = section.props.operations.moosNewEditor({});
+  const card = provider.element(provider.props);
+  assert.equal(card.element, editor.CustomProviderCard);
+  const service = card.props.moos.serviceField('openai', () => {}, false).children[1];
+  assert.equal(service.props.className, 'dsh-input dsh-select');
+  assert.equal(service.props.value, 'openai');
   assert.equal(document.title, 'Moos');
   document.title = '深海女仆工坊 · DeepSeek Harness';
   changed();

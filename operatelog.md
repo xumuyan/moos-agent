@@ -1205,3 +1205,12 @@
 - 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 31/31（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60，Git 差异检查通过。
 - 遗留问题：界面验收使用本地合成中转和隔离配置。正式窗口由用户按实际服务复核，上一版应用留作回滚。
 - 对应 Git 提交：唯一说明 `fix(P03.13): use the original provider editor card`，用 `git log --all --oneline --grep='^fix(P03.13): use the original provider editor card$'` 查询。
+
+## 2026-11-08 10:40:14 +08:00｜P03.13.5 对齐模型服务下拉框样式
+
+- 修改或新增内容：服务类型、推理强度和连接测试模型共用的下拉控件补齐 DSH 输入框样式。内置壳升级到 0.1.24。
+- 遇到的难题：正式窗口在桌面读取工具中存在应用标识冲突。对照安装包的原版 API 协议控件，定位到 Moos 下拉框仅有箭头样式，缺少圆角、高度和边框所需的输入框样式。
+- 处理方式：给共用下拉控件传入与 DSH 原版相同的两组样式类，复用当前皮肤的原有配色。用户退出后替换签名构建 `build-l6eznx`，保留旧安装以便回滚。
+- 验证结果：隔离 Electron 中原版 API 协议和服务类型的类名、32 px 高度、12 px 圆角、边框、背景及内边距一致。选择 GLM 后协议自动切换为 Chat Completions。正式安装签名及文件比对通过，只启动一个 Moos，实际壳版本为 0.1.24。`npm test` 139/139，`npm --prefix apps/electron test` 31/31（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。
+- 遗留问题：正式窗口的视觉读取受应用标识冲突限制，实际控件样式在隔离应用中验收。
+- 对应 Git 提交：唯一说明 `fix(P03.13): match original provider dropdown styling`，用 `git log --all --oneline --grep='^fix(P03.13): match original provider dropdown styling$'` 查询。

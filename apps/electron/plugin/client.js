@@ -48,7 +48,7 @@ window.__ModuleLoader__.load({
     }
 
     function providerSelect(styles, value, onChange, options, props) {
-      return createElement('select', { className: styles.selectInput, value,
+      return createElement('select', { className: `${styles.input} ${styles.selectInput}`, value,
         onChange: event => onChange(event.target.value), ...props,
       }, options.map(([id, label]) => createElement('option', { key: id, value: id }, label)));
     }
