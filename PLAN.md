@@ -619,3 +619,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E93 | 用户明确授权 0.1.32 更新：沿用 E92 已通过全量测试与隔离 GUI 的同一正式非 fixture build-8faVYK；独立脚本加入既有配置/凭据可读、可用空间与关键候选文件比对门禁。证据 `docs/evidence/desktop/p03-installed-update-0132.json`。 | 双包严格签名、原标识/路径、同卷、原 0.1.31 加载和数据完整性预检通过；脚本检查 4/4。待独立 Terminal 自然空闲后正常退出、完整停机备份、只换程序及启动保护项核对；尚不记安装成功，真实 GLM 请求未验。恢复先读 0.1.32 result.json 与 terminal-update.log，不重复操作。 |
 
 2026-11-09 00:07 北京时间 E93 续作结果：独立更新 0.1.32 success（00:04:17）。停机备份 711 文件校验、备份权限通过；更新前后 81 消息/1 会话/44 任务原记录保留，API/凭据字节一致，聊天/PI 历史、皮肤、工作区、用户插件保留，单实例和 Host 正常。只读复核：安装与加载壳均 0.1.32、严格签名、GLM 修复已生效（仅 DeepSeek 锁定协议、官方端点提示在位），13 个模型配置及凭据可读；用户已按官方文档保存 GLM（/api/v1 + Responses + glm-5.3），助手未发送真实 GLM 请求。按规则删除本次停机备份与旧包，保留结果/日志/脚本及历史 0.1.31 证据目录。
+
+| E94 | GLM Responses 测试连接误报修复：官方文档证实 max_output_tokens 含思维链且默认思考 max，16 预算被推理耗尽导致 HTTP 200 + incomplete 误报格式错误；GLM 探测改用 minimal 思考 + 256 预算，其余协议不变。证据 `docs/evidence/desktop/p03-glm-responses-probe.json`。 | 定向 59/59，独立 Terminal 全量核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；0.1.33 build-fTNdrM 严格签名、非 fixture、包内修复核实。未发真实认证请求，未安装，正式仍 0.1.32；真实测试连接结果待用户在安装后确认。 |

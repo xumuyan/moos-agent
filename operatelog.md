@@ -1473,3 +1473,13 @@
 - 验证结果：result.json 00:04:17 success：711 文件备份校验、权限通过；前后 81 消息/1 会话/44 任务原行保留；apiAndCredentialsIdentical、chatFilesRetained、piHistoryFilesRetained、skinsRetained、workspaceRetained、originalDatabaseRowsRetained、userPluginDependenciesRetained 全真，stoppedActiveTasks=false。只读复核安装/加载 0.1.32、签名与数据保护项如上。文档检查在提交前重跑。
 - 遗留问题：真实 GLM 模型列表与对话、推理档位映射、上下文上限仍未由本助手实测，需用户实际使用验证；正式截图验收仍未执行（不阻塞本次安装结论）。
 - 对应 Git 提交：唯一说明 docs(P03.13): verify installed 0.1.32 success and clean this update backup；查询 git log --all --oneline --grep='^docs(P03.13): verify installed 0.1.32 success and clean this update backup$'。提交推送并核对远程 HEAD。
+
+
+## 2026-11-09 00:17:49 +08:00｜P03.13 GLM Responses 测试连接误报修复（E94）
+
+- 修改或新增内容：用户贴出 glm-5.3-flash 测试连接截图（HTTP 200、1171 毫秒、格式异常提示）并询问能否读取图片。已如实读出截图内容。抓取官方《创建 Response》接口文档核实：max_output_tokens 包含回答与思维链、reasoning.effort 默认 max、none/minimal 放弃思考；此前 Responses 探测固定 16 token 且无思考限制，GLM 推理模型把预算耗尽后返回 incomplete、无 output_text，被误判为格式错误。0.1.33 源码：GLM+Responses 探测改发 reasoning { effort: minimal } 与 max_output_tokens 256；本地 fixture 增加对应分支；新增测试断言请求体；README 补充说明。
+- 遇到的难题：截图只有一行合并提示，无上游响应体；不能直接断言服务器行为，只能依据官方文档的 token 记账规则推断，并用本地 fixture 验证探测请求形状。GLM Chat Completions 探测的 reasoning_effort=low 在真实服务上的映射未实测，本轮不改。
+- 处理方式：仅调整 GLM 服务+Responses 协议的探测请求，非 GLM 的 16 token 探测保持不变；实际聊天走 PI SDK（zai 思考兼容），与探测相互独立，未改动。未用用户密钥发真实请求；未安装未退出正式应用。
+- 验证结果：定向 node --test provider-diagnostics/pi-models/client 59/59（含新增断言 reasoning.effort=minimal、max_output_tokens=256、无 reasoning_effort 字段）。MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app 生成 build-fTNdrM，严格 codesign 通过，包内 pi-runtime/services/agent/provider-diagnostics.mjs 含修复，moos-runtime.json includesPiFixture=false。独立 Terminal artifacts/installed-update-0.1.33/validate.command 全零：核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；当时文档 74/74，新增 E94 契约后提交前重跑。证据对应当前工作区。
+- 遗留问题：0.1.33 未安装，正式仍 0.1.32，真实“测试连接”与聊天图片能力待用户实测；未安装前用户可直接在聊天中发图片验证（不依赖测试连接按钮）。安装需用户再次明确授权。
+- 对应 Git 提交：唯一说明 fix(P03.13): bound GLM Responses probe so reasoning models answer within budget；查询 git log --all --oneline --grep='^fix(P03.13): bound GLM Responses probe so reasoning models answer within budget$'。提交推送并核对远程 HEAD。

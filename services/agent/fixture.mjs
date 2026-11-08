@@ -73,6 +73,11 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
           return diagnostic({ status: 'completed', output: [{ type: 'message', role: 'assistant', status: 'completed',
             content: [{ type: 'output_text', text: 'OK' }] }] });
         }
+        if (req.url === '/v1/responses' && input.input === 'Reply OK' && input.max_output_tokens === 256 &&
+            input.reasoning?.effort === 'minimal') {
+          return diagnostic({ status: 'completed', output: [{ type: 'message', role: 'assistant', status: 'completed',
+            content: [{ type: 'output_text', text: 'OK' }] }] });
+        }
         if (req.url === '/v1/chat/completions' && input.max_tokens === 16 && input.messages?.length === 1 &&
             input.messages[0]?.role === 'user' && input.messages[0].content === 'Reply OK') {
           return diagnostic({ choices: [{ message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' }] });

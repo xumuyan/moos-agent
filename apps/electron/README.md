@@ -83,3 +83,6 @@ GLM 不只支持 Chat Completions。官方 [Codex 接入](https://docs.bigmodel.
 获取可用模型使用 `GET <基础地址>/models`，不是生成请求；失败不等于模型不可用，也未证明正确端点提供模型发现。可点击“添加模型”手动填写官方支持且套餐有权访问的 ID（如文档列出的 `glm-5.3`），再测试连接。不要据 Codex 的 `max` 推理值或元数据直接推断 PI 档位映射、真实窗口、工具和图片能力。
 
 0.1.32 解除 GLM 协议锁定并允许保存 Responses；保留既有 Chat Completions 选择，不自动修改用户端点或凭据。E92 仅为隔离构建/界面保存重开和本地模拟请求验收，尚未安装至正式 Moos，也未用真实 GLM 密钥验证。当前正式 0.1.31 若需临时绕过旧版限制，可选“OpenAI 兼容”+ Responses 并手动添加模型，但这会使用通用服务分类，不等于 GLM 专属错误处理和路由验收。
+
+
+“测试连接”对 GLM Responses 使用 `reasoning { effort: minimal }` 与 256 输出预算：官方文档规定 `max_output_tokens` 含思维链且默认思考为 max，过小预算会因 incomplete 被误报格式错误（E94）。该修复属探测逻辑，不影响实际聊天通道；未对真实服务发送认证请求验证，以用户实测为准。

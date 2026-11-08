@@ -9,6 +9,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_glm_responses_probe_budget_matches_documented_token_accounting(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-responses-probe.json').read_text())
+        self.assertTrue(evidence['reported']['result'].startswith('模型服务返回格式异常'))
+        self.assertIn('包含回答与思维链', ' '.join(evidence['rootCause']['facts']))
+        self.assertTrue(evidence['build']['packagedFixPresent'])
+        self.assertFalse(evidence['build']['includesPiFixture'])
+        self.assertTrue(evidence['notInstalled'])
+        self.assertIn('| E94 |', (ROOT / 'PLAN.md').read_text())
+        guide = (ROOT / 'apps/electron/README.md').read_text()
+        self.assertIn('不影响实际聊天通道', guide)
+
     def test_authorized_0132_install_keeps_distinct_checkpoints_and_does_not_claim_completion(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0132.json').read_text())
         self.assertTrue(evidence['userAuthorized'])

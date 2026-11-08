@@ -1,0 +1,57 @@
+{
+  "task": "P03.13",
+  "evidence": "E94",
+  "timeBeijing": "2026-11-09 00:17:49 +08:00",
+  "state": "source-fixed-validated-not-installed",
+  "shellVersion": "0.1.33",
+  "reported": {
+    "source": "user screenshot pasted into conversation",
+    "content": "glm-5.3-flash selected, 测试连接 clicked",
+    "result": "模型服务返回格式异常或响应过大，请检查协议配置 · HTTP 200 · 1171 毫秒",
+    "savedProfile": {
+      "model": "glm-5.3-flash",
+      "api": "openai-responses",
+      "baseUrl": "https://open.bigmodel.cn/api/v1",
+      "imageInput": true
+    }
+  },
+  "rootCause": {
+    "doc": "https://docs.bigmodel.cn/api-reference/response/创建-response.md",
+    "localCopy": "artifacts/glm-responses-check/create-response.md",
+    "facts": [
+      "max_output_tokens 包含回答与思维链（默认 65536）",
+      "reasoning.effort 默认 max；none/minimal 放弃思考",
+      "previous probe sent max_output_tokens 16 without reasoning limit; reasoning consumed the whole budget, response incomplete, no output_text, so Moos reported a format error despite HTTP 200"
+    ]
+  },
+  "fix": [
+    "GLM service + openai-responses probe now sends reasoning { effort: minimal } and max_output_tokens 256",
+    "non-GLM probes unchanged (16, no reasoning field)",
+    "fixture gains matching 256+minimal diagnostic branch"
+  ],
+  "tests": {
+    "targeted": "59/59 (provider-diagnostics, pi-models, client) incl. new GLM Responses probe assertions",
+    "full": {
+      "core": "140/140",
+      "electron": "73/73 no skips",
+      "native": "11/11",
+      "bridge": "5/5",
+      "skin": "4/4",
+      "docs": "74/74 pre-evidence"
+    },
+    "gate": "artifacts/installed-update-0.1.33/validation-final/validation.json all zero"
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-fTNdrM/Moos.app",
+    "command": "MOOS_ELECTRON_INCLUDE_PI_FIXTURE=0 npm run build:app",
+    "signature": "codesign --verify --deep --strict passed",
+    "includesPiFixture": false,
+    "packagedFixPresent": true
+  },
+  "limits": [
+    "Assistant sent no authenticated GLM request; real-server confirmation requires the user clicking 测试连接 on 0.1.33 or observing actual chat",
+    "Chat path (PI SDK + zai thinking compat) is separate from the probe and was not changed",
+    "GLM probe scope stays glm-5.x (5.2/5.3) via existing regex; other reasoning models on Responses keep 16-token probes"
+  ],
+  "notInstalled": true
+}
