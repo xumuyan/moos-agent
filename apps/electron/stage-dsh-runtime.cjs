@@ -60,6 +60,40 @@ function configurePiQueue(dsh) {
     renderer);
 }
 
+function groupModelsBySite(groups) {
+  return groups.flatMap(group => {
+    const sites = new Map();
+    for (const model of group.models) {
+      const site = model.menuSite;
+      const key = JSON.stringify([group.id, site?.id ?? null]);
+      if (!sites.has(key)) {
+        sites.set(key, { ...group, menuKey: key, name: site?.name ?? group.name, models: [] });
+      }
+      sites.get(key).models.push(model);
+    }
+    return [...sites.values()];
+  });
+}
+
+function configureModelPicker(dsh) {
+  // Keep the PI route and saved session selection stable. Split only the menus.
+  patchBundledSource(dsh, 'dsh-llm', 'const badge = model.badge;\n\t\t\t\treturn {',
+    'const badge = model.badge;\n\t\t\t\treturn {\n\t\t\t\t\t...(model.menuSite && { menuSite: { ...model.menuSite } }),');
+  patchBundledSource(dsh, 'dsh-api-session-controller', '...reasoning === void 0 ? {} : { reasoning },',
+    '...reasoning === void 0 ? {} : { reasoning },\n\t\t\t\t\t...(model.menuSite && { menuSite: model.menuSite }),');
+  const picker = 'dsh-client-ui-model-selection';
+  const entry = { entry: 'client.js' };
+  patchBundledSource(dsh, picker, 'function orderModelProviders(groups) {',
+    groupModelsBySite.toString() + '\n\t\tfunction orderModelProviders(groups) {', entry);
+  patchBundledSource(dsh, picker, 'orderModelProviders(state.groups).map((group)',
+    'groupModelsBySite(orderModelProviders(state.groups)).map((group)', entry);
+  patchBundledSource(dsh, picker, '}, group.id);', '}, group.menuKey);', entry);
+  patchBundledSource(dsh, picker, 'for (const group of orderModelProviders(directory.groups)) {',
+    'for (const group of groupModelsBySite(orderModelProviders(directory.groups))) {', entry);
+  patchBundledSource(dsh, picker, 'name: group.id,\n\t\t\t\t\t\tlabel: name',
+    'name: group.menuKey,\n\t\t\t\t\t\tlabel: name', entry);
+}
+
 function configureModelSettings(dsh) {
   const entry = { entry: 'client.js' };
   const models = 'dsh-client-ui-settings-models';
@@ -183,6 +217,7 @@ function stageDshRuntime(resources, destination) {
   }
   copy('');
   configurePiQueue(dsh);
+  configureModelPicker(dsh);
   configureModelSettings(dsh);
   // The Host and the registry must use the same adapter factory instance.
   const adapterDir = join(dsh, 'moos-pi');
@@ -230,5 +265,5 @@ function stageDshRuntime(resources, destination) {
   }
 }
 
-module.exports = { stageDshRuntime, configurePiQueue };
+module.exports = { stageDshRuntime, configurePiQueue, groupModelsBySite };
 if (require.main === module) stageDshRuntime(process.resourcesPath, process.argv[2]);

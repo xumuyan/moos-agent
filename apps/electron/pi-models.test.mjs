@@ -220,4 +220,28 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   assert.equal(overridden.at(-1).reason.kind, 'stop');
   assert.deepEqual(requests.at(-1), { model: 'relay-a', effort: 'medium', thinking: undefined });
   assert.equal((await models.resolve(overrideId)).thinkingLevel, 'high');
+
+  const newSite = (await models.saveGroup({
+    name: 'New site', baseUrl: fixture.baseUrl, api: 'openai-responses', apiKey: fixture.apiKey,
+    models: [{ id: 'relay-a' }],
+  })).find(group => group.name === 'New site');
+  const offId = newSite.models[0].profileId;
+  const catalog = await adapter.listModels();
+  assert.equal(catalog[0].menuSite, undefined);
+  assert.deepEqual(catalog.find(model => model.id === 'relay').menuSite, { id: 'relay', name: 'Relay' });
+  assert.deepEqual(catalog.filter(model => model.menuSite?.id === shared.id).map(model => model.id),
+    shared.models.map(model => model.profileId));
+  const offModel = await adapter.resolveModel('moos-pi', offId);
+  assert.deepEqual(offModel.menuSite, { id: newSite.id, name: 'New site' });
+  assert.equal(offModel.reasoning.defaultEffort, 'off');
+  assert.ok(offModel.reasoning.efforts.some(level => level.id === 'high'));
+  assert.notEqual(offId, overrideId);
+  const offEvents = [];
+  for await (const event of adapter.stream({ model: offId, reasoningEffort: 'high', sessionId: 'off-override',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }] }] })) {
+    offEvents.push(event);
+  }
+  assert.equal(offEvents.at(-1).reason.kind, 'stop');
+  assert.deepEqual(requests.at(-1), { model: 'relay-a', effort: 'high', thinking: undefined });
+  assert.equal((await models.resolve(offId)).thinkingLevel, 'off');
 });

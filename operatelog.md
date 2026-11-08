@@ -1214,3 +1214,13 @@
 - 验证结果：隔离 Electron 中原版 API 协议和服务类型的类名、32 px 高度、12 px 圆角、边框、背景及内边距一致。选择 GLM 后协议自动切换为 Chat Completions。正式安装签名及文件比对通过，只启动一个 Moos，实际壳版本为 0.1.24。`npm test` 139/139，`npm --prefix apps/electron test` 31/31（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。
 - 遗留问题：正式窗口的视觉读取受应用标识冲突限制，实际控件样式在隔离应用中验收。
 - 对应 Git 提交：唯一说明 `fix(P03.13): match original provider dropdown styling`，用 `git log --all --oneline --grep='^fix(P03.13): match original provider dropdown styling$'` 查询。
+
+## 2026-11-08 10:53:44 +08:00｜P03.13.5 恢复会话推理等级并按站点分组
+
+- 修改或新增内容：手动模型在默认「关闭」时也显示原版「推理等级」，所选档位应用于当前会话。原版会话和 `/model` 菜单按保存的站点分组。旧站点沿用原记录身份，新站点的多模型共用该站点分组，自动选择单独显示。内置壳升级到 0.1.25。
+- 遇到的难题：适配器此前将默认关闭视为无推理元数据，并在发送时丢弃这类模型的手动档位。DSH 按真实执行路由分组，将所有站点归在同一个 Moos PI 标题下。首次界面脚本取错了分组容器层级。
+- 处理方式：始终为手动模型提供档位元数据并接收有效的会话档位。模型目录增加仅供显示的站点身份和名称，菜单分组保留 PI 路由和历史模型 ID。修正脚本为直接读取各站点的分组容器后重跑验收。
+- 实际验收：macOS 27.0.1 arm64，提交前签名构建 `build-KA6RuZ` 的后台隔离 Electron 窗口使用女仆工坊皮肤。打开模型列表后新加站点，两项模型即时出现在新分组，既有站点保留独立分组。选中默认关闭的模型，再从原版子菜单选 High，合成 Responses 中转收到 High，窗口显示 PI 回复，默认配置仍是关闭。证据为 `/private/tmp/moos-site-effort.tNZg0t/gui2.log` 和同目录 `evidence2/` 中的两张截图。
+- 验证结果：`npm test` 139/139，`npm --prefix apps/electron test` 32/32（打包 Host 和皮肤夹具启用），`npm --prefix apps/desktop test -- --maxWorkers=1 --testTimeout=60000` 57 文件 175/175，`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`RUST_TEST_THREADS=1 npm run test:desktop-product` 30/30，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 60/60。构建通过严格验签，Git 差异检查通过。
+- 遗留问题：正式 Moos 仍运行，待退出后替换。此轮使用本地合成中转验证档位传递，各真实站点对档位的支持需分别实测。
+- 对应 Git 提交：唯一说明 `fix(P03.13): group model sites and restore session reasoning`，用 `git log --all --oneline --grep='^fix(P03.13): group model sites and restore session reasoning$'` 查询。

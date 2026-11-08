@@ -5,7 +5,23 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { stageDshRuntime } from './stage-dsh-runtime.cjs';
+import { groupModelsBySite, stageDshRuntime } from './stage-dsh-runtime.cjs';
+
+test('model menus group by saved site ID, preserving PI routes and exact model IDs', () => {
+  const old = { id: 'legacy-model', name: 'Same model', menuSite: { id: 'legacy-model', name: 'Old site' } };
+  const first = { id: 'new-model', name: 'Same model', menuSite: { id: 'new-site', name: 'New site' } };
+  const second = { id: 'second-model', name: 'Other model', menuSite: first.menuSite };
+  const third = { id: 'third-model', name: 'Same model', menuSite: { id: 'third-site', name: 'New site' } };
+  const automatic = { id: 'auto', name: 'Auto' };
+  const groups = groupModelsBySite([{ id: 'moos-pi', name: 'Moos PI', models: [automatic, old, first, third, second] }]);
+  assert.deepEqual(groups.map(({ id, name, models }) => [id, name, models.map(model => model.id)]), [
+    ['moos-pi', 'Moos PI', ['auto']],
+    ['moos-pi', 'Old site', ['legacy-model']],
+    ['moos-pi', 'New site', ['new-model', 'second-model']],
+    ['moos-pi', 'New site', ['third-model']],
+  ]);
+  assert.equal(new Set(groups.map(group => group.menuKey)).size, groups.length);
+});
 
 test('the carried Host drops optional packages and their inventory entries, but keeps plugin installation', async t => {
   const root = await mkdtemp(join(tmpdir(), 'moos-stage-dsh-'));
@@ -34,7 +50,8 @@ test('the carried Host drops optional packages and their inventory entries, but 
   for (const item of sharedPackages) await write(join(dsh, item.path, 'index.js'), item.name);
   const llm = 'node_modules/@deepseek-ai/dsh-llm/lib/index.js';
   const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique = new Set();\n}' +
-    '\nif (projectedMessages.some((message) => contentHasFile(message.content))) {}';
+    '\nif (projectedMessages.some((message) => contentHasFile(message.content))) {}' +
+    '\nconst badge = model.badge;\n\t\t\t\treturn {';
   await write(join(dsh, llm), registration);
   const manager = 'node_modules/@deepseek-ai/dsh-plugin-manager/lib/index.js';
   const inventorySource = 'const names = [...Object.keys(installation.dependencies ?? {}),\n\t\t\t\t...catalog.keys()];';
@@ -44,7 +61,16 @@ test('the carried Host drops optional packages and their inventory entries, but 
   await write(join(dsh, loop), steering);
   const controller = 'node_modules/@deepseek-ai/dsh-api-session-controller/lib/index.js';
   await write(join(dsh, controller),
-    'if (request.action.kind === "steer" && (target !== "next-turn" || agent.status !== "running")) throw new Error();');
+    'if (request.action.kind === "steer" && (target !== "next-turn" || agent.status !== "running")) throw new Error();' +
+    '\n...reasoning === void 0 ? {} : { reasoning },');
+  const picker = 'node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js';
+  await write(join(dsh, picker), [
+    'function orderModelProviders(groups) {',
+    'orderModelProviders(state.groups).map((group)',
+    '}, group.id);',
+    'for (const group of orderModelProviders(directory.groups)) {',
+    'name: group.id,\n\t\t\t\t\t\tlabel: name',
+  ].join('\n'));
   const client = 'node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/client.js';
   await write(join(dsh, client), [
     'const steeringAvailable = subagent === null || subagent.address.mode === "continuable";',
@@ -120,6 +146,10 @@ test('the carried Host drops optional packages and their inventory entries, but 
     /!isMoosPiAdapter\(adapter\) \|\| providers\.some\(provider => provider !== moosPiRoute\)/);
   assert.match(await readFile(join(built, 'moos-pi/pi-route.js'), 'utf8'), /new WeakSet\(\)/);
   assert.match(await readFile(join(built, llm), 'utf8'), /resolvedOptions\.provider !== "moos-pi" && projectedMessages\.some/);
+  assert.match(await readFile(join(built, llm), 'utf8'), /menuSite: \{ \.\.\.model\.menuSite \}/);
+  assert.match(await readFile(join(built, controller), 'utf8'), /menuSite: model\.menuSite/);
+  assert.match(await readFile(join(built, picker), 'utf8'), /groupModelsBySite\(orderModelProviders\(state\.groups\)\)/);
+  assert.match(await readFile(join(built, picker), 'utf8'), /name: group\.menuKey/);
   assert.equal(await readFile(join(dsh, manager), 'utf8'), inventorySource);
   assert.equal(await readFile(join(built, manager), 'utf8'),
     'const names = [...Object.keys(installation.dependencies ?? {})];');

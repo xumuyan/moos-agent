@@ -79,11 +79,13 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
   const modalities = enabled => enabled ? ['text', 'image'] : ['text'];
   const auto = profiles => ({ provider: route, id: 'auto', name: 'Moos PI · 自动选择',
     inputModalities: modalities(profiles.some(profile => profile.imageInput)) });
-  const modelInfo = (profile, showReasoning = true) => ({
+  const modelInfo = (profile, manual = true) => ({
     provider: route, id: profile.id, name: profile.name, inputModalities: modalities(profile.imageInput),
     description: profile.thinkingLevel === 'off' ? undefined : '推理档位 ' + profile.thinkingLevel,
-    ...(showReasoning && profile.thinkingLevel && profile.thinkingLevel !== 'off'
-      ? { reasoning: { efforts: reasoningEfforts, defaultEffort: profile.thinkingLevel } } : {}),
+    ...(manual && {
+      menuSite: { id: profile.connectionId ?? profile.id, name: profile.connectionName ?? profile.name },
+      reasoning: { efforts: reasoningEfforts, defaultEffort: profile.thinkingLevel ?? 'off' },
+    }),
     context: { contextWindow: profile.contextWindow }, defaultMaxTokens: profile.maxTokens,
   });
 
@@ -160,8 +162,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
           return;
         }
         await models.credential(plan.provider);
-        if (request.model !== 'auto' && request.reasoningEffort !== undefined &&
-            plan.provider.thinkingLevel !== 'off' && reasoningEfforts.some(({ id }) => id === request.reasoningEffort)) {
+        if (request.model !== 'auto' && reasoningEfforts.some(({ id }) => id === request.reasoningEffort)) {
           plan.provider = { ...plan.provider, thinkingLevel: request.reasoningEffort };
         }
       } catch { yield selectionRequired; return; }
