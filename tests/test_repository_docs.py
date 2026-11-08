@@ -114,6 +114,10 @@ class RepositoryDocsTests(unittest.TestCase):
                      '任务 ID', '用户插件', '单实例', '不自动恢复',
                      '结果文件', '不能仅凭窗口重新出现', '一次性脚本', 'E84'):
             self.assertIn(term, section)
+        cleanup = next(line for line in section.splitlines() if '成功后清理备份' in line)
+        for term in ('独立更新结果为成功', '原有聊天记录和模型配置均可读取',
+                     '可以删除本次更新生成的停机备份', '核对未通过时保留备份和旧包'):
+            self.assertIn(term, cleanup)
         self.assertIn('更新流程已固化到 AGENTS.md', (ROOT / 'PLAN.md').read_text())
 
     def test_image_input_configuration_does_not_infer_support_from_gpt_name(self):

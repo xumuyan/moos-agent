@@ -1354,3 +1354,13 @@
 - 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（用已安装 Host 与皮肤夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 70/70，Git 差异检查通过。
 - 遗留问题：正式安装验收覆盖进程、程序和原有数据保留。真实中转与用户超长会话的续聊仍待实测，功能布局在 E86 的隔离环境验收。
 - 对应 Git 提交：安装包来自 `5e92633`。本记录唯一说明 `docs(P03.13): verify the installed long-context update`，用 `git log --all --oneline --grep='^docs(P03.13): verify the installed long-context update$'` 查询。
+
+## 2026-11-08 20:47:01 +08:00｜P03.13 清理已验收的更新备份
+
+- 修改或新增内容：按用户授权清理 E84 和 E87 的两处更新目录，包含当时保留的数据备份及旧版程序包。在 AGENTS.md 加入成功后的备份清理条件，并更新计划和文档检查。
+- 遇到的难题：备份中有不同格式的聊天记录，单看消息总数无法核对保留情况。旧更新目录还有一份停机前备份。
+- 处理方式：只读对照两份停机备份的原有消息和会话行、任务 ID，比较最新备份中的模型配置及密钥字节，以及 DSH 和 PI 聊天文件原有内容。核对两个待清理目录的身份、所有者、内容和进程状态后，仅删除这两处更新目录。新规则以独立更新成功及新版聊天和模型均可读取为清理条件。
+- 实际验收：删除前确认运行壳为 0.1.29，聊天原记录与模型配置检查通过。删除后确认 `/Applications/.moos-update.NoVi8UcT` 和 `/Applications/.moos-update.WtJCbOuI` 已不存在，正式应用严格验签通过、保持单实例，聊天数据库和 12 个模型配置仍可读。
+- 验证结果：`npm test` 139/139，`npm run test:electron` 71/71（已安装 Host 与皮肤夹具），`RUST_TEST_THREADS=1 npm run test:desktop-native` 11/11，`node --test probes/dsh-electron-pi/index.test.mjs` 5/5，`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v` 4/4，`npm run test:docs` 70/70，Git 差异检查通过。
+- 遗留问题：这两次更新的本地停机备份与对应旧程序包已按授权删除。真实中转的超长会话仍按 E87 的范围另行验证。
+- 对应 Git 提交：唯一说明 `docs(P03.13): allow cleanup after verifying app updates`，用 `git log --all --oneline --grep='^docs(P03.13): allow cleanup after verifying app updates$'` 查询。
