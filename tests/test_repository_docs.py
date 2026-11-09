@@ -18,6 +18,19 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertTrue(evidence['notInstalled'])
         self.assertIn('| E94 |', (ROOT / 'PLAN.md').read_text())
 
+    def test_installed_0133_update_preserved_data_and_shipped_both_fixes(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0133.json').read_text())
+        self.assertEqual(evidence['state'], 'installed-success')
+        self.assertTrue(evidence['userAuthorizedUpdate'])
+        self.assertEqual(evidence['verified']['backup']['files'], 732)
+        self.assertEqual(evidence['verified']['beforeCounts'], evidence['verified']['afterCounts'])
+        self.assertTrue(evidence['verified']['apiAndCredentialsIdentical'])
+        self.assertTrue(evidence['verified']['postInstall']['probeFixInInstalled'])
+        self.assertTrue(evidence['verified']['postInstall']['hintStyleInInstalled'])
+        self.assertEqual(evidence['verified']['postInstall']['loadedShell'], '0.1.33')
+        self.assertIn('历史 .moos-update-0.1.31/.moos-update-0.1.32 未动', evidence['cleanup'])
+        self.assertIn('| E96 |', (ROOT / 'PLAN.md').read_text())
+
     def test_model_settings_text_size_evidence_records_candidate_and_visual_check(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-model-settings-text-size.json').read_text())
         self.assertTrue(evidence['change'][0].startswith('client.js 新增共享 noteStyle'))

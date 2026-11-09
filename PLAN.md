@@ -623,3 +623,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E94 | GLM Responses 测试连接误报修复：官方文档证实 max_output_tokens 含思维链且默认思考 max，16 预算被推理耗尽导致 HTTP 200 + incomplete 误报格式错误；GLM 探测改用 minimal 思考 + 256 预算，其余协议不变。证据 `docs/evidence/desktop/p03-glm-responses-probe.json`。 | 定向 59/59，独立 Terminal 全量核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；0.1.33 build-fTNdrM 严格签名、非 fixture、包内修复核实。未发真实认证请求，未安装，正式仍 0.1.32；真实测试连接结果待用户在安装后确认。 |
 
 | E95 | 模型设置两段提示文字缩小：GLM 服务提示与测试连接结果共用 noteStyle（12px），隔离界面截图目视确认渲染变小；候选并入未发布的 0.1.33（build-uy2KoB，取代从未安装的 build-fTNdrM）。证据 `docs/evidence/desktop/p03-model-settings-text-size.json`。 | 验证门禁全零（核心 140/140、Electron 73/73 无跳过）；隔离 GUI 首跑冷启动超时如实保留，重跑 PASS 并目视核对 glm.png。未安装，真实窗口样式待安装后由用户确认。 |
+
+| E96 | 用户授权安装 0.1.33（GLM 探测修复 + 小字号提示）：独立 Terminal 执行，等待运行任务自然结束后正常退出、732 文件停机备份、仅换程序包。91 消息/1 会话/49 任务逐行保留，API 与凭据字节一致，皮肤/工作区/插件依赖保留，装后 0.1.33 载入、单实例、签名与两项修复在装包内核实，备份权限 0700/0600。证据 `docs/evidence/desktop/p03-installed-update-0133.json`。 | result.json state=success 且 postInstall 全项通过；本次备份与旧包已按规则清理，历史更新目录未动。“测试连接”与图片聊天真实结果待用户在新版实测。 |

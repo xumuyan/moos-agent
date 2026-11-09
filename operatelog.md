@@ -1494,3 +1494,13 @@
 - 验证结果：定向 client/pi-models/stage-dsh-runtime 19 过 0 败 3 跳过（跳过为既有需 MOOS_ELECTRON_TEST_DSH_CLI 的打包项）；独立 Terminal 验证门禁全零：核心 140/140、Electron 73/73 无跳过、Rust 11/11、桥 5/5、皮肤 4/4；当时文档 74/74，新增 E95 契约后提交前重跑。严格 codesign 通过，包内 client.js 含 noteStyle。
 - 遗留问题：0.1.33 未安装，正式仍 0.1.32；真实窗口中的字号效果与测试连接结果样式待安装后由用户确认。安装需用户明确授权。
 - 对应 Git 提交：唯一说明 style(P03.13): shrink model settings hints and connection result text；查询 git log --all --oneline --grep='^style(P03.13): shrink model settings hints and connection result text$'。
+
+
+## 2026-11-09 08:53:21 +08:00｜P03.13 用户授权安装 0.1.33 成功（E96）
+
+- 修改或新增内容：用户明确要求更新后，按已验证流程执行 0.1.33 安装：staged 候选与 build-uy2KoB 4 个关键文件逐字节一致、检查点测试 5/5、PREFLIGHT_OK 后提交交接材料（6059351）再交独立 Terminal；脚本自检祖先进程不属于 Moos/Host，等待正式应用中运行任务 67024618 自然结束（未强停、未确认即不停止），随后正常退出、732 文件停机备份（0700/0600 核实）、同卷仅换程序包、启动核对全部通过。本次装载内容：GLM Responses 测试连接修复（E94）与模型设置小字号提示（E95）。
+- 遇到的难题：交接后应用内有一个运行中任务，更新挂起约 19 分钟等待其自然结束；期间不做任何干预，仅只读轮询状态。
+- 处理方式：沿用 E93 已验证的一次性脚本模式改写 0.1.33 参数，新增 pi-runtime 探测文件字节比对、包内修复标记断言（noteStyle/effort minimal）与装后 probeFix/hintStyle 核实；备份数据逐文件哈希核对，SQLite 逐行保留校验。
+- 验证结果：result.json state=success（2026-11-08T23:40:36Z）；装前装后 91 消息/1 会话/49 任务逐行一致（之后为用户新版正常使用产生的增长，不计入校验）；providers.json 与 private/credentials.json 字节一致、权限 0600；聊天/PI 历史/皮肤/工作区/插件依赖保留；装后签名、标识、单实例、装包与实际加载壳均为 0.1.33、非 fixture、14 个已存模型可读。备份与旧包按规则清理，保留 result/log/script；.moos-update-0.1.31/.moos-update-0.1.32 历史未动。证据对应当前工作区。
+- 遗留问题：新版窗口内“测试连接”（glm-5.3-flash 应显示成功）与图片聊天识图的真实结果由用户实测确认；助手未发送认证 GLM 请求。
+- 对应 Git 提交：交接材料 6059351fa782be3f2aaa58148a020dc7a2236879；本次唯一说明 docs(P03.13): record installed 0.1.33 update success and preservation evidence；查询 git log --all --oneline --grep='docs(P03.13): record installed 0.1.33 update success and preservation evidence'。

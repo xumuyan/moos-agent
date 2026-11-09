@@ -1,0 +1,63 @@
+{
+  "task": "P03.13",
+  "evidence": "E96",
+  "timeBeijing": "2026-11-09 08:53:21 +08:00",
+  "state": "installed-success",
+  "shellVersion": "0.1.33",
+  "userAuthorizedUpdate": true,
+  "flow": {
+    "handoff": "update.command 在独立 Terminal 执行；脚本自检进程祖先不属于 Moos/Host",
+    "waitedFor": "任务 67024618-8582-4dc2-979f-8ef6f407ff11 自然结束（未强停），07:40:36 完成",
+    "result": "/Applications/.moos-update-0.1.33/result.json state=success",
+    "commitBeforeHandoff": "6059351fa782be3f2aaa58148a020dc7a2236879"
+  },
+  "verified": {
+    "stagedSignature": "codesign --verify --deep --strict",
+    "candidateByteMatch": "候选与 build-uy2KoB 4 个关键文件逐字节一致（含 pi-runtime/services/agent/provider-diagnostics.mjs）",
+    "checkpointTests": "5/5（artifacts/installed-update-0.1.33/checkpoint.log）",
+    "preflight": "PREFLIGHT_OK",
+    "backup": {
+      "files": 732,
+      "permissions": "0700/0600 核实",
+      "verified": true
+    },
+    "beforeCounts": {
+      "messages": 91,
+      "conversations": 1,
+      "tasks": 49
+    },
+    "afterCounts": {
+      "messages": 91,
+      "conversations": 1,
+      "tasks": 49
+    },
+    "originalDatabaseRowsRetained": true,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "userPluginDependenciesRetained": true,
+    "installedMainProcesses": 1,
+    "postInstall": {
+      "signature": "SIGN_OK",
+      "identity": "dev.moos.agent.electron",
+      "installedShell": "0.1.33",
+      "loadedShell": "0.1.33",
+      "includesPiFixture": false,
+      "probeFixInInstalled": true,
+      "hintStyleInInstalled": true,
+      "credentialsMode": "0600",
+      "readableSavedModels": 14
+    }
+  },
+  "changesShipped": [
+    "GLM Responses 测试连接修复（reasoning minimal + 256 预算，E94）",
+    "模型设置提示与测试连接结果 12px 小字号（E95）"
+  ],
+  "cleanup": "已删除本次 data-before-install 与 previous/Moos.app；保留 result.json、terminal-update.log、update.mjs、update.command；历史 .moos-update-0.1.31/.moos-update-0.1.32 未动",
+  "limits": [
+    "新窗口内“测试连接”与聊天图片识别的真实结果待用户实测（模型 14 个为用户新增 glm-5.3-flash 后的自然增长）",
+    "助手未发送认证 GLM 请求"
+  ]
+}
