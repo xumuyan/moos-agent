@@ -47,7 +47,7 @@ function requireText(value, field) {
   return value.trim();
 }
 
-/** 解析并校验 image-gen.json。缺少 baseUrl/apiKey 或取值非法时抛出带修复指引的错误。 */
+/** 解析并校验 image-gen.json。缺少 baseUrl/apiKey 或取值非法时抛出带修复指引的错误；model 省略时默认 gpt-image-2.5-flare（云桥图片专用分组模型，key 需绑定该分组才能调用）。 */
 export function parseImageGenConfig(raw) {
   let parsed;
   try {
@@ -60,7 +60,7 @@ export function parseImageGenConfig(raw) {
   if (!/^https?:\/\//.test(baseUrl)) throw new Error('图片服务配置 baseUrl 必须以 http:// 或 https:// 开头');
   if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
   const apiKey = requireText(parsed.apiKey, 'apiKey');
-  const model = parsed.model === undefined ? 'gpt-image-2' : requireText(parsed.model, 'model');
+  const model = parsed.model === undefined ? 'gpt-image-2.5-flare' : requireText(parsed.model, 'model');
   const defaults = parsed.defaults ?? {};
   if (!defaults || typeof defaults !== 'object' || Array.isArray(defaults)) throw new Error('图片服务配置 defaults 必须是对象');
   const pick = (field, allowed, fallback) => {

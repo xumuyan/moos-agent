@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-09 13:26:10 +08:00｜P03.13.9：图片默认模型改为 gpt-image-2.5-flare 并记录云桥价格
+
+- 修改或新增内容：用户要求使用更新版本模型（口述 2.6）。核实云桥公开价格页（www.yunqiao.me/pricing 页面内 JSON，2026-11-09 抓取）确认云桥无 2.6：图片模型为 gpt-image-2 与 gpt-image-2.5-flare/2.5-sunburst，后者仅存在于「图片专用分组 原生4K」（1K/2K/4K 统一 0.12 元/张；gpt-image-2 各分组折后约 0.04–0.48 元/张）。`image-tool.mjs` 配置省略 model 时的默认值从 gpt-image-2 改为 gpt-image-2.5-flare，注释与函数说明补充分组绑定前提；单元测试补默认值断言。PLAN、证据 JSON（新增 modelDefault 字段含价格来源）同步更新。
+- 遇到的难题：云桥指南页无价格表（会员页不可抓），价格取自主站公开 pricing 页面嵌入数据；该分组只支持两款 2.5 图片模型，聊天与生图不能用同一个 key 分组。
+- 处理方式：价格仅记录来源与结论，不入原始页面内容；生图密钥设计上独立于聊天 key（image-gen.json 单独配置），分组限制天然兼容，写入证据与计划说明。
+- 验证结果：`node --test packages/pi-runtime/image-tool.test.mjs` 16/16（新增默认模型断言）；`node --test services/agent/acceptance.test.mjs` 12/12；核心 `npm test` 159/159 无跳过；`npm --prefix apps/electron test` 74/74 无跳过；文档检查 81/81。未运行 Rust 门禁（未改 Rust 代码）。
+- 实际验收：真实云桥扣费调用仍待用户配置密钥后自测；flare 与 sunburst 的画面差异价格页未说明，建议用户各生成一张自行选择（0.12 元/张）。
+- 遗留问题：同 P03.13.9 待办（真实服务验收、正式构建与授权安装、参考图编辑）。
+- 对应 Git 提交：唯一说明 `feat(P03.13.9): default image model to gpt-image-2.5-flare with pricing evidence`；查询 `git log --all --oneline --grep='^feat(P03.13.9): default image model to gpt-image-2.5-flare with pricing evidence$'`。
+
 ## 2026-11-09 12:56:30 +08:00｜P03.13.9：聊天原生图片生成工具（云桥 gpt-image-2）
 
 - 修改或新增内容：按用户需求在 PI 运行时新增 `generate_image` 自定义工具，聊天模型判断需要生成图片时自主调用（不新增逐步确认），Host 侧读取 `<数据目录>/private/image-gen.json`（0700/0600）中的网关与密钥调用 OpenAI Images 兼容端点（云桥 `https://api.yunqiao.me/v1/images/generations`，模型 gpt-image-2），图片落盘工作区 `images/`（0600）并把相对路径回传模型。未配置密钥时不挂载工具；每次调用恰好一次付费请求（n=1）不自动重试；401/403/429/400/5xx 如实回报；只读会话请求前拒绝；取消经 AbortSignal 中止；透明背景仅 png/webp 预检；文件名 slug 防路径注入；30MB 上限。新增 `packages/pi-runtime/image-tool.mjs`、mock 服务 `mock-images-server.mjs`、单元测试 16 条、fixture 场景 MOOS_FIXTURE_IMAGE 与端到端 2 条；`sdk-runtime.mjs` createSession 挂载并保持无配置时行为不变；npm test 增加 packages/pi-runtime 测试 glob。更新 PLAN（P03.13.9、E100）、证据 `docs/evidence/desktop/p03-image-tool.json` 与文档测试。

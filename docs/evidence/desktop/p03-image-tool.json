@@ -1,12 +1,12 @@
 {
   "task": "P03.13.9",
   "evidence": "E100",
-  "timeBeijing": "2026-11-09 12:55:10 +08:00",
+  "timeBeijing": "2026-11-09 13:24:40 +08:00",
   "state": "implemented-code-and-automated-acceptance-real-service-and-install-pending-user",
   "feature": {
     "trigger": "聊天模型按工具描述自主决定调用 generate_image（用户要求生成/绘制图片或任务必需新图时），不新增逐步确认",
     "config": "<runPiSdk dataDir>/private/image-gen.json（0700 目录 + 0600 文件）：baseUrl/apiKey/model/defaults；正式应用即 <应用数据>/sessions/private/image-gen.json；密钥由用户在终端自行创建，不设设置页入口",
-    "endpoint": "POST {baseUrl}/images/generations（OpenAI Images 兼容；云桥网关 https://api.yunqiao.me/v1，模型固定 gpt-image-2 由配置给出）",
+    "endpoint": "POST {baseUrl}/images/generations（OpenAI Images 兼容；云桥网关 https://api.yunqiao.me/v1，模型可配置，省略时默认 gpt-image-2.5-flare（云桥图片专用分组 原生4K 统一 0.12 元/张；该分组只支持 gpt-image-2.5-flare/2.5-sunburst，聊天 key 分组不动，生图 key 独立））",
     "output": "图片写入 <项目工作区>/images/（0600），文件名含时间戳与提示词 slug；工具结果仅返回相对路径与参数摘要，不把图片塞进模型上下文",
     "costGuards": "每次调用恰好一次付费请求（n=1），无自动重试；401/403 认证失败、429 限流或额度不足、400/404/422 参数拒绝、5xx 服务不可用均如实回报给模型与事件；只读权限会话在请求前拒绝；任务取消经 AbortSignal 中止进行中的网络请求",
     "keySafety": "密钥只在工具执行内读取与使用；不进聊天消息、持久化事件、日志与 Git；配置文件权限过宽（group/other 任一位）时调用直接拒绝并提示 chmod 600；配置为符号链接时拒绝",
@@ -36,5 +36,11 @@
   "install": {
     "performed": false,
     "note": "未构建新安装包、未安装。需要用户授权后另行执行"
+  },
+  "modelDefault": {
+    "change": "默认模型从 gpt-image-2 改为 gpt-image-2.5-flare（用户要求升级版本；云桥无 2.6，2.5 为最新）",
+    "pricingSource": "云桥公开价格页 www.yunqiao.me/pricing（2026-11-09 抓取）：图片专用分组 原生4K 仅支持 gpt-image-2.5-flare/2.5-sunburst，1K/2K/4K 统一 0.12 元/张；gpt-image-2 各分组折后 0.04-0.48 元/张",
+    "groupNote": "图片专用分组只支持这两款图片模型：生图 key 独立于聊天 key，聊天 key 分组不变",
+    "tested": "单元 16/16 含默认值断言；acceptance 12/12 不变（端到端用显式 model）"
   }
 }

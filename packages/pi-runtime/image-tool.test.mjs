@@ -176,6 +176,8 @@ test('image config parsing validates keys, urls and defaults', () => {
   assert.equal(parsed.baseUrl, 'https://api.yunqiao.me/v1');
   assert.equal(parsed.model, 'gpt-image-2');
   assert.equal(parsed.defaults.size, '1024x1024');
+  const defaulted = parseImageGenConfig('{"baseUrl": "https://api.yunqiao.me/v1", "apiKey": "sk-x"}');
+  assert.equal(defaulted.model, 'gpt-image-2.5-flare');
   assert.equal(imageGenConfigPath('/data'), join('/data', 'private', 'image-gen.json'));
 });
 
