@@ -384,15 +384,24 @@ window.__ModuleLoader__.load({
         state === 'error' ? createElement('span', { role: 'status' }, '提交失败，请重试。') : null);
     }
 
+    // 工作区变化文件多于阈值时默认折叠（原生 details，与 turnProcess 一致），点击标题展开全部；少量文件保持原样。
+    const turnTailCollapse = 10;
     function PiTurnTail({ sessionId, turn }) {
       const data = usePiTurn(sessionId, turn.start?.seq);
       if (!data?.files.length) return null;
+      const heading = () => [data.workspaceChanges ? '工作区变化 · ' : '写入或编辑了 ', data.files.length, ' 个文件'];
+      const list = createElement('ul', null, data.files.map(file => createElement('li', { key: file.path },
+        createElement('span', { className: 'moos-action-subject' }, file.path), createElement('small', null, file.summary))));
+      const note = data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null;
+      if (data.files.length <= turnTailCollapse) {
+        return createElement('div', { 'data-moos-pi-turn': '' },
+          createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },
+            createElement('strong', null, ...heading()), list, note));
+      }
       return createElement('div', { 'data-moos-pi-turn': '' },
         createElement('section', { 'data-moos-file-fallback': '', 'aria-label': 'PI 文件操作' },
-          createElement('strong', null, data.workspaceChanges ? '工作区变化 · ' : '写入或编辑了 ', data.files.length, ' 个文件'),
-          createElement('ul', null, data.files.map(file => createElement('li', { key: file.path },
-            createElement('span', { className: 'moos-action-subject' }, file.path), createElement('small', null, file.summary)))),
-          data.filesLimited ? createElement('p', null, '部分文件超出记录范围。') : null));
+          createElement('details', { 'data-moos-turn-files': '' },
+            createElement('summary', null, ...heading(), createElement('small', null, '已折叠，点击展开')), list, note)));
     }
 
     const taskPanel = 'moos-pi-tasks';
@@ -521,6 +530,8 @@ window.__ModuleLoader__.load({
         [data-moos-pi-tasks] li span { margin-inline-start: 8px; color: var(--dsw-alias-label-secondary); font-size: 13px; }
         [data-moos-pi-tasks] button { cursor: pointer; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 5px 9px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
         [data-moos-pi-turn] { display: grid; gap: 8px; margin-bottom: 8px; }
+        [data-moos-file-fallback] summary { cursor: pointer; }
+        [data-moos-file-fallback] summary small { margin-left: 8px; opacity: 0.65; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) ul { list-style: none; padding: 0; margin: 6px 0 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li small { margin-inline-start: auto; white-space: nowrap; opacity: .7; }

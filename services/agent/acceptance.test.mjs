@@ -64,6 +64,12 @@ test('fixture authenticates and follows current-turn tool results without loopin
   assert.match(args.command, /process\.pid/);
   assert.match(args.command, /setTimeout/);
   assert.equal((await completion(f, answered([{ role: 'user', content: 'MOOS_FIXTURE_HOLD' }], hold.call))).content, '完成 HOLD');
+  const many = await completion(f, [{ role: 'user', content: 'MOOS_FIXTURE_MANY' }]);
+  assert.equal(many.call.function.name, 'bash');
+  const manyCommand = JSON.parse(many.call.function.arguments).command;
+  assert.equal((manyCommand.match(/many-\$i\.txt/g) ?? []).length >= 1, true, 'bash loop writes numbered files');
+  assert.equal((await completion(f, answered([{ role: 'user', content: 'MOOS_FIXTURE_MANY' }], many.call, Array.from({ length: 12 }, (_, i) => `many-${i + 1}.txt written`).join('\n')))).content, '完成 MANY 12');
+  assert.equal((await completion(f, [{ role: 'user', content: 'MOOS_FIXTURE_MANY MOOS_FIXTURE_ENV' }])).status, 400);
 });
 
 async function waitFor(check, label, timeout = 20000) {

@@ -1,0 +1,46 @@
+{
+  "task": "P03.13.10 工作区变化列表折叠",
+  "evidence": "E105",
+  "timeBeijing": "2026-11-09 21:56:00 +08:00",
+  "state": "implemented-code-automated-tests-and-isolated-gui-acceptance-passed-install-pending-user",
+  "change": "应用户要求为聊天尾部「工作区变化」文件列表增加折叠：壳插件 client.js 的 PiTurnTail 原先对任意数量文件全量平铺 <ul>，超过 turnTailCollapse=10 个文件时改用 <details data-moos-turn-files> 包裹，<summary> 保留完整标题（工作区变化 · N 个文件）并附 <small>已折叠，点击展开</small> 提示，默认收起，点击 summary 展开/再点收起；≤10 个文件保持原平铺渲染不变。补 CSS：summary cursor:pointer、提示文字右侧 8px 透明度 0.65。",
+  "verification": {
+    "method": "隔离 Electron 实例（ditto 拷贝 build-66ROO4 至 artifacts 内 scratch，ad-hoc 重签，seedHome 独立数据目录，脚本进程内启动 fixture openai-completions 模型直连），CDP 探查真实渲染 DOM；正式安装版与用户数据不受影响",
+    "fixtureScenario": "新增 MOOS_FIXTURE_MANY 场景：bash while 循环写 many-1..12.txt 共 12 个文件后返回「完成 MANY 12」；隔离 workspace 先 git init && git add -A，因为 workspace-changes 基于前后 git 快照 diff（非 git 目录 diff 为空，首次运行踩到并已修复脚本）",
+    "probe": {
+      "collapsedOpen": false,
+      "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+      "expandedOpen": true,
+      "expandedCount": 12,
+      "expandedFiles": "many-1.txt 至 many-12.txt 全部（按字母序列出，集合与 fixture 写入文件一致）",
+      "reCollapsed": false
+    },
+    "screenshots": [
+      "artifacts/collapse-turn-tail/recovery-nCJlAQ/many-collapsed.png（收起态，sha256 前 16 位 3633ecb9fb5b3dff）",
+      "artifacts/collapse-turn-tail/recovery-nCJlAQ/many-expanded.png（展开态，sha256 前 16 位 64fd974df4b84cea）"
+    ],
+    "report": "artifacts/collapse-turn-tail/recovery-nCJlAQ/many-report.json",
+    "script": "artifacts/collapse-turn-tail/gui.mjs（一次性隔离验收脚本，仅接受仓库 .generated 构建路径与 artifacts 输出，结束前 Page.close 正常退出并用退出码断言非 SIGKILL）",
+    "assertions": "data-moos-turn-files details 存在且默认 open=false；summary 文本匹配 工作区变化 · 12 个文件 且含 已折叠；点击 summary 后 open=true 且列表 12 项全部为 many-N.txt；再次点击后 open=false；截图记录两种状态",
+    "scriptFixes": [
+      "隔离实例启动前清理宿主透传环境（ELECTRON_RUN_AS_NODE、MOOS_ELECTRON_*、DSH_*），否则 ELECTRON_RUN_AS_NODE=1 使隔离 Electron 以 node 模式启动、无调试端口（此前 TABLE 场景复跑同样复现，证实与折叠改动无关）",
+      "0.1.36 壳首屏为 hero 工作区触发卡片（data-composer-input 处于 data-phase=inert、contenteditable=false 的展示层），脚本点击该卡片进入默认工作区后真实 Lexical contenteditable 挂载（contenteditable=true、data-phase=plain），CDP Input.insertText 才生效",
+      "fixture relay server 关闭（relay.close()）后 Node 进程 33 秒干净退出，不再残留"
+    ]
+  },
+  "tests": {
+    "clientUnit": "apps/electron/client.test.mjs 3/3：>10 文件渲染 details data-moos-turn-files 默认收起且 summary 含标题与已折叠提示；≤10 文件保持平铺；summary cursor 样式存在",
+    "fixtureUnit": "services/agent/acceptance.test.mjs 12/12（新增 2 项：bash 循环命令与 完成 MANY 12 返回、多场景标记 400）",
+    "core": "npm test 160/160",
+    "electron": "npm run test:electron 79/79",
+    "docs": "python3 -m unittest discover -s tests OK（81 检查项）"
+  },
+  "build": "验收使用 build-66ROO4（0.1.36 壳，含折叠代码：dist 内 data-moos-turn-files 出现 2 处，turnTailCollapse 常量，moos-runtime.json dshVersion 0.2.2-rc.1 includesPiFixture false，ad-hoc 重签 codesign 通过）；正式安装未执行，等用户明确授权后按 E84 流程更新",
+  "envNote": "按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 并 unset MOOS_ELECTRON_* 执行；本轮宿主为 0.1.36 danger-full-access 模式，环境透传是 GUI 脚本首轮失败根因，脚本内已做显式清理并在证据中记录",
+  "limits": [
+    "正式安装版 GUI 未验收：折叠功能已包含在 build-66ROO4，但 /Applications/Moos.app 仍为不含此改动的 0.1.36 安装包，安装后需用户在真实会话中确认折叠交互",
+    "≤10 个文件仍平铺（本次以 12 个文件验收折叠路径；≤10 路径由 client 单测覆盖，未做独立 GUI 场景）",
+    "limited（>200 文件截断）交互未单独验收；折叠阈值与截断逻辑相互独立",
+    "iPhone 端不在本轮范围"
+  ]
+}

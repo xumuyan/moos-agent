@@ -116,7 +116,7 @@ test('the DSH client extension registers the Moos brand and model services in th
   assert.equal(slots.get('moos-pi-retry'), 'conversation.composer.dock');
   assert.equal(slots.has('moos-pi-live'), false);
   turnResult = { sessionId: 'test-session', startSeq: 12,
-    data: { status: 'running', actions: [{ label: '运行命令', state: 'running' }], files: [] } };
+    data: { status: 'running', actions: [{ label: '运行命令', state: 'running' }], files: [], workspaceChanges: true } };
   const process = renderers.get('moos-pi-process')({ sessionId: 'test-session', startSeq: 12, live: true });
   assert.equal(process.element(process.props).element, 'details');
   assert.deepEqual(Array.from(effect.dependencies), ['test-session', 12, true]);
@@ -126,7 +126,22 @@ test('the DSH client extension registers the Moos brand and model services in th
   const tailProps = { sessionId: 'test-session', turn: { start: { seq: 12 } } };
   assert.equal(tail(tailProps), null);
   turnResult.data.files.push({ path: 'result.txt', summary: '新增' });
-  assert.equal(tail(tailProps).children[0].element, 'section');
+  const smallTail = tail(tailProps);
+  assert.equal(smallTail.children[0].element, 'section');
+  assert.equal(smallTail.children[0].children[0].element, 'strong', 'few files stay expanded');
+  for (let i = 0; i < 10; i++) turnResult.data.files.push({ path: `extra-${i}.txt`, summary: '修改' });
+  const manyTail = tail(tailProps);
+  const collapsible = manyTail.children[0].children[0];
+  assert.equal(collapsible.element, 'details', 'long file lists collapse by default');
+  assert.equal(collapsible.props['data-moos-turn-files'], '');
+  assert.equal(collapsible.props.open, undefined, 'details starts closed');
+  const summary = collapsible.children[0];
+  const headingText = summary.children.filter(child => typeof child === 'string' || typeof child === 'number').map(String).join('');
+  assert.equal(headingText, '工作区变化 · 11 个文件', 'summary keeps the workspace-change heading');
+  assert.equal(summary.children.find(child => child?.element === 'small').children[0], '已折叠，点击展开');
+  const listNode = collapsible.children.find(child => child.element === 'ul');
+  const items = Array.isArray(listNode.children[0]) ? listNode.children[0] : listNode.children;
+  assert.equal(items.length, 11, 'expanding reveals the full list');
 
   assert.equal(document.title, 'Moos');
   document.title = '深海女仆工坊 · DeepSeek Harness';
