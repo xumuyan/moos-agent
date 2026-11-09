@@ -23,7 +23,7 @@
     "imageToolUnit": "16/16（node --test packages/pi-runtime/image-tool.test.mjs：成功落盘字节与相对路径、配置默认值与覆盖、url 下载、30MB 拒绝、401/403/429/400/500 映射且不落盘、连接失败、取消中止、只读拒绝、权限过宽拒绝、配置解析校验、文件名注入防穿越）",
     "acceptanceEndToEnd": "12/12（node --test services/agent/acceptance.test.mjs，含新增 2 条：fixture 模型→generate_image→mock 服务→落盘字节与 tool_start/tool_end 事件持久化、请求头/模型/prompt/n=1 断言、密钥不出现在任何持久化消息或事件；认证失败→模型收到错误文本、任务仍终态成功、仅 1 次请求不重试、无 images 目录）",
     "core": "159/159（HOME=/Users/xuguopeng TMPDIR=/private/tmp npm test，无跳过）",
-    "electron": "74/74 无跳过（MOOS_ELECTRON_TEST_DSH_CLI=build-I0B28g host-runtime/bin/dsh，含皮肤中心与女仆皮肤夹具）",
+    "electron": "75/75 无跳过（新增 packaging.test.mjs 打包清单防回归；MOOS_ELECTRON_TEST_DSH_CLI=build-vsiPph host-runtime/bin/dsh）",
     "docs": "待本轮提交前运行 test_repository_docs 后在操作日志记录"
   },
   "envNote": "核心套件首跑 158/159：probes/m01/native.test.mjs 的 xcrun swiftc SIGTRAP。定位为沙箱 TMPDIR 指向含中文的仓库路径导致 swift-driver 在 libSwiftToolsSupport 崩溃（崩溃报告 /Users/xuguopeng/Library/Logs/DiagnosticReports/swift-driver-*.ips）；与本次改动无关，按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 重跑后全量通过",
@@ -42,5 +42,19 @@
     "pricingSource": "云桥公开价格页 www.yunqiao.me/pricing（2026-11-09 抓取）：图片专用分组 原生4K 仅支持 gpt-image-2.5-flare/2.5-sunburst，1K/2K/4K 统一 0.12 元/张；gpt-image-2 各分组折后 0.04-0.48 元/张",
     "groupNote": "图片专用分组只支持这两款图片模型：生图 key 独立于聊天 key，聊天 key 分组不变",
     "tested": "单元 16/16 含默认值断言；acceptance 12/12 不变（端到端用显式 model）"
+  },
+  "build": {
+    "id": "build-vsiPph",
+    "shellVersion": "0.1.35",
+    "codesign": "--verify --deep --strict SIGN_OK",
+    "identity": "dev.moos.agent.electron",
+    "includesPiFixture": false,
+    "packagedChecks": [
+      "Resources/pi-runtime/packages/pi-runtime/image-tool.mjs 在包内",
+      "sdk-runtime.mjs 含 createImageTool 挂载（3 处）",
+      "moos-electron-shell 版本 0.1.35（profile-template 内清单）",
+      "Info.plist CFBundleShortVersionString 维持 app 包 0.1.0（与历史版本一致，壳版本以 moos-electron-shell 清单为准）"
+    ],
+    "packagingFix": "首轮构建 build-G7DpE4 发现 prepare-local.mjs 固定拷贝清单漏掉 image-tool.mjs（装包后配置图片服务会 ERR_MODULE_NOT_FOUND）；补清单并新增 apps/electron/packaging.test.mjs 防回归（断言 sdk-runtime 相对导入全部在清单内），按新清单重建 build-vsiPph，首轮构建已废弃"
   }
 }

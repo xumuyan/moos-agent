@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-09 13:47:20 +08:00｜P03.13.9：壳 0.1.35 构建（build-vsiPph）与打包清单修复
+
+- 修改或新增内容：壳版本 0.1.34 → 0.1.35 并执行正式桌面构建。首轮构建 build-G7DpE4 包内核查发现 prepare-local.mjs 固定拷贝清单漏掉 `packages/pi-runtime/image-tool.mjs`（包内 sdk-runtime.mjs 已 import 该文件，装包后一旦配置图片服务，挂载工具会 ERR_MODULE_NOT_FOUND）；补齐清单并新增 `apps/electron/packaging.test.mjs`（断言 sdk-runtime 全部相对导入都在打包清单中、image-tool.mjs 必须随包分发），按新清单重建 build-vsiPph，首轮构建废弃。
+- 遇到的难题：包内核查时按字符串 generate_image 搜索一度误判包内 sdk-runtime 为旧版，实为工具名常量在 image-tool.mjs 中；改按 createImageTool 与文件清单双重核查。
+- 处理方式：签名（--verify --deep --strict）、身份 dev.moos.agent.electron、moos-runtime.json includesPiFixture=false、pi-runtime 目录文件清单、createImageTool 挂载点、profile-template 内 moos-electron-shell 0.1.35 版本逐项核实。
+- 验证结果：build-vsiPph 上述各项通过；`node --test apps/electron/packaging.test.mjs` 1/1；Electron 全套 75/75 无跳过（MOOS_ELECTRON_TEST_DSH_CLI 指向 build-vsiPph 的 bin/dsh）；核心套件 159/159、文档检查 81/81（本轮未重跑核心与文档的代码行为未变，此前本日记录为准；docs 测试在新证据字段后重跑通过）。应用包 676MB（开发基线包，体积优化仍未完成）。
+- 实际验收：构建产物验证属隔离构建验收，未安装正式应用，未触碰生产用户数据。
+- 遗留问题：正式安装需用户明确授权后按 E84 流程执行；安装后由用户配置 image-gen.json（生图 key 绑定云桥图片专用分组）并做一次真实生成验收。
+- 对应 Git 提交：唯一说明 `build(P03.13.9): shell 0.1.35 with packaged image-tool`；查询 `git log --all --oneline --grep='^build(P03.13.9): shell 0.1.35 with packaged image-tool$'`。
+
 ## 2026-11-09 13:26:10 +08:00｜P03.13.9：图片默认模型改为 gpt-image-2.5-flare 并记录云桥价格
 
 - 修改或新增内容：用户要求使用更新版本模型（口述 2.6）。核实云桥公开价格页（www.yunqiao.me/pricing 页面内 JSON，2026-11-09 抓取）确认云桥无 2.6：图片模型为 gpt-image-2 与 gpt-image-2.5-flare/2.5-sunburst，后者仅存在于「图片专用分组 原生4K」（1K/2K/4K 统一 0.12 元/张；gpt-image-2 各分组折后约 0.04–0.48 元/张）。`image-tool.mjs` 配置省略 model 时的默认值从 gpt-image-2 改为 gpt-image-2.5-flare，注释与函数说明补充分组绑定前提；单元测试补默认值断言。PLAN、证据 JSON（新增 modelDefault 字段含价格来源）同步更新。
