@@ -9,6 +9,34 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_image_tool_evidence_matches_scope_and_guards(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-image-tool.json').read_text())
+        self.assertEqual(evidence['task'], 'P03.13.9')
+        self.assertEqual(evidence['evidence'], 'E100')
+        self.assertIn('图片写入 <项目工作区>/images/（0600）', evidence['feature']['output'])
+        self.assertIn('相对路径', evidence['feature']['output'])
+        self.assertIn('无自动重试', evidence['feature']['costGuards'])
+        self.assertIn('n=1', evidence['feature']['costGuards'])
+        self.assertIn('chmod 600', evidence['feature']['keySafety'])
+        self.assertFalse(evidence['install']['performed'])
+        self.assertIn('真实云桥扣费调用未由助手发起', evidence['limits'][0])
+        self.assertIn('createImageTool 返回 null', evidence['feature']['mountRule'])
+        self.assertIn('159/159', evidence['tests']['core'])
+        self.assertIn('TMPDIR', evidence['envNote'])
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('P03.13.9 **聊天原生图片生成工具（云桥 gpt-image-2）', plan)
+        self.assertIn('| E100 |', plan)
+        self.assertIn('只读会话拒绝', plan)
+        log = (ROOT / 'operatelog.md').read_text()
+        self.assertIn('P03.13.9：聊天原生图片生成工具', log)
+        self.assertIn('TMPDIR=/private/tmp', log)
+        self.assertIn('feat(P03.13.9): add chat-native generate_image tool', log)
+        toolSource = (ROOT / 'packages/pi-runtime/image-tool.mjs').read_text()
+        self.assertIn('generate_image', toolSource)
+        self.assertIn('/images/generations', toolSource)
+        self.assertIn('createImageTool', (ROOT / 'packages/pi-runtime/sdk-runtime.mjs').read_text())
+        self.assertIn("packages/pi-runtime/*.test.mjs", (ROOT / 'package.json').read_text())
+
     def test_installed_0134_preservation_checkpoint(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0134.json').read_text())
         self.assertEqual(evidence['state'], 'installed-success')
@@ -260,7 +288,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 9)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 10)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))

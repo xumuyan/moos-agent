@@ -10,6 +10,7 @@ import { classifyTaskError, TaskFailure } from '../../services/agent/errors.mjs'
 import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-policy.mjs';
 import { normalizeUsage } from '../../services/agent/usage.mjs';
 import { workspaceTools } from './tool-policy.mjs';
+import { createImageTool } from './image-tool.mjs';
 import { repairRouting } from './repair-routing.mjs';
 import { openPiSession } from './session-fork.mjs';
 
@@ -120,14 +121,21 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       active = backup;
       emit('model_route', { from: primary.profile.name, to: backup.profile.name, reason });
     };
+    const defaultToolNames = ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'];
     async function createSession() {
-      const customTools = permissions && workspaceTools(cwd, permissions);
+      const base = permissions && workspaceTools(cwd, permissions);
+      // 图片服务未配置时 createImageTool 返回 null，模型看不到该工具；配置后每个新任务自动挂载。
+      const image = await createImageTool({ cwd, dataDir, getMode: permissions ? () => permissions.getMode() : undefined });
+      const customTools = image ? [...(base ?? []), image] : base;
+      const toolNames = image
+        ? [...(base ? base.map(tool => tool.name) : defaultToolNames), image.name]
+        : base ? base.map(tool => tool.name) : defaultToolNames;
       ({ session } = await createAgentSession({
         cwd, agentDir, modelRuntime, model: active.model, thinkingLevel: active.thinkingLevel,
         resourceLoader: resourceLoader(instructions), sessionManager,
         settingsManager: sdkSettings(duration),
-        tools: customTools?.map(tool => tool.name) ?? ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'],
-        customTools,
+        tools: toolNames,
+        customTools: customTools?.length ? customTools : undefined,
       }));
       const transform = session.agent.transformContext?.bind(session.agent);
       session.agent.transformContext = async (messages, requestSignal) => {

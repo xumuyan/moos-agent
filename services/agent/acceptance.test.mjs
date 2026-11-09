@@ -256,3 +256,53 @@ test('cancelling active bash and a same-project queued task leaves the other pro
   const modelConfig = JSON.parse(await readFile(join(f.dataDir, f.conversations[0].id, 'agent', 'models.json'), 'utf8'));
   await assert.rejects(fetch(modelConfig.providers.fixture.baseUrl + '/chat/completions'));
 });
+
+test('generate_image tool runs end to end through the fixture model against the mock image service', { timeout: 60000 }, async t => {
+  const [{ startMockImagesServer }, { privateFile }] = await Promise.all([
+    import('../../packages/pi-runtime/mock-images-server.mjs'), import('../../packages/pi-adapter/index.mjs'),
+  ]);
+  const f = await setup(t);
+  await mkdir(join(f.dataDir, 'private'), { recursive: true });
+  const images = await startMockImagesServer({ apiKey: 'sk-image-e2e' }); t.after(() => images.close());
+  await privateFile(join(f.dataDir, 'private', 'image-gen.json'),
+    JSON.stringify({ baseUrl: images.baseUrl, apiKey: 'sk-image-e2e', model: 'gpt-image-2' }));
+  const task = await f.submit(0, 'MOOS_FIXTURE_IMAGE');
+  const state = await terminal(f.controller, task, 'succeeded');
+  assert(state.messages.some(m => m.taskId === task.id && m.role === 'assistant' && m.content === '完成 IMAGE'));
+  assert.deepEqual(state.events.filter(e => e.taskId === task.id && e.type === 'tool_start').map(e => e.payload.toolName), ['generate_image']);
+  assert.deepEqual(state.events.filter(e => e.taskId === task.id && e.type === 'tool_end').map(e => e.payload.toolName), ['generate_image']);
+  const saved = await readdir(join(f.projects[0].path, 'images'));
+  assert.equal(saved.length, 1);
+  assert.equal((await readFile(join(f.projects[0].path, 'images', saved[0]))).length, images.imageBytes.length);
+  const request = images.requests[0];
+  assert.equal(request.url, '/v1/images/generations');
+  assert.equal(request.authorization, 'Bearer sk-image-e2e');
+  assert.equal(request.body.model, 'gpt-image-2');
+  assert.equal(request.body.prompt, 'MOOS acceptance marker image');
+  assert.equal(request.body.n, 1);
+  // 模型密钥与图片服务密钥都不允许出现在任何持久化消息或事件里。
+  assert(!JSON.stringify(state).includes('sk-image-e2e'));
+  assert(!JSON.stringify(state).includes(f.fixture.apiKey));
+});
+
+test('image service auth failures surface to the model and never write files or retry', { timeout: 60000 }, async t => {
+  const [{ startMockImagesServer }, { privateFile }] = await Promise.all([
+    import('../../packages/pi-runtime/mock-images-server.mjs'), import('../../packages/pi-adapter/index.mjs'),
+  ]);
+  const f = await setup(t);
+  await mkdir(join(f.dataDir, 'private'), { recursive: true });
+  const images = await startMockImagesServer({ apiKey: 'sk-image-correct' }); t.after(() => images.close());
+  await privateFile(join(f.dataDir, 'private', 'image-gen.json'),
+    JSON.stringify({ baseUrl: images.baseUrl, apiKey: 'sk-image-wrong', model: 'gpt-image-2' }));
+  const task = await f.submit(0, 'MOOS_FIXTURE_IMAGE');
+  const state = await terminal(f.controller, task, 'succeeded');
+  assert(state.messages.some(m => m.taskId === task.id && m.role === 'assistant' && m.content === '完成 IMAGE_AUTH_REPORTED'),
+    'fixture model must acknowledge the tool error text');
+  const toolEnd = state.events.find(e => e.taskId === task.id && e.type === 'tool_end' && e.payload.toolName === 'generate_image');
+  assert(toolEnd, 'image tool end event must be persisted');
+  assert.match(JSON.stringify(toolEnd.payload), /认证失败/);
+  assert.equal(images.requests.length, 1, 'a failed image call must never be retried automatically');
+  assert(!JSON.stringify(state).includes('sk-image-wrong'));
+  const entries = await readdir(join(f.projects[0].path));
+  assert(!entries.includes('images'), 'no images directory may be created on failure');
+});

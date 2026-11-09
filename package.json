@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test probes/m01/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs scripts/*.test.mjs",
+    "test": "node --test probes/m01/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
     "dev:fixture": "node services/agent/dev-server.mjs --fixture",
     "build:app": "npm --prefix apps/electron run prepare:local",
     "test:docs": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",

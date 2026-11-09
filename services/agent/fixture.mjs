@@ -148,13 +148,15 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       const allTools = /\bMOOS_FIXTURE_TOOLS\b/.test(text);
       const policy = desktopPolicy && /\bMOOS_FIXTURE_POLICY\b/.test(text);
       const approval = desktopPolicy && /\bMOOS_FIXTURE_APPROVAL\b/.test(text);
+      const image = /\bMOOS_FIXTURE_IMAGE\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ([Boolean(match), hold, allTools, policy, approval].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools, policy, approval, image].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
       let sequence = ['write', 'bash'];
       if (hold) sequence = ['bash'];
+      if (image) sequence = ['generate_image'];
       if (allTools) sequence = desktopPolicy ? ['write', 'read', 'edit', 'ls', 'bash']
         : ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'];
       if (approval) sequence = ['bash_escalated'];
@@ -170,6 +172,10 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       }
       if (calls.length > sequence.length || results.length !== calls.length) return reply(res, 409, 'Unexpected fixture tool results');
       if (calls.length === sequence.length) {
+        if (image) {
+          const resultText = results.map(result => messageText(result.content)).join('\n');
+          return stream(res, { content: resultText.includes('认证失败') ? '完成 IMAGE_AUTH_REPORTED' : '完成 IMAGE' }, 'stop');
+        }
         const result = hold ? 'HOLD' : allTools ? 'TOOLS' : policy ? 'POLICY' : approval ? 'APPROVAL' : marker;
         return stream(res, { content: `完成 ${result}` }, 'stop');
       }
@@ -178,6 +184,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
         return tool(res, 'bash', { command: "printf 'outside\\n' > ../moos-policy-outside.txt" }, turn);
       }
       if (approval) return tool(res, 'bash_escalated', { command: "printf 'approved\\n' > ../moos-policy-approved.txt" }, turn);
+      if (image) return tool(res, 'generate_image', { prompt: 'MOOS acceptance marker image', size: '1024x1024', quality: 'high' }, turn);
       if (hold) {
         if (desktopPolicy) return tool(res, 'bash', { command: 'printf "%s" "$$" > fixture-hold.pid && exec /bin/sleep 25', timeout: 30 }, turn);
         return tool(res, 'bash', { command: nodeCommand("require('node:fs').writeFileSync('fixture-hold.pid',String(process.pid)); console.log('fixture hold started'); setTimeout(()=>{console.log('fixture hold finished')},25000)"), timeout: 30 }, turn);

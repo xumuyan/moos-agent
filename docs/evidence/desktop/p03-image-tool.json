@@ -1,0 +1,40 @@
+{
+  "task": "P03.13.9",
+  "evidence": "E100",
+  "timeBeijing": "2026-11-09 12:55:10 +08:00",
+  "state": "implemented-code-and-automated-acceptance-real-service-and-install-pending-user",
+  "feature": {
+    "trigger": "聊天模型按工具描述自主决定调用 generate_image（用户要求生成/绘制图片或任务必需新图时），不新增逐步确认",
+    "config": "<runPiSdk dataDir>/private/image-gen.json（0700 目录 + 0600 文件）：baseUrl/apiKey/model/defaults；正式应用即 <应用数据>/sessions/private/image-gen.json；密钥由用户在终端自行创建，不设设置页入口",
+    "endpoint": "POST {baseUrl}/images/generations（OpenAI Images 兼容；云桥网关 https://api.yunqiao.me/v1，模型固定 gpt-image-2 由配置给出）",
+    "output": "图片写入 <项目工作区>/images/（0600），文件名含时间戳与提示词 slug；工具结果仅返回相对路径与参数摘要，不把图片塞进模型上下文",
+    "costGuards": "每次调用恰好一次付费请求（n=1），无自动重试；401/403 认证失败、429 限流或额度不足、400/404/422 参数拒绝、5xx 服务不可用均如实回报给模型与事件；只读权限会话在请求前拒绝；任务取消经 AbortSignal 中止进行中的网络请求",
+    "keySafety": "密钥只在工具执行内读取与使用；不进聊天消息、持久化事件、日志与 Git；配置文件权限过宽（group/other 任一位）时调用直接拒绝并提示 chmod 600；配置为符号链接时拒绝",
+    "mountRule": "配置文件不存在时 createImageTool 返回 null，模型看不到该工具，无配置行为与改动前完全一致；挂载后每个新任务自动生效"
+  },
+  "change": [
+    "packages/pi-runtime/image-tool.mjs：generate_image 自定义工具（TypeBox 参数校验、参数组合预检（透明背景禁 jpeg、compression 仅 jpeg/webp）、b64_json/url 双解析、30MB 上限、错误映射）",
+    "packages/pi-runtime/sdk-runtime.mjs：createSession 挂载 image 工具，tools 列表同步包含 generate_image；无配置时保持原有 tools/customTools 行为不变",
+    "services/agent/fixture.mjs：新增 MOOS_FIXTURE_IMAGE 场景（调用 generate_image 后按工具结果收尾，区分成功与认证失败回报）",
+    "packages/pi-runtime/mock-images-server.mjs：本地 mock Images API（Bearer 校验、计划响应队列），供单元与端到端测试共用",
+    "package.json：npm test 增加 packages/pi-runtime/*.test.mjs"
+  ],
+  "tests": {
+    "imageToolUnit": "16/16（node --test packages/pi-runtime/image-tool.test.mjs：成功落盘字节与相对路径、配置默认值与覆盖、url 下载、30MB 拒绝、401/403/429/400/500 映射且不落盘、连接失败、取消中止、只读拒绝、权限过宽拒绝、配置解析校验、文件名注入防穿越）",
+    "acceptanceEndToEnd": "12/12（node --test services/agent/acceptance.test.mjs，含新增 2 条：fixture 模型→generate_image→mock 服务→落盘字节与 tool_start/tool_end 事件持久化、请求头/模型/prompt/n=1 断言、密钥不出现在任何持久化消息或事件；认证失败→模型收到错误文本、任务仍终态成功、仅 1 次请求不重试、无 images 目录）",
+    "core": "159/159（HOME=/Users/xuguopeng TMPDIR=/private/tmp npm test，无跳过）",
+    "electron": "74/74 无跳过（MOOS_ELECTRON_TEST_DSH_CLI=build-I0B28g host-runtime/bin/dsh，含皮肤中心与女仆皮肤夹具）",
+    "docs": "待本轮提交前运行 test_repository_docs 后在操作日志记录"
+  },
+  "envNote": "核心套件首跑 158/159：probes/m01/native.test.mjs 的 xcrun swiftc SIGTRAP。定位为沙箱 TMPDIR 指向含中文的仓库路径导致 swift-driver 在 libSwiftToolsSupport 崩溃（崩溃报告 /Users/xuguopeng/Library/Logs/DiagnosticReports/swift-driver-*.ips）；与本次改动无关，按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 重跑后全量通过",
+  "limits": [
+    "真实云桥扣费调用未由助手发起（密钥由用户保管），真实服务验收待用户配置密钥后在聊天中生成一张图",
+    "图片在对话中的内嵌显示取决于 DSH 渲染器对工具结果图块的支持，本轮未实现也未宣称",
+    "参考图编辑（/v1/images/edits）不在本期范围",
+    "正式安装待用户明确授权后按 E84 流程执行；当前正式应用仍为 0.1.34，无本功能"
+  ],
+  "install": {
+    "performed": false,
+    "note": "未构建新安装包、未安装。需要用户授权后另行执行"
+  }
+}

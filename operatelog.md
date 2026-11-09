@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-09 12:56:30 +08:00｜P03.13.9：聊天原生图片生成工具（云桥 gpt-image-2）
+
+- 修改或新增内容：按用户需求在 PI 运行时新增 `generate_image` 自定义工具，聊天模型判断需要生成图片时自主调用（不新增逐步确认），Host 侧读取 `<数据目录>/private/image-gen.json`（0700/0600）中的网关与密钥调用 OpenAI Images 兼容端点（云桥 `https://api.yunqiao.me/v1/images/generations`，模型 gpt-image-2），图片落盘工作区 `images/`（0600）并把相对路径回传模型。未配置密钥时不挂载工具；每次调用恰好一次付费请求（n=1）不自动重试；401/403/429/400/5xx 如实回报；只读会话请求前拒绝；取消经 AbortSignal 中止；透明背景仅 png/webp 预检；文件名 slug 防路径注入；30MB 上限。新增 `packages/pi-runtime/image-tool.mjs`、mock 服务 `mock-images-server.mjs`、单元测试 16 条、fixture 场景 MOOS_FIXTURE_IMAGE 与端到端 2 条；`sdk-runtime.mjs` createSession 挂载并保持无配置时行为不变；npm test 增加 packages/pi-runtime 测试 glob。更新 PLAN（P03.13.9、E100）、证据 `docs/evidence/desktop/p03-image-tool.json` 与文档测试。
+- 遇到的难题：① Moos 已验证拒绝第三方插件注册执行类工具（E71），聊天原生触发不能做成外部插件；② 共享 mock Images 服务强制校验 Bearer 后，单元测试旧自定义 key 全部 401；③ fixture 私有目录首次写配置 ENOENT；④ 全量首跑 158/159，probes/m01/native.test.mjs 的 xcrun swiftc SIGTRAP，与本次改动无关。
+- 处理方式：① 改用 Moos 自有 PI 运行时的 `customTools` 机制（现有 workspace 工具同路），属产品内部能力而非第三方注册；② 各测试显式传入与 mock 匹配的 key，认证失败用例由 mock 原生 401 覆盖；③ 端到端测试先 `mkdir <dataDir>/private` 再 `privateFile`；④ 崩溃报告定位 swift-driver 在 libSwiftToolsSupport 崩溃，成因为沙箱 TMPDIR 指向含中文的仓库路径，按既有环境模板 `HOME=/Users/xuguopeng TMPDIR=/private/tmp` 重跑全量通过，未改任何代码。
+- 验证结果：`node --test packages/pi-runtime/image-tool.test.mjs` 16/16；`node --test services/agent/acceptance.test.mjs` 12/12（含新增 2 条端到端：fixture 模型→工具→mock 服务→落盘字节、tool_start/tool_end 持久化、请求头/模型/prompt/n=1 断言、两张密钥均不出现在任何持久化消息或事件；认证失败→模型收到错误文本、仅 1 次请求不重试、无 images 目录）；`HOME=/Users/xuguopeng TMPDIR=/private/tmp npm test` 核心 159/159 无跳过；`npm --prefix apps/electron test`（MOOS_ELECTRON_TEST_DSH_CLI=build-I0B28g bin/dsh + 皮肤夹具）74/74 无跳过；文档检查 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 81/81（新增 P03.13.9 证据测试）。未运行 Rust 门禁：本轮未改 Rust/Tauri 代码（上一轮 E99 记录 11/11）。
+- 实际验收：真实云桥扣费调用未由助手发起（密钥由用户保管，且文档要求密钥需分配分组）；对话内嵌图片显示取决于 DSH 渲染器对工具结果图块的支持，本轮未实现也未宣称；正式安装待用户授权，正式应用仍为 0.1.34 无本功能。
+- 遗留问题：真实服务验收（用户配置 `sessions/private/image-gen.json` 后在聊天生成一张图）、正式构建与授权安装、参考图编辑（/v1/images/edits）均在 PLAN P03.13.9 待办；会话中新增文件如涉及 `images/` 目录在文件汇总中的展示沿用现有 write 统计边界。
+- 对应 Git 提交：唯一说明 `feat(P03.13.9): add chat-native generate_image tool`；查询 `git log --all --oneline --grep='^feat(P03.13.9): add chat-native generate_image tool$'`。提交后推送 GitHub 并比对远程 HEAD。
 ## 2026-11-06 16:56:51 +08:00｜P02.V2：按用户 Codex 截图重做过程和结果卡片
 
 - 修改或新增内容：用户给出五张 Codex 参考图，并明确只参考卡片/布局/展开方式、保留当前背景。新增真实事件时间线，将公开说明文字与工具块按发生顺序交错，工具独立折叠，总过程结束默认收起；末段回复和修改文件放进独立圆角结果卡片，保留无 Moos 作者标识。新增真实任务时间显示、文件清单三项预览与更多展开/收起；卡片使用现有暖灰变量、细边框和低透明度面板，不添加动漫图片。更新规范、计划与测试。
