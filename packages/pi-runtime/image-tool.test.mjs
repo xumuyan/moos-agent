@@ -64,7 +64,7 @@ test('generate_image generates, saves into the workspace and reports the relativ
   assert.equal(request.authorization, 'Bearer sk-image-test');
   assert.equal(request.body.model, 'gpt-image-2');
   assert.equal(request.body.prompt, '蓝白极简海报/第一章');
-  assert.equal(request.body.size, '1024x1024');
+  assert.equal(request.body.size, 'auto');
   assert.equal(request.body.quality, 'high');
   assert.equal(request.body.n, 1);
   const status = await lstat(join(cwd, 'images', saved[0]));
@@ -175,7 +175,7 @@ test('image config parsing validates keys, urls and defaults', () => {
   const parsed = parseImageGenConfig('{"baseUrl": "https://api.yunqiao.me/v1/", "apiKey": "sk-x", "model": "gpt-image-2"}');
   assert.equal(parsed.baseUrl, 'https://api.yunqiao.me/v1');
   assert.equal(parsed.model, 'gpt-image-2');
-  assert.equal(parsed.defaults.size, '1024x1024');
+  assert.equal(parsed.defaults.size, 'auto');
   const defaulted = parseImageGenConfig('{"baseUrl": "https://api.yunqiao.me/v1", "apiKey": "sk-x"}');
   assert.equal(defaulted.model, 'gpt-image-2.5-flare');
   assert.equal(imageGenConfigPath('/data'), join('/data', 'private', 'image-gen.json'));

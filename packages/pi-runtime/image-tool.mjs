@@ -71,7 +71,7 @@ export function parseImageGenConfig(raw) {
   return {
     baseUrl, apiKey, model,
     defaults: {
-      size: pick('size', SIZES, '1024x1024'),
+      size: pick('size', SIZES, 'auto'),
       quality: pick('quality', QUALITIES, 'high'),
       background: pick('background', BACKGROUNDS, 'auto'),
       output_format: pick('output_format', FORMATS, 'png'),
@@ -85,7 +85,7 @@ async function loadImageGenConfig(dataDir) {
 
 const schema = Type.Object({
   prompt: Type.String({ description: '画面描述：主体、风格、构图、颜色等，用一句完整的中文或英文描述', minLength: 1, maxLength: 8000 }),
-  size: Type.Optional(Type.Union(SIZES.map(value => Type.Literal(value)), { description: `画布尺寸，默认取配置（1024x1024）` })),
+  size: Type.Optional(Type.Union(SIZES.map(value => Type.Literal(value)), { description: '画布尺寸。默认 auto 由服务按画面内容自动选择；也可按聊天中用户描述的构图显式选：1536x1024 横图 / 1024x1536 竖图 / 1024x1024 方图' })),
   quality: Type.Optional(Type.Union(QUALITIES.map(value => Type.Literal(value)), { description: `渲染质量，默认取配置（high）。质量越高越慢、费用越高` })),
   background: Type.Optional(Type.Union(BACKGROUNDS.map(value => Type.Literal(value)), { description: '背景处理：transparent 需要配合 png/webp 输出' })),
   output_format: Type.Optional(Type.Union(FORMATS.map(value => Type.Literal(value)), { description: '输出格式，默认 png' })),
@@ -159,10 +159,12 @@ export async function createImageTool({ cwd, dataDir, getMode }) {
     label: '生成图片',
     description: '调用图片生成服务，根据文字描述生成一张图片并保存到项目工作区 images/ 目录。'
       + '仅在用户明确要求生成、绘制、创作图片，或当前任务必需一张新图片时调用；不要为测试、演练或顺手演示调用。'
+      + '尺寸按聊天内容决定：用户说明了横/竖/方构图或用途（如壁纸、海报、头像）就选对应 size，未说明时留空由服务自动选择。'
       + '每次调用都会向图片服务发起一次真实计费请求，本工具不自动重试。',
-    promptSnippet: '用户需要新图片时生成一张并保存到工作区 images/ 目录',
+    promptSnippet: '用户需要新图片时生成一张并保存到工作区 images/ 目录，构图按对话内容自动选择',
     promptGuidelines: [
       '调用 generate_image 前先与用户确认或依据任务明确需要，一次只生成一张图。',
+      '尺寸根据聊天内容自行决定：明确提到方向或用途时显式传横图 1536x1024、竖图 1024x1536 或方图 1024x1024，否则不传 size 由服务按内容自动选择，不要反复追问尺寸。',
       '生成成功后把保存的相对路径告诉用户；失败时如说明认证、额度或参数原因，不要反复重试。',
     ],
     parameters: schema,

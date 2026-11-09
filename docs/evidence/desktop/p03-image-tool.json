@@ -1,7 +1,7 @@
 {
   "task": "P03.13.9",
   "evidence": "E100",
-  "timeBeijing": "2026-11-09 13:24:40 +08:00",
+  "timeBeijing": "2026-11-09 14:03:30 +08:00",
   "state": "implemented-code-and-automated-acceptance-real-service-and-install-pending-user",
   "feature": {
     "trigger": "聊天模型按工具描述自主决定调用 generate_image（用户要求生成/绘制图片或任务必需新图时），不新增逐步确认",
@@ -44,17 +44,21 @@
     "tested": "单元 16/16 含默认值断言；acceptance 12/12 不变（端到端用显式 model）"
   },
   "build": {
-    "id": "build-vsiPph",
+    "id": "build-KGRyN7",
     "shellVersion": "0.1.35",
     "codesign": "--verify --deep --strict SIGN_OK",
     "identity": "dev.moos.agent.electron",
     "includesPiFixture": false,
+    "packagingFix": "首轮构建 build-G7DpE4 发现 prepare-local.mjs 固定拷贝清单漏掉 image-tool.mjs（装包后配置图片服务会 ERR_MODULE_NOT_FOUND）；补清单并新增 apps/electron/packaging.test.mjs 防回归（断言 sdk-runtime 相对导入全部在清单内），按新清单重建 build-vsiPph，首轮构建已废弃",
+    "sizeAuto": {
+      "change": "默认 size 从 1024x1024 改为 auto：服务按画面内容自动选择横/竖/方；工具描述与 promptGuidelines 引导模型按聊天中用户说明的构图/用途显式传 size，未说明时不传由服务自动决定",
+      "tested": "单元 16/16（默认 size=auto 断言、配置覆盖断言）；acceptance 12/12；核心 159/159；Electron 75/75（build-KGRyN7 bin/dsh）"
+    },
     "packagedChecks": [
-      "Resources/pi-runtime/packages/pi-runtime/image-tool.mjs 在包内",
+      "Resources/pi-runtime/packages/pi-runtime/image-tool.mjs 在包内（含 size auto 默认与构图指引）",
       "sdk-runtime.mjs 含 createImageTool 挂载（3 处）",
       "moos-electron-shell 版本 0.1.35（profile-template 内清单）",
-      "Info.plist CFBundleShortVersionString 维持 app 包 0.1.0（与历史版本一致，壳版本以 moos-electron-shell 清单为准）"
-    ],
-    "packagingFix": "首轮构建 build-G7DpE4 发现 prepare-local.mjs 固定拷贝清单漏掉 image-tool.mjs（装包后配置图片服务会 ERR_MODULE_NOT_FOUND）；补清单并新增 apps/electron/packaging.test.mjs 防回归（断言 sdk-runtime 相对导入全部在清单内），按新清单重建 build-vsiPph，首轮构建已废弃"
+      "moos-runtime.json includesPiFixture=false、codesign --deep --strict 通过"
+    ]
   }
 }

@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-09 14:04:10 +08:00｜P03.13.9：图片尺寸按聊天内容自动决定并重建 build-KGRyN7
+
+- 修改或新增内容：按用户要求图片大小也由聊天自动决定。`image-tool.mjs` 配置默认 size 从 1024x1024 改为 auto（云桥指南支持的枚举值，服务按画面内容自动选择）；工具 description 与 promptGuidelines 引导模型：聊天中用户明确说横/竖/方或用途（壁纸、海报、头像）时显式传 1536x1024 / 1024x1536 / 1024x1024，未说明不传 size 由服务自动选，不反复追问。单元测试默认断言同步更新。
+- 遇到的难题：云桥指南只列出 auto 等四个枚举值，未写 auto 实际返回的分辨率档位及与价格表 1K/2K/4K 档的映射，不能凭测试外的信息承诺 auto 的实际分辨率；单侧无法验证服务端选图行为，只能断言请求体透传 auto。
+- 处理方式：尺寸真实效果列入待用户真实生成验收项，工具结果按响应文件实际字节与路径回传，不虚构分辨率；模型侧改为引导式（用户说构图就显式传，否则不传）。
+- 验证结果：`node --test packages/pi-runtime/image-tool.test.mjs` 16/16；`node --test services/agent/acceptance.test.mjs` 12/12；核心 `npm test` 159/159 无跳过；重建 0.1.35（build-vsiPph 因含旧默认作废，新构建 build-KGRyN7）：codesign --deep --strict 通过、身份 dev.moos.agent.electron、includesPiFixture=false、image-tool.mjs 在包内且含 auto 默认与构图指引、moos-electron-shell 0.1.35；Electron 全套 75/75 无跳过（bin/dsh 指向 build-KGRyN7）；文档检查 81/81。
+- 实际验收：auto 尺寸的真实服务行为（云桥返回实际分辨率）待用户配置密钥后一次真实生成确认；构建为隔离验收，未安装、未触碰生产数据。
+- 遗留问题：同 P03.13.9 待办（真实服务验收、正式安装待用户授权、参考图编辑）。
+- 对应 Git 提交：唯一说明 `feat(P03.13.9): auto image size from chat context`；查询 `git log --all --oneline --grep='^feat(P03.13.9): auto image size from chat context$'`。
+
 ## 2026-11-09 13:47:20 +08:00｜P03.13.9：壳 0.1.35 构建（build-vsiPph）与打包清单修复
 
 - 修改或新增内容：壳版本 0.1.34 → 0.1.35 并执行正式桌面构建。首轮构建 build-G7DpE4 包内核查发现 prepare-local.mjs 固定拷贝清单漏掉 `packages/pi-runtime/image-tool.mjs`（包内 sdk-runtime.mjs 已 import 该文件，装包后一旦配置图片服务，挂载工具会 ERR_MODULE_NOT_FOUND）；补齐清单并新增 `apps/electron/packaging.test.mjs`（断言 sdk-runtime 全部相对导入都在打包清单中、image-tool.mjs 必须随包分发），按新清单重建 build-vsiPph，首轮构建废弃。
