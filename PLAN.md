@@ -645,3 +645,10 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 本机维护完成（非MVP功能验收勾选）。证据：清理仓库 maintenance/cleanup-20261109.json；仅删除 .generated/probe-test-target（834704 KiB，含 CACHEDIR.TAG/release，Git忽略且无跟踪文件、lsof无打开项）。保留 artifacts、其余.generated、用户未提交改动，未退出/替换正式Moos。
 - 实际验收：对应目录删除后不存在；主清理仓库 maintenance/cleanup-20261109.json 记录结果，17/17清理工具及回执测试通过。
 - [ ] 不声明项目全功能重新验收；本次仅缓存维护，未重建产物以免占回空间。其他大型临时副本和验收资料需确认可丢弃性。
+
+
+## MOOS-BUILD-CLEANUP-20261109：旧生成包维护
+
+- 本机维护完成，非功能验收：用户授权后删除14份无跟踪文件且无非文档引用的旧生成包；保留build-HleYgO、build-KoM45V、build-I0B28g及被测试/历史更新脚本引用的build-uy2KoB。证据：清理仓库maintenance/moos-builds-20261109.json。
+- 正式/数据/源码/artifacts未删除或重启。历史文档对已删构建的路径仍作为历史证据保留，不承诺可重新打开旧包；不影响保留的最新包。
+- 实测净增5332248 KiB（约5.09GiB），非du合计9.25GiB的释放承诺；不重建旧包。项目全业务测试未重跑，不标功能已验收。
