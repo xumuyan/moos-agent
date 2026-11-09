@@ -132,8 +132,11 @@ test('PI SDK streams the configured responses protocol without a CLI child', { t
   assert.equal(usage.costUsd, 0.0002);
 });
 
-test('GLM Responses thinking levels reach the wire as documented reasoning efforts', { timeout: 90000 }, async t => {
-  for (const [level, expected] of [['off', 'none'], ['minimal', 'minimal'], ['low', 'low'], ['xhigh', 'xhigh']]) {
+test('GLM Responses thinking levels reach the wire as documented reasoning efforts', { timeout: 120000 }, async t => {
+  // GLM 官方 Responses 档位为 low/high/max（服务端语义 Light/Enhanced/Deep），关闭发送 effort none；
+  // 旧档位经 PI clamp 归一到最近官方档（minimal→low、medium→high、xhigh→max）。
+  for (const [level, expected] of [['off', 'none'], ['minimal', 'low'], ['low', 'low'],
+    ['medium', 'high'], ['high', 'high'], ['xhigh', 'max'], ['max', 'max']]) {
     const f = await setup(t, 'openai-responses', {}, { service: 'glm', thinkingLevel: level });
     const task = await f.submit(0, 'MOOS_FIXTURE_RESPONSES');
     const state = await terminal(f.controller, task, 'succeeded');

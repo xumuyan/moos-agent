@@ -1,0 +1,60 @@
+{
+  "task": "P03.13.5",
+  "evidence": "E98",
+  "timeBeijing": "2026-11-09 11:01:35 +08:00",
+  "state": "implemented-isolated-gui-verified-install-pending-user-authorization",
+  "change": [
+    "client.js：GLM 专用档位列表 glmModelEfforts（关闭/Low·轻度思考/High·增强思考/Max·深度思考），modelExtra 新增 service 参数按服务切换选项",
+    "stage-dsh-runtime.cjs：renderExtra 补丁把 CustomProviderCard 的 service 透传给 modelExtra",
+    "pi-models.js：校验集合加入 max（GLM 旧档位 minimal/medium/xhigh 兼容读取）",
+    "pi-route.js：GLM 模型元数据 reasoning.efforts 改为官方四项（关闭+low/high/max）",
+    "sdk-runtime.mjs：GLM models.json 注入 thinkingLevelMap {off:none, minimal:null, low:low, medium:null, high:high, xhigh:null, max:max}",
+    "controller.mjs：validateProvider 白名单补 max（该文件不进安装包）",
+    "apps/electron/plugin/package.json 壳版本 0.1.34"
+  ],
+  "wireMapping": {
+    "off": "reasoning.effort=none（放弃思考）",
+    "low": "low（服务端 Light reasoning）",
+    "high": "high（Enhanced）",
+    "max": "max（Deep）",
+    "legacyDegrade": {
+      "minimal": "low",
+      "medium": "high",
+      "xhigh": "max（经 PI clamp 归一到最近官方档）"
+    }
+  },
+  "supersedes": "E97 中 GLM minimal/xhigh 字面发送的记录为改动前行为；本轮起 GLM 只提供官方档位，旧值兼容读取并按上表降级",
+  "probeUnchanged": "GLM Responses 探针仍发 effort minimal + max_output_tokens 256（官方枚举成员、用户实测 测试连接 HTTP 200 通过），未改动",
+  "tests": {
+    "core": "141/141",
+    "electron": "74/74 无跳过（MOOS_ELECTRON_TEST_DSH_CLI=build-I0B28g host-runtime/bin/dsh，含皮肤中心与女仆皮肤夹具）",
+    "rustNative": "11/11（RUSTUP_TOOLCHAIN=stable-aarch64-apple-darwin cargo test --offline）",
+    "bridge": "5/5",
+    "skin": "4/4"
+  },
+  "build": {
+    "id": "build-I0B28g",
+    "shellVersion": "0.1.34",
+    "codesign": "--verify --deep --strict SIGN_OK",
+    "identity": "dev.moos.agent.electron",
+    "includesPiFixture": false
+  },
+  "isolatedGui": {
+    "script": "artifacts/glm-efforts-gui/gui.mjs",
+    "result": "PASS（run2）",
+    "artifacts": "artifacts/glm-efforts-gui/recovery-tViClM/（efforts-report.json、efforts.png）",
+    "pngSha256": "cb51cb7de762368a3b5adb5afcc2e08a478877057a4483ceed540cebf456055e",
+    "verified": [
+      "GLM 卡片仅显示官方四档",
+      "选择 max 保存到 providers.json.thinkingLevel",
+      "重开编辑页显示 max",
+      "切换服务类型到 openai 显示 6 档、切回 GLM 恢复 4 档",
+      "credentials.json 原字节不变"
+    ],
+    "firstRunFailure": "run1 断言失败：服务类型 label 的 textContent 含 select 选项文字导致查找为 null；改为 span 精确匹配后通过，失败日志保留于 artifacts/glm-efforts-gui/gui-run1.log（即 glm-efforts-gui-run1.log）"
+  },
+  "install": {
+    "performed": false,
+    "note": "未安装。正式应用更新需用户明确授权后按 E84 流程执行"
+  }
+}

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -308,4 +308,16 @@ test('GLM Responses groups save, reopen and run diagnostics without changing ser
     messages: [{ role: 'user', source: { kind: 'user' }, content: [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }] }] })) chunks.push(event);
   assert.equal(chunks.at(-1).reason.kind, 'stop');
   assert.ok(chunks.some(chunk => chunk.text?.includes('Responses SDK ready')));
+});
+
+test('GLM profiles accept the official max effort and tolerate legacy levels', async t => {
+  const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-glm-levels-')));
+  t.after(async () => { await rm(data, { recursive: true, force: true }); });
+  const models = piModels(data, checkedProvider);
+  await models.save({ id: 'glm-max', name: 'GLM Max', model: 'mock-glm', baseUrl: 'http://127.0.0.1:9/v1',
+    service: 'glm', api: 'openai-responses', thinkingLevel: 'max', apiKey: 'sk-local-test' });
+  assert.equal((await models.resolve('glm-max')).thinkingLevel, 'max');
+  await models.save({ id: 'glm-legacy', name: 'GLM Legacy', model: 'mock-glm', baseUrl: 'http://127.0.0.1:9/v1',
+    service: 'glm', api: 'openai-responses', thinkingLevel: 'xhigh', apiKey: 'sk-local-test' });
+  assert.equal((await models.resolve('glm-legacy')).thinkingLevel, 'xhigh', 'legacy levels stay readable');
 });

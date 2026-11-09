@@ -42,6 +42,10 @@ window.__ModuleLoader__.load({
       ['off', '关闭'], ['minimal', 'Minimal'], ['low', 'Low'],
       ['medium', 'Medium'], ['high', 'High'], ['xhigh', 'XHigh'],
     ];
+    // GLM 官方 Responses 档位只有 low/high/max（Light/Enhanced/Deep reasoning）；关闭发送 effort none 放弃思考。
+    const glmModelEfforts = [
+      ['off', '关闭'], ['low', 'Low · 轻度思考'], ['high', 'High · 增强思考'], ['max', 'Max · 深度思考'],
+    ];
     function providerField(styles, label, element) {
       return createElement('label', { className: styles.field },
         createElement('span', { className: styles.fieldLabel }, label), element);
@@ -104,14 +108,14 @@ window.__ModuleLoader__.load({
               [['openai', 'OpenAI 兼容'], ['glm', 'GLM Coding Plan'], ['deepseek', 'DeepSeek']], { disabled })),
           service === 'glm' ? createElement('p', { role: 'note', style: noteStyle },
             'GLM 支持不同端点：按官方 Codex 文档接入时，地址为 https://open.bigmodel.cn/api/v1，协议选 OpenAI Responses。Chat Completions 须使用对应端点。密钥须来自相应 Coding Plan 套餐，不能混用标准 API 密钥。模型列表不可用时可手动添加模型并测试连接。') : null),
-        modelExtra: (model, position, change, disabled) => createElement('div', {
+        modelExtra: (model, position, change, disabled, service) => createElement('div', {
           'data-moos-model-capabilities': '',
           // This is a child of the upstream model-row grid, not an auto-sized identity column.
           style: { gridColumn: '1 / -1', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, padding: '6px 4px' },
         },
           providerField(styles, '推理强度',
             providerSelect(styles, model.thinkingLevel ?? 'off', value => change('thinkingLevel', value),
-              modelEfforts, { disabled, 'aria-label': '推理强度 ' + position })),
+              service === 'glm' ? glmModelEfforts : modelEfforts, { disabled, 'aria-label': '推理强度 ' + position })),
           createElement('label', {
             className: styles.field,
             style: { flexDirection: 'row', alignItems: 'center', gap: 8 },

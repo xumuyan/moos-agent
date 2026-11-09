@@ -1534,3 +1534,13 @@
 - 验证结果：acceptance 10/10（含新测试），核心套件 141/141（artifacts/reasoning-full.log）。未发送真实认证请求；打包应用无改动，无需重建或安装。
 - 遗留问题：真实服务下各档位思考深度/速度待用户实测（设置→模型→编辑→推理强度，或聊天内选择器，以界面实际显示为准）；GLM Chat Completions + zai 路径未断言。
 - 对应 Git 提交：唯一说明 test(P03.13.5): prove GLM Responses thinking levels reach the wire；查询 git log --all --oneline --grep='test(P03.13.5): prove GLM Responses thinking levels reach the wire'。
+
+
+## 2026-11-09 11:01:35 +08:00｜P03.13.5 GLM 推理档位改为官方真实值（E98）
+
+- 修改或新增内容：按用户提供的官方文档截图，GLM Responses 真实档位只有 low（Light）/high（Enhanced）/max（Deep）。模型设置“推理强度”对 GLM 仅显示官方三档加“关闭”，不再显示 OpenAI 风格的 Minimal/Medium/XHigh 代指值；服务类型切换时选项联动。改动覆盖 client.js（glmModelEfforts+service 透传参数）、stage-dsh-runtime.cjs（renderExtra 补丁传 service）、pi-models.js（校验加 max、旧档位兼容读取）、pi-route.js（GLM 元数据官方四项）、sdk-runtime.mjs（GLM thinkingLevelMap：off→none、low/high/max 字面、minimal/medium/xhigh 置 null）、controller.mjs（白名单补 max）、壳版本 0.1.34。
+- 遇到的难题：开发期三次测试失败——①controller 白名单漏 max；②大测试里插入 glm-max 档位挤乱 groups() 解构索引；③client 测试两次失败（shim 中选项文字在 children[0] 而非 props.children；client.js 经 runInNewContext 运行于独立 VM realm，跨 realm 数组 deepStrictEqual 原型不同）。GUI 脚本 run1 也因“服务类型”label 的 textContent 含下拉选项文字而查找失败。
+- 处理方式：①白名单补 max；②撤销插入改为独立小测试；③分别改用 children[0]、Array.from 转换后比较；GUI 脚本改为按 label 内 span 文本精确匹配选择器，失败日志保留。
+- 验证结果：全门禁通过——核心 141/141、Electron 74/74 无跳过（MOOS_ELECTRON_TEST_DSH_CLI 指向新构建 build-I0B28g 的 host-runtime/bin/dsh，含皮肤中心与女仆皮肤夹具）、Rust 11/11（RUSTUP_TOOLCHAIN 固定 + cargo test --offline）、PI 桥 5/5、皮肤 4/4。build-I0B28g 严格验签 SIGN_OK、includesPiFixture=false。隔离 GUI 验收 PASS（run2）：GLM 卡片仅显示官方四档、选 max 保存到 providers.json、重开显示 max、服务切 openai 显示 6 档再切回恢复 4 档、credentials.json 原字节不变；截图 SHA-256 cb51cb7de762368a3b5adb5afcc2e08a478877057a4483ceed540cebf456055e。GLM Responses 探针未改动（minimal+256 为用户实测通过的既有行为）。证据 docs/evidence/desktop/p03-glm-official-efforts.json。
+- 遗留问题：真实服务下各档位思考深度/速度待用户实测；正式 0.1.34 尚未安装，需用户明确授权后按 E84 流程执行。
+- 对应 Git 提交：唯一说明 feat(P03.13.5): offer GLM official low/high/max reasoning efforts；查询 git log --all --oneline --grep='feat(P03.13.5): offer GLM official low/high/max reasoning efforts'。

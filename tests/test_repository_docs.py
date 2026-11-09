@@ -9,6 +9,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_glm_official_efforts_evidence_matches_official_three_levels(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-official-efforts.json').read_text())
+        self.assertEqual(evidence['wireMapping']['off'], 'reasoning.effort=none（放弃思考）')
+        self.assertEqual(evidence['wireMapping']['legacyDegrade'], {'minimal': 'low', 'medium': 'high', 'xhigh': 'max（经 PI clamp 归一到最近官方档）'})
+        self.assertEqual(evidence['build']['shellVersion'], '0.1.34')
+        self.assertFalse(evidence['install']['performed'])
+        self.assertIn('GLM 卡片仅显示官方四档', evidence['isolatedGui']['verified'])
+        self.assertIn('| E98 |', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('E97/E98', (ROOT / 'apps/electron/README.md').read_text())
+
     def test_glm_reasoning_levels_wire_evidence_records_mapping_and_controller_fix(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-reasoning-levels.json').read_text())
         self.assertEqual(evidence['wireMapping']['off'], 'reasoning.effort=none（放弃思考）')

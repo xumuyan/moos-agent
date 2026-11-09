@@ -210,7 +210,7 @@ function configureProviderCard(dsh, packageName, entry) {
     'moos?.serviceField(service, next => {\n\t\t\t\t\t\tsetService(next);\n\t\t\t\t\t\tif (next === "deepseek") setProtocol("openai-completions");\n\t\t\t\t\t}, profileDisabled),\n' +
     '\t\t\t\t\t(0, react_jsx_runtime.jsx)(ModelListEditor, {');
   patch('onChange: setModels,\n\t\t\t\t\t\treasoningLevels,',
-    'onChange: setModels,\n\t\t\t\t\t\treasoningLevels,\n\t\t\t\t\t\trenderExtra: moos?.modelExtra,\n\t\t\t\t\t\tpickAllOnEmpty: !moos,\n\t\t\t\t\t\tdefaultInput: moos ? ["text"] : undefined,');
+    'onChange: setModels,\n\t\t\t\t\t\treasoningLevels,\n\t\t\t\t\t\trenderExtra: moos ? (model, position, change, disabled) => moos.modelExtra(model, position, change, disabled, service) : undefined,\n\t\t\t\t\t\tpickAllOnEmpty: !moos,\n\t\t\t\t\t\tdefaultInput: moos ? ["text"] : undefined,');
   patch('probeBlocked: baseUrlInvalid ? "customBaseUrlInvalid" : keyFailure === "keyBlank" ? "keyBlankNew" : keyFailure,\n\t\t\t\t\t\toperations,',
     'probeBlocked: baseUrlInvalid ? "customBaseUrlInvalid" : keyFailure === "keyBlank" ? "keyBlankNew" : keyFailure,\n' +
     '\t\t\t\t\t\toperations: moos ? { discoverModels: () => moos.discover(connection) } : operations,');

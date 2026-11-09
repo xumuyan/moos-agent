@@ -90,7 +90,10 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         ...(profile.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
         models: [{ id: profile.model, name: profile.name, reasoning: thinkingLevel !== 'off' || profile.service === 'glm',
           input: profile.imageInput ? ['text', 'image'] : ['text'],
-          ...(thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
+          // GLM Responses 真实档位只有 low/high/max；off 显式发送 effort none 放弃思考，旧档位由 PI clamp 归一到最近官方档。
+          ...(profile.service === 'glm'
+            ? { thinkingLevelMap: { off: 'none', minimal: null, low: 'low', medium: null, high: 'high', xhigh: null, max: 'max' } }
+            : thinkingLevel === 'xhigh' ? { thinkingLevelMap: { xhigh: 'xhigh' } } : {}),
           contextWindow: profile.contextWindow, maxTokens: profile.maxTokens,
           cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 } }],
       };

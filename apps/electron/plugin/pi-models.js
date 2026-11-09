@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { chmod, lstat, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const levels = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh']);
+// GLM 旧档位（minimal/medium/xhigh）仅兼容读取；界面只提供官方 low/high/max。
+const levels = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
 const services = new Set(['openai', 'glm', 'deepseek']);
 const configId = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/;
 const maxConfigBytes = 262144;

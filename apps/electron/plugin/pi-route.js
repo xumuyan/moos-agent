@@ -6,6 +6,12 @@ const adapters = new WeakSet();
 const reasoningEfforts = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh'].map(id => ({
   id, name: id === 'off' ? '关闭' : id === 'xhigh' ? 'XHigh' : id[0].toUpperCase() + id.slice(1),
 }));
+// GLM 官方 Responses 档位：low（Light）/high（Enhanced）/max（Deep）；关闭发送 effort none。
+const glmReasoningEfforts = [
+  { id: 'off', name: '关闭' }, { id: 'low', name: 'Low · 轻度思考' },
+  { id: 'high', name: 'High · 增强思考' }, { id: 'max', name: 'Max · 深度思考' },
+];
+const effortsFor = service => service === 'glm' ? glmReasoningEfforts : reasoningEfforts;
 
 export function isMoosPiAdapter(adapter) { return adapters.has(adapter); }
 
@@ -85,7 +91,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     description: profile.thinkingLevel === 'off' ? undefined : '推理档位 ' + profile.thinkingLevel,
     ...(manual && {
       menuSite: { id: profile.connectionId ?? profile.id, name: profile.connectionName ?? profile.name },
-      reasoning: { efforts: reasoningEfforts, defaultEffort: profile.thinkingLevel ?? 'off' },
+      reasoning: { efforts: effortsFor(profile.service), defaultEffort: profile.thinkingLevel ?? 'off' },
     }),
     context: { contextWindow: profile.contextWindow }, defaultMaxTokens: profile.maxTokens,
   });

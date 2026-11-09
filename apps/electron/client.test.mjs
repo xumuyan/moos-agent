@@ -102,6 +102,14 @@ test('the DSH client extension registers the Moos brand and model services in th
   const off = card.props.moos.modelExtra({ id: 'unknown-gpt' }, 2, () => {}, true).children[1].children[1];
   assert.equal(off.props.checked, false, 'never infer image capability from the model name');
   assert.equal(off.props.disabled, true);
+  const glmSelect = card.props.moos.modelExtra({ id: 'glm-fixture', input: ['text'] }, 3, () => {}, false, 'glm')
+    .children[0].children[1].children[0];
+  assert.deepEqual(Array.from(glmSelect, option => [option.props.value, option.children[0]]),
+    [['off', '关闭'], ['low', 'Low · 轻度思考'], ['high', 'High · 增强思考'], ['max', 'Max · 深度思考']],
+    'GLM must offer only the official low/high/max efforts');
+  const relaySelect = card.props.moos.modelExtra({ id: 'relay-fixture', input: ['text'] }, 4, () => {}, false, 'openai')
+    .children[0].children[1].children[0];
+  assert.equal(relaySelect.length, 6, 'non-GLM keeps the OpenAI-style levels');
 
   assert.equal(slots.get('moos-pi-process'), 'conversation.chat.turnProcess');
   assert.equal(slots.get('moos-pi-turn'), 'conversation.chat.turnTail');

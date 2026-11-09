@@ -33,7 +33,7 @@ function validateProvider(input) {
   // Mirror piModels.validate so the standalone path can express the same GLM profiles as the packaged app.
   const service = input.service ?? 'openai';
   if (!['openai', 'glm', 'deepseek'].includes(service) ||
-      !['off', 'minimal', 'low', 'medium', 'high', 'xhigh'].includes(input.thinkingLevel ?? 'off') ||
+      !['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'].includes(input.thinkingLevel ?? 'off') ||
       service === 'deepseek' && input.api !== 'openai-completions') throw new Error('模型服务或推理档位无效');
   const pricing = validatePricing(input.pricing);
   return { id: input.id, name: String(input.name || input.model).slice(0, 100),
