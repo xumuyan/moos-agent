@@ -629,3 +629,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E97 | P03.13.5 推理档位线上格式验收：功能链路（UI 选择器/providers.json/pi-route/sdk-runtime/PI 适配器）此前已存在；新增控制器 GLM 档位透传修复与本地 fixture 集成测试，证明 off→none、minimal/low/xhigh 字面发送；更正此前“默认 max 思考”的误判（关闭即显式放弃思考）。证据 `docs/evidence/desktop/p03-glm-reasoning-levels.json`。 | 核心套件 141/141；真实服务下各档位的实际思考深度/速度待用户实测；打包应用无改动，无需安装。 |
 
 | E98 | P03.13.5 推理档位改为官方真实值：GLM 模型的“推理强度”仅提供官方 low/high/max（轻度/增强/深度思考）+关闭，UI、路由元数据、models.json 映射、控制器校验全链路对齐；关闭发送 effort none，旧档位兼容读取并按最近官方档降级（minimal→low、medium→high、xhigh→max）。壳版本 0.1.34，构建 build-I0B28g 严格验签通过，全门禁（核心 141/141、Electron 74/74、Rust 11/11、桥 5/5、皮肤 4/4）与隔离 GUI 验收通过。证据 `docs/evidence/desktop/p03-glm-official-efforts.json`。 | 隔离 GUI 已验证四档显示/保存/重开与服务切换；真实服务下各档思考深度待用户实测；正式安装待用户明确授权。 |
+
+| E99 | 用户明确授权安装 0.1.34；独立进程等本轮任务自然完成，正常退出、751 文件停机备份核实、只换包并重启成功。安装与加载壳 0.1.34、严格签名、单实例和 Host 正常；原 SQLite 108 消息/1 会话/58 任务逐行保留，14 模型可读、API/凭据原字节不变，历史/皮肤/用户插件/工作区保留；随后正常追加至 109/1/59。证据 `docs/evidence/desktop/p03-installed-update-0134.json`。 | result.json state=success，本次备份/旧包已清理，历史更新目录未动；真实服务档位效果与正式窗口目视仍待验收。 |

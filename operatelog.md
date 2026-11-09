@@ -1544,3 +1544,13 @@
 - 验证结果：全门禁通过——核心 141/141、Electron 74/74 无跳过（MOOS_ELECTRON_TEST_DSH_CLI 指向新构建 build-I0B28g 的 host-runtime/bin/dsh，含皮肤中心与女仆皮肤夹具）、Rust 11/11（RUSTUP_TOOLCHAIN 固定 + cargo test --offline）、PI 桥 5/5、皮肤 4/4。build-I0B28g 严格验签 SIGN_OK、includesPiFixture=false。隔离 GUI 验收 PASS（run2）：GLM 卡片仅显示官方四档、选 max 保存到 providers.json、重开显示 max、服务切 openai 显示 6 档再切回恢复 4 档、credentials.json 原字节不变；截图 SHA-256 cb51cb7de762368a3b5adb5afcc2e08a478877057a4483ceed540cebf456055e。GLM Responses 探针未改动（minimal+256 为用户实测通过的既有行为）。证据 docs/evidence/desktop/p03-glm-official-efforts.json。
 - 遗留问题：真实服务下各档位思考深度/速度待用户实测；正式 0.1.34 尚未安装，需用户明确授权后按 E84 流程执行。
 - 对应 Git 提交：唯一说明 feat(P03.13.5): offer GLM official low/high/max reasoning efforts；查询 git log --all --oneline --grep='feat(P03.13.5): offer GLM official low/high/max reasoning efforts'。
+
+
+## 2026-11-09 11:46:46 +08:00｜P03.13.5 正式安装 0.1.34 与数据保留续作（E99）
+
+- 修改或新增内容：用户明确授权安装；独立进程执行一次性 update.command，等当前任务自然完成后正常退出、停机备份、只换应用包、重启并逐项核对。新增脱敏证据和 PLAN 状态。
+- 遇到的难题：当前工具任务属于 Moos 进程树，直接退出会中断工具；首次交接后 6 秒读取结果文件过早。临时 sqlite3 只读核对命令误写列名 created_at；文档更新脚本曾因系统 Python 3.9 未声明 UTF-8 而未执行。
+- 处理方式：安装器检查祖先并等待当前任务自然完成；稍后重新读取结果、核查所有结果布尔值及签名、加载壳。使用 Node UTF-8 写入证据；成功且数据可读后仅清理本次备份/旧包，历史备份不动。
+- 验证结果：PREFLIGHT_OK、安装器 state=success（北京时间 11:26:16）；751 文件停机备份及 0700/0600 权限验证；原 108 消息/1 会话/58 任务逐行保留，14 模型可读、API/凭据原字节一致，聊天/PI 历史、皮肤、工作区、用户插件依赖保留。安装与加载壳 0.1.34，codesign --verify --deep --strict 通过，单实例、Host 正常，GLM 档位代码存在。后续自然新增至 109/1/59；SQLite quick_check=ok。本次备份与旧包已删除并核实不存在。证据 docs/evidence/desktop/p03-installed-update-0134.json（对应安装完成后的提交前工作区）。
+- 遗留问题：未由助手发送认证 GLM 请求；各档真实效果与正式窗口直接目视待用户实测。
+- 对应 Git 提交：唯一说明 docs(P03.13.5): record authorized 0.1.34 installation；查询 git log --all --oneline --grep='docs(P03.13.5): record authorized 0.1.34 installation'。

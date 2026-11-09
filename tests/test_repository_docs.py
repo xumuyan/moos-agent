@@ -9,6 +9,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_installed_0134_preservation_checkpoint(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-installed-update-0134.json').read_text())
+        self.assertEqual(evidence['state'], 'installed-success')
+        self.assertTrue(evidence['userAuthorizedUpdate'])
+        self.assertEqual(evidence['verified']['backupFiles'], 751)
+        self.assertEqual(evidence['verified']['beforeCounts'], evidence['verified']['afterCountsAtCheckpoint'])
+        for key in ('backupVerified', 'apiAndCredentialsIdentical', 'originalDatabaseRowsRetained',
+                    'skinsRetained', 'userPluginDependenciesRetained', 'glmEffortsInInstalled'):
+            self.assertTrue(evidence['verified'][key])
+        self.assertEqual(evidence['verified']['installedAndLoadedShell'], '0.1.34')
+        self.assertIn('仅删除本次', evidence['cleanup'])
+        self.assertIn('| E99 |', (ROOT / 'PLAN.md').read_text())
+
     def test_glm_official_efforts_evidence_matches_official_three_levels(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-official-efforts.json').read_text())
         self.assertEqual(evidence['wireMapping']['off'], 'reasoning.effort=none（放弃思考）')
