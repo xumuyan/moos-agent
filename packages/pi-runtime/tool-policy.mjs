@@ -90,8 +90,12 @@ export function workspaceTools(cwd, { getMode, approve }) {
     exposeSessionEnvironment: false,
     spawnHook({ command, env }) {
       const current = mode();
+      if (current === 'danger-full-access') {
+        // Codex 式完全权限：不加 seatbelt，也不重定向 HOME/TMPDIR —— 命令拿到宿主真实环境，
+        // xcrun/swiftc/npm 构建等才能读写 ~/Library/Developer 与真实临时目录。
+        return { command, cwd, env: { ...env } };
+      }
       const environment = shellEnvironment(env, cwd);
-      if (current === 'danger-full-access') return { command, cwd, env: environment };
       const toolchain = sandboxToolchain(environment.PATH);
       const effectiveCommand = 'exec /usr/bin/sandbox-exec -p ' + shellQuote(seatbeltProfile(cwd, current === 'workspace-write', toolchain))
         + ' /bin/bash --noprofile --norc -c ' + shellQuote(command);
@@ -118,7 +122,8 @@ export function workspaceTools(cwd, { getMode, approve }) {
   if (typeof approve === 'function') {
     const escalated = createBashToolDefinition(cwd, {
       exposeSessionEnvironment: false,
-      spawnHook: ({ command, env }) => ({ command, cwd, env: shellEnvironment(env, cwd) }),
+      // 完全访问下与普通 bash 一致：透传宿主真实环境，不重定向 HOME/TMPDIR。
+      spawnHook: ({ command, env }) => ({ command, cwd, env: mode() === 'danger-full-access' ? { ...env } : shellEnvironment(env, cwd) }),
     });
     tools.push({
       ...escalated, name: 'bash_escalated', label: '经批准运行命令',
@@ -128,6 +133,7 @@ export function workspaceTools(cwd, { getMode, approve }) {
       async execute(id, input, signal, ...rest) {
         signal?.throwIfAborted();
         const before = mode();
+        if (before === 'danger-full-access') return escalated.execute(id, input, signal, ...rest);
         if (await approve({ id, command: input.command, signal }) !== 'allowed-once' || before !== mode()) {
           throw new Error('命令未获得本次授权');
         }

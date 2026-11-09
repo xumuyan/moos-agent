@@ -150,8 +150,9 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       const approval = desktopPolicy && /\bMOOS_FIXTURE_APPROVAL\b/.test(text);
       const image = /\bMOOS_FIXTURE_IMAGE\b/.test(text);
       const table = /\bMOOS_FIXTURE_TABLE\b/.test(text);
+      const envProbe = /\bMOOS_FIXTURE_ENV\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ([Boolean(match), hold, allTools, policy, approval, image, table].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools, policy, approval, image, table, envProbe].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
@@ -170,6 +171,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       let sequence = ['write', 'bash'];
       if (hold) sequence = ['bash'];
       if (image) sequence = ['generate_image'];
+      if (envProbe) sequence = ['bash'];
       if (allTools) sequence = desktopPolicy ? ['write', 'read', 'edit', 'ls', 'bash']
         : ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'];
       if (approval) sequence = ['bash_escalated'];
@@ -189,6 +191,11 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
           const resultText = results.map(result => messageText(result.content)).join('\n');
           return stream(res, { content: resultText.includes('认证失败') ? '完成 IMAGE_AUTH_REPORTED' : '完成 IMAGE' }, 'stop');
         }
+        if (envProbe) {
+          const resultText = results.map(result => messageText(result.content)).join('\n');
+          const home = /^HOME=(.*)$/m.exec(resultText)?.[1] ?? '';
+          return stream(res, { content: `完成 ENV HOME=${home}` }, 'stop');
+        }
         const result = hold ? 'HOLD' : allTools ? 'TOOLS' : policy ? 'POLICY' : approval ? 'APPROVAL' : marker;
         return stream(res, { content: `完成 ${result}` }, 'stop');
       }
@@ -197,6 +204,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
         return tool(res, 'bash', { command: "printf 'outside\\n' > ../moos-policy-outside.txt" }, turn);
       }
       if (approval) return tool(res, 'bash_escalated', { command: "printf 'approved\\n' > ../moos-policy-approved.txt" }, turn);
+      if (envProbe) return tool(res, 'bash', { command: 'printf "HOME=%s" "$HOME"' }, turn);
       if (image) return tool(res, 'generate_image', { prompt: 'MOOS acceptance marker image', size: '1024x1024', quality: 'high' }, turn);
       if (hold) {
         if (desktopPolicy) return tool(res, 'bash', { command: 'printf "%s" "$$" > fixture-hold.pid && exec /bin/sleep 25', timeout: 30 }, turn);

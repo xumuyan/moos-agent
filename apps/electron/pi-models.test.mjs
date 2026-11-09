@@ -394,3 +394,27 @@ test('image generation settings round-trip through private storage without leaki
   await models.removeGroup('chat-main');
   assert.equal((await models.imageGen()).apiKey, fixture.apiKey, 'image key survives group removal');
 });
+
+test('execution policy round-trips through private storage and rejects unknown modes', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'moos-execution-policy-'));
+  t.after(() => rm(data, { recursive: true, force: true }));
+  const models = piModels(data, checkedProvider);
+  // 未配置 → null（回退 DSH sandboxPolicy 默认 workspace-write）。
+  assert.equal(await models.executionPolicy(), null);
+  await assert.rejects(models.saveExecutionPolicy({ mode: 'read-only' }), /Invalid Moos execution policy/);
+  await assert.rejects(models.saveExecutionPolicy({}), /Invalid Moos execution policy/);
+  await assert.rejects(models.saveExecutionPolicy(null), /Invalid Moos execution policy/);
+  const saved = await models.saveExecutionPolicy({ mode: 'danger-full-access' });
+  assert.deepEqual(saved, { mode: 'danger-full-access' });
+  assert.deepEqual(await models.executionPolicy(), { mode: 'danger-full-access' });
+  // 文件权限 0600，目录 0700。
+  const stats = await stat(join(data, 'private/execution-policy.json'));
+  assert.equal(stats.mode & 0o777, 0o600);
+  const rootStats = await stat(join(data, 'private'));
+  assert.equal(rootStats.mode & 0o777, 0o700);
+  // 切回沙盒。
+  await models.saveExecutionPolicy({ mode: 'workspace-write' });
+  assert.deepEqual(await models.executionPolicy(), { mode: 'workspace-write' });
+  // 模型配置文件不受影响。
+  assert.deepEqual(await models.list(), []);
+});

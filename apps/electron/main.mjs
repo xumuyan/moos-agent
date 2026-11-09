@@ -108,6 +108,8 @@ async function launch() {
     'moos:image-gen:status': () => models.imageStatus(),
     'moos:image-gen:save': input => models.saveImageGen(input),
     'moos:image-gen:test': input => models.testImageGen(input),
+    'moos:execution-policy:status': () => models.executionPolicy(),
+    'moos:execution-policy:save': input => models.saveExecutionPolicy(input),
   };
   for (const [channel, handle] of Object.entries(modelHandlers)) {
     ipcMain.handle(channel, (event, input) => {

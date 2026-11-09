@@ -1,5 +1,5 @@
 import { realpath } from 'node:fs/promises';
-import { unwatchFile, watchFile } from 'node:fs';
+import { statSync, unwatchFile, watchFile, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createPiTasks } from './pi-tasks.js';
@@ -49,6 +49,26 @@ export async function apply(ctx) {
   const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: 'Moos PI', api: 'openai-completions',
     baseUrl: fixture.baseUrl, contextWindow: 128000, maxTokens: 8192 };
   const models = fixture ? undefined : piModels(data, checkedProvider);
+  // 设置页「命令执行」覆盖：danger-full-access 时 PI 命令不加 seatbelt 沙箱（Codex 式完全权限），
+  // 未配置时回退 DSH sandboxPolicy（deployment 默认 workspace-write）。每次任务启动时同步
+  // 重读一次（mtime/size 变化才重读），避免依赖异步文件事件的不确定性。
+  let executionMode = null;
+  let policyStamp = '';
+  const policyPath = join(data, 'private/execution-policy.json');
+  const refreshPolicy = () => {
+    if (!models) return;
+    try {
+      const stats = statSync(policyPath);
+      const stamp = stats.mtimeMs + ':' + stats.size;
+      if (stamp === policyStamp) return;
+      policyStamp = stamp;
+      const rows = JSON.parse(readFileSync(policyPath, 'utf8'));
+      executionMode = rows.mode === 'workspace-write' || rows.mode === 'danger-full-access' ? rows.mode : null;
+    } catch {
+      executionMode = null;
+      policyStamp = '';
+    }
+  };
   const tasks = createPiTasks({ store, Scheduler, fixtureRoot: fixture ? root : undefined, dataRoot: data,
     async run(options) {
       const provider = fixtureProvider ?? options.provider;
@@ -76,10 +96,11 @@ export async function apply(ctx) {
       readImage: (ref, signal) => ctx.get('attachments')?.readImage(ref, signal),
       getTurnStart: session => session && ctx.agents.turnBoundaryOf(session).openTurnStartSeq,
       getPermissions(id) {
+        refreshPolicy();
         const agent = ctx.agents.get(id);
         if (!agent) throw new Error('PI needs an active desktop session');
         return {
-          getMode: () => ctx.sandboxPolicy.resolve({ session: agent.session }).mode,
+          getMode: () => executionMode ?? ctx.sandboxPolicy.resolve({ session: agent.session }).mode,
           approve: ({ id: callId, command, signal }) => {
             if (typeof command !== 'string' || command.length > 4096) return 'unavailable';
             return ctx.approval.request({ agent, callId, toolName: 'bash_escalated', reason: command, signal });

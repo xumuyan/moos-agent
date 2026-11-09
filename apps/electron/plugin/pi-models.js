@@ -24,6 +24,7 @@ export function piModels(data, checkedProvider) {
   const profilePath = join(data, 'providers.json');
   const credentialPath = join(privateRoot, 'credentials.json');
   const imageGenPath = join(privateRoot, 'image-gen-settings.json');
+  const executionPolicyPath = join(privateRoot, 'execution-policy.json');
   const imageGenKeyId = 'image-gen-key';
   const imageDefaultModel = 'gpt-image-2.5-flare';
   let writes = Promise.resolve();
@@ -376,6 +377,23 @@ export function piModels(data, checkedProvider) {
     });
   }
 
+  async function executionPolicy() {
+    const rows = await json(executionPolicyPath, null);
+    return rows && (rows.mode === 'workspace-write' || rows.mode === 'danger-full-access') ? { mode: rows.mode } : null;
+  }
+
+  function saveExecutionPolicy(input) {
+    return serialize(async () => {
+      const mode = input && input.mode;
+      if (mode !== 'workspace-write' && mode !== 'danger-full-access') {
+        throw new Error('Invalid Moos execution policy');
+      }
+      await mkdir(privateRoot, { recursive: true, mode: 0o700 });
+      await replace(executionPolicyPath, { mode });
+      return { mode };
+    });
+  }
+
   return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, removeGroup, diagnoseGroup,
-    imageGen, imageStatus, saveImageGen, testImageGen };
+    imageGen, imageStatus, saveImageGen, testImageGen, executionPolicy, saveExecutionPolicy };
 }

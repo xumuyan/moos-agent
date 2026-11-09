@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('moosImageGen', {
   save: input => ipcRenderer.invoke('moos:image-gen:save', input),
   test: input => ipcRenderer.invoke('moos:image-gen:test', input),
 });
+contextBridge.exposeInMainWorld('moosExecutionPolicy', {
+  status: () => ipcRenderer.invoke('moos:execution-policy:status'),
+  save: input => ipcRenderer.invoke('moos:execution-policy:save', input),
+});
 
 let fullscreen = false;
 function syncLayout() {

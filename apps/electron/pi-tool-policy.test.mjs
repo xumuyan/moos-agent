@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { workspaceTools } from '../../packages/pi-runtime/tool-policy.mjs';
@@ -70,6 +70,7 @@ test('macOS confines PI bash and releases only explicitly approved commands', {
   skip: process.platform !== 'darwin',
 }, async t => {
   const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-shell-policy-')));
+  const homeDir = homedir();
   t.after(() => rm(data, { recursive: true, force: true }));
   const root = join(data, "quoted ' project");
   await mkdir(root);
@@ -115,4 +116,14 @@ test('macOS confines PI bash and releases only explicitly approved commands', {
   mode = 'danger-full-access';
   await run('bash', '/usr/bin/curl --fail --silent --max-time 1 ' + url);
   assert.equal(requests, 1);
+  // 完全访问下 bash 拿宿主真实环境（不重定向 HOME/TMPDIR），构建工具才能访问 ~/Library/Developer。
+  const real = await run('bash', 'printf "HOME=%s TMPDIR=%s" "$HOME" "${TMPDIR:-}"');
+  const text = real.content[0].text;
+  assert.match(text, new RegExp('HOME=' + homeDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.doesNotMatch(text, new RegExp('HOME=' + data.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  // 完全访问下 bash_escalated 直接执行，不再请求批准。
+  count = 0;
+  await run('bash_escalated', 'printf escalated > escalated-result.txt');
+  assert.equal(count, 0);
+  assert.equal(await readFile(join(root, 'escalated-result.txt'), 'utf8'), 'escalated');
 });

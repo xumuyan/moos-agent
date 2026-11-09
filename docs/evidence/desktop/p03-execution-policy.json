@@ -1,0 +1,48 @@
+{
+  "task": "P03 命令执行权限（Codex 式完全访问）",
+  "evidence": "E103",
+  "timeBeijing": "2026-11-09 15:30:00 +08:00",
+  "state": "implemented-code-and-automated-acceptance-isolated-gui-real-install-pending-user",
+  "change": "应用户要求提供与 Codex 一致的完全访问执行模式：Moos 的 PI 命令沙箱由 DSH sandboxPolicy（deployment 默认 workspace-write，env DSH_PERMISSION_MODE 可覆盖）驱动，packages/pi-runtime/tool-policy.mjs 已实现 danger-full-access（无 seatbelt、文件工具透传）但从未启用，且 danger 分支 bash 仍被 shellEnvironment 强制 HOME/TMPDIR=工作区（swiftc/xcodebuild 等构建工具访问 ~/Library/Developer 会失败）。本次：1) pi-models 新增 executionPolicy/saveExecutionPolicy（private/execution-policy.json，0600，白名单 workspace-write/danger-full-access，未配置回退 DSH 默认）；2) host.js 每次 PI 任务启动（getPermissions）同步重读该文件（mtime+size 变化检测），executionMode 覆盖 DSH resolve 结果；3) tool-policy danger-full-access 下 bash 与 bash_escalated 透传宿主真实环境（不再重定向 HOME/TMPDIR），bash_escalated 在 danger 下直接执行不再请求一次性批准；4) 渲染层设置页新增「命令执行」卡（order 17）：沙盒内执行（默认）/完全访问 radio，IPC moos:execution-policy:status/save，preload 暴露 window.moosExecutionPolicy；保存后对之后开始的新任务生效，进行中任务保持原权限；5) fixture 新增 MOOS_FIXTURE_ENV 场景（bash 回显 $HOME 供验收对比）。",
+  "verification": {
+    "method": "隔离 Electron 实例（ditto 拷贝 build 至 artifacts 内 scratch，BrowserWindow.show 置空不抢前台，ad-hoc 重签，seedHome 独立数据目录，本地 fixture 模型 openai-completions），真实键鼠经 CDP 提交任务；宿主加载的插件副本注入只追加日志的探针（ESM import appendFileSync，写隔离数据目录 policy-probe.log，不改变行为），正式安装版与用户数据不受影响",
+    "stages": {
+      "sandboxed": { "home": "<scratch>/data/workspace/deepseek-harness/default-workspace", "note": "默认（无 execution-policy.json）：沙盒把 HOME 定为任务工作区目录" },
+      "fullAccess": { "home": "/Users/xuguopeng", "note": "经设置卡同一 bridge（window.moosExecutionPolicy.save({mode:'danger-full-access'})）切换后提交新任务，回复宿主真实家目录" },
+      "escalated": { "approvedWithoutDialog": true, "note": "完全访问下 MOOS_FIXTURE_APPROVAL（bash_escalated 写工作区外文件）直接完成且页面无审批对话框" }
+    },
+    "probeLog": "getPermissions before=null→refresh ENOENT（沙盒）；第二次任务 before=null→refresh loaded mode=danger-full-access→HOME 生效；第三次 before=danger-full-access（stamp 未变跳过重读）",
+    "policyFile": { "mode": "danger-full-access", "fileMode": "600", "path": "recovery-jBvFt8/data/private/execution-policy.json" },
+    "screenshots": [
+      "artifacts/execution-policy-gui/recovery-jBvFt8/policy-sandboxed.png",
+      "artifacts/execution-policy-gui/recovery-jBvFt8/policy-full-access.png",
+      "artifacts/execution-policy-gui/recovery-jBvFt8/policy-escalated.png"
+    ],
+    "pngSha256": {
+      "policy-sandboxed.png": "786c9793a284fe7d619aa741a6be9edca199c40b542d56e1616c9c9903e977a4",
+      "policy-full-access.png": "5236707c8aed64e085b77ae3cdfca4de110e9d1c05f866e5525e89b44910ac88",
+      "policy-escalated.png": "6a348702397e3d32f2841aa6105455e7a723f0fadcf46720bc75679611e15e6e"
+    },
+    "report": "artifacts/execution-policy-gui/recovery-jBvFt8/policy-report.json（含探针日志原文）",
+    "script": "artifacts/execution-policy-gui/gui.mjs（一次性隔离验收脚本，仅接受仓库 .generated 构建路径与 artifacts 输出）",
+    "debugging": "首两轮误取阶段 A 旧回复文本当阶段 B 结果（正则取第一个匹配+未等新回复出现即断言），且 ESM 插件里 require 不存在致首轮 require 版探针被 try/catch 静默吞掉；改为按出现次数等新回复 + ESM import 版探针后定位并确认修复",
+    "assertions": "沙盒 HOME=任务工作区目录；完全访问 HOME=真实家目录且 execution-policy.json 为 600；升级场景无审批对话框直接完成"
+  },
+  "tests": {
+    "core": "160/160",
+    "electron": "79/79 无跳过（新增 pi-models 执行策略读写/权限校验/0600 断言与 client 设置卡注册/渲染/保存路径断言；pi-tool-policy 扩展 danger 真实 HOME 与 escalated 免审批断言）",
+    "docs": "81/81",
+    "build": "壳 0.1.36 重建 build-HleYgO，codesign --deep --strict 验签通过"
+  },
+  "envNote": "按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 执行；隔离 GUI 脚本 stop 阶段沿用 Page.close 后等待 5 秒再 SIGTERM/SIGKILL 的兜底，本轮实例正常退出无需强杀；失败过程的 recovery 目录（CUxQk7/nqm3i5/sRzaTO/soRp1I/z3oPSl/OvAADy）已确认无残留进程后删除",
+  "limits": [
+    "真实安装版 GUI 未验收：build-HleYgO（0.1.36）尚未安装（用户暂缓），安装后需在正式应用设置页目视确认「命令执行」卡并以真实构建命令（swiftc/xcodebuild/npm）验证完全访问",
+    "完全访问下命令不受沙盒限制，可读写全盘并联网；模型密钥文件 private/credentials.json 与其他用户文件在该模式下可被命令读取，属 Codex 式完全访问的固有语义，设置页已提示仅对可信任务开启",
+    "同项目任务仍受规范化目录锁串行约束，完全访问不改变任务调度与锁行为",
+    "隔离 GUI 截图来自隔离构建与 fixture 模型，不冒充正式安装版验收"
+  ],
+  "install": {
+    "performed": false,
+    "reason": "用户明确本轮不安装更新；安装需用户后续明确授权并按 E84 流程执行"
+  }
+}

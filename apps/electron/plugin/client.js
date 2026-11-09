@@ -240,6 +240,51 @@ window.__ModuleLoader__.load({
         state.status === 'error' ? createElement('p', { role: 'status', style: noteStyle }, '图片服务配置读取失败，请重试。') : null);
     }
 
+    function ExecutionSettings({ styles }) {
+      const [state, setState] = useState({ status: 'loading', mode: null });
+      const [busy, setBusy] = useState(false);
+      const [message, setMessage] = useState();
+      useEffect(() => {
+        let closed = false;
+        window.moosExecutionPolicy.status().then(row => {
+          if (!closed) setState({ status: 'ready', mode: row?.mode ?? 'workspace-write' });
+        }).catch(() => { if (!closed) setState(value => ({ ...value, status: 'error' })); });
+        return () => { closed = true; };
+      }, []);
+      const noteStyle = styles.note ?? { margin: 0, opacity: 0.8, fontSize: 12 };
+      async function save(event) {
+        event?.preventDefault();
+        setBusy(true); setMessage(undefined);
+        try {
+          const next = await window.moosExecutionPolicy.save({ mode: state.mode });
+          setState(value => ({ ...value, status: 'ready', mode: next.mode }));
+          setMessage({ ok: true, text: next.mode === 'danger-full-access'
+            ? '已切换为完全访问，对新任务生效。' : '已恢复沙盒内执行，对新任务生效。' });
+        } catch { setMessage({ ok: false, text: '保存失败，请重试。' }); }
+        finally { setBusy(false); }
+      }
+      const option = (value, label, hint) => createElement('label', { className: styles.field,
+        style: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 } },
+        createElement('input', { type: 'radio', name: 'moos-execution-mode', value, checked: state.mode === value,
+          disabled: busy || state.status !== 'ready', 'aria-label': label,
+          onChange: () => setState(value2 => ({ ...value2, mode: value })) }),
+        createElement('span', null, createElement('span', { className: styles.fieldLabel }, label),
+          createElement('br', null), createElement('span', { style: noteStyle }, hint)));
+      return createElement('form', { className: styles.section, 'data-moos-execution-settings': '', onSubmit: save },
+        createElement('h2', { className: styles.title }, '命令执行'),
+        createElement('div', { style: { display: 'grid', gap: 10 } },
+          option('workspace-write', '沙盒内执行（默认）',
+            '命令在项目工作区内运行：禁外网，工作区外写入需临时授权。'),
+          option('danger-full-access', '完全访问',
+            '命令以机器正常权限直接执行（与 Codex 完全访问一致）：真实用户目录与网络，构建工具（swiftc、xcodebuild、npm）可访问 ~/Library，不再弹批准。')),
+        createElement('p', { role: 'note', style: noteStyle },
+          '完全访问下命令不再受沙盒限制，可读写全盘并联网；仅对可信任务开启。保存后对之后开始的新任务生效，进行中的任务保持原有权限。'),
+        createElement(Button, { type: 'submit', size: 'sm', disabled: busy || state.status !== 'ready' },
+          busy ? '正在保存…' : '保存'),
+        message ? createElement('p', { role: 'status', style: noteStyle }, message.text) : null,
+        state.status === 'error' ? createElement('p', { role: 'status', style: noteStyle }, '执行策略读取失败，请重试。') : null);
+    }
+
     function UsageSettings({ t, TurnUsagePanel, styles }) {
       const [refresh, setRefresh] = useState(0);
       const result = useUsage(null, refresh);
@@ -412,6 +457,12 @@ window.__ModuleLoader__.load({
         ctx.slots.inject('settings.section', () => ctx.slots.register({
           name: 'settings.section', id: 'moos-image', order: 15, label: () => '图片生成',
         }, () => createElement(ImageGenSettings, { styles: moosEditor.styles })));
+      }
+      if (window.moosExecutionPolicy) {
+        const { moosEditor } = require('@deepseek-ai/dsh-client-ui-settings-models');
+        ctx.slots.inject('settings.section', () => ctx.slots.register({
+          name: 'settings.section', id: 'moos-execution', order: 17, label: () => '命令执行',
+        }, () => createElement(ExecutionSettings, { styles: moosEditor.styles })));
       }
       if (window.moosUsage) {
         const { TurnUsagePanel } = require('@deepseek-ai/dsh-client-ui-chat');

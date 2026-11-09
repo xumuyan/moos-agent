@@ -236,3 +236,79 @@ test('the settings page exposes an image generation card wired to the moosImageG
   await buttons[0].props.onClick();
   assert.equal(saved.apiKey, '');
 });
+
+test('the settings page exposes an execution policy card wired to the moosExecutionPolicy bridge', async () => {
+  const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
+  let entry;
+  let statusResolve;
+  const execution = {
+    status: () => new Promise(resolve => { statusResolve = resolve; }),
+    save: async input => ({ mode: input.mode }),
+  };
+  runInNewContext(source, {
+    document: {
+      documentElement: { dataset: { moosWindow: 'darwin' } },
+      title: 'DeepSeek Harness',
+      createElement: () => ({ remove() {} }),
+      querySelector: () => ({}),
+      head: { append() {} },
+    },
+    clearTimeout,
+    MutationObserver: class { constructor() {} observe() {} disconnect() {} },
+    window: {
+      __ModuleLoader__: { load(value) { entry = value; } },
+      moosExecutionPolicy: execution,
+    },
+  });
+  const editor = { styles: { field: 'f', fieldLabel: 'l', section: 's', title: 't', note: 'n' } };
+  let setState;
+  let stateValue;
+  const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-settings-models' ? { moosEditor: editor } : ({
+    Button() {},
+    createElement: (element, props, ...children) => ({ element, props, children }),
+    useState: value => [stateValue ?? value, updater => { setState = updater; }],
+    useEffect: callback => { callback(); },
+    useRef: () => ({}),
+  }));
+  const registrations = [];
+  plugin.apply({
+    locale: { bind: () => key => key },
+    slots: {
+      inject(_slot, register) { register(); },
+      register(spec, component) { registrations.push([spec, component]); },
+    },
+    on() {},
+  });
+  const spec = registrations.find(([item]) => item.id === 'moos-execution');
+  assert.ok(spec, 'execution policy section must register');
+  assert.equal(spec[0].order, 17);
+  assert.equal(spec[0].label(), '命令执行');
+  const component = spec[1];
+  const vnode = component({});
+  const form = vnode.element(vnode.props);
+  assert.equal(form.props['data-moos-execution-settings'], '');
+  assert.equal(form.children[0].children[0], '命令执行');
+  // 加载完成前按钮禁用（children 含 message/error 的 null 占位）。
+  const submit = form.children.find(child => child?.element?.name === 'Button');
+  assert.ok(submit, 'submit button renders');
+  assert.equal(submit.props.disabled, true);
+  statusResolve({ mode: 'danger-full-access' });
+  await Promise.resolve();
+  stateValue = { status: 'ready', mode: 'danger-full-access' };
+  const ready = component({}).element(component({}).props);
+  const grid = ready.children[1];
+  const radios = grid.children.filter(child => child?.children?.[0]?.props?.type === 'radio')
+    .map(label => label.children[0]);
+  assert.equal(radios.length, 2);
+  assert.deepEqual(radios.map(radio => radio.props.value), ['workspace-write', 'danger-full-access']);
+  assert.equal(radios[1].props.checked, true);
+  assert.equal(radios[1].props['aria-label'], '完全访问');
+  // 切换 radio 后保存：save 收到所选 mode。
+  let saved;
+  execution.save = async input => { saved = input; return { mode: input.mode }; };
+  radios[0].props.onChange();
+  stateValue = { status: 'ready', mode: 'workspace-write' };
+  const form2 = component({}).element(component({}).props);
+  await form2.props.onSubmit({ preventDefault() {} });
+  assert.equal(saved.mode, 'workspace-write');
+});
