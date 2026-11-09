@@ -31,7 +31,9 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('历史 .moos-update-0.1.31/.moos-update-0.1.32 未动', evidence['cleanup'])
         feedback = evidence['userRealWorldFeedback']
         self.assertIn('图片可以识别出来', feedback['content'])
-        self.assertTrue(feedback['notCovered'][0].startswith('“测试连接”按钮结果未由用户回报'))
+        self.assertTrue(feedback['testConnection']['result'].startswith('模型服务验证成功'))
+        self.assertEqual(feedback['testConnection']['model'], 'glm-5.3-flash')
+        self.assertEqual(feedback['notCovered'], ['图片内容与模型回复正文不写入档案'])
         self.assertIn('聊天识图可用', (ROOT / 'PLAN.md').read_text())
         self.assertIn('| E96 |', (ROOT / 'PLAN.md').read_text())
 

@@ -1514,3 +1514,13 @@
 - 验证结果：文档检查 77/77 通过后提交；真实识图结论以用户本机实测为准，助手未发送认证 GLM 请求。
 - 遗留问题：“测试连接”按钮在新版的表现仍未由用户回报；如报错请把提示文字发来继续排查。
 - 对应 Git 提交：唯一说明 docs(P03.13): record user-confirmed image recognition on installed 0.1.33；查询 git log --all --oneline --grep='docs(P03.13): record user-confirmed image recognition on installed 0.1.33'。
+
+
+## 2026-11-09 09:46:58 +08:00｜P03.13 用户截图确认 0.1.33 测试连接成功（E96 补充）
+
+- 修改或新增内容：用户截图显示 glm-5.3-flash 点“测试连接”返回“模型服务验证成功 · HTTP 200 · 855 毫秒”，GLM Responses 探测修复（E94）在真实服务与用户密钥上验证通过，小字号提示样式（E95）同时确认生效。E96 证据增加 testConnection 字段并移除对应未覆盖项，PLAN.md E96 行同步更正。
+- 遇到的难题：无。
+- 处理方式：仅记录用户回报的结论与可见文字，截图本身不写入档案；P03.13.5 其余子项保持未验收，不提前勾选。
+- 验证结果：文档检查提交前本地重跑通过（含更新后的 E96 断言）；结论以用户本机实测为准，助手未发送认证 GLM 请求。
+- 遗留问题：P03.13.5 尚余推理档位等子项未实现/未验收；流式工具调用、GPT-6.1 Sol 实际请求、认证失败与额度异常未验收。
+- 对应 Git 提交：唯一说明 docs(P03.13): record user-confirmed successful GLM connection test on 0.1.33；查询 git log --all --oneline --grep='docs(P03.13): record user-confirmed successful GLM connection test on 0.1.33'。

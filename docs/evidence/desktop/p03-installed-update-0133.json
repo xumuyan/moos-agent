@@ -66,8 +66,14 @@
     "content": "图片可以识别出来",
     "scope": "0.1.33 正式应用中 glm-5.3-flash 聊天识图",
     "notCovered": [
-      "“测试连接”按钮结果未由用户回报，保持未确认",
       "图片内容与模型回复正文不写入档案"
-    ]
+    ],
+    "testConnection": {
+      "timeBeijing": "2026-11-09 09:46:58 +08:00",
+      "source": "用户截图",
+      "model": "glm-5.3-flash",
+      "result": "模型服务验证成功 · HTTP 200 · 855 毫秒",
+      "meaning": "GLM Responses 探测修复在真实服务上验证通过，小字号提示样式同时确认生效"
+    }
   }
 }
