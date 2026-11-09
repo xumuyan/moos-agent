@@ -1,0 +1,47 @@
+{
+  "task": "P03 界面修复",
+  "evidence": "E102",
+  "timeBeijing": "2026-11-09 14:31:00 +08:00",
+  "state": "implemented-code-and-automated-acceptance-isolated-gui-real-install-pending-user",
+  "change": "应用户要求修复聊天表格溢出：DSH 原版 AssistantMarkdown 让 .md-table-wide 用 --dsh-table-spare/lead 负边距伸出消息内容区，Moos 布局下画出消息卡片并产生页面级横向滚动条。壳插件 client.js 注入样式表追加两条规则：[class*=\"md-table-wide\"] 收回 100% 宽（width/max-width/margin-left/padding-left 全部 !important）并 overflow-x:auto !important（DSH 自带 _tableScroll 类是 overflow-x:hidden，同特异度后注入会覆盖非 important 值），表格在消息卡片内横向滚动；选择器不依赖 DSH 哈希类名，升级不失效。子元素选择器保留 table max-width:none。",
+  "verification": {
+    "method": "隔离 Electron 实例（ditto 拷贝 build 至 artifacts 内 scratch，BrowserWindow.show 置空不抢前台，ad-hoc 重签，seedHome 独立数据目录，本地 fixture 模型 openai-completions），CDP Runtime.evaluate 探查真实渲染 DOM；正式安装版与用户数据不受影响",
+    "fixtureScenario": "新增 MOOS_FIXTURE_TABLE 场景回复 4 列长文本 markdown 表格（首次实现把 if(table) 分支放在 const table 声明之前触发 TDZ ReferenceError 使全部 completions 场景 500，已修复为声明后分支并回归验证 WRITE/无 marker 场景）",
+    "probe": {
+      "className": "_tableScroll_rve47_199 md-table-wide",
+      "overflowX": "auto",
+      "wideWidth": 680,
+      "cardWidth": 680,
+      "wideRightVsCardRight": 0,
+      "wideLeftVsCardLeft": 0,
+      "tableScrollWidth": 973,
+      "wideClientWidth": 680,
+      "documentHorizontalOverflow": 0,
+      "conversationScrollerHorizontalOverflow": 0,
+      "marginLeft": "0px",
+      "paddingLeft": "0px"
+    },
+    "screenshot": "artifacts/chat-table-gui/recovery-TGq3BC/chat-table.png",
+    "pngSha256": "31cccc80166329a18b6265d5e65d1ff499b84260d7cec8354c1984fc5d953c8a",
+    "report": "artifacts/chat-table-gui/recovery-TGq3BC/table-report.json 与 probe.json",
+    "script": "artifacts/chat-table-gui/gui.mjs（一次性隔离验收脚本，仅接受仓库 .generated 构建路径与 artifacts 输出）",
+    "assertions": "宽表格元素存在且 overflow-x=auto；表格块宽等于消息卡片宽且左右缘零伸出；表格内容 scrollWidth 973>clientWidth 680 触发框内滚动；文档与会话滚动容器横向溢出均为 0"
+  },
+  "tests": {
+    "core": "160/160（含 fixture 回归）",
+    "electron": "77/77 无跳过（client 样式注入断言扩展：md-table-wide 规则文本、overflow-x auto !important、margin-left 0 !important、table max-width none）",
+    "docs": "81/81",
+    "build": "壳 0.1.36 重建 build-KoM45V，codesign --deep --strict 验签通过；过时构建 build-GTPRV2/build-qEs4bU 已删除"
+  },
+  "envNote": "按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 执行；隔离 GUI 脚本退出清理在 stop 阶段等待超时（Page.close 后宿主未在窗口关闭即退出），验收数据已在断言后落盘，残留隔离进程手动 SIGKILL 清理；该清理问题不影响验收结论，属脚本健壮性问题待后续复用时修复",
+  "limits": [
+    "真实安装版 GUI 未验收：0.1.36 尚未安装（用户暂缓），安装后需在正式应用里以真实长表格消息确认滚动条在框内",
+    "仅处理 .md-table-wide（DSH 唯一伸出内容区的宽元素，已核对 chat 包 CSS 无其他 -wide 伸出类型）；普通窄表不受影响",
+    "DSH 未来若改用其他类名承载宽表格伸出设计，本补丁需重新核对",
+    "隔离 GUI 截图来自隔离构建与 fixture 模型，不冒充正式安装版验收"
+  ],
+  "install": {
+    "performed": false,
+    "reason": "用户明确本轮先不更新（不安装 0.1.36）；安装需用户后续明确授权并按 E84 流程执行"
+  }
+}

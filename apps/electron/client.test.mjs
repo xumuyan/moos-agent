@@ -147,10 +147,11 @@ test('the settings page exposes an image generation card wired to the moosImageG
       credentialId: 'image-gen-key', keyConfigured: true }),
     test: async () => ({ ok: true, status: 200, message: '图片服务验证成功 · 密钥有效（未发起付费请求）', elapsedMs: 8 }),
   };
+  const created = [];
   const document = {
     documentElement: { dataset: { moosWindow: 'darwin' } },
     title: 'DeepSeek Harness',
-    createElement: () => ({ remove() {} }),
+    createElement: tag => { const node = { tag, remove() {} }; created.push(node); return node; },
     querySelector: () => ({}),
     head: { append() {} },
   };
@@ -214,6 +215,12 @@ test('the settings page exposes an image generation card wired to the moosImageG
   assert.match(note.children[0], /不发起付费请求/);
   const buttons = grid.children[4].children;
   assert.equal(buttons[0].props.type, 'button');
+  // 宽表格收回消息卡片内：注入的样式表含框内滚动规则（不依赖 DSH 哈希类名）。
+  const stylesheet = created.find(node => node.tag === 'style' && String(node.textContent).includes('md-table-wide'));
+  assert.ok(stylesheet, 'chat table patch must be injected');
+  assert.match(stylesheet.textContent, /\[class\*="?md-table-wide"?\][^}]*overflow-x:\s*auto !important/);
+  assert.match(stylesheet.textContent, /\[class\*="?md-table-wide"?\][^}]*margin-left:\s*0 !important/);
+  assert.match(stylesheet.textContent, /\[class\*="?md-table-wide"?\] > table \{ max-width: none; \}/);
   assert.equal(typeof buttons[0].props.onClick, 'function', 'test-connection button is clickable');
   // 保存按钮靠 form onSubmit 提交；用启用态的 form 触发以验证 save 路径走 window.moosImageGen.save。
   let saved;

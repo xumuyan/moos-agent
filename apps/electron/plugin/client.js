@@ -476,6 +476,10 @@ window.__ModuleLoader__.load({
         .moos-action-subject { min-width: 0; overflow-wrap: anywhere; }
         [data-turn-tail]:has([data-changed-files]) [data-moos-file-fallback] { display: none; }
         [data-chat-flow-kind="assistant-step"] :is(.md-code-block, pre) { display: none; }
+        /* DSH 原版让 md-table-wide 负边距伸出消息内容区（--dsh-table-spare/lead）；Moos 布局下会画出消息卡片并产生页面级横向滚动条。
+           收回卡片内，宽表格在自身块内横向滚动（滚动条在框内）；选择器不依赖 DSH 哈希类名，升级不失效。 */
+        [class*="md-table-wide"] { width: 100% !important; max-width: 100% !important; margin-left: 0 !important; padding-left: 0 !important; overflow-x: auto !important; }
+        [class*="md-table-wide"] > table { max-width: none; }
       `;
       document.head.append(styles);
       const title = document.querySelector('title');

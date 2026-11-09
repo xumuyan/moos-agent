@@ -149,11 +149,24 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       const policy = desktopPolicy && /\bMOOS_FIXTURE_POLICY\b/.test(text);
       const approval = desktopPolicy && /\bMOOS_FIXTURE_APPROVAL\b/.test(text);
       const image = /\bMOOS_FIXTURE_IMAGE\b/.test(text);
+      const table = /\bMOOS_FIXTURE_TABLE\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ([Boolean(match), hold, allTools, policy, approval, image].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools, policy, approval, image, table].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
+      if (table) {
+        // 多列长文本表格：供隔离 GUI 验收宽表格在消息卡片内滚动（无页面级横向溢出）。
+        const rows = [
+          '| 层 | 谁设置的 | 拦什么 | 典型现象 |',
+          '| --- | --- | --- | --- |',
+          '| 第 1 层：命令沙箱 | 这个 AI 软件自己加的（seatbelt 沙箱） | 我默认执行的每条命令只能在项目文件夹里活动，读你的家目录、看进程统统被拦 | 提示权限被拒绝或文件不存在 |',
+          '| 第 2 层：系统 TCC | macOS 系统加的（完全磁盘访问权限） | 整个 App 都读不了桌面、下载、Library 等受保护目录 | 弹窗要求授权，或静默读不到文件 |',
+          '| 第 3 层：模型服务分组 | 云桥等中转站后台配置 | 每个密钥只能调它所属分组里的模型，跨分组调用直接 403 | 聊天正常但生图报认证失败 |',
+          '| 第 4 层：宿主进程隔离 | Electron 主进程与渲染进程分离 | 渲染层拿不到模型密钥明文，只能经由受限 IPC 访问 | 前端崩溃不泄漏凭据 |',
+        ].join('\n');
+        return stream(res, { content: `两层隔离拆开看：\n\n${rows}\n\n以上即分层拦截示意。` }, 'stop');
+      }
       let sequence = ['write', 'bash'];
       if (hold) sequence = ['bash'];
       if (image) sequence = ['generate_image'];
