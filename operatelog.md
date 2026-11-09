@@ -7,7 +7,7 @@
 - 处理方式：① 启动前显式清理宿主透传环境（ELECTRON_RUN_AS_NODE、MOOS_ELECTRON_*、DSH_*，与安装器同款）；②③ submit 前检测 inert 态并点击 hero 卡片、等待 contenteditable=true 后按原 CDP 输入链路提交；④ 脚本在宿主启动后对隔离 workspace 执行 git init && git add -A；⑤ 两处断言改为整体文本与集合比较；⑥ 补 relay.close() 后 33 秒干净退出。
 - 验证结果：client 3/3、fixture 12/12（合跑 15/15）；core `npm test` 160/160；electron `npm run test:electron`（MOOS_ELECTRON_TEST_DSH_CLI=build-HleYgO）79/79；docs OK。隔离 GUI 验收 recovery-nCJlAQ（壳 0.1.36，build-66ROO4 含折叠代码）：details 默认 open=false，summary 文本「工作区变化 · 12 个文件已折叠，点击展开」，点击后 open=true 列出 12 项 many-N.txt（集合与 fixture 写入一致），再点后 open=false；截图 many-collapsed.png（sha256 前 16 位 3633ecb9fb5b3dff）与 many-expanded.png（64fd974df4b84cea）+ many-report.json；GUI 正常退出（非 SIGKILL）。证据 `docs/evidence/desktop/p03-turn-tail-collapse.json`（E105）。
 - 遗留问题：正式安装版 /Applications/Moos.app 仍是 E104 安装的 0.1.36（不含本轮折叠改动），新包构建与安装待用户明确授权后按 E84 流程执行，安装后在真实会话目视确认折叠交互；≤10 文件平铺路径仅由 client 单测覆盖未做独立 GUI 场景；limited（>200 文件截断）交互未单独验收。
-- 对应 Git 提交：本次提交见 `git log --oneline | head -3`（P03.13.10 功能、测试、验收脚本与文档同提交）；推送结果见本条目后续更正记录。
+- 对应 Git 提交：f4f91d89c75bc8417b97e858ca30dcaa326574a6 `feat(P03.13.10): collapse long workspace-change lists in turn tail`（含折叠实现 client.js、client/fixture 测试、PLAN.md E105、operatelog、docs/evidence/desktop/p03-turn-tail-collapse.json、tests 断言扩展 1→10；查询 `git log --oneline | head -2`）。推送：HOME=/Users/xuguopeng（gh keyring xumuyan）+ credential.helper '!gh auth git-credential' + https_proxy=127.0.0.1:7897 一次成功，`git rev-parse HEAD` 与 `git ls-remote origin main` 均为 f4f91d89c75bc8417b97e858ca30dcaa326574a6；另清理宿主进程在仓库根生成的两个缓存目录（node-addon-native-custom-loader-501 240K、node-compile-cache 12M，均非用户数据）；未输出任何令牌。
 
 ## 2026-11-09 20:40:00 +08:00｜P03.13.9 完成 + 0.1.36 正式安装 + 真实扣费图片生成（E104）
 
