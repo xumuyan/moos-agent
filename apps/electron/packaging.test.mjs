@@ -27,3 +27,29 @@ test('prepare-local bundles every local module imported by the packaged pi-runti
   }
   assert.ok(prepareScript.includes('packages/pi-runtime/image-tool.mjs'), '图片工具必须随包分发');
 });
+
+test('MuMa display branding keeps the existing application and user data identity', async () => {
+  const [prepare, main, launcher, pkg, shell] = await Promise.all([
+    readFile(join(here, 'prepare-local.mjs'), 'utf8'),
+    readFile(join(here, 'main.mjs'), 'utf8'),
+    readFile(join(here, 'dsh-launcher.sh'), 'utf8'),
+    readFile(join(here, 'package.json'), 'utf8').then(JSON.parse),
+    readFile(join(here, 'plugin/package.json'), 'utf8').then(JSON.parse),
+  ]);
+  assert.equal(pkg.productName, 'MuMa');
+  assert.equal(pkg.version, shell.version, 'app and shell ship the same update version');
+  assert.equal(shell.name, 'moos-electron-shell', 'existing shell upgrade identity is retained');
+  assert.ok(prepare.includes("join(build, 'MuMa.app')"));
+  assert.ok(prepare.includes("const newName = 'MuMa' + suffix"), 'all helpers follow executable rename');
+  assert.ok(prepare.includes("CFBundleExecutable: 'MuMa'"));
+  assert.ok(launcher.includes('MacOS/MuMa'), 'host still launches the actual packaged executable');
+  assert.ok(!launcher.includes('MacOS/Moos'));
+  assert.ok(prepare.includes("CFBundleIdentifier: 'dev.moos.agent.electron'"));
+  assert.ok(prepare.includes("['en', 'MuMa'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']"));
+  assert.ok(main.includes("app.setName('MuMa')"));
+  assert.ok(main.includes("title: 'MuMa · 沐码'"));
+  assert.ok(main.includes("label: 'MuMa'"));
+  assert.ok(main.includes("join(app.getPath('appData'), 'dev.moos.agent.electron')"));
+  assert.ok(main.includes("session.fromPartition('persist:moos-workbench')"));
+  assert.ok(main.includes("'moos.sqlite'"));
+});

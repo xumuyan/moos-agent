@@ -14,7 +14,7 @@ export async function apply(ctx) {
   ctx.effect(() => ctx.tools.setExecutor({
     describe: () => ({ schemas: [], knownNames: [] }),
     async execute() {
-      throw new Error('Moos 的任务工具由 PI 执行');
+      throw new Error('沐码的任务工具由 PI 执行');
     },
   }));
   const runtime = process.env.MOOS_ELECTRON_PI_RUNTIME;
@@ -46,7 +46,7 @@ export async function apply(ctx) {
       fixture = await startFixture({ desktopPolicy: true });
     } catch (error) { store.close(); throw error; }
   }
-  const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: 'Moos PI', api: 'openai-completions',
+  const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: 'MuMa PI', api: 'openai-completions',
     baseUrl: fixture.baseUrl, contextWindow: 128000, maxTokens: 8192 };
   const models = fixture ? undefined : piModels(data, checkedProvider);
   // 设置页「命令执行」覆盖：danger-full-access 时 PI 命令不加 seatbelt 沙箱（Codex 式完全权限），

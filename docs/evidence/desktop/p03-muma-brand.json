@@ -1,0 +1,159 @@
+{
+  "id": "E106",
+  "task": "P03.13.11",
+  "dateBeijing": "2026-11-10",
+  "workspaceState": "MuMa branding working tree on a35a2503e63aeb9e78a679f5ff702946c881e624 before this evidence/log commit; final build-KZquSV.",
+  "machine": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64",
+    "electron": "44.7.0",
+    "dsh": "0.2.2-rc.1"
+  },
+  "build": {
+    "command": "npm run build:app",
+    "path": ".generated/moos-electron/build-KZquSV/MuMa.app",
+    "version": "0.1.37",
+    "includesPiFixture": false,
+    "codesignDeepStrict": "passed in isolated acceptance before QA-only entry patch"
+  },
+  "branding": {
+    "name": "MuMa",
+    "displayName": "MuMa",
+    "executable": "MuMa",
+    "bundleId": "dev.moos.agent.electron",
+    "version": "0.1.37",
+    "chinese": "沐码",
+    "localizedDisplayNames": {
+      "en": "MuMa",
+      "zh-Hans": "沐码",
+      "zh-Hant": "沐碼"
+    }
+  },
+  "preserved": {
+    "bundleId": "dev.moos.agent.electron",
+    "userData": "~/Library/Application Support/dev.moos.agent.electron",
+    "partition": "persist:moos-workbench",
+    "route": "moos-pi",
+    "shellPackage": "moos-electron-shell",
+    "database": "moos.sqlite",
+    "productionDataTouched": false
+  },
+  "validation": [
+    {
+      "command": "npm test",
+      "passed": 162,
+      "log": "artifacts/muma-brand/validation/core-delivery.log"
+    },
+    {
+      "command": "npm run test:electron",
+      "passed": 80,
+      "skipped": 0,
+      "dshCli": "build-KZquSV/MuMa.app/Contents/Resources/host-runtime/bin/dsh",
+      "log": "artifacts/muma-brand/validation/electron-delivery.log"
+    },
+    {
+      "command": "RUSTUP_TOOLCHAIN=stable-aarch64-apple-darwin cargo test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "passed": 11,
+      "log": "artifacts/muma-brand/validation/native.log"
+    },
+    {
+      "command": "node --test probes/dsh-electron-pi/index.test.mjs",
+      "passed": 5,
+      "log": "artifacts/muma-brand/validation/bridge.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v",
+      "passed": 4,
+      "log": "artifacts/muma-brand/validation/skin.log"
+    }
+  ],
+  "gui": {
+    "command": "node scripts/verify-electron-brand.mjs .generated/moos-electron/build-KZquSV/MuMa.app artifacts/muma-brand/gui-delivery",
+    "script": "scripts/verify-electron-brand.mjs",
+    "report": "artifacts/muma-brand/gui-delivery/recovery-UK0Pmw/brand-report.json",
+    "actual": {
+      "time": "2026-11-09T16:19:12.089Z",
+      "identity": {
+        "name": "MuMa",
+        "displayName": "MuMa",
+        "executable": "MuMa",
+        "bundleId": "dev.moos.agent.electron",
+        "version": "0.1.37"
+      },
+      "branding": {
+        "name": "MuMa",
+        "chinese": "沐码",
+        "title": "MuMa · 沐码"
+      },
+      "shell": "0.1.37",
+      "collapsed": {
+        "present": true,
+        "open": false,
+        "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+        "heading": "工作区变化 ·",
+        "hint": "已折叠，点击展开"
+      },
+      "expanded": {
+        "open": true,
+        "count": 12,
+        "paths": [
+          "many-1.txt",
+          "many-10.txt",
+          "many-11.txt",
+          "many-12.txt",
+          "many-2.txt",
+          "many-3.txt",
+          "many-4.txt",
+          "many-5.txt",
+          "many-6.txt",
+          "many-7.txt",
+          "many-8.txt",
+          "many-9.txt"
+        ],
+        "allNamed": 12,
+        "first": "many-1.txt",
+        "last": "many-9.txt",
+        "height": 300
+      },
+      "recollapsed": false,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "usedTerm": false,
+        "method": "QA SIGUSR2 → app.quit"
+      }
+    },
+    "scriptExitCode": 0,
+    "steps": [
+      "Inspect signature, bundle metadata, localized strings, executable and app/shell versions",
+      "Copy QA bundle, hide show(), add QA SIGUSR2 → app.quit hook and re-sign",
+      "Use isolated data and local fixture provider; check sidebar MuMa, title 沐码, document.title MuMa · 沐码",
+      "Submit MOOS_FIXTURE_MANY in isolated Git workspace, verify 12 paths, expand and recollapse",
+      "QA app.quit invokes production before-quit Host cleanup; app exit 0 without SIGTERM/SIGKILL; relay closed; script exit 0"
+    ],
+    "screenshots": [
+      {
+        "path": "artifacts/muma-brand/gui-delivery/recovery-UK0Pmw/many-collapsed.png",
+        "sha256": "c09a8b35ecab1c2cf05d11c089bbc2877fdb0d5ca657470eb4233e02a160b1e7"
+      },
+      {
+        "path": "artifacts/muma-brand/gui-delivery/recovery-UK0Pmw/many-expanded.png",
+        "sha256": "226833ac0fe25dc03441db55e281e46cb044913ec1ae96ffd38a9a30248893e6"
+      }
+    ]
+  },
+  "historicalFailures": [
+    "docs-working.log: historical 尚未安装至正式 Moos accidentally renamed; restored, 82 checks passed.",
+    "electron-final.log: Host lifetime-pipe case exceeded unchanged 10s budget during concurrent Rust compilation; electron-recheck and electron-delivery both 80/80. No timeout/production changes.",
+    "gui-final/recovery-OMuBzp: Page.close did not finish exit; QA-only SIGKILL fallback; not accepted.",
+    "gui-recheck: Page.close required SIGTERM, failed strict assertion; not accepted.",
+    "First gui/recovery-zb8GNf UI passed but retained orphan QA Helper; verified exact QA path and sent SIGTERM only to that process. No final QA process survives."
+  ],
+  "limits": [
+    "Not installed or deployed; production /Applications/Moos.app remains 0.1.36 without rename/collapse.",
+    "Finder/Dock localized display and formal GUI/menu visual behavior not independently tested. Localized strings validated, sidebar/page checked in hidden CDP window.",
+    "Ad-hoc local build, not notarized.",
+    "No real model/image API request, only local fixture.",
+    "No user-data migration; production preservation requires separately authorized E84 update."
+  ]
+}

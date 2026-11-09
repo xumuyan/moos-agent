@@ -18,7 +18,7 @@ if (dshVersion !== '0.2.2-rc.1') throw new Error('The local Electron build requi
 const output = join(repo, '.generated', 'moos-electron');
 await mkdir(output, { recursive: true, mode: 0o700 });
 const build = await mkdtemp(join(output, 'build-'));
-const bundle = join(build, 'Moos.app');
+const bundle = join(build, 'MuMa.app');
 const electronContents = process.env.MOOS_ELECTRON_DIST
   ? join(process.env.MOOS_ELECTRON_DIST, 'Contents') : dshApp;
 const executable = execFileSync('/usr/libexec/PlistBuddy',
@@ -135,7 +135,7 @@ for (const entry of await readdir(frameworks)) {
   if (!entry.endsWith('.app') || !entry.startsWith(executable + ' Helper')) continue;
   const oldName = entry.slice(0, -4);
   const suffix = oldName.slice(executable.length);
-  const newName = 'Moos' + suffix;
+  const newName = 'MuMa' + suffix;
   const helper = join(frameworks, newName + '.app');
   await rename(join(frameworks, entry), helper);
   await rename(join(helper, 'Contents', 'MacOS', oldName), join(helper, 'Contents', 'MacOS', newName));
@@ -145,16 +145,22 @@ for (const entry of await readdir(frameworks)) {
     CFBundleIdentifier: 'dev.moos.agent.electron.helper' + (role ? '.' + role : ''),
   });
 }
-await rename(join(contents, 'MacOS', executable), join(contents, 'MacOS', 'Moos'));
+await rename(join(contents, 'MacOS', executable), join(contents, 'MacOS', 'MuMa'));
 const info = join(contents, 'Info.plist');
 for (const key of ['CFBundleURLTypes', 'ElectronAsarIntegrity', 'SUFeedURL']) {
   try { execFileSync('/usr/bin/plutil', ['-remove', key, info], { stdio: 'ignore' }); }
   catch (error) { if (error.status !== 1) throw error; }
 }
 await setInfo(info, {
-  CFBundleName: 'Moos', CFBundleDisplayName: 'Moos', CFBundleIdentifier: 'dev.moos.agent.electron',
-  CFBundleExecutable: 'Moos', CFBundleIconFile: 'moos.icns', CFBundleShortVersionString: manifest.version,
+  CFBundleName: 'MuMa', CFBundleDisplayName: 'MuMa', CFBundleIdentifier: 'dev.moos.agent.electron',
+  CFBundleExecutable: 'MuMa', CFBundleIconFile: 'moos.icns', CFBundleShortVersionString: manifest.version,
   CFBundleVersion: manifest.version,
 });
+// Localized display names do not change the stable bundle ID, partition or data directory.
+for (const [locale, displayName] of [['en', 'MuMa'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']]) {
+  const localized = join(resources, locale + '.lproj');
+  await mkdir(localized, { recursive: true });
+  await writeFile(join(localized, 'InfoPlist.strings'), `"CFBundleDisplayName" = "${displayName}";\n`);
+}
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', bundle], { stdio: 'inherit' });
 console.log(bundle);

@@ -1,6 +1,8 @@
-# Moos Electron 本机开发版
+# MuMa（沐码）Electron 本机开发版
 
-以 Moos 的 Electron 主进程打开 DSH 的原版工作台。macOS 构建阶段从 DeepSeek Harness Desktop 0.2.2-rc.1 取得 Electron 44.7.0 和工作台 Host，组装为内置 PI、Host 与插件安装器的 Moos 应用包。
+英文应用名 MuMa，中文名「沐码」。这是原 Moos 开发助手的显示名更名，MOOS 系列其他应用和 M01 探针不变。保持 Bundle ID `dev.moos.agent.electron`、既有数据目录、`persist:moos-workbench` 分区、`moos-pi` 路由和内部插件/IPC 名称不变，不迁移或重置聊天与配置。默认应用包为 `MuMa.app`，中文系统显示名为「沐码」。现有 `/Applications/Moos.app` 不会被构建命令自动替换；正式安装路径变更须在获授权的更新流程中单独核对，不能同时保留两个可启动的正式副本。
+
+以 MuMa 的 Electron 主进程打开 DSH 的原版工作台。macOS 构建阶段从 DeepSeek Harness Desktop 0.2.2-rc.1 取得 Electron 44.7.0 和工作台 Host，组装为内置 PI、Host 与插件安装器的 MuMa 应用包。
 
 ```sh
 npm run build:app
@@ -8,19 +10,19 @@ npm run build:app
 
 构建优先读取 `~/Library/Application Support/dev.moos.agent.build-sources/DeepSeek Harness.app`，也可从 `/Applications/DeepSeek Harness.app` 读取。用 `MOOS_ELECTRON_DSH_APP` 可指定其他路径。构建会检查 DSH 和 Electron 版本。
 
-在 Finder 打开命令输出的 `Moos.app`。默认数据目录为 `~/Library/Application Support/dev.moos.agent.electron`。它包含独立 DSH 数据和默认工作区。第一次运行从随包模板加载插件设置。验收可为 Moos 主程序设置绝对路径 `MOOS_ELECTRON_DATA`，使用全新临时目录。
+在 Finder 打开命令输出的 `MuMa.app`。默认数据目录为 `~/Library/Application Support/dev.moos.agent.electron`。它包含独立 DSH 数据和默认工作区。第一次运行从随包模板加载插件设置。验收可为 MuMa 主程序设置绝对路径 `MOOS_ELECTRON_DATA`，使用全新临时目录。
 
 ```sh
 npm run test:electron
 ```
 
-开发版通过本机回环提供工作台。Host 和插件安装器使用应用包内的 Moos 可执行文件，不需要另外安装 DSH、Node.js 或 pnpm。应用包使用本机临时签名，面向其他用户的分发和签名另行验收。
+开发版通过本机回环提供工作台。Host 和插件安装器使用应用包内的 MuMa 可执行文件，不需要另外安装 DSH、Node.js 或 pnpm。应用包使用本机临时签名，面向其他用户的分发和签名另行验收。
 
-Moos 启动时在现有配置之后应用随包的 `execution.patch.yml`。它停用原版内置模型适配器、工具执行器和定时任务，清空四个内置预设的工具配置。会话仍使用原版的创建、恢复和显示协议。皮肤和普通界面插件仍通过原版宿主加载。其他执行类插件需要在 PI 接入后单独验收。
+MuMa 启动时在现有配置之后应用随包的 `execution.patch.yml`。它停用原版内置模型适配器、工具执行器和定时任务，清空四个内置预设的工具配置。会话仍使用原版的创建、恢复和显示协议。皮肤和普通界面插件仍通过原版宿主加载。其他执行类插件需要在 PI 接入后单独验收。
 
-从工作台左下角进入原版「设置 → 模型」，或用 macOS 菜单「Moos → 模型服务…」打开该页。在原版提供商卡填写 Provider ID、API 地址、协议和 API 密钥，再从中转获取模型列表并勾选需要的模型，也可以手动添加模型 ID。展开各模型的高级选项可分别设置默认推理强度。保存前可选择其中一个模型测试连接。保存后，点击会话输入区的当前模型，再点弹出菜单中的「模型」切换。已配置推理强度的模型可在同一菜单中更改当前会话的推理等级。选用「Moos PI · 自动选择」时，已有 GLM 配置优先，否则使用首个已配置模型。外部服务地址须使用 HTTPS。
+从工作台左下角进入原版「设置 → 模型」，或用 macOS 菜单「MuMa → 模型服务…」打开该页。在原版提供商卡填写 Provider ID、API 地址、协议和 API 密钥，再从中转获取模型列表并勾选需要的模型，也可以手动添加模型 ID。展开各模型的高级选项可分别设置默认推理强度。保存前可选择其中一个模型测试连接。保存后，点击会话输入区的当前模型，再点弹出菜单中的「模型」切换。已配置推理强度的模型可在同一菜单中更改当前会话的推理等级。选用「MuMa PI · 自动选择」时，已有 GLM 配置优先，否则使用首个已配置模型。外部服务地址须使用 HTTPS。
 
-默认启动的 Moos 已内置 PI SDK，由本机 Host 与 Moos 调度器执行普通文本会话。服务及模型信息存于数据目录的 `providers.json`。同一服务的模型共用一条密钥记录，保存在本机 `private/credentials.json`，目录权限 0700，文件权限 0600。更改服务地址时需重新填写密钥。已有单模型配置可直接编辑并添加更多模型。
+默认启动的 MuMa 已内置 PI SDK，由本机 Host 与 MuMa 调度器执行普通文本会话。服务及模型信息存于数据目录的 `providers.json`。同一服务的模型共用一条密钥记录，保存在本机 `private/credentials.json`，目录权限 0700，文件权限 0600。更改服务地址时需重新填写密钥。已有单模型配置可直接编辑并添加更多模型。
 
 自动模式每个任务最多切换一次。首选模型在回复或调用工具前遇到额度、限流或连接错误时，切换至已配置的备用模型。常规验证命令在两轮文件修复后仍返回相同失败时，优先使用配置为 High 或 XHigh 的 OpenAI 中转模型接手，同一 PI 会话保留此前的工具结果。切换原因记录在「执行过程」。手动选定模型时按该模型运行。
 
@@ -38,14 +40,14 @@ macOS 的受限命令可使用本机配套的 Node/npm 和 Git。保留已有 PA
 
 侧栏「后台任务」显示当前所有工作区正在执行和排队的 PI 任务。点击条目回到对应会话，可用输入框旁的停止按钮结束该轮。添加工作区会在应用内打开目录选择器。
 
-用以下方式启动内置 PI 调度验收。构建命令会输出验收版 `Moos.app` 的路径。运行命令中的路径替换为该应用包里的可执行文件。
+用以下方式启动内置 PI 调度验收。构建命令会输出验收版 `MuMa.app` 的路径。运行命令中的路径替换为该应用包里的可执行文件。
 
 ```sh
 MOOS_ELECTRON_INCLUDE_PI_FIXTURE=1 npm run build:app
-MOOS_ELECTRON_PI_FIXTURE=1 MOOS_ELECTRON_DATA="$(mktemp -d)" "/path/to/Moos.app/Contents/MacOS/Moos"
+MOOS_ELECTRON_PI_FIXTURE=1 MOOS_ELECTRON_DATA="$(mktemp -d)" "/path/to/MuMa.app/Contents/MacOS/MuMa"
 ```
 
-验收模式默认选中「Moos PI · 本地调度验收」。可在默认工作区发送 `MOOS_FIXTURE_WRITE sample`，检查 `result.txt` 和对话中的工具结果。该模式只接受专用数据目录 `workspace` 下的项目和固定验收指令。PI 复用现有 Host 进程、SQLite 和 Moos 调度器。
+验收模式默认选中「MuMa PI · 本地调度验收」。可在默认工作区发送 `MOOS_FIXTURE_WRITE sample`，检查 `result.txt` 和对话中的工具结果。该模式只接受专用数据目录 `workspace` 下的项目和固定验收指令。PI 复用现有 Host 进程、SQLite 和 MuMa 调度器。
 
 PI 读取会话当前的「仅可查看」「工作区内修改」「完全权限」。在临时项目中发送 `MOOS_FIXTURE_POLICY` 可检查项目内写入及 Bash 越界行为。发送 `MOOS_FIXTURE_APPROVAL` 可在受限模式下测试一次性命令审批。受限命令由 macOS 沙箱执行，搜索通过受限 Bash 调用系统工具。
 
@@ -65,7 +67,7 @@ PI 读取会话当前的「仅可查看」「工作区内修改」「完全权�
 
 将 `MOOS_ELECTRON_TEST_DSH_CLI` 指向当前隔离构建的 `Contents/Resources/host-runtime/bin/dsh` 后，运行 `node --test apps/electron/upgrade-integration.test.mjs`。此项使用真实随包安装器，准备合成旧壳及用户插件（准备阶段可能下载依赖），实际升级使用离线命令；只操作自动创建的临时数据。
 
-显式 GUI 验收：`node scripts/verify-electron-recovery.mjs <仓库.generated/moos-electron下的Moos.app> <仓库artifacts下的输出父目录> [隔离皮肤夹具目录]`。拒绝正式安装路径；复制 QA 包并仅抑制 show() 后重签，使用 CDP 在后台窗口输入固定本地模型任务，正常退出重开并选择原会话，核对模型/合成密钥原字节、旧壳启动升级、两轮过程归属和可选皮肤；截图只存 artifacts。不能将后台窗口 DOM 检查称为正式窗口目视验收。E82 中继承分支的过程卡片缺失仍未解决，真实安装器失败回滚与完整 Swift 探针也不在通过范围。
+显式 GUI 验收：`node scripts/verify-electron-recovery.mjs <仓库.generated/moos-electron下的MuMa.app> <仓库artifacts下的输出父目录> [隔离皮肤夹具目录]`。拒绝正式安装路径；复制 QA 包并仅抑制 show() 后重签，使用 CDP 在后台窗口输入固定本地模型任务，正常退出重开并选择原会话，核对模型/合成密钥原字节、旧壳启动升级、两轮过程归属和可选皮肤；截图只存 artifacts。不能将后台窗口 DOM 检查称为正式窗口目视验收。E82 中继承分支的过程卡片缺失仍未解决，真实安装器失败回滚与完整 Swift 探针也不在通过范围。
 
 E83 分支过程修复：Host 从实际继承前缀的消息 ID 与轮次边界查找原 PI 成功任务，并核对规范化工作目录，仅新增展示引用，不复制任务、消息、工具事件或用量，不执行父任务。普通 DSH 分支不一定带 parentSession，因此不依赖该字段；有父标识时进一步核验对应轮次。最多检查继承末尾 1600 条事件，未知或不完整来源不伪造卡片。已在隔离 Electron 验证单轮分支、排除后续轮次及刷新恢复；分支整应用重启及超限前缀仍需另验。E82 中过程卡片缺失属于修复前证据，保持原记录。
 
@@ -89,3 +91,7 @@ GLM 不只支持 Chat Completions。官方 [Codex 接入](https://docs.bigmodel.
 
 
 GLM 推理档位：模型编辑中的“推理强度”仅提供官方 Responses 三档 low/high/max（轻度/增强/深度思考）加“关闭”；关闭发送 `reasoning.effort: "none"`（放弃思考），所选档位按字面值发送。旧配置中的 minimal/medium/xhigh 兼容读取，并按最近官方档降级（minimal→low、medium→high、xhigh→max）。线上格式与界面验收见 E97/E98。
+
+### MuMa / 沐码更名隔离验收
+
+`node scripts/verify-electron-brand.mjs <仓库.generated/moos-electron下的MuMa.app> <仓库artifacts下的输出父目录>`：核对签名、Bundle ID、可执行文件及中英文显示名资源，启动独立数据目录，检查实际工作台名称/标题，使用本地模拟模型执行写入 12 文件任务并检查折叠交互。拒绝正式安装路径，不读取真实聊天或密钥；后台 CDP 截图不等于正式 Finder/Dock 本地化或窗口目视验收。

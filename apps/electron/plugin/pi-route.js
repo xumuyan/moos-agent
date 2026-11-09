@@ -15,7 +15,7 @@ const effortsFor = service => service === 'glm' ? glmReasoningEfforts : reasonin
 
 export function isMoosPiAdapter(adapter) { return adapters.has(adapter); }
 
-const metadata = { provider: route, id: model, name: 'Moos PI · 本地调度验收',
+const metadata = { provider: route, id: model, name: 'MuMa PI · 本地调度验收',
   contextWindow: 128000, inputModalities: ['text'] };
 const errors = {
   model_capability: { code: 'INVALID_REQUEST', message: '所选模型没有通过本次图片输入请求' },
@@ -46,7 +46,7 @@ function sessionTitle(request) {
     try { content = JSON.parse(text.slice(prefix.length)).find(item => typeof item?.text === 'string')?.text; }
     catch { content = undefined; }
   }
-  return content?.trim().split('\n')[0].slice(0, 64) || 'Moos 会话';
+  return content?.trim().split('\n')[0].slice(0, 64) || '沐码会话';
 }
 
 async function promptInput(content, readFile, signal) {
@@ -82,9 +82,9 @@ async function promptInput(content, readFile, signal) {
 
 export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile, readImage }) {
   const selectionRequired = { type: 'finish', reason: { kind: 'error',
-    failure: { code: 'INVALID_CONFIG', message: '请在 Moos 模型服务中配置可用的模型和 API 密钥' } } };
+    failure: { code: 'INVALID_CONFIG', message: '请在 MuMa（沐码）模型服务中配置可用的模型和 API 密钥' } } };
   const modalities = enabled => enabled ? ['text', 'image'] : ['text'];
-  const auto = profiles => ({ provider: route, id: 'auto', name: 'Moos PI · 自动选择',
+  const auto = profiles => ({ provider: route, id: 'auto', name: 'MuMa PI · 自动选择',
     inputModalities: modalities(profiles.some(profile => profile.imageInput)) });
   const modelInfo = (profile, manual = true) => ({
     provider: route, id: profile.id, name: profile.name, inputModalities: modalities(profile.imageInput),
@@ -104,7 +104,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       return profile ? { ...modelInfo(profile, false), ...automatic } : automatic;
     }
     const profile = await models.resolve(id);
-    if (!profile) throw new Error('找不到所选的 Moos PI 模型');
+    if (!profile) throw new Error('找不到所选的 MuMa PI 模型');
     return modelInfo(profile);
   }
 
@@ -113,7 +113,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     const signal = request.signal ? AbortSignal.any([lifetime.signal, request.signal]) : lifetime.signal;
     if (signal.aborted) { yield aborted; return; }
     if (request.purpose === 'session-title') {
-      yield* textBlock(0, models ? sessionTitle(request) : 'Moos PI 调度验收');
+      yield* textBlock(0, models ? sessionTitle(request) : 'MuMa PI 调度验收');
       yield stop;
       return;
     }
@@ -121,7 +121,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     const user = request.messages?.findLast(message => message.role === 'user' && message.source?.kind === 'user');
     if (request.purpose || !user?.content?.every(part => ['text', 'file', 'image'].includes(part.type)) || typeof sessionId !== 'string') {
       yield models ? { type: 'finish', reason: { kind: 'error',
-        failure: { code: 'INVALID_REQUEST', message: '当前 Moos PI 路由需要工作区内的任务' } } } : rejected;
+        failure: { code: 'INVALID_REQUEST', message: '当前 MuMa PI 路由需要工作区内的任务' } } } : rejected;
       return;
     }
     const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
@@ -218,7 +218,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     }
   }
   const adapter = {
-    providerInfo: () => ({ id: route, name: 'Moos PI' }),
+    providerInfo: () => ({ id: route, name: 'MuMa PI' }),
     providerRetryPolicy: () => ({ mode: 'normal', maxRetries: 0, retryableCodes: [],
       initialDelayMs: 100, maxDelayMs: 100, jitterRatio: 0 }),
     imageRequestPricing: () => undefined,

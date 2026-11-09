@@ -23,14 +23,17 @@ if (!build.startsWith(allowedBuild) || !(await realpath(build)).startsWith(allow
 if (!resolve(output).startsWith(resolve(repo, 'artifacts') + sep)) throw new Error('Output must be inside repository artifacts');
 await mkdir(resolve(output), { recursive: true });
 const scratch = await mkdtemp(join(resolve(output), 'recovery-'));
-const app = join(scratch, 'Moos.app');
+const app = join(scratch, 'MuMa.app');
 execFileSync('/usr/bin/ditto', [build, app]);
 const resources = join(app, 'Contents/Resources');
+const executable = execFileSync('/usr/libexec/PlistBuddy',
+  ['-c', 'Print CFBundleExecutable', join(app, 'Contents/Info.plist')], { encoding: 'utf8' }).trim();
+if (!['Moos', 'MuMa'].includes(executable)) throw new Error('Unexpected isolated executable');
 const targetVersion = JSON.parse(await readFile(join(resources, 'profile-template/profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version;
 const entry = join(resources, 'app/main.mjs');
 // Only visibility is changed in this copied QA bundle. Production lifecycle,
 // IPC, renderer, PI and data paths remain the newly built modules.
-await writeFile(entry, (await readFile(entry, 'utf8')).replace("app.setName('Moos');", "BrowserWindow.prototype.show = function () {};\napp.setName('Moos');"));
+await writeFile(entry, (await readFile(entry, 'utf8')).replace(/app\.setName\('(Moos|MuMa)'\);/, match => 'BrowserWindow.prototype.show = function () {};\n' + match));
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data');
 const home = join(data, 'dsh');
@@ -59,7 +62,7 @@ async function until(fn, label) {
   throw new Error('Did not observe ' + label);
 }
 async function launch() {
-  child = spawn(join(app, 'Contents/MacOS/Moos'), ['--remote-debugging-port=0'], {
+  child = spawn(join(app, 'Contents/MacOS', executable), ['--remote-debugging-port=0'], {
     env: { ...process.env, MOOS_ELECTRON_DATA: data }, stdio: ['ignore', 'ignore', 'pipe'],
   });
   const own = child;

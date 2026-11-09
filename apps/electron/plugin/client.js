@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
       src: 'data:image/png;base64,__MOOS_SIDEBAR_ICON__',
       alt: '', width: size, height: size, draggable: false, 'data-moos-sidebar-icon': '',
     });
-    const sidebarName = () => createElement('span', { 'data-moos-sidebar-name': '' }, 'Moos');
+    const sidebarName = () => createElement('span', { 'data-moos-sidebar-name': '', title: '沐码', lang: 'en' }, 'MuMa');
     const mark = ({ size, className }) => createElement('span', {
       className, 'aria-label': 'M', role: 'img', 'data-moos-mark': '',
       style: { fontSize: size * 0.66, fontWeight: 720, lineHeight: 1 },
@@ -547,7 +547,7 @@ window.__ModuleLoader__.load({
       const title = document.querySelector('title');
       const renameTitle = () => {
         if (document.title.includes('DeepSeek Harness')) {
-          document.title = document.title.replaceAll('DeepSeek Harness', 'Moos');
+          document.title = document.title.replaceAll('DeepSeek Harness', 'MuMa · 沐码');
         }
       };
       const observer = new MutationObserver(renameTitle);

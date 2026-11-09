@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
-test('the DSH client extension registers the Moos brand and model services in the original settings section', async () => {
+test('the DSH client extension registers the MuMa brand and model services in the original settings section', async () => {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;
   const modelSettings = {};
@@ -63,7 +63,8 @@ test('the DSH client extension registers the Moos brand and model services in th
   assert.equal(icon.props.width, 24);
   assert.match(icon.props.src, /^data:image\/png;base64,/);
   assert.equal(document.documentElement.dataset.platform, 'darwin');
-  assert.equal(renderers.get('sidebar.brand.name')().children[0], 'Moos');
+  assert.equal(renderers.get('sidebar.brand.name')().children[0], 'MuMa');
+  assert.equal(renderers.get('sidebar.brand.name')().props.title, '沐码');
   assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).children[0], 'M');
   const renderSlot = () => null;
   assert.equal(renderers.get('models')({ renderSlot }).props.editor, editor);
@@ -143,10 +144,10 @@ test('the DSH client extension registers the Moos brand and model services in th
   const items = Array.isArray(listNode.children[0]) ? listNode.children[0] : listNode.children;
   assert.equal(items.length, 11, 'expanding reveals the full list');
 
-  assert.equal(document.title, 'Moos');
+  assert.equal(document.title, 'MuMa · 沐码');
   document.title = '深海女仆工坊 · DeepSeek Harness';
   changed();
-  assert.equal(document.title, '深海女仆工坊 · Moos');
+  assert.equal(document.title, '深海女仆工坊 · MuMa · 沐码');
   dispose();
   assert.equal(cleanedUp, true);
   assert.equal(document.documentElement.dataset.platform, undefined);

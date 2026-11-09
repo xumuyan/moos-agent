@@ -350,11 +350,33 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, guide)
         self.assertIn('| E85 |', (ROOT / 'PLAN.md').read_text())
 
+    def test_muma_renaming_preserves_data_identity_and_distinguishes_family_products(self):
+        plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
+        guide = (ROOT / 'apps/electron/README.md').read_text(encoding='utf-8')
+        for text in ('MuMa', '沐码', '沐言', '沐序', '沐宿', '沐声', 'AI 音乐电台'):
+            self.assertIn(text, plan)
+        for text in ('MuMa.app', 'dev.moos.agent.electron', 'persist:moos-workbench', 'moos-pi',
+                     '不迁移或重置聊天与配置', '不自动替换或重启正式安装'):
+            self.assertIn(text, guide)
+
+    def test_muma_evidence_separates_isolated_gui_from_production_deployment(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-muma-brand.json').read_text())
+        self.assertEqual(evidence['id'], 'E106')
+        self.assertEqual(evidence['branding']['name'], 'MuMa')
+        self.assertEqual(evidence['branding']['chinese'], '沐码')
+        self.assertEqual(evidence['branding']['bundleId'], 'dev.moos.agent.electron')
+        self.assertFalse(evidence['preserved']['productionDataTouched'])
+        self.assertFalse(evidence['build']['includesPiFixture'])
+        self.assertEqual(evidence['gui']['actual']['exit']['code'], 0)
+        self.assertFalse(evidence['gui']['actual']['exit']['usedTerm'])
+        self.assertEqual(evidence['gui']['scriptExitCode'], 0)
+        self.assertIn('| E106 |', (ROOT / 'PLAN.md').read_text())
+
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 11)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 12)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))
