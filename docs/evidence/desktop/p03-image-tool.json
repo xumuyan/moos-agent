@@ -5,12 +5,12 @@
   "state": "implemented-code-and-automated-acceptance-real-service-and-install-pending-user",
   "feature": {
     "trigger": "聊天模型按工具描述自主决定调用 generate_image（用户要求生成/绘制图片或任务必需新图时），不新增逐步确认",
-    "config": "<runPiSdk dataDir>/private/image-gen.json（0700 目录 + 0600 文件）：baseUrl/apiKey/model/defaults；正式应用即 <应用数据>/sessions/private/image-gen.json；密钥由用户在终端自行创建，不设设置页入口",
+    "config": "设置页「图片生成」（推荐入口，见 settingsCard）或文件回退 <runPiSdk dataDir>/private/image-gen.json（0700 目录 + 0600 文件）：baseUrl/apiKey/model/defaults；设置页元数据存 <应用数据>/private/image-gen-settings.json（0600），密钥存既有 <应用数据>/private/credentials.json（credentialId=image-gen-key，0600，与模型密钥同级保护）",
     "endpoint": "POST {baseUrl}/images/generations（OpenAI Images 兼容；云桥网关 https://api.yunqiao.me/v1，模型可配置，省略时默认 gpt-image-2.5-flare（云桥图片专用分组 原生4K 统一 0.12 元/张；该分组只支持 gpt-image-2.5-flare/2.5-sunburst，聊天 key 分组不动，生图 key 独立））",
     "output": "图片写入 <项目工作区>/images/（0600），文件名含时间戳与提示词 slug；工具结果仅返回相对路径与参数摘要，不把图片塞进模型上下文",
     "costGuards": "每次调用恰好一次付费请求（n=1），无自动重试；401/403 认证失败、429 限流或额度不足、400/404/422 参数拒绝、5xx 服务不可用均如实回报给模型与事件；只读权限会话在请求前拒绝；任务取消经 AbortSignal 中止进行中的网络请求",
     "keySafety": "密钥只在工具执行内读取与使用；不进聊天消息、持久化事件、日志与 Git；配置文件权限过宽（group/other 任一位）时调用直接拒绝并提示 chmod 600；配置为符号链接时拒绝",
-    "mountRule": "配置文件不存在时 createImageTool 返回 null，模型看不到该工具，无配置行为与改动前完全一致；挂载后每个新任务自动生效"
+    "mountRule": "无配置时 createImageTool 返回 null，模型看不到该工具，无配置行为与改动前完全一致；设置页配置经 host 每任务注入 runPiSdk 优先，未注入时回退读 <dataDir>/private/image-gen.json（文件方式仍可用）；注入配置无效时同样静默不挂载，不让任务失败；挂载后每个新任务自动生效"
   },
   "change": [
     "packages/pi-runtime/image-tool.mjs：generate_image 自定义工具（TypeBox 参数校验、参数组合预检（透明背景禁 jpeg、compression 仅 jpeg/webp）、b64_json/url 双解析、30MB 上限、错误映射）",
@@ -20,11 +20,11 @@
     "package.json：npm test 增加 packages/pi-runtime/*.test.mjs"
   ],
   "tests": {
-    "imageToolUnit": "16/16（node --test packages/pi-runtime/image-tool.test.mjs：成功落盘字节与相对路径、配置默认值与覆盖、url 下载、30MB 拒绝、401/403/429/400/500 映射且不落盘、连接失败、取消中止、只读拒绝、权限过宽拒绝、配置解析校验、文件名注入防穿越）",
+    "imageToolUnit": "17/17（node --test packages/pi-runtime/image-tool.test.mjs：成功落盘字节与相对路径、配置默认值与覆盖、url 下载、30MB 拒绝、401/403/429/400/500 映射且不落盘、连接失败、取消中止、只读拒绝、权限过宽拒绝、配置解析校验、文件名注入防穿越、设置页注入配置挂载且无需配置文件、无效注入静默不挂载、注入存在时不回退读文件）",
     "acceptanceEndToEnd": "12/12（node --test services/agent/acceptance.test.mjs，含新增 2 条：fixture 模型→generate_image→mock 服务→落盘字节与 tool_start/tool_end 事件持久化、请求头/模型/prompt/n=1 断言、密钥不出现在任何持久化消息或事件；认证失败→模型收到错误文本、任务仍终态成功、仅 1 次请求不重试、无 images 目录）",
-    "core": "159/159（HOME=/Users/xuguopeng TMPDIR=/private/tmp npm test，无跳过）",
-    "electron": "75/75 无跳过（新增 packaging.test.mjs 打包清单防回归；MOOS_ELECTRON_TEST_DSH_CLI=build-vsiPph host-runtime/bin/dsh）",
-    "docs": "待本轮提交前运行 test_repository_docs 后在操作日志记录"
+    "core": "160/160（HOME=/Users/xuguopeng TMPDIR=/private/tmp npm test，无跳过；含 image-tool 新增注入模式用例）",
+    "electron": "77/77 无跳过（MOOS_ELECTRON_TEST_DSH_CLI=build-GTPRV2 host-runtime/bin/dsh、MOOS_ELECTRON_TEST_SKIN_CENTER=本机 0.4.16 插件目录、MOOS_ELECTRON_TEST_REVIEWED_MAID=本机审核皮肤目录；含 pi-models 图片设置回路、client 设置区渲染、window-preload moosImageGen bridge、packaging 清单防回归）",
+    "docs": "2026-11-09 本轮提交前 npm run test:docs 通过，结果记入操作日志"
   },
   "envNote": "核心套件首跑 158/159：probes/m01/native.test.mjs 的 xcrun swiftc SIGTRAP。定位为沙箱 TMPDIR 指向含中文的仓库路径导致 swift-driver 在 libSwiftToolsSupport 崩溃（崩溃报告 /Users/xuguopeng/Library/Logs/DiagnosticReports/swift-driver-*.ips）；与本次改动无关，按既有环境模板 HOME=/Users/xuguopeng TMPDIR=/private/tmp 重跑后全量通过",
   "limits": [
@@ -44,8 +44,8 @@
     "tested": "单元 16/16 含默认值断言；acceptance 12/12 不变（端到端用显式 model）"
   },
   "build": {
-    "id": "build-KGRyN7",
-    "shellVersion": "0.1.35",
+    "id": "build-GTPRV2",
+    "shellVersion": "0.1.36",
     "codesign": "--verify --deep --strict SIGN_OK",
     "identity": "dev.moos.agent.electron",
     "includesPiFixture": false,
@@ -55,10 +55,22 @@
       "tested": "单元 16/16（默认 size=auto 断言、配置覆盖断言）；acceptance 12/12；核心 159/159；Electron 75/75（build-KGRyN7 bin/dsh）"
     },
     "packagedChecks": [
-      "Resources/pi-runtime/packages/pi-runtime/image-tool.mjs 在包内（含 size auto 默认与构图指引）",
-      "sdk-runtime.mjs 含 createImageTool 挂载（3 处）",
-      "moos-electron-shell 版本 0.1.35（profile-template 内清单）",
-      "moos-runtime.json includesPiFixture=false、codesign --deep --strict 通过"
-    ]
-  }
+      "Resources/pi-runtime/packages/pi-runtime/image-tool.mjs 在包内（含 normalizeImageGenConfig 注入校验与 size auto 默认）",
+      "Resources/pi-runtime/packages/pi-runtime/sdk-runtime.mjs 含 imageGen 注入透传（3 处）",
+      "profile-template 内 moos-electron-shell 版本 0.1.36；client.js 含 data-moos-image-settings 设置区；host.js 含 imageGen() 注入",
+      "Resources/app/window-preload.cjs 含 moosImageGen bridge；app/main.mjs 含 moos:image-gen:status/save/test 三个 IPC",
+      "mock-images-server.mjs 不随包分发（仅测试用，prepare-local 清单未含，属预期）",
+      "moos-runtime.json includesPiFixture=false、codesign --deep --strict 通过（SIGN_OK，identity dev.moos.agent.electron）"
+    ],
+    "settingsNote": "build 链：build-KGRyN7（0.1.35，仅 Terminal 文件配置）→ build-GTPRV2（0.1.36，新增设置页配置）；build-G7DpE4（漏打包文件）与 build-vsiPph（旧 1024x1024 默认）均已废弃"
+  },
+  "settingsCard": {
+    "change": "应用户要求新增设置页「图片生成」配置项（settings.section order 15，位于模型服务与用量之间）：启用开关、服务地址、模型 ID、API 密钥（password，留空保持已存密钥）、测试连接、保存；仅在 preload 暴露 moosImageGen bridge 时渲染",
+    "storage": "元数据 <应用数据>/private/image-gen-settings.json（0600；禁用时保留其余字段便于恢复）；密钥存既有 private/credentials.json（credentialId=image-gen-key；聊天模型连接保存/删除不会清理该密钥；换地址后留空密钥提交被拒绝，防止跨地址复用密钥）",
+    "testConnection": "GET {baseUrl}/models 仅验证认证与连通，零费用、不发付费生成请求；401/403 提示检查密钥及其分组（gpt-image-2.5 需绑定云桥图片专用分组）",
+    "runtime": "apps/electron/plugin/host.js 每个非 fixture 任务读 models.imageGen() 注入 runPiSdk；packages/pi-runtime/sdk-runtime.mjs 传 config 给 createImageTool（注入优先，文件回退）；packages/pi-runtime/image-tool.mjs 导出 normalizeImageGenConfig 校验注入对象",
+    "ui": "apps/electron/plugin/client.js 新增 ImageGenSettings 组件（说明文案注明密钥分组要求、真实生成计费、测试连接不扣费）；apps/electron/window-preload.cjs 暴露 window.moosImageGen.status/save/test；apps/electron/main.mjs 新增 moos:image-gen:status/save/test IPC",
+    "tests": "pi-models 新增图片配置回路测试（默认模型保存、测试连接零费用且不泄露密钥、401 认证失败提示、留空密钥换地址拒绝、自定义模型、禁用保留字段、无效输入、与聊天模型连接共存、removeGroup 不删图片密钥、元数据不含密钥且 0600）；image-tool 新增注入模式测试（挂载/无效注入不挂载/无文件不回退）；client 设置区渲染测试（字段顺序、密钥 password、说明文案、form onSubmit 保存路径、测试连接按钮）；window-preload bridge 测试更新"
+  },
+  "settingsCardTime": "2026-11-09 13:54:00 +08:00"
 }

@@ -57,7 +57,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images, imageGen }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   if (images?.length && !provider.imageInput) throw new TaskFailure('model_capability');
@@ -125,7 +125,9 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     async function createSession() {
       const base = permissions && workspaceTools(cwd, permissions);
       // 图片服务未配置时 createImageTool 返回 null，模型看不到该工具；配置后每个新任务自动挂载。
-      const image = await createImageTool({ cwd, dataDir, getMode: permissions ? () => permissions.getMode() : undefined });
+      // 设置页配置经 host 注入（imageGen），未注入时回退读 <dataDir>/private/image-gen.json。
+      const image = await createImageTool({ cwd, dataDir, getMode: permissions ? () => permissions.getMode() : undefined,
+        ...(imageGen !== undefined ? { config: imageGen } : {}) });
       const customTools = image ? [...(base ?? []), image] : base;
       const toolNames = image
         ? [...(base ? base.map(tool => tool.name) : defaultToolNames), image.name]

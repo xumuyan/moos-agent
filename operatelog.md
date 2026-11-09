@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-09 14:10:30 +08:00｜P03.13.9：设置页新增「图片生成」配置项并重建 build-GTPRV2
+
+- 修改或新增内容：按用户要求在设置里加图片生成配置项。设置→图片生成（order 15，位于模型服务与用量之间）：启用开关、服务地址（默认占位云桥 `https://api.yunqiao.me/v1`）、模型 ID（默认 gpt-image-2.5-flare）、API 密钥（password，留空保持已存密钥）、测试连接、保存。元数据存 `<应用数据>/private/image-gen-settings.json`（0600，禁用时保留其余字段便于恢复）；密钥存既有 `private/credentials.json`（credentialId=image-gen-key，0600，与模型密钥同级保护；聊天连接保存/删除不会清理该密钥；换地址后留空密钥提交被拒绝）。测试连接仅 GET {baseUrl}/models 验证认证与连通，零费用不发付费请求；401/403 提示检查密钥及其分组。运行时：`plugin/host.js` 每个非 fixture 任务读 `models.imageGen()` 注入 `runPiSdk`；`sdk-runtime.mjs` 透传 config；`image-tool.mjs` 导出 `normalizeImageGenConfig` 校验注入对象（注入优先，无注入时回退读原 `<dataDir>/private/image-gen.json` 文件方式，注入无效静默不挂载不让任务失败）。UI：`plugin/client.js` 新增 ImageGenSettings 组件（说明文案注明密钥分组要求、真实生成计费、测试连接不扣费）；`window-preload.cjs` 暴露 `window.moosImageGen.status/save/test`；`main.mjs` 新增 `moos:image-gen:status/save/test` IPC。mock-images-server 增加 GET /models（测试专用，不随包分发）。壳版本 bump 0.1.35 → 0.1.36。
+- 遇到的难题：Images API 无免费端点，测试连接不能发真实生成请求（每次约 0.12 元），否则设置页每次测试都扣费；首次保存留空密钥会覆盖语义不清；禁用后重启用需要保留地址；注入配置校验失败若直接抛错会让每个任务失败。
+- 处理方式：测试连接改用 GET /models（OpenAI 兼容网关标准端点，云桥指南同源），只验证认证与连通，UI 明确标注“不发起付费请求”；首次保存必须提供密钥（validKey 校验），已存密钥仅在地址不变时留空保留；禁用时保留其余字段；注入配置校验失败返回 null（不挂载工具）与未配置行为一致，不让任务失败；mock 服务器补 GET /models 供零费用自动化验证。
+- 验证结果：`node --test packages/pi-runtime/image-tool.test.mjs` 17/17（新增注入模式用例）；`node --test services/agent/acceptance.test.mjs` 12/12 不变；核心 `npm test`（HOME=/Users/xuguopeng TMPDIR=/private/tmp）160/160 无跳过；Electron 全套 77/77 无跳过（MOOS_ELECTRON_TEST_DSH_CLI=build-GTPRV2 host-runtime/bin/dsh、SKIN_CENTER=本机 0.4.16 插件目录、REVIEWED_MAID=本机审核皮肤目录；含 pi-models 图片配置回路、client 设置区渲染、preload bridge、打包清单防回归）；重建 0.1.36（build-GTPRV2）：codesign --deep --strict SIGN_OK、身份 dev.moos.agent.electron、includesPiFixture=false，包内核验 shell 0.1.36、client.js 含 data-moos-image-settings、preload 含 moosImageGen、main.mjs 含三个 IPC、host.js 含 imageGen() 注入、pi-runtime image-tool.mjs 含 normalizeImageGenConfig、mock 服务器不随包分发属预期；`npm run test:docs` 81/81（含本次更新的证据 settingsCard/E101/新日志条目断言）。
+- 实际验收：设置页卡片与保存/测试连接的界面验收待用户在正式安装 0.1.36 后目视执行；真实云桥扣费生成仍待用户配置图片分组密钥后自测；构建为隔离验收，未安装、未触碰生产数据。
+- 遗留问题：正式安装待用户授权（当前正式应用仍为 0.1.34）；真实服务验收（含 auto 尺寸实际分辨率、flare 与 sunburst 视觉差异）待用户执行；参考图编辑（/v1/images/edits）不在本期范围。
+- 对应 Git 提交：唯一说明 `feat(P03.13.9): settings-page image generation card`；查询 `git log --all --oneline --grep='^feat(P03.13.9): settings-page image generation card$'`。
+
 ## 2026-11-09 14:04:10 +08:00｜P03.13.9：图片尺寸按聊天内容自动决定并重建 build-KGRyN7
 
 - 修改或新增内容：按用户要求图片大小也由聊天自动决定。`image-tool.mjs` 配置默认 size 从 1024x1024 改为 auto（云桥指南支持的枚举值，服务按画面内容自动选择）；工具 description 与 promptGuidelines 引导模型：聊天中用户明确说横/竖/方或用途（壁纸、海报、头像）时显式传 1536x1024 / 1024x1536 / 1024x1024，未说明不传 size 由服务自动选，不反复追问。单元测试默认断言同步更新。

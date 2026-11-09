@@ -53,12 +53,16 @@ export async function apply(ctx) {
     async run(options) {
       const provider = fixtureProvider ?? options.provider;
       const apiKey = fixture?.apiKey ?? await models.credential(provider);
+      let imageGen;
+      if (models) imageGen = await models.imageGen().catch(() => null);
       let backup;
       if (models && options.backup) {
         const key = await models.credential(options.backup.provider).catch(() => undefined);
         if (key) backup = { ...options.backup, apiKey: key };
       }
-      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'), routing: { backup } });
+      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
+        // 设置页图片服务配置优先；未配置时 sdk-runtime 回退读 private/image-gen.json（无则不挂载工具）。
+        ...(models ? { imageGen: imageGen ?? null } : {}), routing: { backup } });
     },
   });
   try {

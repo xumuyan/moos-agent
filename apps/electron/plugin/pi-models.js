@@ -23,6 +23,9 @@ export function piModels(data, checkedProvider) {
   const privateRoot = join(data, 'private');
   const profilePath = join(data, 'providers.json');
   const credentialPath = join(privateRoot, 'credentials.json');
+  const imageGenPath = join(privateRoot, 'image-gen-settings.json');
+  const imageGenKeyId = 'image-gen-key';
+  const imageDefaultModel = 'gpt-image-2.5-flare';
   let writes = Promise.resolve();
 
   function validate(row) {
@@ -120,6 +123,96 @@ export function piModels(data, checkedProvider) {
     const apiKey = input.apiKey === '' || input.apiKey === undefined
       ? await credential(provider).catch(() => undefined) : input.apiKey;
     return diagnoseProvider('test_provider', { provider, apiKey });
+  }
+
+  // 图片服务（云桥 OpenAI Images 兼容）：元数据存 private/image-gen-settings.json，密钥与模型密钥同文件同级保护。
+  async function imageGen() {
+    const rows = await json(imageGenPath, null);
+    if (!rows || rows.enabled === false) return null;
+    if (typeof rows.baseUrl !== 'string' || !/^https?:\/\//.test(rows.baseUrl) ||
+        typeof rows.model !== 'string' || !rows.model.trim() || rows.model.length > 200 || /[\x00-\x1f\x7f]/.test(rows.model) ||
+        typeof rows.credentialId !== 'string' || !configId.test(rows.credentialId)) return null;
+    const keys = await credentials().catch(() => ({}));
+    const entry = Object.hasOwn(keys, rows.credentialId) && keys[rows.credentialId];
+    if (!entry || entry.baseUrl !== rows.baseUrl || !validKey(entry.apiKey)) return null;
+    return { baseUrl: rows.baseUrl, model: rows.model, apiKey: entry.apiKey };
+  }
+
+  async function imageStatus() {
+    const rows = await json(imageGenPath, null);
+    const keys = await credentials().catch(() => ({}));
+    if (!rows || typeof rows !== 'object') return { enabled: false, baseUrl: '', model: imageDefaultModel, keyConfigured: false };
+    const keyId = typeof rows.credentialId === 'string' && configId.test(rows.credentialId) ? rows.credentialId : '';
+    const entry = keyId && Object.hasOwn(keys, keyId) && keys[keyId];
+    return {
+      enabled: rows.enabled !== false,
+      baseUrl: typeof rows.baseUrl === 'string' ? rows.baseUrl : '',
+      model: typeof rows.model === 'string' && rows.model.trim() ? rows.model : imageDefaultModel,
+      ...(keyId ? { credentialId: keyId } : {}),
+      keyConfigured: Boolean(entry && entry.apiKey),
+    };
+  }
+
+  function saveImageGen(input) {
+    return serialize(async () => {
+      if (!input || typeof input !== 'object') throw new Error('Invalid Moos image settings');
+      if (input.enabled === false) {
+        // 禁用时保留其余字段，重新启用时可直接恢复地址与模型。
+        const previous = await json(imageGenPath, null);
+        await replace(imageGenPath, { ...(previous && typeof previous === 'object' && !Array.isArray(previous) ? previous : {}),
+          enabled: false });
+        return imageStatus();
+      }
+      let baseUrl = typeof input.baseUrl === 'string' ? input.baseUrl.trim() : '';
+      if (!/^https?:\/\//.test(baseUrl)) throw new Error('Invalid Moos image base URL');
+      while (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+      const model = typeof input.model === 'string' && input.model.trim() ? input.model.trim() : imageDefaultModel;
+      if (model.length > 200 || /[\x00-\x1f\x7f]/.test(model)) throw new Error('Invalid Moos image model');
+      const previous = await json(imageGenPath, null);
+      const keys = await prepareCredentials();
+      const previousKey = previous && typeof previous.credentialId === 'string' &&
+        Object.hasOwn(keys, previous.credentialId) ? keys[previous.credentialId] : undefined;
+      const key = input.apiKey === '' || input.apiKey === undefined
+        ? (previousKey?.baseUrl === baseUrl && previousKey.apiKey) : input.apiKey;
+      if (!validKey(key)) throw new Error('Missing or invalid Moos image API key');
+      const credentialId = previousKey?.baseUrl === baseUrl && previous && typeof previous.credentialId === 'string'
+        ? previous.credentialId : imageGenKeyId;
+      await replace(credentialPath, { ...keys, [credentialId]: { baseUrl, apiKey: key } });
+      await replace(imageGenPath, { enabled: true, baseUrl, model, credentialId });
+      return imageStatus();
+    });
+  }
+
+  async function testImageGen(input) {
+    const started = performance.now();
+    const finish = (ok, status, message) => ({ ok,
+      ...(status === undefined ? {} : { status }), message, elapsedMs: Math.round(performance.now() - started) });
+    let baseUrl = typeof input?.baseUrl === 'string' ? input.baseUrl.trim() : '';
+    if (!/^https?:\/\//.test(baseUrl)) return finish(false, undefined, '请先填写 http(s) 服务地址');
+    while (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+    let apiKey = input?.apiKey;
+    if (apiKey === '' || apiKey === undefined) {
+      const rows = await json(imageGenPath, null);
+      const keys = await credentials().catch(() => ({}));
+      const entry = rows && typeof rows.credentialId === 'string' && configId.test(rows.credentialId) && keys[rows.credentialId];
+      apiKey = entry?.baseUrl === baseUrl ? entry.apiKey : undefined;
+    }
+    if (typeof apiKey !== 'string' || !validKey(apiKey)) return finish(false, undefined, '请先填写密钥');
+    // GET /models 仅验证认证与连通，不发起付费生成请求。
+    try {
+      const response = await fetch(`${baseUrl}/models`, {
+        headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json' },
+        signal: AbortSignal.timeout(15000), redirect: 'manual',
+      });
+      if (response.status === 200) return finish(true, 200, '图片服务验证成功 · 密钥有效（未发起付费请求）');
+      const bodyText = await response.text().catch(() => '');
+      if (response.status === 401 || response.status === 403) {
+        return finish(false, response.status, '认证失败 · 请检查密钥及其分组（gpt-image-2.5 需绑定图片专用分组）');
+      }
+      return finish(false, response.status, `服务返回 HTTP ${response.status}${bodyText ? ' · ' + bodyText.slice(0, 160) : ''}`);
+    } catch (error) {
+      return finish(false, undefined, `无法连接图片服务 · ${error?.cause?.code ?? error?.name ?? '网络错误'}`);
+    }
   }
 
   async function replace(path, value) {
@@ -283,5 +376,6 @@ export function piModels(data, checkedProvider) {
     });
   }
 
-  return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, removeGroup, diagnoseGroup };
+  return { list, resolve, plan, credential, save, testConnection, groups, saveGroup, removeGroup, diagnoseGroup,
+    imageGen, imageStatus, saveImageGen, testImageGen };
 }

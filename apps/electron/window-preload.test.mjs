@@ -39,7 +39,7 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin', fullscreen: 'true' });
   events.get('moos:window-fullscreen')({}, false);
   assert.deepEqual(document.documentElement.dataset, { moosWindow: 'darwin' });
-  assert.deepEqual([...bridges.keys()], ['moosUsage', 'moosTurn', 'moosActiveTasks', 'moosModelSettings']);
+  assert.deepEqual([...bridges.keys()], ['moosUsage', 'moosTurn', 'moosActiveTasks', 'moosModelSettings', 'moosImageGen']);
   bridges.get('moosUsage').summary();
   bridges.get('moosUsage').latest('session-id');
   bridges.get('moosTurn')('session-id', 12);
@@ -51,6 +51,10 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
   settings.remove('relay');
   settings.discover(draft);
   settings.test(draft);
+  const imageGen = bridges.get('moosImageGen');
+  imageGen.status();
+  imageGen.save({ enabled: true });
+  imageGen.test({ baseUrl: 'https://x/v1' });
   let opened = 0;
   const unsubscribe = settings.onOpen((...args) => { assert.deepEqual(args, []); opened++; });
   events.get('moos:open-model-settings')({});
@@ -61,5 +65,6 @@ test('the workbench gets the macOS layout even when fullscreen arrives before th
     ['moos:pi-usage', null], ['moos:pi-usage', 'session-id'], ['moos:pi-turn', 'session-id', 12], ['moos:pi-active'],
     ['moos:models:list'], ['moos:models:save', draft], ['moos:models:remove', 'relay'],
     ['moos:models:discover', draft], ['moos:models:test', draft],
+    ['moos:image-gen:status'], ['moos:image-gen:save', { enabled: true }], ['moos:image-gen:test', { baseUrl: 'https://x/v1' }],
   ]);
 });

@@ -136,3 +136,96 @@ test('the DSH client extension registers the Moos brand and model services in th
   assert.equal(cleanedUp, true);
   assert.equal(document.documentElement.dataset.platform, undefined);
 });
+
+test('the settings page exposes an image generation card wired to the moosImageGen bridge', async () => {
+  const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
+  let entry;
+  let statusResolve;
+  const imageGen = {
+    status: () => new Promise(resolve => { statusResolve = resolve; }),
+    save: async input => ({ enabled: true, baseUrl: input.baseUrl, model: input.model || 'gpt-image-2.5-flare',
+      credentialId: 'image-gen-key', keyConfigured: true }),
+    test: async () => ({ ok: true, status: 200, message: '图片服务验证成功 · 密钥有效（未发起付费请求）', elapsedMs: 8 }),
+  };
+  const document = {
+    documentElement: { dataset: { moosWindow: 'darwin' } },
+    title: 'DeepSeek Harness',
+    createElement: () => ({ remove() {} }),
+    querySelector: () => ({}),
+    head: { append() {} },
+  };
+  runInNewContext(source, {
+    document,
+    clearTimeout,
+    MutationObserver: class { constructor() {} observe() {} disconnect() {} },
+    window: {
+      __ModuleLoader__: { load(value) { entry = value; } },
+      moosImageGen: imageGen,
+    },
+  });
+  const editor = { styles: { input: 'dsh-input', selectInput: 'dsh-select', field: 'f', fieldLabel: 'l',
+    section: 's', title: 't' } };
+  const elements = [];
+  let setState;
+  let stateValue;
+  const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-settings-models' ? { moosEditor: editor } : ({
+    Button() {},
+    createElement: (element, props, ...children) => { const node = { element, props, children }; elements.push(node); return node; },
+    useState: value => [stateValue ?? value, updater => { setState = updater; }],
+    useEffect: callback => { callback(); },
+    useRef: () => ({}),
+  }));
+  const registrations = [];
+  plugin.apply({
+    locale: { bind: () => key => key },
+    slots: {
+      inject(_slot, register) { register(); },
+      register(spec, component) { registrations.push([spec, component]); },
+    },
+    on() {},
+  });
+  const imageSpec = registrations.find(([spec]) => spec.id === 'moos-image');
+  assert.ok(imageSpec, 'image settings section must register');
+  assert.equal(imageSpec[0].order, 15);
+  assert.equal(imageSpec[0].label(), '图片生成');
+  const component = imageSpec[1];
+  const vnode = component({});
+  assert.equal(vnode.element, undefined || vnode.element.name === undefined ? vnode.element : vnode.element, 'lazy component reference');
+  const form = vnode.element(vnode.props);
+  assert.equal(form.props['data-moos-image-settings'], '');
+  assert.equal(form.children[0].children[0], '图片生成');
+  // 加载中仍渲染停用态字段（不抛错），status promise 完成后经 setState 更新。
+  assert.equal(form.children[1].children[1].props['aria-label'], '启用图片生成');
+  statusResolve({ enabled: true, baseUrl: 'https://api.yunqiao.me/v1', model: 'gpt-image-2.5-flare',
+    credentialId: 'image-gen-key', keyConfigured: true });
+  await Promise.resolve();
+  stateValue = { status: 'ready', enabled: true, baseUrl: 'https://api.yunqiao.me/v1',
+    model: 'gpt-image-2.5-flare', keyConfigured: true };
+  const enabled = component({}).element(component({}).props);
+  const grid = enabled.children[2];
+  const labels = grid.children.filter(child => child.props?.className === 'f')
+    .map(label => label.children[0].children[0]);
+  assert.deepEqual(labels, ['服务地址', '模型 ID', 'API 密钥']);
+  const keyInput = grid.children[2].children[1];
+  assert.equal(keyInput.props.type, 'password');
+  assert.match(keyInput.props.placeholder, /已保存，留空保持不变/);
+  const note = grid.children[3];
+  assert.match(note.children[0], /图片专用分组/);
+  assert.match(note.children[0], /不发起付费请求/);
+  const buttons = grid.children[4].children;
+  assert.equal(buttons[0].props.type, 'button');
+  assert.equal(typeof buttons[0].props.onClick, 'function', 'test-connection button is clickable');
+  // 保存按钮靠 form onSubmit 提交；用启用态的 form 触发以验证 save 路径走 window.moosImageGen.save。
+  let saved;
+  imageGen.save = async input => { saved = input;
+    return { enabled: true, baseUrl: input.baseUrl, model: 'gpt-image-2.5-flare', credentialId: 'image-gen-key', keyConfigured: true }; };
+  const enabledForm = component({}).element(component({}).props);
+  await enabledForm.props.onSubmit({ preventDefault() {} });
+  assert.equal(saved.enabled, true);
+  assert.equal(saved.baseUrl, 'https://api.yunqiao.me/v1');
+  assert.equal(saved.model, 'gpt-image-2.5-flare');
+  assert.equal(saved.apiKey, '', 'empty key keeps the saved credential');
+  // 测试连接路径不触发 save。
+  await buttons[0].props.onClick();
+  assert.equal(saved.apiKey, '');
+});

@@ -173,6 +173,73 @@ window.__ModuleLoader__.load({
         }));
     }
 
+    function ImageGenSettings({ styles }) {
+      const [state, setState] = useState({ status: 'loading', enabled: false, baseUrl: '', model: 'gpt-image-2.5-flare', keyConfigured: false });
+      const [busy, setBusy] = useState(false);
+      const [message, setMessage] = useState();
+      useEffect(() => {
+        let closed = false;
+        window.moosImageGen.status().then(status => { if (!closed) setState({ status: 'ready', ...status }); })
+          .catch(() => { if (!closed) setState(value => ({ ...value, status: 'error' })); });
+        return () => { closed = true; };
+      }, []);
+      const field = (label, element) => createElement('label', { className: styles.field },
+        createElement('span', { className: styles.fieldLabel }, label), element);
+      const input = (value, onChange, props) => createElement('input', { className: styles.input, value,
+        onChange: event => onChange(event.target.value), ...props });
+      async function save(event) {
+        event?.preventDefault();
+        setBusy(true); setMessage(undefined);
+        try {
+          const next = await window.moosImageGen.save({
+            enabled: state.enabled, baseUrl: state.baseUrl.trim(), model: state.model.trim(),
+            ...(state.apiKey ? { apiKey: state.apiKey } : { apiKey: '' }),
+          });
+          setState(value => ({ ...value, status: 'ready', ...next, apiKey: undefined }));
+          setMessage({ ok: true, text: next.enabled ? '已保存。图片生成工具在启用后对新任务生效。' : '已停用图片生成。' });
+        } catch {
+          setMessage({ ok: false, text: '保存失败。请检查地址、模型 ID 和密钥；地址变更后需重新填写密钥。' });
+        } finally { setBusy(false); }
+      }
+      async function test() {
+        setBusy(true); setMessage(undefined);
+        try {
+          const result = await window.moosImageGen.test({ baseUrl: state.baseUrl.trim(),
+            ...(state.apiKey ? { apiKey: state.apiKey } : { apiKey: '' }) });
+          setMessage({ ok: result.ok, text: [result.message, result.status && 'HTTP ' + result.status,
+            result.elapsedMs + ' 毫秒'].filter(Boolean).join(' · ') });
+        } catch { setMessage({ ok: false, text: '测试连接失败，请重试。' }); }
+        finally { setBusy(false); }
+      }
+      return createElement('form', { className: styles.section, 'data-moos-image-settings': '', onSubmit: save },
+        createElement('h2', { className: styles.title }, '图片生成'),
+        createElement('label', { className: styles.field,
+          style: { flexDirection: 'row', alignItems: 'center', gap: 8 } },
+          createElement('span', { className: styles.fieldLabel }, '启用图片生成'), createElement('input', {
+            type: 'checkbox', checked: state.enabled === true, disabled: busy,
+            'aria-label': '启用图片生成',
+            onChange: event => setState(value => ({ ...value, enabled: event.target.checked })),
+          })),
+        state.enabled ? createElement('div', { style: { display: 'grid', gap: 10 } },
+          field('服务地址', input(state.baseUrl, value => setState(value2 => ({ ...value2, baseUrl: value })),
+            { placeholder: 'https://api.yunqiao.me/v1', disabled: busy, autoComplete: 'off', 'aria-label': '图片服务地址' })),
+          field('模型 ID', input(state.model, value => setState(value2 => ({ ...value2, model: value })),
+            { placeholder: 'gpt-image-2.5-flare', disabled: busy, autoComplete: 'off', 'aria-label': '图片模型 ID' })),
+          field('API 密钥', input(state.apiKey ?? '', value => setState(value2 => ({ ...value2, apiKey: value })),
+            { type: 'password', placeholder: state.keyConfigured ? '已保存，留空保持不变' : '粘贴图片专用分组的密钥',
+              disabled: busy, autoComplete: 'new-password', 'aria-label': '图片服务密钥' })),
+          createElement('p', { role: 'note', style: noteStyle },
+            '密钥需来自支持图片模型的分组（云桥的「图片专用分组 原生4K」只支持 gpt-image-2.5 系列）。每次真实生成会计费；尺寸与构图由聊天内容自动决定。测试连接只验证认证，不发起付费请求。'),
+          createElement('div', { style: { display: 'flex', gap: 8 } },
+            createElement(Button, { type: 'button', variant: 'outline', size: 'sm', onClick: test,
+              disabled: busy }, busy ? '正在测试…' : '测试连接'),
+            createElement(Button, { type: 'submit', size: 'sm', disabled: busy }, busy ? '正在保存…' : '保存')),
+          message ? createElement('p', { role: 'status', style: noteStyle }, message.text) : null,
+        ) : createElement('p', { role: 'note', style: noteStyle },
+          '启用后聊天模型可在需要时自动生成图片并保存到项目工作区 images/ 目录；未启用时该工具不可见。'),
+        state.status === 'error' ? createElement('p', { role: 'status', style: noteStyle }, '图片服务配置读取失败，请重试。') : null);
+    }
+
     function UsageSettings({ t, TurnUsagePanel, styles }) {
       const [refresh, setRefresh] = useState(0);
       const result = useUsage(null, refresh);
@@ -338,6 +405,13 @@ window.__ModuleLoader__.load({
           children: { 'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
             'settings.models.footer': { kind: 'list', scope: 'root' } },
         }, ({ renderSlot }) => createElement(ModelSettings, { editor: moosEditor, t, renderSlot })));
+      }
+      if (window.moosImageGen) {
+        const t = ctx.locale.bind('settings.models');
+        const { moosEditor } = require('@deepseek-ai/dsh-client-ui-settings-models');
+        ctx.slots.inject('settings.section', () => ctx.slots.register({
+          name: 'settings.section', id: 'moos-image', order: 15, label: () => '图片生成',
+        }, () => createElement(ImageGenSettings, { styles: moosEditor.styles })));
       }
       if (window.moosUsage) {
         const { TurnUsagePanel } = require('@deepseek-ai/dsh-client-ui-chat');

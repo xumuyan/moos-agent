@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { chmod, mkdtemp, mkdir, readdir, readFile, rm, writeFile, lstat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -193,4 +194,31 @@ test('generated filenames stay inside the images directory for hostile prompts',
   assert.ok(!saved[0].includes('/'));
   assert.ok(!saved[0].includes('..'));
   assert.match(result.content[0].text, /中文标题-第二章|中文标题/);
+});
+
+test('generate_image mounts from host-injected settings config without any config file', async t => {
+  const { cwd, dataDir } = await workspace(); t.after(() => rm(join(cwd, '..'), { recursive: true, force: true }));
+  const mock = await startMockImagesServer({ apiKey: 'sk-image-test' }); t.after(() => mock.close());
+  mock.setPlan([{ status: 200, body: { created: 1, data: [{ b64_json: PNG_BYTES.toString('base64') }] } }]);
+  // 无文件配置时默认不挂载。
+  assert.equal(await createImageTool({ cwd, dataDir }), null);
+  // host 注入设置页配置后挂载，且无需 dataDir 文件。
+  const tool = await createImageTool({ cwd, getMode: () => 'workspace-write',
+    config: { baseUrl: mock.baseUrl, apiKey: 'sk-image-test', model: 'gpt-image-2.5-flare' } });
+  assert.ok(tool);
+  const result = await tool.execute('call_i', { prompt: '设置页配置注入的图片' }, undefined);
+  assert.match(result.content[0].text, /images[/\\]/);
+  const request = mock.requests[0];
+  assert.equal(request.url, '/v1/images/generations');
+  assert.equal(request.authorization, 'Bearer sk-image-test');
+  assert.equal(request.body.model, 'gpt-image-2.5-flare');
+  // 注入配置无效（缺密钥/坏地址）→ 静默不挂载，不让任务失败。
+  assert.equal(await createImageTool({ cwd, config: { baseUrl: mock.baseUrl } }), null);
+  assert.equal(await createImageTool({ cwd, config: { baseUrl: 'not-a-url', apiKey: 'sk-image-test' } }), null);
+  assert.equal(await createImageTool({ cwd, config: null }), null);
+  // 注入配置存在但 dataDir 无文件：execute 仍用注入配置，不回退读文件。
+  mock.setPlan([{ status: 200, body: { created: 1, data: [{ b64_json: PNG_BYTES.toString('base64') }] } }]);
+  await tool.execute('call_j', { prompt: '第二次' }, undefined);
+  assert.equal(mock.requests.length, 2);
+  assert.ok(!existsSync(join(dataDir, 'private')));
 });

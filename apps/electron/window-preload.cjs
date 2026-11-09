@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld('moosModelSettings', {
     return () => ipcRenderer.removeListener('moos:open-model-settings', listener);
   },
 });
+contextBridge.exposeInMainWorld('moosImageGen', {
+  status: () => ipcRenderer.invoke('moos:image-gen:status'),
+  save: input => ipcRenderer.invoke('moos:image-gen:save', input),
+  test: input => ipcRenderer.invoke('moos:image-gen:test', input),
+});
 
 let fullscreen = false;
 function syncLayout() {

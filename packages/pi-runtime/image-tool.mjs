@@ -56,6 +56,11 @@ export function parseImageGenConfig(raw) {
     throw new Error('图片服务配置不是有效 JSON');
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('图片服务配置必须是 JSON 对象');
+  return normalizeImageGenConfig(parsed);
+}
+
+/** 校验设置页/host 注入的图片服务配置对象（与文件格式同构）；返回统一形状。 */
+export function normalizeImageGenConfig(parsed) {
   let baseUrl = requireText(parsed.baseUrl, 'baseUrl');
   if (!/^https?:\/\//.test(baseUrl)) throw new Error('图片服务配置 baseUrl 必须以 http:// 或 https:// 开头');
   if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
@@ -150,8 +155,13 @@ function mapHttpError(status, bodyText) {
  * 创建「生成图片」PI 自定义工具。未配置图片服务时返回 null（模型看不到该工具）。
  * 每次调用恰好发起一次付费请求：无自动重试，取消信号直接中止网络请求，密钥只存在于本工具内。
  */
-export async function createImageTool({ cwd, dataDir, getMode }) {
-  if (!await imageGenConfigExists(dataDir)) return null;
+export async function createImageTool({ cwd, dataDir, getMode, config }) {
+  // 设置页注入模式（config 存在）优先；无注入时回退读 <dataDir>/private/image-gen.json。
+  // 任一来源无效或缺失时返回 null（模型看不到工具），不让任务失败。
+  let injected;
+  if (config !== undefined) {
+    try { injected = normalizeImageGenConfig(config); } catch { return null; }
+  } else if (!dataDir || !await imageGenConfigExists(dataDir)) return null;
   const imagesDir = join(cwd, 'images');
   const mode = getMode ?? (() => 'danger-full-access');
   return {
@@ -172,7 +182,7 @@ export async function createImageTool({ cwd, dataDir, getMode }) {
       signal?.throwIfAborted();
       const current = mode();
       if (current === 'read-only') throw new Error('当前会话为只读权限，生成图片需要写入工作区，已拒绝执行');
-      const config = await loadImageGenConfig(dataDir);
+      const config = injected ?? await loadImageGenConfig(dataDir);
       const prompt = typeof input?.prompt === 'string' ? input.prompt.trim() : '';
       if (!prompt) throw new Error('请先提供画面描述（prompt）');
       const { format, background, compression } = resolveFormat(input, config.defaults);

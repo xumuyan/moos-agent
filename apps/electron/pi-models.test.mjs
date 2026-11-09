@@ -6,6 +6,7 @@ import test from 'node:test';
 import { checkedProvider } from '../../packages/pi-adapter/index.mjs';
 import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from '../../services/agent/fixture.mjs';
+import { startMockImagesServer } from '../../packages/pi-runtime/mock-images-server.mjs';
 import { diagnoseProvider } from '../../services/agent/provider-diagnostics.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { Store } from '../../services/agent/store.mjs';
@@ -320,4 +321,76 @@ test('GLM profiles accept the official max effort and tolerate legacy levels', a
   await models.save({ id: 'glm-legacy', name: 'GLM Legacy', model: 'mock-glm', baseUrl: 'http://127.0.0.1:9/v1',
     service: 'glm', api: 'openai-responses', thinkingLevel: 'xhigh', apiKey: 'sk-local-test' });
   assert.equal((await models.resolve('glm-legacy')).thinkingLevel, 'xhigh', 'legacy levels stay readable');
+});
+
+test('image generation settings round-trip through private storage without leaking the key', async t => {
+  const data = await realpath(await mkdtemp(join(tmpdir(), 'moos-image-settings-')));
+  const fixture = await startMockImagesServer({});
+  t.after(async () => { await fixture.close(); await rm(data, { recursive: true, force: true }); });
+  const models = piModels(data, checkedProvider);
+  // 初始状态：未配置，imageGen() 返回 null（host 不注入，工具不挂载）。
+  assert.deepEqual(await models.imageStatus(), { enabled: false, baseUrl: '', model: 'gpt-image-2.5-flare', keyConfigured: false });
+  assert.equal(await models.imageGen(), null);
+  // 测试连接：地址缺失/密钥缺失给出明确提示，不发请求。
+  const noAddress = await models.testImageGen({});
+  assert.equal(noAddress.ok, false);
+  assert.match(noAddress.message, /服务地址/);
+  const noKey = await models.testImageGen({ baseUrl: fixture.baseUrl });
+  assert.equal(noKey.ok, false);
+  assert.match(noKey.message, /密钥/);
+  assert.equal(fixture.requests.length, 0);
+  // 保存（默认模型 + 首次必填密钥）→ 状态与 imageGen() 一致；元数据文件不含密钥。
+  await mkdir(join(data, 'private'), { recursive: true });
+  const saved = await models.saveImageGen({ enabled: true, baseUrl: fixture.baseUrl, apiKey: fixture.apiKey });
+  assert.deepEqual(saved, { enabled: true, baseUrl: fixture.baseUrl, model: 'gpt-image-2.5-flare',
+    credentialId: 'image-gen-key', keyConfigured: true });
+  const injected = await models.imageGen();
+  assert.deepEqual(injected, { baseUrl: fixture.baseUrl, model: 'gpt-image-2.5-flare', apiKey: fixture.apiKey });
+  const meta = await readFile(join(data, 'private', 'image-gen-settings.json'), 'utf8');
+  assert.ok(!meta.includes(fixture.apiKey));
+  const metaMode = (await stat(join(data, 'private', 'image-gen-settings.json'))).mode & 0o777;
+  assert.equal(metaMode, 0o600);
+  const credentialMode = (await stat(join(data, 'private', 'credentials.json'))).mode & 0o777;
+  assert.equal(credentialMode, 0o600);
+  // 测试连接留空密钥：用已保存密钥发 GET /models（零费用），成功且不泄露密钥。
+  const probe = await models.testImageGen({ baseUrl: fixture.baseUrl });
+  assert.equal(probe.ok, true);
+  assert.equal(probe.status, 200);
+  assert.equal(fixture.requests.length, 1);
+  assert.equal(fixture.requests[0].url, '/v1/models');
+  assert.doesNotMatch(JSON.stringify(probe), new RegExp(fixture.apiKey));
+  // 测试连接错误密钥：401 + 明确提示；模拟服务只收到认证失败请求，无生成调用。
+  const bad = await models.testImageGen({ baseUrl: fixture.baseUrl, apiKey: 'deliberately-invalid-key' });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.status, 401);
+  assert.match(bad.message, /认证失败/);
+  assert.equal(fixture.requests.filter(request => request.url === '/v1/models').length, 2);
+  assert.equal(fixture.requests.filter(request => request.url === '/v1/images/generations').length, 0);
+  // 留空密钥改地址 → 拒绝保存（避免跨地址复用密钥）；已存密钥不动。
+  await assert.rejects(models.saveImageGen({ enabled: true, baseUrl: fixture.baseUrl + '/other' }),
+    /Missing or invalid Moos image API key/);
+  assert.equal((await models.imageGen()).baseUrl, fixture.baseUrl);
+  // 自定义模型 + 换密钥保存成功；聊天模型配置不受影响。
+  const second = await models.saveImageGen({ enabled: true, baseUrl: fixture.baseUrl, model: 'gpt-image-2.5-sunburst',
+    apiKey: fixture.apiKey });
+  assert.equal(second.model, 'gpt-image-2.5-sunburst');
+  assert.equal((await models.imageGen()).model, 'gpt-image-2.5-sunburst');
+  assert.deepEqual(await models.list(), []);
+  // 禁用 → imageGen() null 且状态保留地址便于恢复。
+  const disabled = await models.saveImageGen({ enabled: false });
+  assert.equal(disabled.enabled, false);
+  assert.equal(await models.imageGen(), null);
+  assert.equal(disabled.baseUrl, fixture.baseUrl);
+  // 无效输入。
+  await assert.rejects(models.saveImageGen({ enabled: true, baseUrl: 'ftp://x' }), /base URL/);
+  await assert.rejects(models.saveImageGen({ enabled: true, baseUrl: fixture.baseUrl, model: 'a\nb' }), /model/);
+  // 已保存配置与聊天模型共存：saveGroup 保留非 group-key 前缀的图片密钥。
+  // 已保存配置与聊天模型共存：saveGroup 保留非 group-key 前缀的图片密钥。
+  await models.saveGroup({ id: '', route: 'chat-main', name: '聊天主模型', baseUrl: fixture.baseUrl, api: 'openai-responses',
+    models: [{ id: 'mock-glm' }], apiKey: 'sk-chat-test' });
+  assert.deepEqual(await models.imageStatus(), { enabled: false, baseUrl: fixture.baseUrl,
+    model: 'gpt-image-2.5-sunburst', credentialId: 'image-gen-key', keyConfigured: true });
+  await models.saveImageGen({ enabled: true, baseUrl: fixture.baseUrl, apiKey: fixture.apiKey });
+  await models.removeGroup('chat-main');
+  assert.equal((await models.imageGen()).apiKey, fixture.apiKey, 'image key survives group removal');
 });

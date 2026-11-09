@@ -105,6 +105,9 @@ async function launch() {
     'moos:models:remove': id => models.removeGroup(id),
     'moos:models:discover': input => models.diagnoseGroup('list_models', input, diagnoseProvider),
     'moos:models:test': input => models.diagnoseGroup('test_provider', input, diagnoseProvider),
+    'moos:image-gen:status': () => models.imageStatus(),
+    'moos:image-gen:save': input => models.saveImageGen(input),
+    'moos:image-gen:test': input => models.testImageGen(input),
   };
   for (const [channel, handle] of Object.entries(modelHandlers)) {
     ipcMain.handle(channel, (event, input) => {
