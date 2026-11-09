@@ -642,6 +642,6 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 
 ## STORAGE-CLEANUP-20261109：用户授权本机缓存维护
 
-- [x] 证据：清理仓库 maintenance/cleanup-20261109.json；仅删除 .generated/probe-test-target（834704 KiB，含 CACHEDIR.TAG/release，Git忽略且无跟踪文件、lsof无打开项）。保留 artifacts、其余.generated、用户未提交改动，未退出/替换正式Moos。
+- 本机维护完成（非MVP功能验收勾选）。证据：清理仓库 maintenance/cleanup-20261109.json；仅删除 .generated/probe-test-target（834704 KiB，含 CACHEDIR.TAG/release，Git忽略且无跟踪文件、lsof无打开项）。保留 artifacts、其余.generated、用户未提交改动，未退出/替换正式Moos。
 - 实际验收：对应目录删除后不存在；主清理仓库 maintenance/cleanup-20261109.json 记录结果，17/17清理工具及回执测试通过。
 - [ ] 不声明项目全功能重新验收；本次仅缓存维护，未重建产物以免占回空间。其他大型临时副本和验收资料需确认可丢弃性。
