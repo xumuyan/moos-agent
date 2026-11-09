@@ -1622,3 +1622,13 @@
 - 验证结果：PREFLIGHT_OK、安装器 state=success（北京时间 11:26:16）；751 文件停机备份及 0700/0600 权限验证；原 108 消息/1 会话/58 任务逐行保留，14 模型可读、API/凭据原字节一致，聊天/PI 历史、皮肤、工作区、用户插件依赖保留。安装与加载壳 0.1.34，codesign --verify --deep --strict 通过，单实例、Host 正常，GLM 档位代码存在。后续自然新增至 109/1/59；SQLite quick_check=ok。本次备份与旧包已删除并核实不存在。证据 docs/evidence/desktop/p03-installed-update-0134.json（对应安装完成后的提交前工作区）。
 - 遗留问题：未由助手发送认证 GLM 请求；各档真实效果与正式窗口直接目视待用户实测。
 - 对应 Git 提交：唯一说明 docs(P03.13.5): record authorized 0.1.34 installation；查询 git log --all --oneline --grep='docs(P03.13.5): record authorized 0.1.34 installation'。
+
+
+## 2026-11-09 18:02:19 +08:00｜STORAGE-CLEANUP-20261109 缓存维护
+
+- 修改或新增内容：用户明确要求清理本项目不用缓存；仅删除 .generated/probe-test-target（834704 KiB，含 CACHEDIR.TAG/release，Git忽略且无跟踪文件、lsof无打开项）。保留 artifacts、其余.generated、用户未提交改动，未退出/替换正式Moos。
+- 遇到的难题：大量 artifacts/.codex-tmp 含证据、源码副本或回退资料，不能仅凭目录名全删；本轮仅删除已核查的可再生缓存，未修改业务源码。相关17项清理工具/回执测试通过，实际目录缺失检查通过；项目完整业务测试未运行，不声明功能验收通过。新增文档范围及回执断言维护在清理仓库 test/cleanup-receipt.test.js，本仓库既有文档门禁另行执行。
+- 遗留问题：更大产物需进一步审阅；本次不重新构建以免回填磁盘。正式服务未部署、数据库未修改。
+- 处理方式：只清理已核查目标，不触碰业务与证据。
+- 验证结果：首次文档检查两项格式失败，补齐真实操作秒级时间、审计字段与证据标签后重跑。
+- 对应 Git 提交：git log --grep=STORAGE-CLEANUP-20261109；推送结果以本次工具实测为准，失败不得称已同步。
