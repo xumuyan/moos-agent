@@ -65,6 +65,11 @@
       "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s probes/dsh-electron-skin -v",
       "passed": 4,
       "log": "artifacts/muma-brand/validation/skin.log"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "passed": 83,
+      "log": "artifacts/muma-brand/validation/docs-delivery.log"
     }
   ],
   "gui": {
@@ -155,5 +160,12 @@
     "Ad-hoc local build, not notarized.",
     "No real model/image API request, only local fixture.",
     "No user-data migration; production preservation requires separately authorized E84 update."
-  ]
+  ],
+  "sourceCommit": "55244b1bb057c5f805a3aaf21abfb9f5275794c5",
+  "sourcePush": {
+    "verifiedAtBeijing": "2026-11-10T00:30:04.886277+08:00",
+    "localHead": "55244b1bb057c5f805a3aaf21abfb9f5275794c5",
+    "remoteMain": "55244b1bb057c5f805a3aaf21abfb9f5275794c5",
+    "deployment": false
+  }
 }

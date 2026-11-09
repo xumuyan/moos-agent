@@ -1678,3 +1678,12 @@
 - 验证结果：npm run build:app 输出 build-KZquSV/MuMa.app，0.1.37、includesPiFixture=false，codesign --verify --deep --strict 在 GUI 验收重签前通过；npm test 最终 162/162（validation/core-delivery.log）；npm run test:electron 最终以 build-KZquSV dsh 运行 80/80 无跳过（electron-delivery.log，含隔离实际安装器升级/合成数据保留）；固定 stable-aarch64-apple-darwin 执行 cargo test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 11/11；node --test probes/dsh-electron-pi/index.test.mjs 5/5；python3 -m unittest discover -s probes/dsh-electron-skin -v 4/4。隔离 GUI recovery-UK0Pmw：sidebar=MuMa、title=沐码、document.title=MuMa · 沐码、Bundle ID 不变、中英资源/主程序/版本核对、12 文件本地 PI 任务、默认收起/展开全部/再收起、退出 code=0 无信号、脚本 exit=0；截图完整 SHA256 见 E106。证据对应 a35a250 基础上提交前更名工作区。文档检查在本条与 E106 写入后重跑 83/83 通过；最后合并 QA stderr 双 readline 为单实例，相关 client/packaging/脚本边界测试 9/9 与 node --check 通过。一次未设置 PATH 的 node 检查找不到命令，显式 PATH 后重跑通过；整理证据表时一度将 .11 插到 .8 后引发顺序门禁，已恢复 .1–.11 顺序并重跑。
 - 遗留问题：/Applications/Moos.app 仍为原 0.1.36，不含改名/折叠；未获部署授权，不退出、不替换正式程序，不改真实用户数据。Finder/Dock 中文本地化和正式菜单/窗口目视未独立验收，不能将资源检查/后台截图当正式安装验收；仅 ad-hoc 签名未公证。历史 E105 的“退出码断言”表述不精确，其脚本仅拒绝 SIGKILL；本次脚本才严格断言 code=0。
 - 对应 Git 提交：唯一说明 `feat(P03.13.11): rename desktop app to MuMa and 沐码`；查询 `git log --all --oneline --grep='feat(P03.13.11): rename desktop app to MuMa and 沐码'`。本条写入时未提交/未推送，推送后以本地 HEAD 与远程 main 一致性确认，不预称成功。
+
+## 2026-11-10 00:30:04 +08:00｜P03.13.11 源码推送核对
+
+- 修改或新增内容：E106 补入源码提交、已发生的 GitHub 推送核对和文档门禁 83/83；PLAN 同步源码交付状态，文档测试断言远程/本地一致且未部署。
+- 遇到的难题：一次使用 find 遍历依赖目录超时；无提交或推送失败。
+- 处理方式：用 rg --files 核对适用 AGENTS.md；固定真实 HOME/PATH、既有 gh credential helper 与本地代理推送。
+- 验证结果：git push origin main 成功，git ls-remote origin refs/heads/main 与 git rev-parse HEAD 均为 55244b1bb057c5f805a3aaf21abfb9f5275794c5；工作区提交后干净。当前文档补记在该提交之后，其门禁另行执行，推送结果以实际命令为准。
+- 遗留问题：正式安装未执行；Finder/Dock 和正式窗口目视仍未验收。本条仅记录源码推送，不代表应用部署。
+- 对应 Git 提交：功能 55244b1bb057c5f805a3aaf21abfb9f5275794c5；本条唯一说明 `docs(P03.13.11): record MuMa source push verification`，查询 `git log --all --oneline --grep='docs(P03.13.11): record MuMa source push verification'`。

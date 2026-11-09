@@ -370,6 +370,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(evidence['gui']['actual']['exit']['code'], 0)
         self.assertFalse(evidence['gui']['actual']['exit']['usedTerm'])
         self.assertEqual(evidence['gui']['scriptExitCode'], 0)
+        self.assertEqual(evidence['sourcePush']['localHead'], evidence['sourcePush']['remoteMain'])
+        self.assertFalse(evidence['sourcePush']['deployment'])
         self.assertIn('| E106 |', (ROOT / 'PLAN.md').read_text())
 
     def test_electron_migration_plan_orders_dependencies_and_requires_own_evidence(self):
