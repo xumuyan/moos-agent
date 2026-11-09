@@ -1504,3 +1504,13 @@
 - 验证结果：result.json state=success（2026-11-08T23:40:36Z）；装前装后 91 消息/1 会话/49 任务逐行一致（之后为用户新版正常使用产生的增长，不计入校验）；providers.json 与 private/credentials.json 字节一致、权限 0600；聊天/PI 历史/皮肤/工作区/插件依赖保留；装后签名、标识、单实例、装包与实际加载壳均为 0.1.33、非 fixture、14 个已存模型可读。备份与旧包按规则清理，保留 result/log/script；.moos-update-0.1.31/.moos-update-0.1.32 历史未动。证据对应当前工作区。
 - 遗留问题：新版窗口内“测试连接”（glm-5.3-flash 应显示成功）与图片聊天识图的真实结果由用户实测确认；助手未发送认证 GLM 请求。
 - 对应 Git 提交：交接材料 6059351fa782be3f2aaa58148a020dc7a2236879；本次唯一说明 docs(P03.13): record installed 0.1.33 update success and preservation evidence；查询 git log --all --oneline --grep='docs(P03.13): record installed 0.1.33 update success and preservation evidence'。
+
+
+## 2026-11-09 08:59:18 +08:00｜P03.13 用户实测确认 glm-5.3-flash 识图可用（E96 补充）
+
+- 修改或新增内容：用户口头确认“图片可以识别出来”，即 0.1.33 正式应用中 glm-5.3-flash 聊天识图真实可用。E96 证据补充 userRealWorldFeedback 字段（仅记结论，图片内容与回复正文不入档），PLAN.md E96 行同步更正。
+- 遇到的难题：无。
+- 处理方式：只记录用户回报的结论范围；明确“测试连接”按钮结果未回报、保持未确认，不替用户宣称已通过。
+- 验证结果：文档检查 77/77 通过后提交；真实识图结论以用户本机实测为准，助手未发送认证 GLM 请求。
+- 遗留问题：“测试连接”按钮在新版的表现仍未由用户回报；如报错请把提示文字发来继续排查。
+- 对应 Git 提交：唯一说明 docs(P03.13): record user-confirmed image recognition on installed 0.1.33；查询 git log --all --oneline --grep='docs(P03.13): record user-confirmed image recognition on installed 0.1.33'。
