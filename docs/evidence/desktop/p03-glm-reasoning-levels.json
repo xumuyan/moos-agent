@@ -1,0 +1,30 @@
+{
+  "task": "P03.13.5",
+  "evidence": "E97",
+  "timeBeijing": "2026-11-09 09:57:32 +08:00",
+  "state": "wire-format-verified-local-no-install",
+  "finding": [
+    "推理档位功能在源码中已端到端存在：模型设置“推理强度”选择器(client.js)、providers.json thinkingLevel、pi-route 元数据与每会话覆盖、sdk-runtime 会话级接线、PI 适配器映射",
+    "此前助手“每次聊天都在 max 思考”的说法有误：thinkingLevel=off 时 PI 对 Responses 显式发送 reasoning.effort=none（官方语义为放弃思考）",
+    "controller.validateProvider 白名单原本丢弃 service/thinkingLevel/imageInput，独立/测试路径无法表达 GLM 档位；已按 piModels.validate 补齐透传（该文件不进安装包，正式 Electron 走 pi-tasks.js + piModels，行为不受影响）"
+  ],
+  "wireMapping": {
+    "off": "reasoning.effort=none（放弃思考）",
+    "minimal": "minimal",
+    "low": "low",
+    "medium": "medium",
+    "high": "high",
+    "xhigh": "xhigh（sdk-runtime 注入 thinkingLevelMap）"
+  },
+  "officialServerMapping": "智谱服务端映射 Low/Medium→High 思考、XHigh→Max 思考（create-response.md），应用发送字面档位，映射在服务端完成",
+  "tests": {
+    "new": "GLM Responses thinking levels reach the wire as documented reasoning efforts（off/minimal/low/xhigh 四档，本地 fixture 捕获请求体断言）",
+    "core": "141/141（artifacts/reasoning-full.log）"
+  },
+  "limits": [
+    "未发送真实认证 GLM 请求；真实服务下各档位的思考深度/速度由用户实测确认",
+    "GLM Chat Completions + zai 格式路径未在本轮断言（用户 GLM 配置为 Responses）",
+    "打包应用无改动，无需重建或安装"
+  ],
+  "packagedAppUnchanged": true
+}

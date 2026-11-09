@@ -86,3 +86,6 @@ GLM 不只支持 Chat Completions。官方 [Codex 接入](https://docs.bigmodel.
 
 
 “测试连接”对 GLM Responses 使用 `reasoning { effort: minimal }` 与 256 输出预算：官方文档规定 `max_output_tokens` 含思维链且默认思考为 max，过小预算会因 incomplete 被误报格式错误（E94）。该修复属探测逻辑，不影响实际聊天通道；未对真实服务发送认证请求验证，以用户实测为准。
+
+
+GLM 推理档位：模型编辑中的“推理强度”对应 providers.json `thinkingLevel`；OpenAI Responses 下关闭发送 `reasoning.effort: "none"`（放弃思考），其余档位发送字面值，智谱服务端按官方规则映射（Low/Medium→High 思考、XHigh→Max）。档位到请求字段的本地验收见 E97。

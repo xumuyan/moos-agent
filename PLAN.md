@@ -625,3 +625,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E95 | 模型设置两段提示文字缩小：GLM 服务提示与测试连接结果共用 noteStyle（12px），隔离界面截图目视确认渲染变小；候选并入未发布的 0.1.33（build-uy2KoB，取代从未安装的 build-fTNdrM）。证据 `docs/evidence/desktop/p03-model-settings-text-size.json`。 | 验证门禁全零（核心 140/140、Electron 73/73 无跳过）；隔离 GUI 首跑冷启动超时如实保留，重跑 PASS 并目视核对 glm.png。未安装，真实窗口样式待安装后由用户确认。 |
 
 | E96 | 用户授权安装 0.1.33（GLM 探测修复 + 小字号提示）：独立 Terminal 执行，等待运行任务自然结束后正常退出、732 文件停机备份、仅换程序包。91 消息/1 会话/49 任务逐行保留，API 与凭据字节一致，皮肤/工作区/插件依赖保留，装后 0.1.33 载入、单实例、签名与两项修复在装包内核实，备份权限 0700/0600。证据 `docs/evidence/desktop/p03-installed-update-0133.json`。 | result.json state=success 且 postInstall 全项通过；本次备份与旧包已按规则清理，历史更新目录未动。用户已确认新版 glm-5.3-flash 聊天识图可用，并截图确认“测试连接”返回 模型服务验证成功 · HTTP 200 · 855 毫秒（仅记结论，图片内容不入档）；P03.13.5 其余子项（流式工具调用、GPT-6.1 Sol 实际请求、认证失败与额度异常）仍未验收。 |
+
+| E97 | P03.13.5 推理档位线上格式验收：功能链路（UI 选择器/providers.json/pi-route/sdk-runtime/PI 适配器）此前已存在；新增控制器 GLM 档位透传修复与本地 fixture 集成测试，证明 off→none、minimal/low/xhigh 字面发送；更正此前“默认 max 思考”的误判（关闭即显式放弃思考）。证据 `docs/evidence/desktop/p03-glm-reasoning-levels.json`。 | 核心套件 141/141；真实服务下各档位的实际思考深度/速度待用户实测；打包应用无改动，无需安装。 |

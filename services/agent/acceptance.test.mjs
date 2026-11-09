@@ -93,26 +93,28 @@ async function terminal(controller, task, expected) {
   assert.equal(state.tasks.find(item => item.id === task.id).status, expected, JSON.stringify(state.events.filter(e => e.taskId === task.id)));
   return state;
 }
-async function setup(t, api = 'openai-completions', fixtureOptions) {
+async function setup(t, api = 'openai-completions', fixtureOptions, provider = {}) {
   // Deliberately fail, rather than skip, when the integration entry point is absent.
   const [{ startFixture }, { createController }, { runPiSdk: runPi }] = await Promise.all([
     loadFixture(), import('./controller.mjs'), import('../../packages/pi-runtime/sdk-runtime.mjs'),
   ]);
   const root = await mkdtemp(join(tmpdir(), 'moos-acceptance-'));
   let controller; let fixture;
+  const requests = [];
   t.after(async () => { try { await controller?.close(); } finally { await fixture?.close(); await rm(root, { recursive: true, force: true }); } });
-  fixture = await startFixture(fixtureOptions);
+  fixture = await startFixture(fixtureOptions
+    ? { ...fixtureOptions, onModelRequest: input => requests.push(input) } : undefined);
   const dataDir = join(root, 'data');
   controller = await createController({ dataDir, run: runPi });
   await controller.request('save_provider', { provider: { id: 'fixture', name: 'Local deterministic fixture',
-    baseUrl: fixture.baseUrl, model: 'moos-fixture', api } });
+    baseUrl: fixture.baseUrl, model: 'moos-fixture', api, ...provider } });
   const projects = []; const conversations = [];
   for (const name of ['alpha', 'beta']) {
     const path = join(root, name); await mkdir(path);
     const project = await controller.request('add_project', { path }); projects.push(project);
     conversations.push(await controller.request('create_conversation', { projectId: project.id }));
   }
-  return { root, dataDir, fixture, projects, conversations, get controller() { return controller; },
+  return { root, dataDir, fixture, requests, projects, conversations, get controller() { return controller; },
     submit: (index, message) => controller.request('submit', { conversationId: conversations[index].id, message, providerId: 'fixture', apiKey: fixture.apiKey }),
     restart: async () => { await controller.close(); controller = await createController({ dataDir, run: runPi }); } };
 }
@@ -128,6 +130,18 @@ test('PI SDK streams the configured responses protocol without a CLI child', { t
   assert.equal(usage.cacheReadTokens, null);
   assert.equal(usage.cacheHitRate, null);
   assert.equal(usage.costUsd, 0.0002);
+});
+
+test('GLM Responses thinking levels reach the wire as documented reasoning efforts', { timeout: 90000 }, async t => {
+  for (const [level, expected] of [['off', 'none'], ['minimal', 'minimal'], ['low', 'low'], ['xhigh', 'xhigh']]) {
+    const f = await setup(t, 'openai-responses', {}, { service: 'glm', thinkingLevel: level });
+    const task = await f.submit(0, 'MOOS_FIXTURE_RESPONSES');
+    const state = await terminal(f.controller, task, 'succeeded');
+    assert(state.messages.some(message => message.taskId === task.id && message.content === 'Responses SDK ready'), level);
+    const streamed = f.requests.filter(item => item.stream === true);
+    assert(streamed.length >= 1, `no streamed model request for thinkingLevel ${level}`);
+    assert.equal(streamed.at(-1).reasoning?.effort, expected, `thinkingLevel ${level}`);
+  }
 });
 
 test('two-hour policy carries a long fixture task past an accelerated old boundary', { timeout: 30000 }, async t => {

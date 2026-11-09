@@ -9,6 +9,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_glm_reasoning_levels_wire_evidence_records_mapping_and_controller_fix(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-reasoning-levels.json').read_text())
+        self.assertEqual(evidence['wireMapping']['off'], 'reasoning.effort=none（放弃思考）')
+        self.assertEqual(evidence['wireMapping']['xhigh'], 'xhigh（sdk-runtime 注入 thinkingLevelMap）')
+        self.assertTrue(any('说法有误' in item for item in evidence['finding']))
+        self.assertTrue(evidence['packagedAppUnchanged'])
+        self.assertIn('核心套件 141/141', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('| E97 |', (ROOT / 'PLAN.md').read_text())
     def test_glm_responses_probe_budget_matches_documented_token_accounting(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-glm-responses-probe.json').read_text())
         self.assertTrue(evidence['reported']['result'].startswith('模型服务返回格式异常'))

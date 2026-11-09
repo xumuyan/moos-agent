@@ -1524,3 +1524,13 @@
 - 验证结果：文档检查提交前本地重跑通过（含更新后的 E96 断言）；结论以用户本机实测为准，助手未发送认证 GLM 请求。
 - 遗留问题：P03.13.5 尚余推理档位等子项未实现/未验收；流式工具调用、GPT-6.1 Sol 实际请求、认证失败与额度异常未验收。
 - 对应 Git 提交：唯一说明 docs(P03.13): record user-confirmed successful GLM connection test on 0.1.33；查询 git log --all --oneline --grep='docs(P03.13): record user-confirmed successful GLM connection test on 0.1.33'。
+
+
+## 2026-11-09 09:57:32 +08:00｜P03.13.5 推理档位链路核实与线上格式验收（E97）
+
+- 修改或新增内容：核实推理档位功能已端到端存在（UI“推理强度”、providers.json thinkingLevel、pi-route 元数据、sdk-runtime 会话接线、PI 适配器映射）。更正本轮早前误判：thinkingLevel=off 时 PI 对 Responses 显式发送 reasoning.effort=none（放弃思考），并非服务端默认 max 思考。修复 services/agent/controller.mjs validateProvider 白名单丢弃 service/thinkingLevel/imageInput 的问题（该文件不进安装包，正式 Electron 走 pi-tasks.js + piModels，产品行为不变）。新增集成测试：GLM Responses 四档（off/minimal/low/xhigh）经真实 PI SDK 发往本地 fixture，逐档断言请求体 reasoning.effort。
+- 遇到的难题：controller.save_provider 的 validateProvider 是白名单式校验，GLM 档位字段会被静默丢弃，测试夹具最初无法表达 glm 配置。
+- 处理方式：按 piModels.validate 的语义补齐透传与校验（deepseek 仍强制 completions）；测试通过 setup() 的 onModelRequest 钩子捕获请求体，不新增 fixture 分支。
+- 验证结果：acceptance 10/10（含新测试），核心套件 141/141（artifacts/reasoning-full.log）。未发送真实认证请求；打包应用无改动，无需重建或安装。
+- 遗留问题：真实服务下各档位思考深度/速度待用户实测（设置→模型→编辑→推理强度，或聊天内选择器，以界面实际显示为准）；GLM Chat Completions + zai 路径未断言。
+- 对应 Git 提交：唯一说明 test(P03.13.5): prove GLM Responses thinking levels reach the wire；查询 git log --all --oneline --grep='test(P03.13.5): prove GLM Responses thinking levels reach the wire'。
