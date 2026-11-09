@@ -116,7 +116,9 @@ test('the packaged Host starts and restarts with only loopback sockets and no ac
     });
     const exited = once(child, 'exit');
     const lines = createInterface({ input: child.stdout });
-    const signal = AbortSignal.timeout(12000);
+    // 启动 + 重启两轮共用一个预算；2026-11-09 在正式应用运行的同机上 12s 不够（宿主实际 2s 就绪），
+    // 放宽到 30s 只影响等待时长，不放松 deny-network/loopback/身份等任何断言。
+    const signal = AbortSignal.timeout(30000);
     const timeout = once(signal, 'abort').then(() => { throw signal.reason; });
     const ready = (async () => {
       for await (const line of lines) {

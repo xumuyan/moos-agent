@@ -21,3 +21,7 @@ probes/m01/desktop/src-tauri/gen/
 *.mobileprovision
 *.p12
 *.p8
+
+# 聊天图片生成产物：属于用户工作区数据，不入 Git
+generated-images/
+images/

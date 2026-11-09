@@ -1,0 +1,36 @@
+{
+  "task": "P03.13.9",
+  "evidence": "E104",
+  "timeBeijing": "2026-11-09 20:25:00 +08:00",
+  "state": "真实云桥扣费调用与 0.1.36 正式安装后实测均通过；P03.13.9 验收项全部完成",
+  "realBillingCall": {
+    "configuredBy": "用户在设置页「图片生成」卡片配置并保存（0.1.36 正式应用内）",
+    "settingsFile": "<data>/private/image-gen-settings.json 0600（enabled=true, baseUrl=https://api.yunqiao.me/v1, model=gpt-image-2.5-flare, credentialId=image-gen-key；密钥本体存 private/credentials.json，未进设置文件/聊天/日志）",
+    "httpPrecheck": "GET /v1/models 零费用认证冒烟：HTTP 200，17 个模型，目标模型在列",
+    "toolMount": "0.1.36 每任务 createSession 自动挂载 generate_image；本轮对话直接调用成功",
+    "call": "POST /v1/images/generations，n=1 恰好一次付费请求，无自动重试",
+    "result": "成功落盘 images/20261109122228-A-cute-robot-assistant-s.png（项目工作区，1536x1024 PNG，1842096 字节，0600，用时 24.4s）",
+    "billingNote": "云桥图片专用分组「原生4K」约 0.12 元/张，本轮真实计费一次"
+  },
+  "install": {
+    "performed": true,
+    "userAuthorized": true,
+    "flow": "E84 同款独立进程更新（artifacts/installed-update-0.1.36/update.mjs，result.json state=success）",
+    "from": "0.1.34（/Applications/Moos.app）",
+    "to": "0.1.36（build-HleYgO，moos-runtime.json dshVersion=0.2.2-rc.1, includesPiFixture=false）",
+    "backup": "停机完整备份 809 个文件逐字节核实，备份 0700/敏感文件 0600；换包后 171 消息/3 会话/90 任务与源一致，6 个已存模型可读，providers/credentials/dsh 配置字节一致，聊天/PI 历史/皮肤/工作区保留",
+    "cleanup": "result.json state=success 且用户在新版确认聊天与配置可读后，按规则删除本次停机备份与旧包（/Applications/.moos-update-0.1.36，837M）；误生成于仓库根的 HOME 缓存目录（.local/.npm/.pi/.rustup/Library/moos-m01-*）一并清理",
+    "resultJson": "artifacts/installed-update-0.1.36/result.json（artifacts 不入 Git）"
+  },
+  "gates": {
+    "core": "160/160",
+    "electron": "79/79（MOOS_ELECTRON_TEST_DSH_CLI 指向 build-HleYgO bin/dsh）",
+    "native": "11/11（cargo test --release --offline）",
+    "bridge": "exit 0",
+    "skin": "exit 0",
+    "docs": "81/81",
+    "logs": "artifacts/installed-update-0.1.36/validation-final/*.log"
+  },
+  "testInfraChange": "apps/electron/host.test.mjs 打包宿主启动+重启双 pass 共享预算 12s→30s（同机正式应用运行时 12s 不够；宿主实测 2s 就绪；仅放宽等待，deny-network/loopback/身份断言不变）",
+  "limits": "真实调用仅验证成功路径一轮；401/429/400 与取消的真实线上行为仍由 mock 测试覆盖。安装后未重新执行桌面 GUI 三阶段验收（E103 结论基于 build-HleYgO，本轮安装包与其字节一致并经候选比对核验）。"
+}
