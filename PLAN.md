@@ -677,3 +677,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - E108续记：已核对0.1.38独立安装success，1443停机备份文件、286消息/6会话/149任务、6模型及配置/插件/历史保留通过；旧包与备份尚保留。
 - E109 `docs/evidence/desktop/p03-chinese-display.json`：0.1.39 build-f41CKF 构建签名及隔离GUI中文品牌/图标/折叠/正常退出通过；core163、electron81、native11、bridge5、skin4、相关测试11、更新检查点5全部通过。初版CFBundleName中文导致Electron找不到Helper，保留失败并修复为技术英文名后重新构建验收。
 - 安装已授权且最终候选PREFLIGHT_OK，待独立Terminal交接并等当前任务自然结束，正式Finder/Dock目视未验收，不预称安装成功。
+
+- E109交接续记：077166a已推送且本地/远程一致；独立Terminal PID4442（祖先不属于MuMa/Host）实际result.state=waiting-for-idle，待本任务自然结束，安装最终结果尚待核对。

@@ -1723,3 +1723,12 @@
 - 验证结果：上一轮独立result/log明确success，1443文件停机备份核对，286消息/6会话/149任务保留、6模型可读、配置字节一致、单实例、图标及加载壳0.1.38一致（E108）。本轮npm test163/163；最终包dsh npm run test:electron81/81无跳过；cargo release offline11/11、PI桥5/5、皮肤4/4；最终client/packaging/recovery11/11；移动/冲突/回退5/5。build-f41CKF无fixture、codesign严格通过，gui-final报告/sidebar=沐码、title=沐码、图标哈希、12文件折叠、app.quit code0无signal无TERM、脚本exit0。证据对应70213cc上本次提交前工作区；文档检查初次因当前README仍要求旧MuMa.app失败，更新当前路径断言为沐码.app后86/86通过；截图已回读。
 - 遗留问题：待独立Terminal接手0.1.39（结果/Applications/.moos-update-0.1.39/result.json，日志terminal-update.log），等待当前任务自然结束，不强停、不重置或恢复覆盖数据。当前正式仍/Applications/MuMa.app0.1.38，本轮未退出/替换；Finder/Dock正式目视未验证。0.1.38备份/旧包暂保留，无删除。
 - 对应 Git 提交：唯一说明 `fix(P03.13.11): use Chinese 沐码 for all visible app branding`；查询 `git log --all --oneline --grep='use Chinese 沐码'`；提交推送核对后交接。
+
+## 2026-11-10 09:13:13 +08:00｜P03.13.11 中文显示版独立更新交接
+
+- 修改或新增内容：E109/PLAN补充已实际发生的源码推送和独立更新交接；077166a27887c25ba5c9a6ad08019ba9c99312c5已推送，ls-remote与HEAD一致。
+- 遇到的难题：本轮完整资源预检耗时约50秒，最初无result，不据此重复启动。
+- 处理方式：只读等待检查点；核对PID4442祖先为Terminal→login→zsh→bash→node，不属于MuMa/Host；本对话自然结束后继续正常退出/备份/安装。
+- 验证结果：result.json state=waiting-for-idle，targetShell0.1.39、未强停任务/重置/恢复数据；文档86/86提交前再次执行，业务/GUI测试沿用本次已提交源码验证。
+- 遗留问题：安装尚未执行，结果/Applications/.moos-update-0.1.39/result.json，日志同目录terminal-update.log；下次先读实际结果，成功后再确认单实例与聊天/模型保留，不预称完成。原0.1.38备份暂保留，无清理动作。
+- 对应 Git 提交：源码077166a；本条唯一说明 `docs(P03.13.11): record Chinese display update handoff`；查询 `git log --all --oneline --grep='Chinese display update handoff'`。

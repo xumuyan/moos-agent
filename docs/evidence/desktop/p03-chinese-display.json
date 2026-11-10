@@ -112,11 +112,31 @@
     "result": "/Applications/.moos-update-0.1.39/result.json",
     "log": "/Applications/.moos-update-0.1.39/terminal-update.log",
     "preflight": "PREFLIGHT_OK, final candidate resource bytes/signature/identity/version validated; original shell 0.1.38, target absent",
-    "dataMigration": false
+    "dataMigration": false,
+    "handoff": {
+      "pid": 4442,
+      "ancestor": "Terminal → login → zsh → bash → node, independent of MuMa/Host",
+      "state": "waiting-for-idle",
+      "observedAt": "2026-11-10 09:13:13 +08:00",
+      "resultRecord": {
+        "state": "waiting-for-idle",
+        "targetShell": "0.1.39",
+        "userAuthorizedUpdate": true,
+        "stoppedActiveTasks": false,
+        "productionDataReset": false,
+        "automaticDataRestore": false,
+        "time": "2026-11-10T01:12:29.971Z"
+      }
+    }
   },
   "limits": [
     "Native Finder/Dock visible labels not independently verified; resources and isolated DOM do not prove installed GUI appearance.",
     "Final installation pending independent process and idle wait; no force-stop, no reset/restore.",
     "Historical E108 0.1.38 success verified from actual result; backups retained for current handoff."
-  ]
+  ],
+  "sourcePush": {
+    "localHead": "077166a27887c25ba5c9a6ad08019ba9c99312c5",
+    "remoteMain": "077166a27887c25ba5c9a6ad08019ba9c99312c5",
+    "verified": true
+  }
 }
