@@ -141,6 +141,23 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertEqual(check['icnsDecodedImages'], 10)
         self.assertTrue(any('Lanczos' in limit for limit in e['limits']))
 
+    def test_link_handling_evidence_matches_fix_and_deployment(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-link-handling.json').read_text())
+        self.assertEqual(e['id'], 'E113')
+        self.assertEqual(e['task'], 'P03.13.14')
+        self.assertIn('setWindowOpenHandler', ''.join(e['rootCause']))
+        self.assertIn('shell.openExternal', e['fix']['files'][1])
+        self.assertIn('link-handler.mjs', e['fix']['files'][2])
+        e2e = e['regression']['e2e']
+        self.assertEqual(e2e['exitCode'], 0)
+        self.assertIn('PASS', e2e['windowOpenPath'])
+        self.assertIn('PASS', e2e['willNavigatePath'])
+        self.assertFalse(e['deployment']['installed'])
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('P03.13.14', plan)
+        self.assertIn('| E113 |', plan)
+        self.assertIn('聊天外链打开系统浏览器（E113', plan)
+
     def test_muyan_icon_v2_evidence_matches_delivery(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-muyan-icon-v2.json').read_text())
         self.assertEqual(e['id'], 'E112')
@@ -528,7 +545,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 14)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 15)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))

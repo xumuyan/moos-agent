@@ -56,6 +56,33 @@ test('MuMa display branding keeps the existing application and user data identit
   assert.ok(main.includes("'moos.sqlite'"));
 });
 
+test('every local module imported by main.mjs is listed in the packaging manifest', async () => {
+  const [main, prepare] = await Promise.all([
+    readFile(join(here, 'main.mjs'), 'utf8'),
+    readFile(join(here, 'prepare-local.mjs'), 'utf8'),
+  ]);
+  const manifest = prepare.match(/for \(const file of \[([^\]]+)\]\)/);
+  assert.ok(manifest, 'packaging file manifest not found in prepare-local.mjs');
+  const listed = manifest[1].match(/'([^']+)'/g).map(s => s.slice(1, -1));
+  // pi-models.js is copied separately from plugin/ onto the app root
+  const separatelyCopied = ['pi-models.js'];
+  for (const name of separatelyCopied) {
+    assert.ok(
+      prepare.includes(`join(appSource, '${name}')`),
+      `${name} must be copied onto the app root in prepare-local.mjs`,
+    );
+  }
+  const localImports = [...main.matchAll(/from '(\.\/[^']+)'/g)];
+  assert.ok(localImports.length > 0, 'expected relative imports in main.mjs');
+  for (const [, target] of localImports) {
+    const file = target.replace('./', '');
+    assert.ok(
+      listed.includes(file) || separatelyCopied.includes(file),
+      `main.mjs imports ${target} but prepare-local.mjs manifest lacks ${file}`,
+    );
+  }
+});
+
 test('MuMa app and sidebar icons are the approved family assets with a complete ICNS container', async () => {
   const { createHash } = await import('node:crypto');
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');

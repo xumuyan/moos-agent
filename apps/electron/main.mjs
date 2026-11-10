@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session, shell } from 'electron';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -8,6 +8,7 @@ import { createPiUsageReader } from './pi-usage.mjs';
 import { createPiTurnReader } from './pi-turn.mjs';
 import { seedHome, profileRecoveryMessage } from './profile-home.mjs';
 import { updateShellPlugin, shellUpdateMessage } from './shell-update.mjs';
+import { classifyNavigation } from './link-handler.mjs';
 
 app.setName('沐码');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
@@ -149,12 +150,18 @@ async function launch() {
     for (const event of ['minimize', 'hide', 'restore', 'show']) win.on(event, syncBackdrop);
   }
   win.on('page-title-updated', event => event.preventDefault());
-  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Chat links (e.g. http://127.0.0.1:5173/) open in the system browser;
+  // the workspace window itself never gains a second window or a foreign page.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    const action = classifyNavigation(url, address.origin);
+    if (action.type === 'open-external') void shell.openExternal(action.href).catch(() => {});
+    return { action: 'deny' };
+  });
   const preventRemoteNavigation = (event, target) => {
-    try {
-      if (new URL(target).origin === address.origin) return;
-    } catch { /* deny malformed targets */ }
+    const action = classifyNavigation(target, address.origin);
+    if (action.type === 'allow') return;
     event.preventDefault();
+    if (action.type === 'open-external') void shell.openExternal(action.href).catch(() => {});
   };
   win.webContents.on('will-navigate', preventRemoteNavigation);
   win.webContents.on('will-redirect', preventRemoteNavigation);

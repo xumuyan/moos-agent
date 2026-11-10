@@ -1,0 +1,44 @@
+{
+  "id": "E113",
+  "task": "P03.13.14",
+  "scope": "修复聊天消息中的链接点击无反应：外链（含本地端口如 http://127.0.0.1:5173/）交给系统浏览器打开",
+  "createdAtBeijing": "2026-11-10T14:25:00+08:00",
+  "userReport": "聊天里 http://127.0.0.1:5173/ 链接点击没反应（截图）",
+  "rootCause": [
+    "main.mjs setWindowOpenHandler 一律 action:deny：target=_blank 的链接点击被静默拒绝，无任何反应",
+    "will-navigate/will-redirect 仅放行同 origin，异源 http 链接被 preventDefault 后也不打开浏览器"
+  ],
+  "fix": {
+    "files": [
+      "apps/electron/link-handler.mjs（新增，纯函数分类器 allow/open-external/deny）",
+      "apps/electron/main.mjs（window-open 与 will-navigate/will-redirect 统一走 classifyNavigation；http/https 外链 shell.openExternal；应用窗口永不打开第二窗口、永不导航到异源页面；file:/javascript:/data: 等一律拒绝）",
+      "apps/electron/prepare-local.mjs（打包清单补 link-handler.mjs）"
+    ],
+    "safety": "同 origin 仍走窗口内 SPA 路由；非 http(s) 协议不进浏览器；in-app 新窗口保持禁止"
+  },
+  "regression": {
+    "linkUnit": "apps/electron/link-handler.test.mjs 7/7（本机端口外链、localhost/LAN、同 origin、不同端口、危险协议、畸形 URL、main.mjs 接线静态断言）",
+    "packaging": "packaging.test.mjs 4/4（新增：main.mjs 全部本地 import 必须在打包清单或单独 cp 行内）",
+    "electronFull": "npm run test:electron 90/90，0 skipped（build-BLdcT7 包内 dsh；环境 unset 含 MOOS_ELECTRON_PI_RUNTIME 等全部宿主残留）",
+    "e2e": {
+      "command": "node artifacts/link-click-gui/verify.mjs .generated/moos-electron/build-BLdcT7",
+      "method": "候选包隔离数据目录 + CDP 注入真实锚点点击；探针 HTTP 服务监听 127.0.0.1:51731",
+      "windowOpenPath": "target=_blank 点击 → 系统浏览器打开 → 探针收到 /link-ok?from=muma：PASS",
+      "willNavigatePath": "无 target 普通 <a> 点击 → 窗口未跟随导航，系统浏览器打开 → 探针收到 /link-ok?from=plain：PASS",
+      "exitCode": 0,
+      "note": "验证会在用户默认浏览器弹出探针标签页（127.0.0.1:51731，内容仅 link verification received），可关闭"
+    }
+  },
+  "incident": {
+    "packagingMiss": "首版候选包 build-KKcim5 因打包白名单缺 link-handler.mjs 而损坏（主进程模块缺失弹错误对话框、进程未退出）；packaging 新断言与重构建 build-BLdcT7 修复",
+    "envResidue": "electron 全量首轮 88/89 的 ctx.on 失败为本机 Host 环境残留 MOOS_ELECTRON_PI_RUNTIME 所致（本工具运行于沐码 Host 内），补全 unset 后 90/90"
+  },
+  "deployment": {
+    "installed": false,
+    "note": "候选包 build-BLdcT7 已构建并通过全部验证；正式 /Applications/沐码.app 仍 0.1.40 旧逻辑，安装须用户另行明确授权"
+  },
+  "limits": [
+    "验证为隔离实例 + 探针服务，非正式实例聊天界面截图对照；点击路径与真实聊天渲染一致（window-open 与 will-navigate 两类）",
+    "外链在系统默认浏览器打开，应用内不内嵌网页视图（保持工作台纯净边界）"
+  ]
+}

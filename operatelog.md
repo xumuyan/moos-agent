@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 14:30:00 +08:00｜E113：修复聊天外链点击无反应（P03.13.14，未安装）
+
+- 修改或新增内容：用户报告聊天内 http://127.0.0.1:5173/ 链接点击没反应。根因：main.mjs 的 setWindowOpenHandler 一律 action:deny（target=_blank 静默拒绝），will-navigate/will-redirect 异源仅 preventDefault 不打开浏览器。修复：新增 apps/electron/link-handler.mjs（纯函数分类器：http/https 异源→open-external、同源→allow、其余协议→deny）；main.mjs 两条路径统一接分类器，外链 shell.openExternal 交系统浏览器，窗口内永不新开窗口、永不导航异源；prepare-local.mjs 打包清单补 link-handler.mjs。新增 artifacts/link-click-gui/verify.mjs 端到端验证脚本与证据 E113。
+- 遇到的难题：① 首版候选包 build-KKcim5 因打包白名单缺 link-handler.mjs 而损坏（主进程模块缺失，Electron 弹错误对话框但进程不退出，冒烟误判存活）；② electron 全量首轮 88/89 失败为本工具运行于沐码 Host 内的环境残留（MOOS_ELECTRON_PI_RUNTIME 未 unset，host.js 走 ctx.on 分支）；③ 旧测试配方 MOOS_ELECTRON_TEST_DSH_CLI 指向构建顶层，而 profile-template 现只存在于包内 Resources；④ 端到端探针 5173 端口被用户 dev server 占用；⑤ PLAN 编辑一次失误将 P03.13.7 行头吞入新条目行。
+- 处理方式：① packaging.test 新增「main.mjs 全部本地 import 必须在打包清单或单独 cp 行」防退化断言，重构建 build-BLdcT7 并验证包内文件字节一致；② 补全 unset 列表后 90/90；③ 测试改用包内 Resources 路径；④ 探针改用 51731 空闲端口；⑤ 已修复换行并逐条核对 P03.13.7 内容完整。
+- 验证结果：link-handler 单测 7/7；packaging 4/4；electron 全量 90/90 0 skipped（build-BLdcT7 包内 dsh）；端到端实测两路径均 PASS：候选包隔离实例 + CDP 注入真实链接点击，target=_blank 与普通 <a> 均使系统浏览器真实打开并命中探针服务 /link-ok（验证时用户默认浏览器会弹出 127.0.0.1:51731 探针标签页，可关闭）。候选包 build-BLdcT7 已构建，包内 main.mjs 与 link-handler.mjs 与仓库字节一致。
+- 遗留问题：正式 /Applications/沐码.app 仍 0.1.40 旧逻辑，链接修复生效须用户明确授权后按 E84 流程安装；验证覆盖 window-open 与 will-navigate 两类点击路径，聊天渲染若存在其他触发方式（如自定义 JS 跳转）待安装后在真实会话中复核。
+- 对应 Git 提交：本次唯一提交（E113 外链修复），可用 `git log --oneline --grep="E113"` 查询。
+
 ## 2026-11-10 13:55:00 +08:00｜E112 续：用户要求打包沐言图标，修复 zip 顶层目录与家族交付清单
 
 - 修改或新增内容：用户要求「打包一下这个」（沐言 v2 图标）。检查发现两处真实问题：① 首版 zip 无顶层目录（E107 系 zip 解压后自带 muma-沐码/ 等前缀，解压会散落）；② 家族 delivery.json 沐言条目仍为 v1 哈希（196d01fc…/5493275 字节/sourceBodySize [514,517]），与实际不符。修改 muyan_v2_package.py：zip 内加 muyan-沐言/ 顶层前缀；delivery.json 沐言行更新为 v2-flat（bytes/sha256/1024 原生，移除 AI 位图 sourceBodySize），其余三款 v1 行未动；重建家族 transparent-preview.png（沐言 v2 + 三款 v1，如实反映当前包内容）；全部同步至 Downloads 并在目的地重验哈希。
