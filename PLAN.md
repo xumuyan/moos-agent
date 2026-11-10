@@ -105,6 +105,8 @@ E38 已验证本机 Electron 应用、独立数据、Moos 窗口与 Finder 图�
 - [x] P03.13.11 **开发助手品牌更名 MuMa / 沐码。** 依赖 P03.13.10。更新应用包及可执行文件、Helper、菜单、窗口/网页标题、工作台品牌及当前使用文档，增加中英文显示名资源；保持 Bundle ID、用户数据目录、持久分区、PI 路由、IPC、插件名与数据库名不变，不自动迁移数据。证据 E106：0.1.37 build-KZquSV 构建/签名通过；core 162/162、electron 80/80、native 11/11、PI 桥 5/5、皮肤 4/4；隔离 GUI recovery-UK0Pmw 核对中英文显示资源、实际侧栏/标题、12 文件任务与折叠，并通过 QA app.quit 正常退出（code=0，无 SIGTERM/SIGKILL），脚本 exit=0。正式安装未经授权、未执行；Finder/Dock 本地化及正式窗口目视未验收。
   - E67 本机安装已验证。应用位于 `/Applications/Moos.app`，完成临时签名、文件一致性、真实 GLM 经 PI 写入与命令校验、正常退出清理和重启恢复。首次使用的独立模型服务在原生菜单「Moos → 模型服务…」配置。正式签名、公证、第三方分发范围、干净 Mac 的首次启动流量及卸载仍待验收。
 
+- 品牌素材交付（独立于应用部署）：证据 E107 `docs/evidence/desktop/p03-family-icon-assets.json`，沐言/沐码/沐序/沐宿四套透明 PNG、ICNS、ICO、网页及 iOS 方形资源分别打包，已复制至本机 Downloads/MOOS系列图标-20261110。每包 37 文件、原生 ICNS 解码及尺寸/透明度/校验和/ZIP 完整性通过；1024 为约 515px 原图放大，不含矢量源。未替换任何正式应用或其他项目，目标工程集成/实机图标显示未验收。
+
 ## P03.12｜原版 DSH Electron 前端接入 Moos PI
 
 用户选择沿用 Moos 的 PI 执行层，以原版 DSH Electron 与皮肤运行时开发新前端。先在 P03.11 的独立环境接通最小执行链路。

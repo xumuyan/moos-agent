@@ -1,0 +1,189 @@
+{
+  "id": "E107",
+  "scope": "MOOS family icon assets, separate downloadable packs; not application deployment",
+  "createdAtBeijing": "2026-11-10T08:23:02.820006+08:00",
+  "workspaceState": "b123f13a2bd384a9ec27b4a98000a5dd1c5c375e plus this evidence, PLAN, log and documentation-test update",
+  "source": {
+    "source": "images/20261110001310-为-MOOS-品牌旗下四款中文-AI-应用设计一.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "icons": [
+      {
+        "slug": "muyan",
+        "name": "沐言",
+        "archive": "images/moos-family-ready/muyan-沐言-icons.zip",
+        "bytes": 5493275,
+        "sha256": "196d01fc20d8ffbebc55cb1312a4541725448ddd201babfe9bf293d5b78642bb",
+        "sourceBodySize": [
+          514,
+          517
+        ],
+        "transparentSize": [
+          1024,
+          1024
+        ],
+        "fileCount": 37
+      },
+      {
+        "slug": "muma",
+        "name": "沐码",
+        "archive": "images/moos-family-ready/muma-沐码-icons.zip",
+        "bytes": 5736026,
+        "sha256": "676fc6122c71f3414c92e5865258ee28fd51c14dbe9e7671c50cbe603bee0b13",
+        "sourceBodySize": [
+          517,
+          518
+        ],
+        "transparentSize": [
+          1024,
+          1024
+        ],
+        "fileCount": 37
+      },
+      {
+        "slug": "muxu",
+        "name": "沐序",
+        "archive": "images/moos-family-ready/muxu-沐序-icons.zip",
+        "bytes": 5300150,
+        "sha256": "e176edc14295af76d1c01950664bd353a5a8570ea24a316659595b64a7ab3e07",
+        "sourceBodySize": [
+          516,
+          522
+        ],
+        "transparentSize": [
+          1024,
+          1024
+        ],
+        "fileCount": 37
+      },
+      {
+        "slug": "musu",
+        "name": "沐宿",
+        "archive": "images/moos-family-ready/musu-沐宿-icons.zip",
+        "bytes": 5471871,
+        "sha256": "0b92733d94b04f3417900b0378d14bacf7fb53aef52c7972088b6fb9c53a6c91",
+        "sourceBodySize": [
+          518,
+          519
+        ],
+        "transparentSize": [
+          1024,
+          1024
+        ],
+        "fileCount": 37
+      }
+    ]
+  },
+  "verification": {
+    "icons": [
+      {
+        "name": "沐言",
+        "pngSizes": 12,
+        "icoSizes": 7,
+        "icnsDecodedImages": 10,
+        "zipFiles": 37,
+        "checksums": "passed",
+        "alpha": "passed",
+        "opaque": "passed",
+        "result": "passed"
+      },
+      {
+        "name": "沐码",
+        "pngSizes": 12,
+        "icoSizes": 7,
+        "icnsDecodedImages": 10,
+        "zipFiles": 37,
+        "checksums": "passed",
+        "alpha": "passed",
+        "opaque": "passed",
+        "result": "passed"
+      },
+      {
+        "name": "沐序",
+        "pngSizes": 12,
+        "icoSizes": 7,
+        "icnsDecodedImages": 10,
+        "zipFiles": 37,
+        "checksums": "passed",
+        "alpha": "passed",
+        "opaque": "passed",
+        "result": "passed"
+      },
+      {
+        "name": "沐宿",
+        "pngSizes": 12,
+        "icoSizes": 7,
+        "icnsDecodedImages": 10,
+        "zipFiles": 37,
+        "checksums": "passed",
+        "alpha": "passed",
+        "opaque": "passed",
+        "result": "passed"
+      }
+    ],
+    "result": "passed",
+    "integratedIntoApps": false
+  },
+  "downloadDirectory": "/Users/xuguopeng/Downloads/MOOS系列图标-20261110",
+  "localScripts": [
+    "artifacts/family-icons/package_icons.py",
+    "artifacts/family-icons/verify_icons.py"
+  ],
+  "commands": [
+    "/opt/homebrew/bin/python3 artifacts/family-icons/package_icons.py",
+    "/opt/homebrew/bin/python3 artifacts/family-icons/verify_icons.py"
+  ],
+  "generation": "One billed image-generation call created the original four-up image in the preceding turn; this turn only processes existing pixels, no new generation request.",
+  "formats": [
+    "12 transparent PNG sizes 16–1024",
+    "macOS ICNS and 10-file iconset",
+    "Windows ICO with 7 resolutions",
+    "web favicon/Apple touch/PWA assets",
+    "opaque 1024 square and modern universal iOS AppIcon.appiconset",
+    "original 627 tile, README, SHA256 list"
+  ],
+  "visualReview": "Read back dark-background transparency preview for all four, plus square MuMa PNG. Smoothed inward superellipse edges replace threshold stair steps; corner fill blurred while original central artwork retained.",
+  "limits": [
+    "Source sheet is actually 1254x1254 despite service metadata claiming 1024x1024; each quadrant is 627x627, colored artwork about 515px. 1024 is Lanczos enlargement.",
+    "No vector source/SVG; no Android adaptive layers; no iOS dark/tinted variants.",
+    "Native ICNS decode, pixel/alpha/dimension/ICO/ZIP checks passed; target project integration, Xcode asset compilation, real-device icon appearance and store upload not performed.",
+    "Image artifacts and local scripts remain gitignored; only evidence, plan, audit log and tests are tracked.",
+    "No installed app, production data or other project modified.",
+    "Existing quiet-model cancellation test assumes models.json exists as soon as scheduler status becomes running; first run exposed the timing assumption. No application/test code changed, full repeat passed; timing concern remains recorded."
+  ],
+  "regression": {
+    "core": {
+      "command": "npm test",
+      "firstRun": "161/162, early-cancel test tried reading models.json before file existed (ENOENT)",
+      "recheck": "162/162 passed unchanged",
+      "logs": [
+        "artifacts/family-icons/core.log",
+        "artifacts/family-icons/core-recheck.log"
+      ]
+    },
+    "electron": {
+      "command": "npm run test:electron",
+      "result": "80/80 no skips",
+      "log": "artifacts/family-icons/electron.log"
+    },
+    "native": {
+      "command": "cargo test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "result": "11/11",
+      "log": "artifacts/family-icons/native.log"
+    },
+    "bridge": {
+      "command": "node --test probes/dsh-electron-pi/index.test.mjs",
+      "result": "5/5"
+    },
+    "skin": {
+      "command": "python3 -m unittest discover -s probes/dsh-electron-skin -v",
+      "result": "4/4"
+    },
+    "docs": {
+      "command": "python3 -B -m unittest discover -s tests -v",
+      "result": "84/84"
+    }
+  }
+}

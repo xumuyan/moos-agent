@@ -1687,3 +1687,12 @@
 - 验证结果：git push origin main 成功，git ls-remote origin refs/heads/main 与 git rev-parse HEAD 均为 55244b1bb057c5f805a3aaf21abfb9f5275794c5；工作区提交后干净。当前文档补记在该提交之后，其门禁另行执行，推送结果以实际命令为准。
 - 遗留问题：正式安装未执行；Finder/Dock 和正式窗口目视仍未验收。本条仅记录源码推送，不代表应用部署。
 - 对应 Git 提交：功能 55244b1bb057c5f805a3aaf21abfb9f5275794c5；本条唯一说明 `docs(P03.13.11): record MuMa source push verification`，查询 `git log --all --oneline --grep='docs(P03.13.11): record MuMa source push verification'`。
+
+## 2026-11-10 08:23:02 +08:00｜E107：四款 MOOS 系列图标可用素材包
+
+- 修改或新增内容：按用户要求将既有生图的沐言/沐码/沐序/沐宿分别制作独立图标包，每套 37 文件：透明 PNG 12 尺寸、1024 不透明方形、ICNS 与标准 iconset、七尺寸 ICO、网页素材和现代 iOS AppIcon.appiconset，附原始象限、使用说明、SHA256。四个 ZIP 和预览已复制至 /Users/xuguopeng/Downloads/MOOS系列图标-20261110，复制后逐字节哈希核对。生成文件沿用 images/ 忽略，不把派生图片提交 Git；新增 E107/PLAN 与文档测试记录范围。
+- 遇到的难题：图片服务宣称 1024 但实际 1254，上一轮固定裁切尺寸断言曾失败后按实际大小修正；阈值抠边有阶梯纹、移动端角落延展有纹理；重复构建时校验清单误含旧 checksums.json 导致自校验失败。
+- 处理方式：使用真实 627 象限/约 515px 主体，透明边界改平滑内收 superellipse，保留内部乳白符号并重建透明阴影；不透明角落单独平滑，不改中心图案。排除清单自身后重新导出四套，重新复制到下载目录。1024 明确标注 Lanczos 放大，不伪造 SVG 或原生高分辨率。
+- 验证结果：/opt/homebrew/bin/python3 artifacts/family-icons/package_icons.py 生成；verify_icons.py 四套全通过（PNG 尺寸/alpha、不透明方形、ICO 七尺寸、iconutil 原生 ICNS 解码十文件、JSON、全部哈希、ZIP 37 文件完整性及安全路径）；人工回读透明四宫格和 MuMa 不透明图。源码基线 b123f13 加本次记录；全套回归：npm test 首轮 161/162（quiet-model cancel 测试在文件尚未生成时读 models.json，ENOENT），不改代码/断言重跑 162/162；npm run test:electron 使用 build-KZquSV dsh 为 80/80 无跳过；原生 cargo release offline 11/11、PI 桥 5/5、皮肤 4/4；python3 -B -m unittest discover -s tests -v 84/84。下载目录最终四 ZIP 的 SHA256 再次核对 4/4 通过。
+- 遗留问题：不改正式安装/用户数据或其他项目；目标项目集成、Xcode 编译、实机桌面显示及商店上传未执行，不含矢量、Android adaptive 分层或 iOS 深色/着色变体。可用素材不等于目标项目集成验收。现有取消测试将调度 running 视作模型配置已就绪，首轮暴露该时序假设，未在素材任务中改动业务测试，保留为已知不稳定验证点。
+- 对应 Git 提交：唯一说明 `docs(E107): record four separate MOOS icon asset packs`，查询 `git log --all --oneline --grep='docs(E107): record four separate MOOS icon asset packs'`；本条写入时未提交/推送，之后按实际命令核对远程。

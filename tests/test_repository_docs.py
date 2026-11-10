@@ -9,6 +9,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_family_icon_assets_keep_formats_and_deployment_limits(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-family-icon-assets.json').read_text())
+        self.assertEqual(e['id'], 'E107')
+        self.assertEqual([i['name'] for i in e['source']['icons']], ['沐言', '沐码', '沐序', '沐宿'])
+        self.assertFalse(e['verification']['integratedIntoApps'])
+        self.assertEqual(e['source']['sourceSize'], [1254, 1254])
+        for icon, check in zip(e['source']['icons'], e['verification']['icons']):
+            self.assertEqual(icon['fileCount'], 37)
+            self.assertEqual(len(icon['sha256']), 64)
+            self.assertEqual(check['result'], 'passed')
+            self.assertEqual(check['icnsDecodedImages'], 10)
+        self.assertTrue(any('Lanczos' in limit for limit in e['limits']))
+
+
     def test_image_tool_evidence_matches_scope_and_guards(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-image-tool.json').read_text())
         self.assertEqual(evidence['task'], 'P03.13.9')
