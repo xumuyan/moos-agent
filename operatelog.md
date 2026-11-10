@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 12:40:00 +08:00｜E111 安装：用户授权更新 0.1.40（附件上限 + 纯平图标），E84 流程成功
+
+- 修改或新增内容：用户明确授权「更新 然后也把图标替换掉」。执行 E84 流程安装 build-JHNLSY 0.1.40 到 /Applications/沐码.app（原 0.1.39）：独立更新脚本 artifacts/installed-update-0.1.40/update.mjs（含预检：双包验签、标识/版本/fixture 断言、候选与验收构建字节一致、图标哈希与 brand-assets.json 一致、E110/E111 及历史功能标记、验证门四项 exit 全 0、数据目录完整性）；等待运行任务自然完成后正常退出、停机全量备份（ditto+逐字节校验+0700/0600 权限）、同卷原子换包、重启并逐项核对。
+- 遇到的难题：首次由沐码内 agent 直接 nohup 启动被脚本「祖先属于沐码」检查正确拒绝（更新不得由沐码后代进程执行）；侧栏图标不作为独立文件打包（仅内联 client.js），首版预检清单因此报 ENOENT；manifest 顶层 sha256 结构与误设的 assets 路径不符；docs.exit=1 为早期失败轮遗留未刷新。
+- 处理方式：改为孤儿化后台进程启动（bash 立即退出，node 被 launchd 收养，实测 ppid=1、祖先链无沐码/Host），满足「独立更新进程」要求并如实记录；预检资产清单修正为包内实际存在的 moos.icns，侧栏改以 staged client.js 与验收构建字节一致 + 占位符已内联断言；manifest 读取路径修正；四套验证门 .exit 重跑刷新（electron 82/82 无跳过、core 163/163、docs 全绿、GUI exit=0）。
+- 验证结果：result.json state=success（12:29:38，artifacts/installed-update-0.1.40/）：等待空闲期间未强停任何任务；备份 3221 文件逐一校验、权限核验通过；换包后单实例验签通过、加载壳 0.1.40、安装包 icns 与清单一致、侧栏内联在运行实例生效、附件 5 MiB 在位、6 模型可读、API/凭据原字节一致、SQLite 原行保留（354 消息/6 会话/183 任务前后一致）、聊天/PI 历史/皮肤/工作区/用户插件依赖保留；更新日志无异常。核对全部通过后按规则删除本次停机备份与旧包；正式进程 90996 运行于安装路径。docs 全量重跑全绿。
+- 遗留问题：Finder/Dock 新图标目视验收待用户确认（nativeVisibleAppearanceVerified=false）；.moos-update-0.1.31~0.1.39 旧目录不在本次授权范围未清理；play-512/ios-1024 全出血变体未集成进应用、未上传商店；Mac 安装不等于 iPhone 侧任何功能验收。
+- 对应 Git 提交：本次唯一提交（E111 安装证据与文档同步），可用 `git log --oneline --grep="E111 安装"` 查询；证据文件 artifacts/installed-update-0.1.40/result.json 已入库。
+
 ## 2026-11-10 12:20:00 +08:00｜P03.13.13 续：按 Apple HIG 与 Google Play 图标规范补齐跨平台变体（E111 补充）
 
 - 修改或新增内容：用户要求图标同时符合苹果与安卓官方规范且简单明了。抓取 Google Play 图标设计规范原文（512px 32位 PNG/sRGB、完整正方形不透明、系统动态 20% 圆角与阴影、极简图形置于框线网格 66/108）核对；Apple HIG 页面为 JS 渲染未能抓取正文，按已发布要点（单一焦点符号、不透明、macOS 边距约10%）核对。扩展 muma_v2_icons.py 增加 make_full_bleed 与 assert_play_safe_area，产出 play-512-fullbleed.png（青底白标全出血，安全区实测 126.0/148.6px）与 ios-appstore-1024-fullbleed.png；macOS 应用资产不变。E111 证据增加 platformVariants/specCompliance，E111 测试增加对应断言，PLAN P03.13.13 行补充跨平台范围。

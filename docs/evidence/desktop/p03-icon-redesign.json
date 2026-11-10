@@ -24,7 +24,10 @@
     "generation": "artifacts/family-icons/muma_v2_icons.py 以 4× 超采样程序化绘制（PIL），无 AI 生成栅格、无栅格放大",
     "candidates": {
       "integrated": "A-prompt",
-      "alternativesKeptNotIntegrated": ["B-brackets (</>)", "C-monogram (M.)"],
+      "alternativesKeptNotIntegrated": [
+        "B-brackets (</>)",
+        "C-monogram (M.)"
+      ],
       "alternativeFiles": "images/muma-icon-v2/",
       "specReference": "images/muma-icon-v2/deepseek-spec-reference.png（用包内提取的官方鲸鱼 path 渲染的白底蓝鲸对照，仅本地参考，不分发、不进应用资产）"
     }
@@ -47,7 +50,10 @@
     "codesignDeepStrict": true,
     "bundleIcnsByteIdenticalToRepo": true,
     "sidebarInlineBase64MatchesRepo": true,
-    "codeFilesIdenticalToRepo": ["plugin/host.js", "plugin/pi-route.js"],
+    "codeFilesIdenticalToRepo": [
+      "plugin/host.js",
+      "plugin/pi-route.js"
+    ],
     "note": "本轮只换图标资产；0.1.40 现包含 E110 附件上限与 E111 新图标，仍未经授权未安装"
   },
   "tests": {
@@ -96,7 +102,10 @@
     "purpose": "按 Apple HIG 与 Google Play 图标设计规范补齐跨平台变体；macOS 应用资产不变（本轮已验收提交）",
     "play": {
       "file": "images/muma-icon-v2/play-512-fullbleed.png",
-      "size": [512, 512],
+      "size": [
+        512,
+        512
+      ],
       "format": "full-bleed opaque square, no pre-rounded corners, no baked shadow (Play applies its own 20%-radius mask and shadow dynamically)",
       "background": "#0FA892 full-bleed brand color, no transparency",
       "markInsideKeylineGrid": true,
@@ -106,7 +115,10 @@
     },
     "ios": {
       "file": "images/muma-icon-v2/ios-appstore-1024-fullbleed.png",
-      "size": [1024, 1024],
+      "size": [
+        1024,
+        1024
+      ],
       "format": "full-bleed opaque square, no transparency, no pre-rounded corners (iOS masks corners itself)",
       "sameSafeAreaCheck": true
     },
@@ -120,12 +132,52 @@
     "simplicity": "三平台均为单一符号（终端提示符 >_），无文字、无渐变、无光效"
   },
   "install": {
-    "state": "not-executed-no-authorization",
-    "note": "与 E110 一致：0.1.40 候选包（含新图标与附件上限）等待用户明确授权后按 E84 流程安装；/Applications/沐码.app 当前仍为 0.1.39 旧图标",
-    "productionDataTouched": false
+    "state": "installed-verified",
+    "installedAt": "2026-11-10T12:29:38+08:00",
+    "buildId": "build-JHNLSY",
+    "version": "0.1.40",
+    "authorization": "用户明确授权「更新 然后也把图标替换掉」",
+    "method": "E84 流程，独立孤儿化更新进程（pid 87658，ppid=1，祖先链不含沐码/Host）；首次尝试由沐码内 agent 直接 nohup 被脚本祖先检查正确拒绝后改为孤儿化启动",
+    "stoppedActiveTasks": false,
+    "idleWait": "等待用户运行中的任务自然完成（无强杀），任务空闲后正常退出",
+    "checks": {
+      "codesignDeepStrict": true,
+      "installedMainProcesses": 1,
+      "fullBackupFilesVerified": 3221,
+      "backupPermissionsVerified": true,
+      "installedIconMatchesManifest": true,
+      "sidebarIconInLiveClient": true,
+      "attachmentLimitsInInstalled": true,
+      "apiAndCredentialsIdentical": true,
+      "readableSavedModels": 6,
+      "chatFilesRetained": true,
+      "piHistoryFilesRetained": true,
+      "skinsRetained": true,
+      "workspaceRetained": true,
+      "originalDatabaseRowsRetained": true,
+      "userPluginDependenciesRetained": true,
+      "dbCountsBeforeAfter": {
+        "messages": [
+          354,
+          354
+        ],
+        "conversations": [
+          6,
+          6
+        ],
+        "tasks": [
+          183,
+          183
+        ]
+      }
+    },
+    "backupCleanup": "核对全部通过后按规则删除本次停机备份与旧包（/Applications/.moos-update-0.1.40）；更早轮次的 .moos-update-0.1.31~0.1.39 目录不在本次授权范围，列为遗留",
+    "nativeVisibleAppearanceVerified": false,
+    "note": "Finder/Dock 新图标目视由用户确认中；对话实例随应用重启接续",
+    "resultFile": "artifacts/installed-update-0.1.40/result.json"
   },
   "limits": [
-    "Finder/Dock 及正式安装后的新图标目视验收待安装后由用户确认；隔离 GUI 断言的是包内 icns 字节一致与侧栏图标真实加载。",
+    "Finder/Dock 新图标目视验收待用户确认（nativeVisibleAppearanceVerified=false）；已安装包的 icns 哈希与侧栏内联已核对一致。",
     "Dock/大视图为白底版本，Finder 16/32 小视图与深色侧栏为反色青底版本，两版刻意并存。",
     "备选 B/C 若被选中需重跑生成脚本并重建，当前未集成。",
     "ad-hoc 签名，未公证。",

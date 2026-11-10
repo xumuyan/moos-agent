@@ -107,8 +107,13 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['tests']['core'], 'npm test: 163/163')
         self.assertEqual(e['gui']['exit']['code'], 0)
         self.assertEqual(e['gui']['branding']['icnsSha256'], e['assets']['sha256']['moos.icns'])
-        self.assertIn('not-executed-no-authorization', e['install']['state'])
-        self.assertFalse(e['install']['productionDataTouched'])
+        self.assertIn('installed-verified', e['install']['state'])
+        self.assertTrue(e['install']['checks']['installedIconMatchesManifest'])
+        self.assertTrue(e['install']['checks']['apiAndCredentialsIdentical'])
+        self.assertTrue(e['install']['checks']['originalDatabaseRowsRetained'])
+        self.assertFalse(e['install']['stoppedActiveTasks'])
+        self.assertFalse(e['install']['nativeVisibleAppearanceVerified'])
+        self.assertTrue(e['install']['checks']['installedIconMatchesManifest'])
         self.assertTrue(any('Finder/Dock' in limit for limit in e['limits']))
         # cross-platform variants per Apple HIG / Google Play spec
         pv = e['platformVariants']
