@@ -1,0 +1,45 @@
+{
+  "id": "E112",
+  "scope": "MuYan (沐言) family icon v2 flat redesign; asset-pack delivery only, no application integration",
+  "createdAtBeijing": "2026-11-10T13:05:00+08:00",
+  "requestedByUser": true,
+  "userRequest": "把沐言的应用图标也处理一下（与沐码 v2 同一纯平设计语言）",
+  "design": {
+    "language": "与 E111 沐码 v2 同一家族：白底 Apple squircle、纯平单色符号、无渐变/无 3D/无阴影、留白充足、小尺寸反色",
+    "brandColor": "#F76B5B",
+    "brandColorSource": "E107 沐言渐变 #FE9859→#F66477 采样的纯平中间值",
+    "mark": "对话气泡 + 三根语音波形竖条（延续 v1 识别度），程序化几何绘制（PIL 4x 超采样），非 AI 位图放大",
+    "candidates": {
+      "integrated": "A-bubble",
+      "kept": "B-quote（气泡+双引号胶囊，预览保留未集成）"
+    },
+    "specCompliance": {
+      "appleHig": "单一焦点符号、不透明白底、内容框 80.5%（边距 19.5%）、16px 反色可读；HIG 页面 JS 渲染未能抓取正文，按已发布要点核对",
+      "googlePlay": "play-512-fullbleed 全出血不透明、无预置圆角/阴影、图形在 66/108 框线网格内，自动安全区断言 worst=118.7 <= 148.6 (px@512)",
+      "simplicity": "单一符号（气泡+波形），无文字、无渐变、无光效"
+    }
+  },
+  "delivery": {
+    "folder": "images/moos-family-ready/muyan-沐言",
+    "zip": "images/moos-family-ready/muyan-沐言-icons.zip",
+    "zipSha256": "8c3b813ae4862555b5e236fb7394dd0c61364b156978e9a4d63c1721ba8cb4da",
+    "zipBytes": 426070,
+    "fileCount": 37,
+    "formats": ["12 transparent PNG sizes 16-1024", "macOS ICNS + 10-file iconset (16-64 inverted, 128+ light, same E111 MuMa decision)", "Windows ICO 7 resolutions", "web favicon/apple-touch/PWA", "iOS universal AppIcon.appiconset (full-bleed 1024)", "opaque square 1024", "checksums.json", "README-使用说明.md"],
+    "icnsRoundtrip": "iconutil decode 10 images ok; 32px center coral (249,147,135), corners transparent",
+    "icoCheck": "windows 7 sizes [16,24,32,48,64,128,256], web [16,32,48]",
+    "downloadsSynced": "/Users/xuguopeng/Downloads/MOOS系列图标-20261110 (muyan folder + zip replaced)"
+  },
+  "generators": [
+    "artifacts/family-icons/muyan_v2_icons.py",
+    "artifacts/family-icons/muyan_v2_package.py"
+  ],
+  "integratedIntoApps": false,
+  "notInGitForBinaries": "素材与 zip 在 Git 忽略目录，与 E107 交付方式一致；入库的是生成/打包脚本与证据",
+  "familyNote": "本轮仅应用户要求重做沐言；沐码已随 0.1.40 安装（E111）；沐宿/沐序仍为 E107 v1 渐变素材，未动",
+  "limits": [
+    "素材包交付不等于任何应用集成或商店上架；沐言当前无独立应用工程",
+    "Play/iOS 变体未上传任何商店",
+    "视觉最终确认待用户查看预览"
+  ]
+}

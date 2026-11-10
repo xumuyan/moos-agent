@@ -141,6 +141,23 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertEqual(check['icnsDecodedImages'], 10)
         self.assertTrue(any('Lanczos' in limit for limit in e['limits']))
 
+    def test_muyan_icon_v2_evidence_matches_delivery(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-muyan-icon-v2.json').read_text())
+        self.assertEqual(e['id'], 'E112')
+        self.assertTrue(e['requestedByUser'])
+        self.assertEqual(e['design']['brandColor'], '#F76B5B')
+        self.assertEqual(e['design']['candidates']['integrated'], 'A-bubble')
+        self.assertFalse(e['integratedIntoApps'])
+        d = e['delivery']
+        self.assertEqual(d['fileCount'], 37)
+        self.assertEqual(len(d['zipSha256']), 64)
+        pv = e['design']['specCompliance']['googlePlay']
+        self.assertIn('66/108', pv)
+        self.assertIn('118.7', pv)
+        self.assertIn('未集成任何应用', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('| E112 |', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('沐宿/沐序仍为 E107 v1', (ROOT / 'PLAN.md').read_text())
+
 
     def test_image_tool_evidence_matches_scope_and_guards(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-image-tool.json').read_text())
