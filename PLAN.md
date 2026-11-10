@@ -668,3 +668,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 隔离 build-bCr0Rp 构建验签通过，core 162/162、electron 81/81、native 11/11、PI 桥 5/5、皮肤 4/4；GUI recovery-1GBpjB 实际图标加载、名称、12 文件折叠、正常退出通过；更名移动/冲突/回退合成检查 5/5。
 - 安装状态：已授权、PREFLIGHT_OK，待独立 Terminal 接手并等待当前任务自然完成；尚未退出/替换正式 Moos。结果 `/Applications/.moos-update-0.1.38/result.json`，恢复先读结果与日志，不重复已执行步骤。正式 Finder/Dock 及可见窗口未验收，不提前宣称通过。
 - 证据 E108：`docs/evidence/desktop/p03-muma-icon-update.json`。
+
+- E108 交接续记：源码 897a2c7 已推送并核对远程，独立 Terminal PID86799 已接手，result.state=waiting-for-idle；未强停当前任务，安装最终结果待读取，不预勾完成。

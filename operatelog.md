@@ -1705,3 +1705,12 @@
 - 验证结果：npm run build:app→build-bCr0Rp，签名通过、fixture=false；npm test 162/162、npm run test:electron 81/81 无跳过、原生 release offline 11/11、桥 5/5、皮肤 4/4，日志 artifacts/muma-icon-update/validation。GUI recovery-1GBpjB 真图标32px/ICNS哈希、名称标题、12文件收起/展开/再收起、app.quit code0无信号通过，脚本exit0；截图已回读。更新检查点5/5，PREFLIGHT_OK（安装尚未执行）。测试对应58eb5cd基础上的本次提交前工作区；文档门禁首次因本条时间为 ISO T 格式未匹配仓库约束失败，修正为北京时间标准格式后重跑85/85。
 - 遗留问题：当前仍正式 Moos 0.1.36，待独立进程接手后正常退出更新；结果 /Applications/.moos-update-0.1.38/result.json，日志同目录 terminal-update.log。会话中断后先核对结果，不重复安装。原始聊天/配置/密钥不输出，数据目录与持久分区不变。Finder/Dock正式目视未验证；不宣称安装成功；保留 E105/E106 当时未安装历史结论。
 - 对应 Git 提交：唯一说明 `feat(P03.13.11): apply MuMa family icon and authorize 0.1.38 update`；查询 `git log --all --oneline --grep='apply MuMa family icon'`。提交推送核对后交接。
+
+## 2026-11-10 08:46:22 +08:00｜P03.13.11 独立更新进程已接手
+
+- 修改或新增内容：E108 补充源码推送与实际安装交接事实；897a2c7008819cf68033e5a80cf625ecd4ba2455 已推送，git ls-remote 与本地 HEAD 一致。
+- 遇到的难题：交接4秒时结果文件尚未生成，未据此重复启动；完整资源比对预检约38秒后才进入等待状态。
+- 处理方式：只读核对结果与日志，PID86799祖先 Terminal→login→zsh→bash→node，无Moos/Host。进程已独立接手，当前 waiting-for-idle，等待本对话任务自然结束。
+- 验证结果：result.json targetShell=0.1.38、state=waiting-for-idle、stoppedActiveTasks=false、productionDataReset=false；尚未执行停机/替换，不能称安装成功。文档85/85提交前再跑；本条仅补交接证据，应用测试沿用上条对应源码。
+- 遗留问题：完成本回复后宿主可能退出并启动 MuMa，须先读 /Applications/.moos-update-0.1.38/result.json 与 terminal-update.log 确认实际成功及数据检查；失败保留旧包与备份，不重复安装。备份尚未生成，无清理动作。
+- 对应 Git 提交：源码897a2c7；本条唯一说明 `docs(P03.13.11): record independent MuMa update handoff`，查询 `git log --all --oneline --grep='independent MuMa update handoff'`。

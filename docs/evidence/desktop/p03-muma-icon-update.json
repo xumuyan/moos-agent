@@ -88,12 +88,32 @@
     "data": "~/Library/Application Support/dev.moos.agent.electron",
     "result": "/Applications/.moos-update-0.1.38/result.json",
     "log": "/Applications/.moos-update-0.1.38/terminal-update.log",
-    "preflight": "PREFLIGHT_OK; accepted resources byte-matched, identities/signatures checked; 0.1.36 loaded shell checked; existing target absent"
+    "preflight": "PREFLIGHT_OK; accepted resources byte-matched, identities/signatures checked; 0.1.36 loaded shell checked; existing target absent",
+    "handoff": {
+      "state": "waiting-for-idle",
+      "pid": 86799,
+      "ancestor": "Terminal → login → zsh → bash → node; no Moos/Host ancestry",
+      "resultObservedAt": "2026-11-10 08:46:22 +08:00",
+      "resultRecord": {
+        "state": "waiting-for-idle",
+        "targetShell": "0.1.38",
+        "userAuthorizedUpdate": true,
+        "stoppedActiveTasks": false,
+        "productionDataReset": false,
+        "automaticDataRestore": false,
+        "time": "2026-11-10T00:45:51.055Z"
+      }
+    }
   },
   "limits": [
     "Installation not complete at handoff record; active tasks will finish naturally, no forced stop.",
     "Native Finder/Dock localization and formal visible GUI not yet verified.",
     "Raster 1024 master is Lanczos enlarged; ad-hoc signed, not notarized.",
     "Data migration/reset/automatic restoration prohibited; failure preserves backup and old package."
-  ]
+  ],
+  "sourcePush": {
+    "localHead": "897a2c7008819cf68033e5a80cf625ecd4ba2455",
+    "remoteMain": "897a2c7008819cf68033e5a80cf625ecd4ba2455",
+    "verified": true
+  }
 }
