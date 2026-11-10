@@ -104,5 +104,10 @@
     "ad-hoc 签名，未公证。",
     "DeepSeek 官方鲸鱼 path 提取仅用于本地设计规范对照，未进入应用资产或分发物。"
   ],
-  "sourcePush": null
+  "sourcePush": {
+    "localHead": "16c9916f262affb6c9ca655fd9ddd0f94f9bd3e8",
+    "remoteMain": "16c9916f262affb6c9ca655fd9ddd0f94f9bd3e8",
+    "verified": true,
+    "deployment": false
+  }
 }

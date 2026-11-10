@@ -7,7 +7,16 @@
 - 处理方式：按「历史证据不改写」原则修改该测试——E108 保留 0.1.38 当时哈希作为历史事实，改为锁定「与现行 manifest 不同」的取代关系；新增 E111 测试校验现行资产/构建/GUI/未安装状态全链路；另补 PLAN P03.13.12 任务行使编号连续。
 - 验证结果：重建 build-JHNLSY 0.1.40（现含 E110 附件上限与新图标）；codesign --deep --strict 通过；包内 moos.icns 字节一致、client.js 侧栏 base64 内联一致、host.js/pi-route.js 与仓库一致；electron 82/82、core 163/163；隔离 GUI recovery-5qxDGt（scripts/verify-electron-brand.mjs）品牌/折叠/优雅退出 exit=0，brand-report icnsSha256=3b945c23…；docs 89/89（新增 E111 测试与 P03.13 编号连续校验）；隔离 GUI recovery-5qxDGt（scripts/verify-electron-brand.mjs）品牌/折叠/优雅退出 exit=0，brand-report icnsSha256=3b945c23…；三套测试完整退出码 0 记录在本地 artifacts/muma-icon-v2/（不入 Git）。
 - 遗留问题：安装未授权未执行，/Applications/沐码.app 仍为 0.1.39 旧图标；Finder/Dock 新图标目视待安装后用户确认；B/C 备选切换需重跑脚本重建；sourcePush 哈希以远程核对为准。
-- 对应 Git 提交：本次唯一提交（P03.13.13 图标 v2 重设计与证据，含本条日志与 PLAN/测试更新），可用 `git log --oneline --grep="P03.13.13"` 查询。
+- 对应 Git 提交：16c9916（P03.13.13 图标 v2 重设计与证据，含本条日志与 PLAN/测试更新），已推送并用 ls-remote 核对远程 main 与本地 HEAD 一致。
+
+## 2026-11-10 12:05:00 +08:00｜P03.13.13 续：E111 sourcePush 回填与远程核对
+
+- 修改或新增内容：E111 证据回填 sourcePush（16c9916）并新增本续记。
+- 遇到的难题：无。
+- 处理方式：推送后以 ls-remote 核对远程 main=16c9916f262affb6c9ca655fd9ddd0f94f9bd3e8 与本地 HEAD 一致；源码推送不等于应用安装。
+- 验证结果：push f739a34..16c9916 main -> main 成功。
+- 遗留问题：0.1.40（附件上限+新图标）仍未安装，待用户明确授权；安装后需 Finder/Dock 新图标目视与 >512 KiB 图片端到端确认。
+- 对应 Git 提交：本次唯一提交（E111 sourcePush 回填），可用 `git log --oneline --grep="sourcePush"` 或核对 p03-icon-redesign.json 查询。
 
 ## 2026-11-10 11:20:00 +08:00｜P03.13.12：附件与图片上限调整（图片 512 KiB→5 MiB、二进制转存工作区，E110，0.1.40 未安装）
 
