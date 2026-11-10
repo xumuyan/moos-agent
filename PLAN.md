@@ -647,6 +647,7 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E104 | P03.13.9 完成 + 0.1.36 正式安装（用户授权）：E84 同款独立进程更新 0.1.34→0.1.36（build-HleYgO，includesPiFixture=false），停机完整备份 809 文件逐字节核实，换包后 171 消息/3 会话/90 任务与源一致、6 模型可读、配置字节一致；六项门禁全绿（core 160/electron 79/native 11/bridge/skin/docs 81，日志 artifacts/installed-update-0.1.36/validation-final）；electron 门禁唯一代码改动：host.test.mjs 双 pass 共享预算 12s→30s（同机负载下 12s 不够，宿主实测 2s 就绪，安全断言不变）。用户在新版配置图片生成后真实扣费调用成功：GET /models 零费用冒烟 HTTP 200 → generate_image 工具每任务自动挂载 → POST /images/generations n=1 一次付费，1536x1024 PNG 落盘 1842096 字节 24.4s。成功确认后按规则删备份旧包（837M）。证据 `docs/evidence/desktop/p03-image-tool-live.json`。 | 安装 result.json state=success（artifacts/installed-update-0.1.36/）；真实图片 images/20261109122228-A-cute-robot-assistant-s.png（不入 Git，images/ 加入忽略）；安装后未重跑 E103 桌面 GUI 三阶段验收（安装包与已验证构建字节一致并经候选比对）；P03.13.4 整体仍保持未完成。 |
 | E105 | P03.13.10 工作区变化列表折叠：PiTurnTail 超 10 个文件时以 `<details data-moos-turn-files>` 默认收起，summary 保留标题与「已折叠」提示，点击展开/再点收起；≤10 个文件保持平铺。fixture 新增 MOOS_FIXTURE_MANY（bash 写 12 个文件）。证据 `docs/evidence/desktop/p03-turn-tail-collapse.json`。 | client 3/3、fixture 12/12、core 160/160、electron 79/79、docs OK；隔离 GUI 验收 recovery-nCJlAQ（收起态/展开态截图 + many-report.json：默认 open=false、summary 工作区变化 · 12 个文件已折叠、展开 12 项 many-N.txt 齐全、再点收起）；脚本本轮修复三点并记录：宿主 danger 模式透传 ELECTRON_RUN_AS_NODE 使隔离实例变 node 模式（启动前清理）、0.1.36 壳首屏 hero 工作区触发卡片需点击进入默认工作区后 Lexical 编辑器才挂载、fixture relay 未关导致脚本残留（已 close，33s 干净退出）；正式安装版未含此改动，安装待用户授权。 |
 | E106 | P03.13.11 MuMa / 沐码更名；证据 `docs/evidence/desktop/p03-muma-brand.json`。 | build-KZquSV 0.1.37（正式包无 fixture）；core 162/162、electron 80/80 无跳过、native 11/11、PI 桥 5/5、皮肤 4/4；隔离 GUI recovery-UK0Pmw 品牌、PI 写入和折叠、QA app.quit 退出与脚本 exit=0。文档 83/83；源码提交 55244b1 已推送并核对远程一致。内部身份不变，不部署；Finder/Dock 与正式窗口目视未验收。 |
+| E110 | P03.13.12 附件与图片上限调整（0.1.40，本轮不安装）：图片 512 KiB→5 MiB（路由 IMAGE_BYTES 与 attachment-local maxImageBytes/maxMessageImageBytes 同步），文本内联预算 32 KiB→128 KiB，二进制/超预算文件转存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），对话提示相对路径由 PI 工具读取；每条消息仍 8 附件/1 图。证据 `docs/evidence/desktop/p03-attachment-limits.json`。 | core 163/163、electron 82/82（新增 pi-uploads/saveWorkspaceUpload 单测、pi-tasks 转存路径用例、pi-models 1 MiB 成功/5 MiB+1 拒绝）、docs 86/86；build-g04nDJ 0.1.40 构建验签、包内代码与仓库一致、attachment-local 覆盖在位；隔离 GUI recovery-kzbAHF 品牌/折叠/优雅退出通过（recovery-mk2CAR 退出超时失败保留，重跑通过）；0.1.39 安装成功核对（1463 备份文件、288/6/150 保留、单实例）并入同批提交。正式安装未执行、无本轮授权，GUI 内 >512 KiB 端到端待安装后用户确认。 |
 
 
 ## STORAGE-CLEANUP-20261109：用户授权本机缓存维护
@@ -679,3 +680,10 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 安装已授权且最终候选PREFLIGHT_OK，待独立Terminal交接并等当前任务自然结束，正式Finder/Dock目视未验收，不预称安装成功。
 
 - E109交接续记：077166a已推送且本地/远程一致；独立Terminal PID4442（祖先不属于MuMa/Host）实际result.state=waiting-for-idle，待本任务自然结束，安装最终结果尚待核对。
+
+- E109安装结果核对（2026-11-10）：独立更新进程等待空闲后自然完成，result.state=success（北京时间 09:13:46）；停机备份 1463 文件逐一校验、同卷只换包，正式包 /Applications/沐码.app 0.1.39，旧 MuMa.app 移出为回滚包；启动后单实例、加载壳一致、6模型可读、API/凭据原字节一致，SQLite 原行保留（288消息/6会话/150任务前后一致）、聊天/PI历史/皮肤/用户插件/工作区保留；未强停任务、未重置/自动恢复数据。nativeVisibleAppearanceVerified=false，Finder/Dock 可见本地化仍待用户目视；停机备份与旧包保留待清理。
+
+### 附件与图片上限调整（E110，0.1.40，未安装）
+
+- 按用户反馈「图片不能超过 512 KiB」报错：定位限制均来自仓库自有 PI 路由而非上游 DSH。图片上限 512 KiB → 5 MiB（路由 IMAGE_BYTES 与 attachment-local maxImageBytes/maxMessageImageBytes 同步）；文本附件内联预算 32 KiB → 128 KiB；二进制或超预算文件不再直接拒绝，改存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），对话提示相对路径由 PI 工具读取；每条消息仍 8 个附件、1 张图。
+- E110 `docs/evidence/desktop/p03-attachment-limits.json`：core 163/163、electron 82/82（新增 pi-uploads 转存函数单测、pi-tasks 转存路径用例、pi-models 1 MiB 成功/5 MiB+1 拒绝）、docs 86/86；build-g04nDJ 0.1.40 构建验签通过、包内代码与仓库一致、attachment-local 5 MiB 覆盖在位；隔离 GUI 恢复 recovery-kzbAHF 品牌/折叠/优雅退出通过（recovery-mk2CAR 为退出超时失败保留证据，重跑通过）。正式安装未执行、无本轮授权，/Applications/沐码.app 仍 0.1.39；GUI 内 >512 KiB 图片端到端实测待安装后用户确认。

@@ -23,6 +23,10 @@
   disabled: true
 - id: ui-message-feedback
   disabled: true
+- id: attachment-local
+  config:
+    maxImageBytes: 5242880
+    maxMessageImageBytes: 5242880
 - insert:
     - id: moos-electron-shell
       name: moos-electron-shell

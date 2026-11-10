@@ -1,0 +1,40 @@
+{
+  "evidence": "E110",
+  "task": "P03.13.12 附件与图片上限调整（图片 512 KiB → 5 MiB，二进制/超大文件转存工作区）",
+  "time": "2026-11-10 11:05:00 +08:00",
+  "workspaceState": "基线 c6d79393e6fa15069c21b89bff43057eb8296684（E109 交接记录，已推送）；0.1.39 安装成功核对并入本轮提交",
+  "userRequest": "用户在沐码应用上传附件报错「图片不能超过 512 KiB」，要求放开该限制",
+  "change": {
+    "rootCause": "两个限制均来自仓库自有 PI 路由 apps/electron/plugin/pi-route.js，而非上游 DSH：文本附件合计 32 KiB 且必须纯 UTF-8（ZIP 等二进制直接拒绝），图片每条消息 1 张、上限 524288 字节（512 KiB）。前端提示文案在 dsh-client-ui-conversation，限制值来自 attachment-local 的 imageLimits projection（默认宽松，由 cordis.patch.yml 覆盖收窄）。",
+    "code": [
+      "pi-route.js：新增常量 IMAGE_BYTES=5 MiB（图片上限，错误文案动态取值）、PROMPT_TEXT_BUDGET=128 KiB（纯 UTF-8 文本内联预算）、PROMPT_FILES=8、UPLOAD_SAVE_LIMIT=100 MiB（单文件转存上限）；promptInput 对二进制（UTF-8 fatal 解码失败或含 NUL/控制字符）或超预算文件改走 saveUpload 写入会话工作区 .moos-uploads/，并在对话中提示相对路径，让 PI 用文件工具自行读取；createPiAdapter 新增 saveUpload 注入，stream 处理取 getSession(sessionId).header.cwd 传入",
+      "host.js：saveWorkspaceUpload 导出为独立函数并加单测——sha256 前 8 位作文件名前缀、文件名中路径分隔符/反斜杠/NUL/控制字符替换为 _、去首部点、截断 80 字符，写入 <cwd>/.moos-uploads/ 并返回相对路径；cwd 非绝对路径时拒绝；注入处保留 abort 信号检查",
+      "cordis.patch.yml：attachment-local 覆盖 maxImageBytes/maxMessageImageBytes=5242880，与路由 5 MiB 及前端提示一致"
+    ],
+    "identity": "不改变 Bundle ID、数据目录、persist 分区、PI 路由名、IPC/插件名；.moos-uploads 写入会话工作区内，不触碰用户数据目录配置"
+  },
+  "tests": {
+    "core": "npm test 163/163 通过",
+    "electron": "npm run test:electron 82/82 通过（新增 pi-uploads.test.mjs 1 项；pi-tasks.test.mjs 重写附件用例：小文本内联、ZIP 二进制转存、128 KiB+1 超预算转存、含 NUL 文本转存、8 个上限、非法用例拒绝；pi-models.test.mjs 新增 1 MiB 图片成功与 5 MiB+1 拒绝及错误文案断言）",
+    "docs": "python3 -m unittest discover -s tests OK（86 检查项）",
+    "validationLog": "artifacts/muma-attachments/validation/{electron,core,docs}.{log,exit} 全部 exit=0；electron 82/82 含 skin center 4 项（MOOS_ELECTRON_TEST_DSH_CLI 指向 build-g04nDJ 随包 CLI）"
+  },
+  "build": {
+    "app": "build-g04nDJ（0.1.40 沐码.app）npm run build:app 成功；CFBundleVersion/ShortVersion 0.1.40；codesign --verify --deep --strict 通过",
+    "bundleConsistency": "包内 host.js/pi-route.js 与仓库 diff 一致；profile-template/profiles/web/cordis.patch.yml 含 attachment-local 5 MiB 覆盖；差异仅为侧栏图标 base64 内联（__MOOS_SIDEBAR_ICON__ 替换）",
+    "intermediate": "build-3mVWSA 为提取 saveWorkspaceUpload 前的构建（行为一致），最终验收与产物以 build-g04nDJ 为准"
+  },
+  "gui": {
+    "method": "scripts/verify-electron-brand.mjs 隔离实例（ditto 拷贝 build-g04nDJ 至 artifacts scratch、ad-hoc 重签、seedHome 独立数据目录、进程内 fixture 模型），不触碰正式安装版与用户数据",
+    "result": "通过：shell 0.1.40、侧栏/标题 沐码、12 文件折叠展开 12 项、QA SIGUSR2 → app.quit 优雅退出 code=0 无 SIGTERM",
+    "report": "artifacts/muma-attachments/gui/recovery-kzbAHF（成功轮）与 recovery-HAhmDq（首次构建 build-3mVWSA 同样通过）；recovery-mk2CAR 为退出超 15 秒失败的保留证据，重跑通过；此前并行验证负载可能拖慢 Host 清理",
+    "limits": "本轮 GUI 冒烟覆盖品牌/折叠/退出，未在 GUI 内实际发送 >512 KiB 图片端到端验证；该路径由 pi-route/pi-models 单测与包内配置核对覆盖，安装后需用户以真实附件确认前端提示为 5 MiB"
+  },
+  "installStatus": "正式安装未执行：本轮无安装授权，/Applications/沐码.app 仍为 0.1.39。如需生效需用户明确授权后按 E84 流程更新；单元与打包验收不等于正式安装完成",
+  "priorInstallNote": "E109 0.1.39 独立安装已于北京时间 2026-11-10 09:13:46 核对 success：1463 备份文件校验、288/6/150 前后一致、SQLite 原行与皮肤/插件/工作区保留、单实例、安装器祖先独立；nativeVisibleAppearanceVerified=false 仍需用户目视 Finder/Dock；停机备份与旧包保留待清理决策",
+  "limits": [
+    "100 MiB 以上的单个附件仍拒绝（UPLOAD_SAVE_LIMIT），模型上下文窗口消耗由 PI 端读取行为决定，未测超大图片对上下文的实际影响",
+    "saveUpload 依赖会话工作区可写；工作区不可写时报错文案提示用户检查目录权限",
+    "前端 imageLimits 提示文案依赖 attachment-local 配置随包生效，正式安装后需实际确认"
+  ]
+}

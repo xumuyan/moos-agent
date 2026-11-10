@@ -1,12 +1,25 @@
-import { realpath } from 'node:fs/promises';
+import { mkdir, realpath, writeFile } from 'node:fs/promises';
 import { statSync, unwatchFile, watchFile, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { dirname, isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createPiTasks } from './pi-tasks.js';
 import { piModels } from './pi-models.js';
 
 export const name = 'moos-electron-shell';
 export const inject = ['tools', 'agents', 'llm', 'sandboxPolicy', 'approval'];
+
+// 二进制或超大附件落入会话工作区，PI 工具可用相对路径读取；不写入工作区之外。
+export async function saveWorkspaceUpload(bytes, name, cwd, mkdir, writeFile) {
+  if (typeof cwd !== 'string' || !isAbsolute(cwd)) throw new Error('PI uploads need a workspace directory');
+  const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+  const leaf = name.replace(/[\\/\u0000-\u001f]/gu, '_').replace(/^\.+/, '_').slice(0, 80) || 'file';
+  const dir = join(cwd, '.moos-uploads');
+  await mkdir(dir, { recursive: true });
+  const target = join(dir, `${digest}-${leaf}`);
+  await writeFile(target, bytes);
+  return `.moos-uploads/${digest}-${leaf}`;
+}
 
 export async function apply(ctx) {
   // The upstream session driver still builds a model request while PI owns
@@ -94,6 +107,11 @@ export async function apply(ctx) {
       tasks, models, getSession: id => ctx.agents.get(id)?.session,
       readFile: (ref, signal) => ctx.get('attachments')?.readFileStream(ref, signal),
       readImage: (ref, signal) => ctx.get('attachments')?.readImage(ref, signal),
+      // 二进制或超大附件落入会话工作区，PI 工具可用相对路径读取；不写入工作区之外。
+      saveUpload: async (bytes, name, cwd, signal) => {
+        signal?.throwIfAborted();
+        return saveWorkspaceUpload(bytes, name, cwd, mkdir, writeFile);
+      },
       getTurnStart: session => session && ctx.agents.turnBoundaryOf(session).openTurnStartSeq,
       getPermissions(id) {
         refreshPolicy();

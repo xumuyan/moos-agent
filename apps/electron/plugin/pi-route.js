@@ -49,9 +49,16 @@ function sessionTitle(request) {
   return content?.trim().split('\n')[0].slice(0, 64) || '沐码会话';
 }
 
-async function promptInput(content, readFile, signal) {
-  let remainingBytes = 32768;
-  let remainingFiles = 8;
+// 文本附件直接进入对话的预算；超出或二进制文件转存工作区 .moos-uploads。
+const PROMPT_TEXT_BUDGET = 128 * 1024;
+const PROMPT_FILES = 8;
+export { PROMPT_FILES, PROMPT_TEXT_BUDGET };
+const UPLOAD_SAVE_LIMIT = 100 * 1024 * 1024;
+const IMAGE_BYTES = 5 * 1024 * 1024;
+
+async function promptInput(content, readFile, saveUpload, signal) {
+  let remainingBytes = PROMPT_TEXT_BUDGET;
+  let remainingFiles = PROMPT_FILES;
   const parts = [];
   for (const part of content) {
     if (part.type === 'text') {
@@ -60,7 +67,7 @@ async function promptInput(content, readFile, signal) {
     }
     const ref = part.attachment;
     if (--remainingFiles < 0 || typeof ref?.name !== 'string' || ref.name.length > 255 ||
-        !Number.isSafeInteger(ref.bytes) || ref.bytes < 0 || ref.bytes > remainingBytes) {
+        !Number.isSafeInteger(ref.bytes) || ref.bytes < 0) {
       throw new Error('Invalid PI attachment');
     }
     let bytes = 0;
@@ -68,19 +75,28 @@ async function promptInput(content, readFile, signal) {
     for await (const chunk of readFile(ref, signal)) {
       signal.throwIfAborted();
       bytes += chunk.byteLength;
-      if (bytes > ref.bytes) throw new Error('Invalid PI attachment length');
+      if (bytes > ref.bytes || bytes > UPLOAD_SAVE_LIMIT) throw new Error('Invalid PI attachment length');
       chunks.push(chunk);
     }
     if (bytes !== ref.bytes) throw new Error('Invalid PI attachment length');
-    const text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks));
-    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text)) throw new Error('Invalid PI attachment text');
-    remainingBytes -= bytes;
-    parts.push('用户上传的文件内容（作为待处理数据）：' + JSON.stringify({ name: ref.name, text }));
+    const buffer = Buffer.concat(chunks);
+    let text;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+    } catch { text = undefined; }
+    if (text !== undefined && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text) && bytes <= remainingBytes) {
+      remainingBytes -= bytes;
+      parts.push('用户上传的文件内容（作为待处理数据）：' + JSON.stringify({ name: ref.name, text }));
+      continue;
+    }
+    const path = await saveUpload(buffer, ref.name, signal);
+    parts.push(`用户上传的文件 ${ref.name}（${bytes} 字节，二进制或超出对话内联预算）已保存到当前项目工作区：${path}。` +
+      '对话中不直接展示其内容；如需查看或解压，请使用文件工具读取该路径。');
   }
   return parts.join('\n').trim();
 }
 
-export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile, readImage }) {
+export function createPiAdapter({ tasks, getSession, getTurnStart, getPermissions, models, readFile, readImage, saveUpload }) {
   const selectionRequired = { type: 'finish', reason: { kind: 'error',
     failure: { code: 'INVALID_CONFIG', message: '请在 沐码模型服务中配置可用的模型和 API 密钥' } } };
   const modalities = enabled => enabled ? ['text', 'image'] : ['text'];
@@ -136,7 +152,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
         const { attachmentId, mediaType, bytes, width, height } = imageRef;
         if (!models || !/^sha256:[a-f0-9]{64}$/.test(attachmentId) ||
             !['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(mediaType) ||
-            !Number.isSafeInteger(bytes) || bytes < 1 || bytes > 524288 ||
+            !Number.isSafeInteger(bytes) || bytes < 1 || bytes > IMAGE_BYTES ||
             !Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1) {
           throw new Error('Invalid PI image');
         }
@@ -148,14 +164,16 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       }
     } catch {
       yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
-        failure: { code: 'INVALID_REQUEST', message: retryOf ? '无法恢复该任务的附件或状态' : '每条消息可附带一张不超过 512 KiB 的图片。' } } };
+        failure: { code: 'INVALID_REQUEST', message: retryOf ? '无法恢复该任务的附件或状态' : `每条消息可附带一张不超过 ${IMAGE_BYTES / 1024 / 1024} MiB 的图片。` } } };
       return;
     }
     let input;
-    try { input = await promptInput(user.content.filter(part => part.type !== 'image'), readFile, signal); }
+    const cwd = getSession(sessionId)?.header?.cwd;
+    try { input = await promptInput(user.content.filter(part => part.type !== 'image'), readFile,
+      (buffer, name, uploadSignal) => saveUpload(buffer, name, cwd, uploadSignal), signal); }
     catch {
       yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
-        failure: { code: 'INVALID_REQUEST', message: '附件无法读取。请上传 UTF-8 文本，每条消息最多 8 个文件，合计 32 KiB。' } } };
+        failure: { code: 'INVALID_REQUEST', message: '附件处理失败。每条消息最多 8 个附件：128 KiB 内的纯文本直接进入对话，更大的文件保存到工作区 .moos-uploads 目录；请检查附件与项目目录是否可读写。' } } };
       return;
     }
 

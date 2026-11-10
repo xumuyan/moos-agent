@@ -23,6 +23,39 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['install']['target'], '/Applications/沐码.app')
         self.assertTrue(e['failures'])
 
+    def test_chinese_display_install_result_recorded_as_success(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-chinese-display.json').read_text())
+        inst = e['install']
+        self.assertEqual(inst['state'], 'success')
+        result = inst['resultRecord']
+        self.assertEqual(result['state'], 'success')
+        self.assertEqual(result['targetShell'], '0.1.39')
+        self.assertFalse(result['stoppedActiveTasks'])
+        self.assertFalse(result['productionDataReset'])
+        self.assertFalse(result['automaticDataRestore'])
+        self.assertTrue(result['backupVerified'])
+        self.assertGreater(result['fullBackupFilesVerified'], 0)
+        self.assertEqual(result['beforeCounts'], result['afterCounts'])
+        self.assertEqual(result['formalPath'], '/Applications/沐码.app')
+        self.assertTrue(result['oldFormalPathAbsent'])
+        self.assertTrue(result['originalDatabaseRowsRetained'])
+        self.assertTrue(result['apiAndCredentialsIdentical'])
+        self.assertTrue(result['userPluginDependenciesRetained'])
+        self.assertFalse(result['nativeVisibleAppearanceVerified'])
+
+    def test_attachment_limits_raise_image_cap_and_stage_large_uploads(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-attachment-limits.json').read_text())
+        self.assertEqual(e['evidence'], 'E110')
+        self.assertFalse(e['installStatus'] == 'installed')
+        self.assertIn('512 KiB', e['change']['rootCause'])
+        self.assertTrue(e['tests']['core'].startswith('npm test 163/163'))
+        self.assertTrue(e['tests']['electron'].startswith('npm run test:electron 82/82'))
+        self.assertIn('build-g04nDJ', e['build']['app'])
+        self.assertIn('recovery-kzbAHF', e['gui']['report'])
+        self.assertIn('recovery-mk2CAR', e['gui']['report'])
+        self.assertTrue(e['gui']['limits'])
+        self.assertIn('/Applications/沐码.app 仍为 0.1.39', e['installStatus'])
+
     def test_muma_icon_update_preserves_identity_and_truthful_install_state(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-muma-icon-update.json').read_text())
         self.assertEqual(e['evidence'], 'E108')

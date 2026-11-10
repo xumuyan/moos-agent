@@ -106,7 +106,7 @@
     }
   ],
   "install": {
-    "state": "preflight-passed-awaiting-independent-terminal",
+    "state": "success",
     "source": "/Applications/MuMa.app",
     "target": "/Applications/沐码.app",
     "result": "/Applications/.moos-update-0.1.39/result.json",
@@ -127,7 +127,57 @@
         "automaticDataRestore": false,
         "time": "2026-11-10T01:12:29.971Z"
       }
-    }
+    },
+    "verifiedAt": "2026-11-10 10:20:00 +08:00",
+    "resultRecord": {
+      "state": "success",
+      "targetShell": "0.1.39",
+      "time": "2026-11-10T01:13:46.892Z",
+      "userAuthorizedUpdate": true,
+      "stoppedActiveTasks": false,
+      "productionDataReset": false,
+      "automaticDataRestore": false,
+      "fullBackupFilesVerified": 1463,
+      "backupPermissionsVerified": true,
+      "backupVerified": true,
+      "beforeCounts": {
+        "messages": 288,
+        "conversations": 6,
+        "tasks": 150
+      },
+      "afterCounts": {
+        "messages": 288,
+        "conversations": 6,
+        "tasks": 150
+      },
+      "formalPath": "/Applications/沐码.app",
+      "oldFormalPathAbsent": true,
+      "loadedClientMatches": true,
+      "brandingAndCollapsePresent": true,
+      "appIconMatchesAccepted": true,
+      "installedMainProcesses": 1,
+      "installerAncestorsIndependent": true,
+      "readableSavedModels": 6,
+      "apiAndCredentialsIdentical": true,
+      "originalDatabaseRowsRetained": true,
+      "chatFilesRetained": true,
+      "piHistoryFilesRetained": true,
+      "skinsRetained": true,
+      "userPluginDependenciesRetained": true,
+      "workspaceRetained": true,
+      "hostRunning": true,
+      "executionPolicyInInstalled": true,
+      "executionPolicyCardInInstalled": true,
+      "tableFixInInstalled": true,
+      "imageToolInInstalled": true,
+      "nativeVisibleAppearanceVerified": false
+    },
+    "notes": [
+      "独立更新进程在等待空闲后自然完成：正常退出、停机备份 1463 文件逐一校验（0700/0600）、同卷只换包、原 MuMa.app 移出为回滚旧包，正式路径改为 /Applications/沐码.app 0.1.39。",
+      "启动后核对：单实例、加载壳与包版本一致，6 个模型配置可读，API/凭据原字节一致；SQLite 原有消息/会话/任务行保留（288/6/150 前后一致，允许正常追加），聊天、PI 历史、皮肤、用户插件依赖与工作区保留。",
+      "nativeVisibleAppearanceVerified=false：隐藏 CDP 截图不能证明 Finder/Dock 对用户的可见本地化，需用户目视确认。",
+      "停机备份 data-before-install 与旧包 previous/ 尚保留；按规则在新版确认聊天与模型配置可读后可清理。"
+    ]
   },
   "limits": [
     "Native Finder/Dock visible labels not independently verified; resources and isolated DOM do not prove installed GUI appearance.",

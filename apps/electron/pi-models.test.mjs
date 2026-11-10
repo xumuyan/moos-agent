@@ -180,6 +180,27 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   assert.equal((await turn('auto', content)).kind, 'stop');
   assert.equal(requests.at(-1).model, 'mock-gpt');
   assert.equal(imageRequests.at(-1), true);
+  // 图片上限 5 MiB：一张约 1 MiB 的图片应通过，超过 5 MiB 拒绝并提示上限。
+  const largeImage = Buffer.alloc(1024 * 1024, 1);
+  const largeVision = createPiAdapter({ tasks, models, getSession: () => ({ header: { cwd } }),
+    readImage: async () => ({ data: largeImage }), getPermissions: () => ({ getMode: () => 'workspace-write' }) });
+  const largeImagePart = { type: 'image', attachment: { attachmentId: 'sha256:' + 'b'.repeat(64),
+    mediaType: 'image/png', width: 1024, height: 768, bytes: largeImage.length } };
+  const largeOutput = [];
+  for await (const event of largeVision.stream({ model: 'auto', sessionId: 'vision-large',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [
+      { type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }, largeImagePart] }] })) largeOutput.push(event);
+  assert.equal(largeOutput.at(-1).reason.kind, 'stop');
+  const oversizeImage = Buffer.alloc(5 * 1024 * 1024 + 1, 1);
+  const oversizeVision = createPiAdapter({ tasks, models, getSession: () => ({ header: { cwd } }),
+    readImage: async () => ({ data: oversizeImage }), getPermissions: () => ({ getMode: () => 'workspace-write' }) });
+  const oversizeOutput = [];
+  for await (const event of oversizeVision.stream({ model: 'auto', sessionId: 'vision-oversize',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [{ type: 'image',
+      attachment: { attachmentId: 'sha256:' + 'c'.repeat(64), mediaType: 'image/png',
+        width: 2048, height: 1536, bytes: oversizeImage.length } }] }] })) oversizeOutput.push(event);
+  assert.equal(oversizeOutput.at(-1).reason.failure.code, 'INVALID_REQUEST');
+  assert.equal(oversizeOutput.at(-1).reason.failure.message, '每条消息可附带一张不超过 5 MiB 的图片。');
   const priorRequestCount = requests.length;
   assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_WRITE no_previous_image' }])).kind, 'stop');
   assert.ok(imageRequests.slice(priorRequestCount).every(hasImage => !hasImage));

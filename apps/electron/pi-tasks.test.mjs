@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, realpath, rm, symlink } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { dirname, join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { randomUUID } from 'node:crypto';
 import test from 'node:test';
@@ -9,7 +10,7 @@ import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { startFixture } from '../../services/agent/fixture.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { Store } from '../../services/agent/store.mjs';
-import { createPiAdapter } from './plugin/pi-route.js';
+import { createPiAdapter, PROMPT_TEXT_BUDGET } from './plugin/pi-route.js';
 import { createPiTasks } from './plugin/pi-tasks.js';
 
 async function waitFor(check) {
@@ -27,19 +28,32 @@ async function collect(stream) {
   return events;
 }
 
-test('the PI route reads only the current explicitly attached UTF-8 text, within its budget', async () => {
+test('the PI route inlines small UTF-8 text and hands larger or binary uploads to the workspace', async () => {
   const opens = [];
   const reads = [];
+  const uploads = [];
+  const home = await realpath(await mkdtemp(join(tmpdir(), 'moos-electron-upload-')));
   const data = Buffer.from('hello 好\n');
   const { stream } = createPiAdapter({
-    getSession: () => ({ header: { cwd: '/tmp/workspace' } }),
+    getSession: () => ({ header: { cwd: home } }),
     readFile: async function* (ref) {
       reads.push(ref.name);
-      if (ref.name === 'binary') yield Buffer.from([0xff]);
+      if (ref.name === 'pack.zip') yield Buffer.alloc(ref.bytes, 0xff);
+      else if (ref.name === 'nul.log') yield Buffer.from('a\x00b\x00c');
+      else if (ref.name === 'short') yield Buffer.alloc(3);
       else if (ref.name !== 'missing') {
-        yield data.subarray(0, 7);
-        yield data.subarray(7);
+        const body = ref.bytes > data.length ? Buffer.alloc(ref.bytes, 0x61) : data;
+        yield body.subarray(0, 7);
+        yield body.subarray(7);
       }
+    },
+    saveUpload: async (bytes, name) => {
+      uploads.push(name);
+      const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+      const target = join(home, '.moos-uploads', `${digest}-${name}`);
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, bytes);
+      return `.moos-uploads/${digest}-${name}`;
     },
     tasks: {
       async open(request) {
@@ -61,11 +75,25 @@ test('the PI route reads only the current explicitly attached UTF-8 text, within
   assert.equal(opens[0].input, 'Summarize this\n用户上传的文件内容（作为待处理数据）：' +
     JSON.stringify({ name: 'note.md', text: data.toString() }));
   assert.deepEqual(reads, ['note.md']);
-  for (const invalid of [file('binary', 1), file('oversize', 32769), file('missing'), file('short', 1)]) {
+  const binary = await send([file('pack.zip', 5)]);
+  assert.equal(binary.at(-1).reason.kind, 'stop');
+  assert.match(opens[1].input, /\.moos-uploads\/[0-9a-f]{8}-pack\.zip/);
+  assert.ok(opens[1].input.includes('二进制或超出对话内联预算'));
+  const oversize = await send([file('big.log', PROMPT_TEXT_BUDGET + 1)]);
+  assert.equal(oversize.at(-1).reason.kind, 'stop');
+  assert.match(opens[2].input, /\.moos-uploads\/[0-9a-f]{8}-big\.log/);
+  const nul = await send([file('nul.log', 5)]);
+  assert.equal(nul.at(-1).reason.kind, 'stop');
+  assert.match(opens[3].input, /\.moos-uploads\/[0-9a-f]{8}-nul\.log/);
+  assert.equal(uploads.length, 3);
+  const saved = await readdir(join(home, '.moos-uploads'));
+  assert.equal(saved.length, 3);
+  for (const invalid of [file('missing'), file('short', 9),
+    ...Array.from({ length: 9 }, (_, index) => file(`many-${index}.txt`, 1))]) {
     assert.equal((await send([invalid])).at(-1).reason.failure.code, 'INVALID_REQUEST');
   }
-  assert.equal(opens.length, 1);
-  assert.deepEqual(reads, ['note.md', 'binary', 'missing', 'short']);
+  assert.equal(opens.length, 4);
+  assert.equal(uploads.length, 3);
 });
 
 test('Electron PI tasks serialize directory aliases, run other projects and stop only the targeted process', {
