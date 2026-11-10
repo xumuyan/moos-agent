@@ -46,7 +46,7 @@ export async function apply(ctx) {
       fixture = await startFixture({ desktopPolicy: true });
     } catch (error) { store.close(); throw error; }
   }
-  const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: 'MuMa PI', api: 'openai-completions',
+  const fixtureProvider = fixture && { id: route, model: 'moos-fixture', name: '沐码 PI', api: 'openai-completions',
     baseUrl: fixture.baseUrl, contextWindow: 128000, maxTokens: 8192 };
   const models = fixture ? undefined : piModels(data, checkedProvider);
   // 设置页「命令执行」覆盖：danger-full-access 时 PI 命令不加 seatbelt 沙箱（Codex 式完全权限），

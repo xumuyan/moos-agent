@@ -1,0 +1,122 @@
+{
+  "evidence": "E109",
+  "task": "P03.13.11",
+  "time": "2026-11-10 09:10:53 +08:00",
+  "workspaceState": "70213cc plus Chinese-display correction before commit; final build-f41CKF with CFBundleName MuMa technical fallback",
+  "userRequest": "所有用户可见应用品牌为沐码，仅技术字段保留英文；延续本轮明确更新授权",
+  "version": "0.1.39",
+  "build": ".generated/moos-electron/build-f41CKF/沐码.app",
+  "includesPiFixture": false,
+  "display": {
+    "sidebar": "沐码",
+    "lang": "zh-CN",
+    "appName": "沐码",
+    "menu": "沐码",
+    "windowTitle": "沐码",
+    "bundleDisplayName": "沐码",
+    "applicationFile": "沐码.app",
+    "allLocales": "en/zh-Hans 沐码; zh-Hant 沐碼",
+    "modelPicker": "沐码 PI"
+  },
+  "technical": {
+    "CFBundleName": "MuMa",
+    "CFBundleExecutable": "MuMa",
+    "helperPrefix": "MuMa",
+    "bundleId": "dev.moos.agent.electron",
+    "data": "~/Library/Application Support/dev.moos.agent.electron",
+    "partition": "persist:moos-workbench",
+    "route": "moos-pi"
+  },
+  "tests": {
+    "core": "163/163 npm test",
+    "electron": "81/81 npm run test:electron, build-f41CKF runtime, no skips",
+    "native": "11/11 cargo release offline",
+    "bridge": "5/5 node --test probes/dsh-electron-pi/index.test.mjs",
+    "skin": "4/4 python3 -B -m unittest discover -s probes/dsh-electron-skin -v",
+    "targeted": "11/11 client/packaging/recovery boundaries final",
+    "checkpoint": "5/5 isolated rename/rollback tests",
+    "logs": "artifacts/muma-chinese/validation/",
+    "docs": "86/86 after current README bundle assertion updated from MuMa.app to 沐码.app"
+  },
+  "gui": {
+    "time": "2026-11-10T01:09:40.637Z",
+    "identity": {
+      "name": "MuMa",
+      "displayName": "沐码",
+      "executable": "MuMa",
+      "bundleId": "dev.moos.agent.electron",
+      "version": "0.1.39"
+    },
+    "branding": {
+      "name": "沐码",
+      "chinese": "沐码",
+      "title": "沐码",
+      "iconWidth": 32,
+      "icnsSha256": "28717cab0a871d013ec9d849d367e5a3fdf5a48fb2fd42656b658df8a48870f4"
+    },
+    "shell": "0.1.39",
+    "collapsed": {
+      "present": true,
+      "open": false,
+      "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+      "heading": "工作区变化 ·",
+      "hint": "已折叠，点击展开"
+    },
+    "expanded": {
+      "open": true,
+      "count": 12,
+      "paths": [
+        "many-1.txt",
+        "many-10.txt",
+        "many-11.txt",
+        "many-12.txt",
+        "many-2.txt",
+        "many-3.txt",
+        "many-4.txt",
+        "many-5.txt",
+        "many-6.txt",
+        "many-7.txt",
+        "many-8.txt",
+        "many-9.txt"
+      ],
+      "allNamed": 12,
+      "first": "many-1.txt",
+      "last": "many-9.txt",
+      "height": 300
+    },
+    "recollapsed": false,
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "usedTerm": false,
+      "method": "QA SIGUSR2 → app.quit"
+    }
+  },
+  "guiReport": "artifacts/muma-chinese/gui-final/recovery-ky6DsF/brand-report.json",
+  "failures": [
+    {
+      "stage": "first build-bYzPNa GUI",
+      "error": "FATAL Unable to find helper app, CFBundleName Chinese no longer matches MuMa Helper",
+      "resolution": "Keep technical CFBundleName MuMa; CFBundleDisplayName and app filename/menu/app.setName/sidebar/title Chinese; rebuild final f41CKF."
+    },
+    {
+      "stage": "background final GUI/preflight command",
+      "error": "Shell tool timed out after 60 seconds; background run wrote no success report",
+      "resolution": "Do not claim passed; final direct GUI run exited 0 with report, bounded preflight rerun PREFLIGHT_OK. Earlier interrupted artifact recovery-DTY9Pe retained."
+    }
+  ],
+  "install": {
+    "state": "preflight-passed-awaiting-independent-terminal",
+    "source": "/Applications/MuMa.app",
+    "target": "/Applications/沐码.app",
+    "result": "/Applications/.moos-update-0.1.39/result.json",
+    "log": "/Applications/.moos-update-0.1.39/terminal-update.log",
+    "preflight": "PREFLIGHT_OK, final candidate resource bytes/signature/identity/version validated; original shell 0.1.38, target absent",
+    "dataMigration": false
+  },
+  "limits": [
+    "Native Finder/Dock visible labels not independently verified; resources and isolated DOM do not prove installed GUI appearance.",
+    "Final installation pending independent process and idle wait; no force-stop, no reset/restore.",
+    "Historical E108 0.1.38 success verified from actual result; backups retained for current handoff."
+  ]
+}

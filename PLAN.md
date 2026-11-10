@@ -2,7 +2,7 @@
 
 ## 范围与状态
 
-当前开发助手英文名称为 **MuMa**，中文名称为 **沐码**，MOOS 保留为系列品牌。其他已确认名称：沐言（AI 个人语音助理）、沐序（桌面整理与电脑实时信息）、沐宿（智能酒店自动预订助手）；沐声保留为按歌单与心情推荐歌曲的 AI 音乐电台，不能误作语音助理。本次只实施开发助手更名；历史 Moos 证据、M01 探针与手机工程不批量更名。应用标识和既有数据目录 `dev.moos.agent.electron` 不变；2026-11-10 用户明确授权本轮图标/名称更新，按 E84 保护数据流程执行，不构成未来自动部署授权。
+当前开发助手用户可见名称统一为 **沐码**，技术英文名 **MuMa** 仅用于可执行文件、Helper/CFBundleName 等内部位置；MOOS 保留为系列品牌。其他已确认名称：沐言（AI 个人语音助理）、沐序（桌面整理与电脑实时信息）、沐宿（智能酒店自动预订助手）；沐声保留为按歌单与心情推荐歌曲的 AI 音乐电台，不能误作语音助理。本次只实施开发助手更名；历史 Moos 证据、M01 探针与手机工程不批量更名。应用标识和既有数据目录 `dev.moos.agent.electron` 不变；2026-11-10 用户明确授权本轮图标/名称更新，按 E84 保护数据流程执行，不构成未来自动部署授权。
 
 2026-11-08 正式桌面源码统一到 `apps/electron`，由 Electron、DSH 工作台和 PI 组成。原 Tauri 2 产品目录已退役，旧版验收记录移至 `docs/evidence/desktop/`，源代码可查迁移前的提交 `d499316`。独立的 M01 Tauri 探针与 iPhone 工程继续保留。下文原 Tauri 产品实现及测试记录属于历史。当前构建和桌面测试入口分别为 `npm run build:app` 和 `npm run test:electron`。
 
@@ -670,3 +670,10 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 证据 E108：`docs/evidence/desktop/p03-muma-icon-update.json`。
 
 - E108 交接续记：源码 897a2c7 已推送并核对远程，独立 Terminal PID86799 已接手，result.state=waiting-for-idle；未强停当前任务，安装最终结果待读取，不预勾完成。
+
+### 中文显示名修正与安装（E109）
+
+- 按用户截图反馈，应用包「沐码.app」、app.setName、菜单、窗口/网页标题、左上角、模型选择器统一中文；en/zh-Hans显示名沐码，zh-Hant沐碼。保留技术可执行文件及Helper/CFBundleName MuMa，应用ID/数据/分区不变。
+- E108续记：已核对0.1.38独立安装success，1443停机备份文件、286消息/6会话/149任务、6模型及配置/插件/历史保留通过；旧包与备份尚保留。
+- E109 `docs/evidence/desktop/p03-chinese-display.json`：0.1.39 build-f41CKF 构建签名及隔离GUI中文品牌/图标/折叠/正常退出通过；core163、electron81、native11、bridge5、skin4、相关测试11、更新检查点5全部通过。初版CFBundleName中文导致Electron找不到Helper，保留失败并修复为技术英文名后重新构建验收。
+- 安装已授权且最终候选PREFLIGHT_OK，待独立Terminal交接并等当前任务自然结束，正式Finder/Dock目视未验收，不预称安装成功。

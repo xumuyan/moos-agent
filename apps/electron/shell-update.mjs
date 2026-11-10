@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-export const shellUpdateMessage = 'MuMa（沐码）内置壳升级未完成，已停止启动。请保留原聊天和配置目录，联系维护者检查；不要删除用户数据或用默认配置覆盖。';
+export const shellUpdateMessage = '沐码内置壳升级未完成，已停止启动。请保留原聊天和配置目录，联系维护者检查；不要删除用户数据或用默认配置覆盖。';
 const shell = 'moos-electron-shell';
 const manifest = 'profiles/web/node_modules/' + shell + '/package.json';
 const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;

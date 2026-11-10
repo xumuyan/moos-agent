@@ -21,7 +21,7 @@ test('GUI recovery verification rejects the formal installed app before copying 
   });
 });
 
-for (const installedName of ['Moos', 'MuMa']) {
+for (const installedName of ['Moos', 'MuMa', '沐码']) {
   test(`brand acceptance refuses installed ${installedName} before copying or launching it`, async () => {
     const brandScript = fileURLToPath(new URL('./verify-electron-brand.mjs', import.meta.url));
     await assert.rejects(run(process.execPath, [brandScript, `/Applications/${installedName}.app`, '/must-not-write']), error => {

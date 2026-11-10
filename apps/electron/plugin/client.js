@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
       src: 'data:image/png;base64,__MOOS_SIDEBAR_ICON__',
       alt: '', width: size, height: size, className, draggable: false, 'data-moos-sidebar-icon': '',
     });
-    const sidebarName = () => createElement('span', { 'data-moos-sidebar-name': '', title: '沐码', lang: 'en' }, 'MuMa');
+    const sidebarName = () => createElement('span', { 'data-moos-sidebar-name': '', title: '沐码', lang: 'zh-CN' }, '沐码');
     const mark = sidebarIcon;
 
     const number = new Intl.NumberFormat('zh-CN');
@@ -544,7 +544,7 @@ window.__ModuleLoader__.load({
       const title = document.querySelector('title');
       const renameTitle = () => {
         if (document.title.includes('DeepSeek Harness')) {
-          document.title = document.title.replaceAll('DeepSeek Harness', 'MuMa · 沐码');
+          document.title = document.title.replaceAll('DeepSeek Harness', '沐码');
         }
       };
       const observer = new MutationObserver(renameTitle);

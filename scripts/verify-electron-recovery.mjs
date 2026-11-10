@@ -33,7 +33,7 @@ const targetVersion = JSON.parse(await readFile(join(resources, 'profile-templat
 const entry = join(resources, 'app/main.mjs');
 // Only visibility is changed in this copied QA bundle. Production lifecycle,
 // IPC, renderer, PI and data paths remain the newly built modules.
-await writeFile(entry, (await readFile(entry, 'utf8')).replace(/app\.setName\('(Moos|MuMa)'\);/, match => 'BrowserWindow.prototype.show = function () {};\n' + match));
+await writeFile(entry, (await readFile(entry, 'utf8')).replace(/app\.setName\('(Moos|MuMa|沐码)'\);/, match => 'BrowserWindow.prototype.show = function () {};\n' + match));
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data');
 const home = join(data, 'dsh');

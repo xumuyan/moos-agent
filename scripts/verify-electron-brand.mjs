@@ -28,17 +28,17 @@ if (!build.startsWith(allowedBuild) || !(await realpath(build)).startsWith(allow
 if (!resolve(output).startsWith(resolve(repo, 'artifacts') + sep)) throw new Error('Output must be inside repository artifacts');
 await mkdir(resolve(output), { recursive: true });
 const scratch = await mkdtemp(join(resolve(output), 'recovery-'));
-const app = join(scratch, 'MuMa.app');
+const app = join(scratch, '沐码.app');
 execFileSync('/usr/bin/ditto', [build, app]);
 const resources = join(app, 'Contents/Resources');
 const plist = key => execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print ' + key, join(app, 'Contents/Info.plist')], { encoding: 'utf8' }).trim();
 const identity = { name: plist('CFBundleName'), displayName: plist('CFBundleDisplayName'),
   executable: plist('CFBundleExecutable'), bundleId: plist('CFBundleIdentifier'), version: plist('CFBundleShortVersionString') };
 assert.equal(identity.name, 'MuMa');
-assert.equal(identity.displayName, 'MuMa');
+assert.equal(identity.displayName, '沐码');
 assert.equal(identity.executable, 'MuMa');
 assert.equal(identity.bundleId, 'dev.moos.agent.electron');
-for (const [locale, expected] of [['en', 'MuMa'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']]) {
+for (const [locale, expected] of [['en', '沐码'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']]) {
   assert.equal(await readFile(join(resources, locale + '.lproj/InfoPlist.strings'), 'utf8'), `"CFBundleDisplayName" = "${expected}";\n`);
 }
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', app], { stdio: 'ignore' });
@@ -49,8 +49,8 @@ const shellVersion = JSON.parse(await readFile(join(resources, 'profile-template
 const hasCollapse = (await readFile(join(resources, 'profile-template/profiles/web/node_modules/moos-electron-shell/client.js'), 'utf8')).includes('data-moos-turn-files');
 if (!hasCollapse) throw new Error('Isolated build lacks the turn-tail collapse change');
 const entry = join(resources, 'app/main.mjs');
-assert.ok((await readFile(entry, 'utf8')).includes("app.setName('MuMa');"));
-await writeFile(entry, (await readFile(entry, 'utf8')).replace("app.setName('MuMa');", "BrowserWindow.prototype.show = function () {};\nprocess.on('SIGUSR2', () => app.quit());\napp.setName('MuMa');"));
+assert.ok((await readFile(entry, 'utf8')).includes("app.setName('沐码');"));
+await writeFile(entry, (await readFile(entry, 'utf8')).replace("app.setName('沐码');", "BrowserWindow.prototype.show = function () {};\nprocess.on('SIGUSR2', () => app.quit());\napp.setName('沐码');"));
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data');
 const home = join(data, 'dsh');
@@ -151,9 +151,9 @@ try {
     const icon = document.querySelector('[data-moos-sidebar-icon]');
     return name && icon?.complete && icon.naturalWidth > 0 && { name: name.textContent, chinese: name.title, title: document.title, icon: icon.src, iconWidth: icon.naturalWidth };
   })()`), 'MuMa sidebar');
-  assert.equal(branding.name, 'MuMa');
+  assert.equal(branding.name, '沐码');
   assert.equal(branding.chinese, '沐码');
-  assert.ok(branding.title.includes('MuMa · 沐码'));
+  assert.ok(branding.title.includes('沐码') && !branding.title.includes('MuMa'));
   assert.equal(shellVersion, identity.version);
   assert.equal(branding.icon, 'data:image/png;base64,' + (await readFile(join(repo, 'apps/electron/assets/sidebar-icon.png'))).toString('base64'));
   assert.equal(branding.iconWidth, 32);

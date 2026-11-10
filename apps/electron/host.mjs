@@ -49,7 +49,7 @@ export function startHost({ cli, home, cwd, tempDir, executionPatch, piRuntime, 
   child.once('close', () => { output.close(); resolveExit(); });
   const ready = new Promise((resolve, reject) => {
     let started = false;
-    const timer = setTimeout(() => reject(new Error('MuMa Host 启动超时')), timeoutMs);
+    const timer = setTimeout(() => reject(new Error('沐码本机服务 启动超时')), timeoutMs);
     output.on('line', line => {
       if (started) return;
       const address = parseBootstrap(line);
@@ -60,11 +60,11 @@ export function startHost({ cli, home, cwd, tempDir, executionPatch, piRuntime, 
     });
     child.once('error', () => {
       clearTimeout(timer);
-      reject(new Error('无法启动 MuMa Host'));
+      reject(new Error('无法启动 沐码本机服务'));
     });
     child.once('close', () => {
       clearTimeout(timer);
-      if (!started) reject(new Error('MuMa Host 启动失败'));
+      if (!started) reject(new Error('沐码本机服务 启动失败'));
       else if (!stopping) onUnexpectedExit?.();
     });
   });

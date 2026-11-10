@@ -63,8 +63,9 @@ test('the DSH client extension registers the MuMa brand and model services in th
   assert.equal(icon.props.width, 24);
   assert.match(icon.props.src, /^data:image\/png;base64,/);
   assert.equal(document.documentElement.dataset.platform, 'darwin');
-  assert.equal(renderers.get('sidebar.brand.name')().children[0], 'MuMa');
+  assert.equal(renderers.get('sidebar.brand.name')().children[0], '沐码');
   assert.equal(renderers.get('sidebar.brand.name')().props.title, '沐码');
+  assert.equal(renderers.get('sidebar.brand.name')().props.lang, 'zh-CN');
   const heroIcon = renderers.get('conversation.hero.brand.mark')({ size: 34, className: 'hero-icon' });
   assert.equal(heroIcon.element, 'img');
   assert.equal(heroIcon.props.src, icon.props.src);
@@ -148,10 +149,10 @@ test('the DSH client extension registers the MuMa brand and model services in th
   const items = Array.isArray(listNode.children[0]) ? listNode.children[0] : listNode.children;
   assert.equal(items.length, 11, 'expanding reveals the full list');
 
-  assert.equal(document.title, 'MuMa · 沐码');
+  assert.equal(document.title, '沐码');
   document.title = '深海女仆工坊 · DeepSeek Harness';
   changed();
-  assert.equal(document.title, '深海女仆工坊 · MuMa · 沐码');
+  assert.equal(document.title, '深海女仆工坊 · 沐码');
   dispose();
   assert.equal(cleanedUp, true);
   assert.equal(document.documentElement.dataset.platform, undefined);

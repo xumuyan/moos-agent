@@ -18,7 +18,7 @@ if (dshVersion !== '0.2.2-rc.1') throw new Error('The local Electron build requi
 const output = join(repo, '.generated', 'moos-electron');
 await mkdir(output, { recursive: true, mode: 0o700 });
 const build = await mkdtemp(join(output, 'build-'));
-const bundle = join(build, 'MuMa.app');
+const bundle = join(build, '沐码.app');
 const electronContents = process.env.MOOS_ELECTRON_DIST
   ? join(process.env.MOOS_ELECTRON_DIST, 'Contents') : dshApp;
 const executable = execFileSync('/usr/libexec/PlistBuddy',
@@ -151,13 +151,14 @@ for (const key of ['CFBundleURLTypes', 'ElectronAsarIntegrity', 'SUFeedURL']) {
   try { execFileSync('/usr/bin/plutil', ['-remove', key, info], { stdio: 'ignore' }); }
   catch (error) { if (error.status !== 1) throw error; }
 }
+// Electron derives its Helper bundle prefix from CFBundleName; keep this technical name ASCII.
 await setInfo(info, {
-  CFBundleName: 'MuMa', CFBundleDisplayName: 'MuMa', CFBundleIdentifier: 'dev.moos.agent.electron',
+  CFBundleName: 'MuMa', CFBundleDisplayName: '沐码', CFBundleIdentifier: 'dev.moos.agent.electron',
   CFBundleExecutable: 'MuMa', CFBundleIconFile: 'moos.icns', CFBundleShortVersionString: manifest.version,
   CFBundleVersion: manifest.version,
 });
 // Localized display names do not change the stable bundle ID, partition or data directory.
-for (const [locale, displayName] of [['en', 'MuMa'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']]) {
+for (const [locale, displayName] of [['en', '沐码'], ['zh-Hans', '沐码'], ['zh-Hant', '沐碼']]) {
   const localized = join(resources, locale + '.lproj');
   await mkdir(localized, { recursive: true });
   await writeFile(join(localized, 'InfoPlist.strings'), `"CFBundleDisplayName" = "${displayName}";\n`);

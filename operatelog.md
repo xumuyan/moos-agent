@@ -1714,3 +1714,12 @@
 - 验证结果：result.json targetShell=0.1.38、state=waiting-for-idle、stoppedActiveTasks=false、productionDataReset=false；尚未执行停机/替换，不能称安装成功。文档85/85提交前再跑；本条仅补交接证据，应用测试沿用上条对应源码。
 - 遗留问题：完成本回复后宿主可能退出并启动 MuMa，须先读 /Applications/.moos-update-0.1.38/result.json 与 terminal-update.log 确认实际成功及数据检查；失败保留旧包与备份，不重复安装。备份尚未生成，无清理动作。
 - 对应 Git 提交：源码897a2c7；本条唯一说明 `docs(P03.13.11): record independent MuMa update handoff`，查询 `git log --all --oneline --grep='independent MuMa update handoff'`。
+
+## 2026-11-10 09:10:53 +08:00｜P03.13.11 所有可见品牌改为沐码及 0.1.39 更新准备
+
+- 修改或新增内容：按用户截图反馈，将左上角/lang、应用包文件名、productName、app.setName、菜单、窗口/网页标题、模型选择器及提示统一「沐码」，三语显示资源中文；版本0.1.39。技术可执行文件/Helper/CFBundleName保留MuMa，ID/数据目录/分区/IPC/路由不动。E108补记真实0.1.38success及脱敏数据保留结果；新增E109、计划及测试。
+- 遇到的难题：CFBundleName改中文导致首个build-bYzPNa隔离GUI FATAL Unable to find helper app；一次60秒工具限时中断预检/后台GUI，未有成功报告；一次PATH未含rg致检查命令不存在。
+- 处理方式：CFBundleName回到MuMa以匹配Electron Helper查找前缀，可见CFBundleDisplayName、app.setName、菜单和文件名仍中文；重新构建build-f41CKF、新包全量Electron与直接GUI重跑。未知中断不称成功，最终120秒窗口重跑预检PREFLIGHT_OK；用工具默认PATH执行rg；保留全部失败日志，不修改生产应用试错。
+- 验证结果：上一轮独立result/log明确success，1443文件停机备份核对，286消息/6会话/149任务保留、6模型可读、配置字节一致、单实例、图标及加载壳0.1.38一致（E108）。本轮npm test163/163；最终包dsh npm run test:electron81/81无跳过；cargo release offline11/11、PI桥5/5、皮肤4/4；最终client/packaging/recovery11/11；移动/冲突/回退5/5。build-f41CKF无fixture、codesign严格通过，gui-final报告/sidebar=沐码、title=沐码、图标哈希、12文件折叠、app.quit code0无signal无TERM、脚本exit0。证据对应70213cc上本次提交前工作区；文档检查初次因当前README仍要求旧MuMa.app失败，更新当前路径断言为沐码.app后86/86通过；截图已回读。
+- 遗留问题：待独立Terminal接手0.1.39（结果/Applications/.moos-update-0.1.39/result.json，日志terminal-update.log），等待当前任务自然结束，不强停、不重置或恢复覆盖数据。当前正式仍/Applications/MuMa.app0.1.38，本轮未退出/替换；Finder/Dock正式目视未验证。0.1.38备份/旧包暂保留，无删除。
+- 对应 Git 提交：唯一说明 `fix(P03.13.11): use Chinese 沐码 for all visible app branding`；查询 `git log --all --oneline --grep='use Chinese 沐码'`；提交推送核对后交接。

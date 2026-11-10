@@ -1,7 +1,7 @@
 import { cp, lstat, mkdir, mkdtemp, readdir, rename, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-export const profileRecoveryMessage = '检测到已有 MuMa（沐码）数据，但工作台配置目录缺失或异常。为保护聊天记录和配置，已停止初始化；请恢复原配置或联系维护者，不要删除应用数据目录。';
+export const profileRecoveryMessage = '检测到已有 沐码数据，但工作台配置目录缺失或异常。为保护聊天记录和配置，已停止初始化；请恢复原配置或联系维护者，不要删除应用数据目录。';
 
 function recoveryRequired() {
   return Object.assign(new Error(profileRecoveryMessage), { code: 'MOOS_PROFILE_RECOVERY_REQUIRED' });

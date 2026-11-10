@@ -9,7 +9,7 @@ import { createPiTurnReader } from './pi-turn.mjs';
 import { seedHome, profileRecoveryMessage } from './profile-home.mjs';
 import { updateShellPlugin, shellUpdateMessage } from './shell-update.mjs';
 
-app.setName('MuMa');
+app.setName('沐码');
 const data = process.env.MOOS_ELECTRON_DATA ?? join(app.getPath('appData'), 'dev.moos.agent.electron');
 if (!isAbsolute(data)) throw new Error('MuMa data directory must be absolute');
 app.setPath('userData', data);
@@ -38,7 +38,7 @@ async function launch() {
   host = startHost({
     cli, home, cwd: workspace, tempDir, piRuntime, piFixture, executionPatch: join(resources, 'execution.patch.yml'),
     onUnexpectedExit() {
-      dialog.showErrorBox('MuMa · 沐码', '本机工作台服务已退出，请重启 MuMa（沐码）。');
+      dialog.showErrorBox('沐码', '本机工作台服务已退出，请重启 沐码。');
       app.quit();
     },
   });
@@ -53,7 +53,7 @@ async function launch() {
   partition.setPermissionCheckHandler(() => false);
   const mac = process.platform === 'darwin';
   const win = new BrowserWindow({
-    title: 'MuMa · 沐码', width: 1240, height: 820, minWidth: 760, minHeight: 480, show: false,
+    title: '沐码', width: 1240, height: 820, minWidth: 760, minHeight: 480, show: false,
     ...(mac ? {
       titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 16, y: 18 },
       vibrancy: 'sidebar', visualEffectState: 'active', backgroundColor: '#00000000',
@@ -65,7 +65,7 @@ async function launch() {
   });
   const models = piModels(data, checkedProvider);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'MuMa', submenu: [
+    { label: '沐码', submenu: [
       { role: 'about' }, { label: '模型服务…', accelerator: 'CmdOrCtrl+Shift+,', click: () => {
         if (!win.isDestroyed()) {
           if (win.isMinimized()) win.restore();
@@ -170,7 +170,7 @@ app.on('before-quit', event => {
 });
 if (!app.requestSingleInstanceLock()) app.quit();
 else void app.whenReady().then(launch).catch(error => {
-  dialog.showErrorBox('MuMa · 沐码', error?.code === 'MOOS_PROFILE_RECOVERY_REQUIRED'
+  dialog.showErrorBox('沐码', error?.code === 'MOOS_PROFILE_RECOVERY_REQUIRED'
     ? profileRecoveryMessage : error?.code === 'MOOS_SHELL_UPDATE_FAILED'
       ? shellUpdateMessage : '无法打开工作台。请检查本机开发运行时后重试。');
   app.quit();

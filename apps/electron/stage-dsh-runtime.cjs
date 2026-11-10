@@ -253,7 +253,7 @@ function stageDshRuntime(resources, destination) {
   const registration = 'prepareRoutes(providers, adapter, owned) {\n\t\t\tconst unique';
   patchBundledSource(dsh, llm, registration, 'prepareRoutes(providers, adapter, owned) {\n' +
     '\t\t\tif (!isMoosPiAdapter(adapter) || providers.some(provider => provider !== moosPiRoute)) {\n' +
-    '\t\t\t\tthrow new LlmError("MuMa（沐码）模型服务必须通过 PI 接入", "INVALID_ADAPTER");\n' +
+    '\t\t\t\tthrow new LlmError("沐码模型服务必须通过 PI 接入", "INVALID_ADAPTER");\n' +
     '\t\t\t}\n\t\t\tconst unique');
   const llmEntry = join(dsh, 'node_modules/@deepseek-ai', llm, 'lib/index.js');
   fs.writeFileSync(llmEntry,

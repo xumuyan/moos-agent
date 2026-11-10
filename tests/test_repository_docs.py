@@ -9,6 +9,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_chinese_brand_display_keeps_electron_helper_technical_name(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-chinese-display.json').read_text())
+        self.assertEqual(e['evidence'], 'E109')
+        self.assertEqual(e['display']['sidebar'], '沐码')
+        self.assertEqual(e['display']['applicationFile'], '沐码.app')
+        self.assertEqual(e['technical']['CFBundleName'], 'MuMa')
+        self.assertEqual(e['technical']['CFBundleExecutable'], 'MuMa')
+        self.assertEqual(e['gui']['branding']['name'], '沐码')
+        self.assertEqual(e['gui']['branding']['title'], '沐码')
+        self.assertFalse(e['includesPiFixture'])
+        self.assertFalse(e['install']['dataMigration'])
+        self.assertEqual(e['install']['target'], '/Applications/沐码.app')
+        self.assertTrue(e['failures'])
+
     def test_muma_icon_update_preserves_identity_and_truthful_install_state(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-muma-icon-update.json').read_text())
         self.assertEqual(e['evidence'], 'E108')
@@ -387,7 +401,7 @@ class RepositoryDocsTests(unittest.TestCase):
         guide = (ROOT / 'apps/electron/README.md').read_text(encoding='utf-8')
         for text in ('MuMa', '沐码', '沐言', '沐序', '沐宿', '沐声', 'AI 音乐电台'):
             self.assertIn(text, plan)
-        for text in ('MuMa.app', 'dev.moos.agent.electron', 'persist:moos-workbench', 'moos-pi',
+        for text in ('沐码.app', 'dev.moos.agent.electron', 'persist:moos-workbench', 'moos-pi',
                      '不迁移或重置聊天与配置', '不自动替换或重启正式安装'):
             self.assertIn(text, guide)
 
