@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 11:55:00 +08:00｜P03.13.13：沐码图标 v2 纯平重设计（参考 DeepSeek 设计规范，E111，0.1.40 未安装）
+
+- 修改或新增内容：用户反馈 E107/E108 的 3D 渐变玻璃图标看多仍不好看，要求参考 DeepSeek 的设计规范。新增 artifacts/family-icons/muma_v2_icons.py（PIL 4× 超采样程序化绘制）与 muma_v2_install_official.py；候选 A `>_`（终端提示符）、B `</>`、C `M.`，A 集成为正式资产：moos-icon-v1.png（白底青绿 #0FA892）、sidebar-icon.png（32px 青底白标）、moos.icns（16-64px 反色、128+ 白底，iconutil 生成），brand-assets.json 哈希更新；B/C 保留在 images/muma-icon-v2/ 未集成。设计依据：从随包 dsh-web-frontend 提取官方飦鱼 path（单色 currentColor）仅本地渲染对照（images/muma-icon-v2/deepseek-spec-reference.png，不进资产不分发），提炼规范：白底圆角方、纯平单色、单一符号、留白充足、16px 可读。
+- 遇到的难题：docs 测试 test_muma_icon_update_preserves_identity_and_truthful_install_state 原断言 E108 哈希与当前仓库一致，资产替换后失败。
+- 处理方式：按「历史证据不改写」原则修改该测试——E108 保留 0.1.38 当时哈希作为历史事实，改为锁定「与现行 manifest 不同」的取代关系；新增 E111 测试校验现行资产/构建/GUI/未安装状态全链路；另补 PLAN P03.13.12 任务行使编号连续。
+- 验证结果：重建 build-JHNLSY 0.1.40（现含 E110 附件上限与新图标）；codesign --deep --strict 通过；包内 moos.icns 字节一致、client.js 侧栏 base64 内联一致、host.js/pi-route.js 与仓库一致；electron 82/82、core 163/163；隔离 GUI recovery-5qxDGt（scripts/verify-electron-brand.mjs）品牌/折叠/优雅退出 exit=0，brand-report icnsSha256=3b945c23…；docs 89/89（新增 E111 测试与 P03.13 编号连续校验）；隔离 GUI recovery-5qxDGt（scripts/verify-electron-brand.mjs）品牌/折叠/优雅退出 exit=0，brand-report icnsSha256=3b945c23…；三套测试完整退出码 0 记录在本地 artifacts/muma-icon-v2/（不入 Git）。
+- 遗留问题：安装未授权未执行，/Applications/沐码.app 仍为 0.1.39 旧图标；Finder/Dock 新图标目视待安装后用户确认；B/C 备选切换需重跑脚本重建；sourcePush 哈希以远程核对为准。
+- 对应 Git 提交：本次唯一提交（P03.13.13 图标 v2 重设计与证据，含本条日志与 PLAN/测试更新），可用 `git log --oneline --grep="P03.13.13"` 查询。
+
 ## 2026-11-10 11:20:00 +08:00｜P03.13.12：附件与图片上限调整（图片 512 KiB→5 MiB、二进制转存工作区，E110，0.1.40 未安装）
 
 - 修改或新增内容：应用户反馈「上传附件报错图片不能超过 512 KiB」。① 排查确认限制均来自仓库自有 PI 路由 `apps/electron/plugin/pi-route.js` 而非上游 DSH：图片上限 524288 字节、文本附件合计 32 KiB 且必须纯 UTF-8（ZIP 等二进制直接拒绝）；前端提示由 attachment-local imageLimits projection 提供。② `pi-route.js`：图片上限改常量 IMAGE_BYTES=5 MiB（错误文案动态取值）；文本内联预算 32 KiB→128 KiB（PROMPT_TEXT_BUDGET）；二进制（UTF-8 fatal 解码失败或含 NUL/控制字符）或超预算文件改走 saveUpload 写入会话工作区 `.moos-uploads/`，对话提示相对路径由 PI 文件工具读取；单文件转存上限 100 MiB；每条消息仍 8 附件/1 图。③ `host.js`：saveUpload 注入提取为导出函数 `saveWorkspaceUpload`（sha256 前 8 位前缀+净化文件名，路径分隔符/控制字符替换 _、去首部点、截 80 字符，cwd 非绝对拒绝），注入处保留 abort 检查。④ `cordis.patch.yml`：attachment-local 覆盖 maxImageBytes/maxMessageImageBytes=5242880 与前端提示一致。⑤ 版本 0.1.39→0.1.40。⑥ 测试：新增 `pi-uploads.test.mjs`（转存函数：写入/净化/空名回退/非绝对 cwd 拒绝）；`pi-tasks.test.mjs` 附件用例重写（小文本内联、ZIP/超预算/含 NUL 转存、8 个上限、opens=4、uploads=3）；`pi-models.test.mjs` 新增 1 MiB 图片成功与 5 MiB+1 拒绝及错误文案断言。⑦ 同批补录 E109 0.1.39 安装成功核对（见下）。⑧ 文档：PLAN.md E109 小节补安装成功结论、新增 E110 小节与证据表行；证据 `docs/evidence/desktop/p03-attachment-limits.json`。

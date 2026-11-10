@@ -67,12 +67,51 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['gui']['branding']['name'], 'MuMa')
         self.assertEqual(e['gui']['branding']['iconWidth'], 32)
         self.assertEqual(e['gui']['branding']['icnsSha256'], e['assets']['sha256']['moos.icns'])
-        for name, digest in e['assets']['sha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / 'apps/electron/assets' / name).read_bytes()).hexdigest(), digest)
+        # E108 records the 0.1.38-era gradient asset digests as a historical
+        # fact; the live assets were later replaced by the E111 v2 redesign
+        # and this historical file must not be rewritten in place.
+        self.assertNotEqual(
+            e['assets']['sha256']['moos.icns'],
+            json.loads((ROOT / 'apps/electron/assets/brand-assets.json').read_text())['sha256']['moos.icns'])
         self.assertIn(e['install']['state'], ['preflight-passed-awaiting-independent-terminal', 'success', 'stopped-for-review'])
         if e['install']['state'] == 'success':
             self.assertTrue(e['install']['resultRecord']['originalDatabaseRowsRetained'])
             self.assertTrue(e['install']['resultRecord']['apiAndCredentialsIdentical'])
+
+    def test_icon_redesign_e111_follows_deepseek_language_with_live_assets(self):
+        import hashlib as _hl
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-icon-redesign.json').read_text())
+        self.assertEqual(e['evidence'], 'E111')
+        self.assertEqual(e['task'], 'P03.13.13')
+        for key in ('flatSingleColor', 'noGradient', 'no3dOrGloss', 'noGlow',
+                    'whiteSquircle', 'singleMark', 'smallSizeReadable'):
+            self.assertTrue(e['design']['principles'][key])
+        self.assertIn('>_', e['design']['mark'])
+        self.assertEqual(e['design']['candidates']['integrated'], 'A-prompt')
+        # live assets match both the evidence file and the manifest
+        manifest = json.loads((ROOT / 'apps/electron/assets/brand-assets.json').read_text())
+        for name, digest in e['assets']['sha256'].items():
+            self.assertEqual(manifest['sha256'][name], digest)
+            self.assertEqual(
+                _hl.sha256((ROOT / 'apps/electron/assets' / name).read_bytes()).hexdigest(), digest)
+        self.assertNotEqual(e['assets']['sha256']['moos.icns'],
+                            '28717cab0a871d013ec9d849d367e5a3fdf5a48fb2fd42656b658df8a48870f4')
+        # build keeps code untouched and bundles the new icon
+        self.assertEqual(e['build']['id'], 'build-JHNLSY')
+        self.assertEqual(e['build']['version'], '0.1.40')
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertTrue(e['build']['codesignDeepStrict'])
+        self.assertTrue(e['build']['bundleIcnsByteIdenticalToRepo'])
+        self.assertTrue(e['build']['sidebarInlineBase64MatchesRepo'])
+        self.assertEqual(e['tests']['electron'], 'npm run test:electron: 82/82 no skips')
+        self.assertEqual(e['tests']['core'], 'npm test: 163/163')
+        self.assertEqual(e['gui']['exit']['code'], 0)
+        self.assertEqual(e['gui']['branding']['icnsSha256'], e['assets']['sha256']['moos.icns'])
+        self.assertIn('not-executed-no-authorization', e['install']['state'])
+        self.assertFalse(e['install']['productionDataTouched'])
+        self.assertTrue(any('Finder/Dock' in limit for limit in e['limits']))
+        self.assertIn('P03.13.13', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('| E111 |', (ROOT / 'PLAN.md').read_text())
 
     def test_family_icon_assets_keep_formats_and_deployment_limits(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-family-icon-assets.json').read_text())
@@ -457,7 +496,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 12)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 14)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))

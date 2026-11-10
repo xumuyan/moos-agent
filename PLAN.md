@@ -106,6 +106,8 @@ E38 已验证本机 Electron 应用、独立数据、Moos 窗口与 Finder 图�
   - E67 本机安装已验证。应用位于 `/Applications/Moos.app`，完成临时签名、文件一致性、真实 GLM 经 PI 写入与命令校验、正常退出清理和重启恢复。首次使用的独立模型服务在原生菜单「Moos → 模型服务…」配置。正式签名、公证、第三方分发范围、干净 Mac 的首次启动流量及卸载仍待验收。
 
 - 品牌素材交付（独立于应用部署）：证据 E107 `docs/evidence/desktop/p03-family-icon-assets.json`，沐言/沐码/沐序/沐宿四套透明 PNG、ICNS、ICO、网页及 iOS 方形资源分别打包，已复制至本机 Downloads/MOOS系列图标-20261110。每包 37 文件、原生 ICNS 解码及尺寸/透明度/校验和/ZIP 完整性通过；1024 为约 515px 原图放大，不含矢量源。未替换任何正式应用或其他项目，目标工程集成/实机图标显示未验收。
+- [x] P03.13.12 **附件与图片上限调整。** 依赖 P03.13.11。图片上限 512 KiB→5 MiB（路由与 attachment-local 同步），文本内联预算 32 KiB→128 KiB，二进制/超预算文件转存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），每条消息仍 8 附件/1 图。证据 E110：core 163/163、electron 82/82、docs 86/86；build-g04nDJ 0.1.40 构建验签与隔离 GUI recovery-kzbAHF 通过。源码提交 f739a34 已推送核对；正式安装未经授权、未执行，>512 KiB 端到端待安装后确认。
+- [x] P03.13.13 **沐码应用图标 v2 纯平重设计（DeepSeek 设计语言）。** 依赖 P03.13.11。用户反馈 E107/E108 的 3D 渐变玻璃图标看多仍不满意，要求参考 DeepSeek 设计规范：从随包 dsh-web-frontend 提取官方单色飦鱼 path 仅作本地对照，提炼白底圆角方、纯平单色、单一符号、留白充足、16px 可读的规范；用 `artifacts/family-icons/muma_v2_icons.py` 程序化绘制终端提示符 `>_`（候选 A）替换正式资产（moos-icon-v1.png/moos.icns/sidebar-icon.png 文件名不变，manifest 哈希更新），icns 16-64px 与侧栏反转为青底白标、128+ 为白底青标；候选 B `</>`、C `M.` 保留未集成。E108 历史证据保留原哈希不改写。证据 E111：build-JHNLSY 0.1.40（含 E110 附件上限）重建验签、包内 icns/侧栏内联/代码字节核对通过；electron 82/82、core 163/163、隔离 GUI recovery-5qxDGt 品牌/折叠/优雅退出 exit=0。安装未授权未执行，Finder/Dock 新图标目视待安装后确认；B/C 切换需重跑脚本重建。
 
 ## P03.12｜原版 DSH Electron 前端接入 Moos PI
 
@@ -648,6 +650,7 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E105 | P03.13.10 工作区变化列表折叠：PiTurnTail 超 10 个文件时以 `<details data-moos-turn-files>` 默认收起，summary 保留标题与「已折叠」提示，点击展开/再点收起；≤10 个文件保持平铺。fixture 新增 MOOS_FIXTURE_MANY（bash 写 12 个文件）。证据 `docs/evidence/desktop/p03-turn-tail-collapse.json`。 | client 3/3、fixture 12/12、core 160/160、electron 79/79、docs OK；隔离 GUI 验收 recovery-nCJlAQ（收起态/展开态截图 + many-report.json：默认 open=false、summary 工作区变化 · 12 个文件已折叠、展开 12 项 many-N.txt 齐全、再点收起）；脚本本轮修复三点并记录：宿主 danger 模式透传 ELECTRON_RUN_AS_NODE 使隔离实例变 node 模式（启动前清理）、0.1.36 壳首屏 hero 工作区触发卡片需点击进入默认工作区后 Lexical 编辑器才挂载、fixture relay 未关导致脚本残留（已 close，33s 干净退出）；正式安装版未含此改动，安装待用户授权。 |
 | E106 | P03.13.11 MuMa / 沐码更名；证据 `docs/evidence/desktop/p03-muma-brand.json`。 | build-KZquSV 0.1.37（正式包无 fixture）；core 162/162、electron 80/80 无跳过、native 11/11、PI 桥 5/5、皮肤 4/4；隔离 GUI recovery-UK0Pmw 品牌、PI 写入和折叠、QA app.quit 退出与脚本 exit=0。文档 83/83；源码提交 55244b1 已推送并核对远程一致。内部身份不变，不部署；Finder/Dock 与正式窗口目视未验收。 |
 | E110 | P03.13.12 附件与图片上限调整（0.1.40，本轮不安装）：图片 512 KiB→5 MiB（路由 IMAGE_BYTES 与 attachment-local maxImageBytes/maxMessageImageBytes 同步），文本内联预算 32 KiB→128 KiB，二进制/超预算文件转存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），对话提示相对路径由 PI 工具读取；每条消息仍 8 附件/1 图。证据 `docs/evidence/desktop/p03-attachment-limits.json`。 | core 163/163、electron 82/82（新增 pi-uploads/saveWorkspaceUpload 单测、pi-tasks 转存路径用例、pi-models 1 MiB 成功/5 MiB+1 拒绝）、docs 86/86；build-g04nDJ 0.1.40 构建验签、包内代码与仓库一致、attachment-local 覆盖在位；隔离 GUI recovery-kzbAHF 品牌/折叠/优雅退出通过（recovery-mk2CAR 退出超时失败保留，重跑通过）；0.1.39 安装成功核对（1463 备份文件、288/6/150 保留、单实例）并入同批提交。正式安装未执行、无本轮授权，GUI 内 >512 KiB 端到端待安装后用户确认。 |
+| E111 | P03.13.13 沐码图标 v2 纯平重设计（DeepSeek 设计语言，0.1.40，未安装）：白底圆角方 + 单色青绿终端提示符 `>_`，icns 16-64px 与侧栏反色青底白标；候选 B/C 保留；生成脚本 `artifacts/family-icons/muma_v2_icons.py`。证据 `docs/evidence/desktop/p03-icon-redesign.json`。 | build-JHNLSY 0.1.40 重建验签、包内 icns/侧栏内联/host.js/pi-route.js 字节一致；electron 82/82、core 163/163；隔离 GUI recovery-5qxDGt 品牌/折叠/优雅退出 exit=0；E108 历史哈希不改写并由测试锁定取代关系。安装未授权未执行，Finder/Dock 新图标目视待安装后用户确认。 |
 
 
 ## STORAGE-CLEANUP-20261109：用户授权本机缓存维护
@@ -687,3 +690,8 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 
 - 按用户反馈「图片不能超过 512 KiB」报错：定位限制均来自仓库自有 PI 路由而非上游 DSH。图片上限 512 KiB → 5 MiB（路由 IMAGE_BYTES 与 attachment-local maxImageBytes/maxMessageImageBytes 同步）；文本附件内联预算 32 KiB → 128 KiB；二进制或超预算文件不再直接拒绝，改存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），对话提示相对路径由 PI 工具读取；每条消息仍 8 个附件、1 张图。
 - E110 `docs/evidence/desktop/p03-attachment-limits.json`：core 163/163、electron 82/82（新增 pi-uploads 转存函数单测、pi-tasks 转存路径用例、pi-models 1 MiB 成功/5 MiB+1 拒绝）、docs 86/86；build-g04nDJ 0.1.40 构建验签通过、包内代码与仓库一致、attachment-local 5 MiB 覆盖在位；隔离 GUI 恢复 recovery-kzbAHF 品牌/折叠/优雅退出通过（recovery-mk2CAR 为退出超时失败保留证据，重跑通过）。正式安装未执行、无本轮授权，/Applications/沐码.app 仍 0.1.39；GUI 内 >512 KiB 图片端到端实测待安装后用户确认。
+
+### 沐码图标 v2 纯平重设计（E111，0.1.40，未安装）
+
+- 用户反馈 E107/E108 的 3D 渐变图标看多仍不好看，要求参考 DeepSeek 设计规范。从随包 dsh-web-frontend 提取官方飦鱼 path 本地渲染对照，提炼规范：白底圆角方、纯平单色、单一符号、留白充足、16px 可读；用 `artifacts/family-icons/muma_v2_icons.py` 程序化绘制候选 A `>_`、B `</>`、C `M.`，A 集成为正式资产（文件名不变、manifest 更新），icns 16-64px 与侧栏反色，B/C 保留在 images/muma-icon-v2/ 未集成。
+- E111 `docs/evidence/desktop/p03-icon-redesign.json`：build-JHNLSY 0.1.40 重建（现含 E110 附件上限与新图标），codesign 通过、包内 icns/侧栏内联/host.js/pi-route.js 与仓库字节一致；electron 82/82、core 163/163；隔离 GUI recovery-5qxDGt 品牌/折叠/优雅退出 exit=0；E108 历史证据保留原哈希并由测试锁定取代关系。安装未授权未执行，/Applications/沐码.app 仍 0.1.39 旧图标；Finder/Dock 新图标目视待安装后确认；B/C 切换需重跑脚本重建。

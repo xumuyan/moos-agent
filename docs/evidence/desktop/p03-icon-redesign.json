@@ -1,0 +1,108 @@
+{
+  "evidence": "E111",
+  "task": "P03.13.13",
+  "time": "2026-11-10T11:52:00+08:00",
+  "workspaceState": "f739a34d53fd3dfe14eb1d9f69715c3ac70b60f5 plus pending v2 icon assets/build/evidence; acceptance performed before source/evidence commit",
+  "scope": "沐码应用图标 v2 重设计：按 DeepSeek 设计语言重画，替换 0.1.38 起使用的 3D 渐变玻璃图标；不改动任何代码与数据结构",
+  "authorizedForDesign": true,
+  "design": {
+    "userRequest": "2026-11-10 用户反馈现有图标看多了仍不好看，要求参考 DeepSeek 的设计规范",
+    "specSource": "DeepSeek 官方设计语言从随包 DSH 依赖实测提炼：dsh-web-frontend 内嵌 FISH_LOGO_PATH（23.16×17.04 单色 currentColor 鲸鱼 path，提取到 /tmp 并仅本地渲染对照）；官方应用图标实践为白底圆角方 + 单一品牌色纯平图形、留白充足",
+    "principles": {
+      "flatSingleColor": true,
+      "noGradient": true,
+      "no3dOrGloss": true,
+      "noGlow": true,
+      "whiteSquircle": true,
+      "singleMark": true,
+      "smallSizeReadable": true
+    },
+    "mark": "终端提示符 >_（候选 A-prompt）：一个纯色符号，圆头圆角描边，16px 可读",
+    "brandColor": "#0FA892",
+    "invertedSmallRepresentations": "icns 16/32/64 表示与 32px 侧栏图标反转为青绿底白色图形；128 及以上与 Dock/大视图为白底青绿图形（与 DeepSeek favicon 深、app 图标白的分层一致）",
+    "geometry": "Apple macOS 模板：1024 画布、824 内容框、圆角比例 22.58%，白底加极浅灰 hairline 边界",
+    "generation": "artifacts/family-icons/muma_v2_icons.py 以 4× 超采样程序化绘制（PIL），无 AI 生成栅格、无栅格放大",
+    "candidates": {
+      "integrated": "A-prompt",
+      "alternativesKeptNotIntegrated": ["B-brackets (</>)", "C-monogram (M.)"],
+      "alternativeFiles": "images/muma-icon-v2/",
+      "specReference": "images/muma-icon-v2/deepseek-spec-reference.png（用包内提取的官方鲸鱼 path 渲染的白底蓝鲸对照，仅本地参考，不分发、不进应用资产）"
+    }
+  },
+  "assets": {
+    "note": "取代 E108 记录的 0.1.38 渐变图标资产；文件名保持不变，E108 证据按历史事实保留原哈希不改写",
+    "manifest": "apps/electron/assets/brand-assets.json",
+    "sha256": {
+      "moos-icon-v1.png": "e37833c7e3ff3c802d5c0480b8d144612a263f13ea8f4bad306b2e1e8d9d9429",
+      "moos.icns": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028",
+      "sidebar-icon.png": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf"
+    }
+  },
+  "build": {
+    "id": "build-JHNLSY",
+    "path": ".generated/moos-electron/build-JHNLSY/沐码.app",
+    "version": "0.1.40",
+    "cfBundleName": "MuMa",
+    "includesPiFixture": false,
+    "codesignDeepStrict": true,
+    "bundleIcnsByteIdenticalToRepo": true,
+    "sidebarInlineBase64MatchesRepo": true,
+    "codeFilesIdenticalToRepo": ["plugin/host.js", "plugin/pi-route.js"],
+    "note": "本轮只换图标资产；0.1.40 现包含 E110 附件上限与 E111 新图标，仍未经授权未安装"
+  },
+  "tests": {
+    "electron": "npm run test:electron: 82/82 no skips",
+    "core": "npm test: 163/163",
+    "logs": "artifacts/muma-icon-v2/{electron,core}.log 与 .exit",
+    "gui": "node scripts/verify-electron-brand.mjs .generated/moos-electron/build-JHNLSY/沐码.app → recovery-5qxDGt exit=0"
+  },
+  "gui": {
+    "report": "artifacts/muma-icon-v2/gui/recovery-5qxDGt/brand-report.json",
+    "identity": {
+      "name": "MuMa",
+      "displayName": "沐码",
+      "executable": "MuMa",
+      "bundleId": "dev.moos.agent.electron",
+      "version": "0.1.40"
+    },
+    "branding": {
+      "name": "沐码",
+      "chinese": "沐码",
+      "title": "沐码",
+      "iconWidth": 32,
+      "icnsSha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+    },
+    "shell": "0.1.40",
+    "collapsed": {
+      "present": true,
+      "open": false,
+      "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+      "heading": "工作区变化 ·",
+      "hint": "已折叠，点击展开"
+    },
+    "expanded": {
+      "open": true,
+      "count": 12,
+      "allNamed": 12
+    },
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "usedTerm": false,
+      "method": "QA SIGUSR2 → app.quit"
+    }
+  },
+  "install": {
+    "state": "not-executed-no-authorization",
+    "note": "与 E110 一致：0.1.40 候选包（含新图标与附件上限）等待用户明确授权后按 E84 流程安装；/Applications/沐码.app 当前仍为 0.1.39 旧图标",
+    "productionDataTouched": false
+  },
+  "limits": [
+    "Finder/Dock 及正式安装后的新图标目视验收待安装后由用户确认；隔离 GUI 断言的是包内 icns 字节一致与侧栏图标真实加载。",
+    "Dock/大视图为白底版本，Finder 16/32 小视图与深色侧栏为反色青底版本，两版刻意并存。",
+    "备选 B/C 若被选中需重跑生成脚本并重建，当前未集成。",
+    "ad-hoc 签名，未公证。",
+    "DeepSeek 官方鲸鱼 path 提取仅用于本地设计规范对照，未进入应用资产或分发物。"
+  ],
+  "sourcePush": null
+}
