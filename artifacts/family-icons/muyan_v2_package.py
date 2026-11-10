@@ -113,14 +113,41 @@ for path in sorted(FOLDER.rglob('*')):
 - 校验：`checksums.json` 记录全部文件大小与 SHA256。
 ''')
 
-# zip (overwrite v1 archive)
+# zip (overwrite; E107 family zips carry a top-level folder so extraction stays tidy)
 archive = FAM / 'muyan-沐言-icons.zip'
 with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zf:
     for path in sorted(FOLDER.rglob('*')):
         if path.is_file():
-            zf.write(path, path.relative_to(FOLDER))
+            zf.write(path, Path('muyan-沐言') / path.relative_to(FOLDER))
 
 icns_check = subprocess.run(['iconutil', '-c', 'iconset', str(FOLDER / 'macos/muyan.icns'), '-o', '/tmp/muyan-icns-verify.iconset'], capture_output=True, text=True)
+
+# family delivery.json: refresh the muyan row to the v2 pack, keep the other three v1 rows intact
+delivery_path = FAM / 'delivery.json'
+delivery = json.loads(delivery_path.read_text())
+for icon in delivery['icons']:
+    if icon['slug'] == 'muyan':
+        icon.update({
+            'version': 'v2-flat',
+            'bytes': archive.stat().st_size,
+            'sha256': sha256(archive),
+            'design': 'flat per MuMa v2 family language, coral #F76B5B, programmatic geometry (not AI bitmap upscaled)',
+            'transparentSize': [1024, 1024],
+            'fileCount': len([f for f in FOLDER.rglob('*') if f.is_file()]),
+        })
+        icon.pop('sourceBodySize', None)
+delivery_path.write_text(json.dumps(delivery, ensure_ascii=False, indent=2) + '\n')
+
+# transparent family preview: honest current state (muyan v2 + three v1 packs)
+apps = [('muyan-沐言', 1), ('muma-沐码', 0), ('muxu-沐序', 2), ('musu-沐宿', 3)]
+cell = 300
+sheet = Image.new('RGB', (cell * 2 + 60, cell * 2 + 60), (28, 30, 33))
+positions = {0: (30, 30), 1: (cell + 30, 30), 2: (30, cell + 30), 3: (cell + 30, cell + 30)}
+for folder, idx in apps:
+    img = Image.open(FAM / folder / 'app-icon-transparent-1024.png').resize((cell, cell), Image.LANCZOS)
+    sheet.paste(img, positions[idx], img)
+sheet.save(FAM / 'transparent-preview.png')
+
 files = sorted(str(p.relative_to(FOLDER)) for p in FOLDER.rglob('*') if p.is_file())
 print('icns roundtrip:', 'ok' if icns_check.returncode == 0 else icns_check.stderr)
 print('zip bytes:', archive.stat().st_size, 'zip sha256:', sha256(archive))

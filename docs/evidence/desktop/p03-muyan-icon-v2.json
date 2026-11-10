@@ -22,13 +22,19 @@
   "delivery": {
     "folder": "images/moos-family-ready/muyan-沐言",
     "zip": "images/moos-family-ready/muyan-沐言-icons.zip",
-    "zipSha256": "8c3b813ae4862555b5e236fb7394dd0c61364b156978e9a4d63c1721ba8cb4da",
-    "zipBytes": 426070,
+    "zipSha256": "a223c384cf38b7e8d15fde5e05795d29d72783305434c8dd7ebf2e35059e0bea",
+    "zipBytes": 427032,
+    "zipTopLevelFolder": "muyan-沐言/（对同 E107 系 zip，解压不散落）",
+    "zipIntegrityTest": "unzip -t no errors",
     "fileCount": 37,
     "formats": ["12 transparent PNG sizes 16-1024", "macOS ICNS + 10-file iconset (16-64 inverted, 128+ light, same E111 MuMa decision)", "Windows ICO 7 resolutions", "web favicon/apple-touch/PWA", "iOS universal AppIcon.appiconset (full-bleed 1024)", "opaque square 1024", "checksums.json", "README-使用说明.md"],
     "icnsRoundtrip": "iconutil decode 10 images ok; 32px center coral (249,147,135), corners transparent",
     "icoCheck": "windows 7 sizes [16,24,32,48,64,128,256], web [16,32,48]",
-    "downloadsSynced": "/Users/xuguopeng/Downloads/MOOS系列图标-20261110 (muyan folder + zip replaced)"
+    "downloadsSynced": "/Users/xuguopeng/Downloads/MOOS系列图标-20261110 (muyan folder + zip + delivery.json + transparent-preview.png replaced; zip sha256 re-verified at destination)"
+  },
+  "familyManifestRefresh": {
+    "deliveryJson": "family delivery.json 沐言行更新为 v2-flat（bytes/sha256/1024 原生，移除 AI 位图 sourceBodySize），其余三款 v1 行未动",
+    "transparentPreview": "家族 transparent-preview.png 重建：沐言 v2 + 沐码/沐序/沐宿 v1，如实反映当前包内容"
   },
   "generators": [
     "artifacts/family-icons/muyan_v2_icons.py",

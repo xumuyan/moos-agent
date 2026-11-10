@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 13:55:00 +08:00｜E112 续：用户要求打包沐言图标，修复 zip 顶层目录与家族交付清单
+
+- 修改或新增内容：用户要求「打包一下这个」（沐言 v2 图标）。检查发现两处真实问题：① 首版 zip 无顶层目录（E107 系 zip 解压后自带 muma-沐码/ 等前缀，解压会散落）；② 家族 delivery.json 沐言条目仍为 v1 哈希（196d01fc…/5493275 字节/sourceBodySize [514,517]），与实际不符。修改 muyan_v2_package.py：zip 内加 muyan-沐言/ 顶层前缀；delivery.json 沐言行更新为 v2-flat（bytes/sha256/1024 原生，移除 AI 位图 sourceBodySize），其余三款 v1 行未动；重建家族 transparent-preview.png（沐言 v2 + 三款 v1，如实反映当前包内容）；全部同步至 Downloads 并在目的地重验哈希。
+- 遇到的难题：重打 zip 后哈希变化，E112 证据中旧 zipSha256（8c3b813a…）随之失效。
+- 处理方式：证据更新为新哈希 a223c384…并新增 zipTopLevelFolder/zipIntegrityTest/familyManifestRefresh 字段，旧哈希不保留（素材交付无历史不可变要求，与 E108 类证据不同）；docs 测试重跑。
+- 验证结果：unzip -t 无错误；解压首层为 muyan-沐言/ 目录；delivery.json 沐言行实测 v2-flat/427032/a223c384…/37 文件；Downloads 副本 sha256 与工作区一致（逐字节核对）；docs 全量通过。
+- 遗留问题：无新增；沐宿/沐序仍为 v1、应用集成与商店上传同前条不变。
+- 对应 Git 提交：本次唯一提交（E112 打包续记），可用 `git log --oneline --grep="E112"` 查询。
+
 ## 2026-11-10 13:10:00 +08:00｜E112：沐言家族素材 v2 纯平重做（用户要求，素材交付未集成）
 
 - 修改或新增内容：用户要求「把沐言的应用图标也处理一下」。沿用沐码 v2（E111）家族语言重绘沐言：珊瑚 #F76B5B（E107 渐变 #FE9859→#F66477 采样纯平中间值）、符号为对话气泡 + 三根语音波形竖条（延续 v1 识别度），PIL 4× 超采样程序化几何绘制，非 AI 位图放大；候选 B（气泡+双引号胶囊）保留未集成。新增 artifacts/family-icons/muyan_v2_icons.py 与 muyan_v2_package.py：重建 images/moos-family-ready/muyan-沐言 目录（37 文件：12 档透明 PNG、ICNS 16-64 反色/128+ 白底同 E111 决策、Windows ICO 7 分辨率、web favicon/apple-touch/PWA、iOS 全出血 appiconset、checksums.json、README、zip）并同步 Downloads/MOOS系列图标-20261110；新增证据 E112、PLAN 素材交付段落与证据表 E112 行、docs 测试新增 muyan_icon_v2 校验。
