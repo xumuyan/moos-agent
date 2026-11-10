@@ -110,6 +110,16 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('not-executed-no-authorization', e['install']['state'])
         self.assertFalse(e['install']['productionDataTouched'])
         self.assertTrue(any('Finder/Dock' in limit for limit in e['limits']))
+        # cross-platform variants per Apple HIG / Google Play spec
+        pv = e['platformVariants']
+        self.assertTrue(pv['notIntegratedIntoApp'])
+        self.assertEqual(pv['play']['size'], [512, 512])
+        self.assertTrue(pv['play']['markInsideKeylineGrid'])
+        self.assertLess(pv['play']['safeAreaWorstPx512'], pv['play']['safeAreaLimitPx512'])
+        self.assertIn('no baked shadow', pv['play']['format'])
+        self.assertTrue(pv['ios']['sameSafeAreaCheck'])
+        self.assertIn('未能抓取正文', e['specCompliance']['appleHig'])
+        self.assertIn('单一符号', e['specCompliance']['simplicity'])
         self.assertIn('P03.13.13', (ROOT / 'PLAN.md').read_text())
         self.assertIn('| E111 |', (ROOT / 'PLAN.md').read_text())
 

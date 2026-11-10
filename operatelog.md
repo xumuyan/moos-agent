@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 12:20:00 +08:00｜P03.13.13 续：按 Apple HIG 与 Google Play 图标规范补齐跨平台变体（E111 补充）
+
+- 修改或新增内容：用户要求图标同时符合苹果与安卓官方规范且简单明了。抓取 Google Play 图标设计规范原文（512px 32位 PNG/sRGB、完整正方形不透明、系统动态 20% 圆角与阴影、极简图形置于框线网格 66/108）核对；Apple HIG 页面为 JS 渲染未能抓取正文，按已发布要点（单一焦点符号、不透明、macOS 边距约10%）核对。扩展 muma_v2_icons.py 增加 make_full_bleed 与 assert_play_safe_area，产出 play-512-fullbleed.png（青底白标全出血，安全区实测 126.0/148.6px）与 ios-appstore-1024-fullbleed.png；macOS 应用资产不变。E111 证据增加 platformVariants/specCompliance，E111 测试增加对应断言，PLAN P03.13.13 行补充跨平台范围。
+- 遇到的难题：Apple HIG 正文无法直接抓取（JS 渲染）；首版安全区断言误检不透明像素导致 worst=0，full-bleed 图层尺寸计算错位致图形画出边界。
+- 处理方式：Apple 要点在证据中如实标注「页面 JS 渲染未能抓取正文，按已发布要点核对」；断言改为检测与背景色差异的图形像素，图层尺寸改用 CANVAS 比例并重跑。
+- 验证结果：play 安全区断言通过（worst 126.0 ≤ 148.6）；python3 -m unittest discover -s tests 全部通过（89 项，含新增断言）；素材文件在 Git 忽略目录，未上传商店、未改动已验收的 macOS 资产。
+- 遗留问题：Play/iOS 变体尚未在任何商店账号使用；正式沐码 0.1.40 仍未安装（待授权）；Finder/Dock 新图标目视待安装后确认。
+- 对应 Git 提交：本次唯一提交（E111 跨平台变体补充），可用 `git log --oneline --grep="E111"` 查询。
+
 ## 2026-11-10 11:55:00 +08:00｜P03.13.13：沐码图标 v2 纯平重设计（参考 DeepSeek 设计规范，E111，0.1.40 未安装）
 
 - 修改或新增内容：用户反馈 E107/E108 的 3D 渐变玻璃图标看多仍不好看，要求参考 DeepSeek 的设计规范。新增 artifacts/family-icons/muma_v2_icons.py（PIL 4× 超采样程序化绘制）与 muma_v2_install_official.py；候选 A `>_`（终端提示符）、B `</>`、C `M.`，A 集成为正式资产：moos-icon-v1.png（白底青绿 #0FA892）、sidebar-icon.png（32px 青底白标）、moos.icns（16-64px 反色、128+ 白底，iconutil 生成），brand-assets.json 哈希更新；B/C 保留在 images/muma-icon-v2/ 未集成。设计依据：从随包 dsh-web-frontend 提取官方飦鱼 path（单色 currentColor）仅本地渲染对照（images/muma-icon-v2/deepseek-spec-reference.png，不进资产不分发），提炼规范：白底圆角方、纯平单色、单一符号、留白充足、16px 可读。

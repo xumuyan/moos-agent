@@ -92,6 +92,33 @@
       "method": "QA SIGUSR2 → app.quit"
     }
   },
+  "platformVariants": {
+    "purpose": "按 Apple HIG 与 Google Play 图标设计规范补齐跨平台变体；macOS 应用资产不变（本轮已验收提交）",
+    "play": {
+      "file": "images/muma-icon-v2/play-512-fullbleed.png",
+      "size": [512, 512],
+      "format": "full-bleed opaque square, no pre-rounded corners, no baked shadow (Play applies its own 20%-radius mask and shadow dynamically)",
+      "background": "#0FA892 full-bleed brand color, no transparency",
+      "markInsideKeylineGrid": true,
+      "safeAreaWorstPx512": 126.0,
+      "safeAreaLimitPx512": 148.6,
+      "sourceSpec": "https://developer.android.google.cn/distribute/google-play/resources/icon-design-specifications (fetched 2026-11-10 via proxy; 512px/32-bit PNG/sRGB, full square, no user-rounded corners, no baked shadow, keyline grid 66/108)"
+    },
+    "ios": {
+      "file": "images/muma-icon-v2/ios-appstore-1024-fullbleed.png",
+      "size": [1024, 1024],
+      "format": "full-bleed opaque square, no transparency, no pre-rounded corners (iOS masks corners itself)",
+      "sameSafeAreaCheck": true
+    },
+    "generator": "artifacts/family-icons/muma_v2_icons.py make_full_bleed + assert_play_safe_area (asserted in-script)",
+    "notIntegratedIntoApp": true,
+    "deliveryNote": "素材文件在 Git 忽略目录 images/muma-icon-v2/，与 E107 交付方式一致；未上传到任何商店"
+  },
+  "specCompliance": {
+    "googlePlay": "规范原文已抓取核对：完整正方形、不透明、系统动态圆角/阴影、极简图形置于框线网格——play-512 变体全部满足并有自动安全区断言",
+    "appleHig": "页面为 JS 渲染未能抓取正文，按 HIG 已发布要点核对：单一焦点符号、不透明、无截图/文字、macOS 内容边距约 10%（实际 19.5%）、小尺寸可读；本轮 macOS 资产均满足",
+    "simplicity": "三平台均为单一符号（终端提示符 >_），无文字、无渐变、无光效"
+  },
   "install": {
     "state": "not-executed-no-authorization",
     "note": "与 E110 一致：0.1.40 候选包（含新图标与附件上限）等待用户明确授权后按 E84 流程安装；/Applications/沐码.app 当前仍为 0.1.39 旧图标",
