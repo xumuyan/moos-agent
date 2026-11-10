@@ -1,0 +1,99 @@
+{
+  "evidence": "E108",
+  "task": "P03.13.11",
+  "time": "2026-11-10T08:44:04+08:00",
+  "workspaceState": "58eb5cd plus pending MuMa 0.1.38 icon integration; acceptance performed before source/evidence commit",
+  "authorized": true,
+  "scope": "Install approved E107 MuMa icon and E106 naming plus E105 collapse; stable identity/data unchanged",
+  "version": "0.1.38",
+  "build": ".generated/moos-electron/build-bCr0Rp/MuMa.app",
+  "includesPiFixture": false,
+  "assets": {
+    "name": "MuMa · 沐码",
+    "source": "E107 approved MOOS family muma raster icon; 1024 Lanczos master, no vector source",
+    "sha256": {
+      "moos-icon-v1.png": "42e5eb1dc774311857e551a3838c95ac86c59f57c18ed7abce5f2bdd646455a7",
+      "moos.icns": "28717cab0a871d013ec9d849d367e5a3fdf5a48fb2fd42656b658df8a48870f4",
+      "sidebar-icon.png": "a8d8ad24662b5815e997827d23acc71935a2886b23a8509ccde9d56993646113"
+    }
+  },
+  "tests": {
+    "core": "npm test: 162/162",
+    "electron": "npm run test:electron: 81/81 no skips",
+    "native": "cargo test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml: 11/11",
+    "bridge": "node --test probes/dsh-electron-pi/index.test.mjs: 5/5",
+    "skin": "python3 -B -m unittest discover -s probes/dsh-electron-skin -v: 4/4",
+    "checkpoint": "node --test artifacts/muma-icon-update/checkpoint.test.mjs: 5/5",
+    "logs": "artifacts/muma-icon-update/validation/",
+    "docs": "python3 -B -m unittest discover -s tests -v: 85/85 after correcting audit timestamp formatting"
+  },
+  "gui": {
+    "time": "2026-11-10T00:40:50.045Z",
+    "identity": {
+      "name": "MuMa",
+      "displayName": "MuMa",
+      "executable": "MuMa",
+      "bundleId": "dev.moos.agent.electron",
+      "version": "0.1.38"
+    },
+    "branding": {
+      "name": "MuMa",
+      "chinese": "沐码",
+      "title": "MuMa · 沐码",
+      "iconWidth": 32,
+      "icnsSha256": "28717cab0a871d013ec9d849d367e5a3fdf5a48fb2fd42656b658df8a48870f4"
+    },
+    "shell": "0.1.38",
+    "collapsed": {
+      "present": true,
+      "open": false,
+      "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+      "heading": "工作区变化 ·",
+      "hint": "已折叠，点击展开"
+    },
+    "expanded": {
+      "open": true,
+      "count": 12,
+      "paths": [
+        "many-1.txt",
+        "many-10.txt",
+        "many-11.txt",
+        "many-12.txt",
+        "many-2.txt",
+        "many-3.txt",
+        "many-4.txt",
+        "many-5.txt",
+        "many-6.txt",
+        "many-7.txt",
+        "many-8.txt",
+        "many-9.txt"
+      ],
+      "allNamed": 12,
+      "first": "many-1.txt",
+      "last": "many-9.txt",
+      "height": 300
+    },
+    "recollapsed": false,
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "usedTerm": false,
+      "method": "QA SIGUSR2 → app.quit"
+    }
+  },
+  "install": {
+    "state": "preflight-passed-awaiting-independent-terminal",
+    "source": "/Applications/Moos.app",
+    "target": "/Applications/MuMa.app",
+    "data": "~/Library/Application Support/dev.moos.agent.electron",
+    "result": "/Applications/.moos-update-0.1.38/result.json",
+    "log": "/Applications/.moos-update-0.1.38/terminal-update.log",
+    "preflight": "PREFLIGHT_OK; accepted resources byte-matched, identities/signatures checked; 0.1.36 loaded shell checked; existing target absent"
+  },
+  "limits": [
+    "Installation not complete at handoff record; active tasks will finish naturally, no forced stop.",
+    "Native Finder/Dock localization and formal visible GUI not yet verified.",
+    "Raster 1024 master is Lanczos enlarged; ad-hoc signed, not notarized.",
+    "Data migration/reset/automatic restoration prohibited; failure preserves backup and old package."
+  ]
+}

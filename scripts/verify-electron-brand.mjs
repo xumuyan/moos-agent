@@ -5,6 +5,7 @@
 // closed), and clicking the summary expands the full 12-item list. Screenshots of
 // both states are saved next to the report.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
 import { join, resolve, sep } from 'node:path';
@@ -41,6 +42,9 @@ for (const [locale, expected] of [['en', 'MuMa'], ['zh-Hans', '沐码'], ['zh-Ha
   assert.equal(await readFile(join(resources, locale + '.lproj/InfoPlist.strings'), 'utf8'), `"CFBundleDisplayName" = "${expected}";\n`);
 }
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', app], { stdio: 'ignore' });
+const iconBytes = await readFile(join(resources, 'moos.icns'));
+assert.ok(iconBytes.equals(await readFile(join(repo, 'apps/electron/assets/moos.icns'))), 'packaged ICNS matches approved source');
+const iconHash = createHash('sha256').update(iconBytes).digest('hex');
 const shellVersion = JSON.parse(await readFile(join(resources, 'profile-template/profiles/web/node_modules/moos-electron-shell/package.json'), 'utf8')).version;
 const hasCollapse = (await readFile(join(resources, 'profile-template/profiles/web/node_modules/moos-electron-shell/client.js'), 'utf8')).includes('data-moos-turn-files');
 if (!hasCollapse) throw new Error('Isolated build lacks the turn-tail collapse change');
@@ -144,12 +148,17 @@ try {
   gui = await launch();
   const branding = await until(() => gui.evaluate(`(() => {
     const name = document.querySelector('[data-moos-sidebar-name]');
-    return name && { name: name.textContent, chinese: name.title, title: document.title };
+    const icon = document.querySelector('[data-moos-sidebar-icon]');
+    return name && icon?.complete && icon.naturalWidth > 0 && { name: name.textContent, chinese: name.title, title: document.title, icon: icon.src, iconWidth: icon.naturalWidth };
   })()`), 'MuMa sidebar');
   assert.equal(branding.name, 'MuMa');
   assert.equal(branding.chinese, '沐码');
   assert.ok(branding.title.includes('MuMa · 沐码'));
   assert.equal(shellVersion, identity.version);
+  assert.equal(branding.icon, 'data:image/png;base64,' + (await readFile(join(repo, 'apps/electron/assets/sidebar-icon.png'))).toString('base64'));
+  assert.equal(branding.iconWidth, 32);
+  delete branding.icon;
+  branding.icnsSha256 = iconHash;
   // workspace-changes diffs git snapshots; seed the isolated workspace as a git repo so
   // files written by the fixture bash show up as new files in the turn tail.
   const workspaceRoot = join(data, 'workspace');

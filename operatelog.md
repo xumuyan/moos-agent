@@ -1696,3 +1696,12 @@
 - 验证结果：/opt/homebrew/bin/python3 artifacts/family-icons/package_icons.py 生成；verify_icons.py 四套全通过（PNG 尺寸/alpha、不透明方形、ICO 七尺寸、iconutil 原生 ICNS 解码十文件、JSON、全部哈希、ZIP 37 文件完整性及安全路径）；人工回读透明四宫格和 MuMa 不透明图。源码基线 b123f13 加本次记录；全套回归：npm test 首轮 161/162（quiet-model cancel 测试在文件尚未生成时读 models.json，ENOENT），不改代码/断言重跑 162/162；npm run test:electron 使用 build-KZquSV dsh 为 80/80 无跳过；原生 cargo release offline 11/11、PI 桥 5/5、皮肤 4/4；python3 -B -m unittest discover -s tests -v 84/84。下载目录最终四 ZIP 的 SHA256 再次核对 4/4 通过。
 - 遗留问题：不改正式安装/用户数据或其他项目；目标项目集成、Xcode 编译、实机桌面显示及商店上传未执行，不含矢量、Android adaptive 分层或 iOS 深色/着色变体。可用素材不等于目标项目集成验收。现有取消测试将调度 running 视作模型配置已就绪，首轮暴露该时序假设，未在素材任务中改动业务测试，保留为已知不稳定验证点。
 - 对应 Git 提交：唯一说明 `docs(E107): record four separate MOOS icon asset packs`，查询 `git log --all --oneline --grep='docs(E107): record four separate MOOS icon asset packs'`；本条写入时未提交/推送，之后按实际命令核对远程。
+
+## 2026-11-10 08:44:04 +08:00｜P03.13.11 沐码新图标及 0.1.38 更新交接
+
+- 修改或新增内容：用户明确要求当前项目图标/名称并更新；将 E107 已批准沐码 ICNS、1024 PNG、32px PNG 纳入 Electron 自有资源，保留旧资源文件名避免不必要路径改动；新增 brand-assets.json 哈希清单。欢迎图标从 M 改为与侧栏同图，保留 className；应用/插件/锁版本同步 0.1.38。增强打包资产哈希/ICNS 容器、欢迎图标断言与隔离 GUI 真实图片加载检查。
+- 遇到的难题：当前工具是正式 Moos Host 后代，直接退出会中断；原应用 Info 版本历史仍是 0.1.0，因此以实际壳 0.1.36 与原标识核对，不误判产品内容。只读任务 SQL 首次误用 created_at（实际 createdAt）已修正，未写数据。
+- 处理方式：重新制作本次独立 Terminal 一次性更新器，检查 Moos/MuMa 祖先、等待任务自然结束；同卷暂存并完整资源比对、正常退出后全量停机备份并逐字节验证，旧 Moos.app 保留至独立回退目录，新包进入 MuMa.app，不创建两个正式副本；失败停止保留现场，不强杀、不恢复覆盖数据。
+- 验证结果：npm run build:app→build-bCr0Rp，签名通过、fixture=false；npm test 162/162、npm run test:electron 81/81 无跳过、原生 release offline 11/11、桥 5/5、皮肤 4/4，日志 artifacts/muma-icon-update/validation。GUI recovery-1GBpjB 真图标32px/ICNS哈希、名称标题、12文件收起/展开/再收起、app.quit code0无信号通过，脚本exit0；截图已回读。更新检查点5/5，PREFLIGHT_OK（安装尚未执行）。测试对应58eb5cd基础上的本次提交前工作区；文档门禁首次因本条时间为 ISO T 格式未匹配仓库约束失败，修正为北京时间标准格式后重跑85/85。
+- 遗留问题：当前仍正式 Moos 0.1.36，待独立进程接手后正常退出更新；结果 /Applications/.moos-update-0.1.38/result.json，日志同目录 terminal-update.log。会话中断后先核对结果，不重复安装。原始聊天/配置/密钥不输出，数据目录与持久分区不变。Finder/Dock正式目视未验证；不宣称安装成功；保留 E105/E106 当时未安装历史结论。
+- 对应 Git 提交：唯一说明 `feat(P03.13.11): apply MuMa family icon and authorize 0.1.38 update`；查询 `git log --all --oneline --grep='apply MuMa family icon'`。提交推送核对后交接。

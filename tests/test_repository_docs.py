@@ -9,6 +9,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_muma_icon_update_preserves_identity_and_truthful_install_state(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-muma-icon-update.json').read_text())
+        self.assertEqual(e['evidence'], 'E108')
+        self.assertTrue(e['authorized'])
+        self.assertFalse(e['includesPiFixture'])
+        self.assertEqual(e['version'], '0.1.38')
+        self.assertEqual(e['install']['target'], '/Applications/MuMa.app')
+        self.assertIn('dev.moos.agent.electron', e['install']['data'])
+        self.assertEqual(e['gui']['branding']['name'], 'MuMa')
+        self.assertEqual(e['gui']['branding']['iconWidth'], 32)
+        self.assertEqual(e['gui']['branding']['icnsSha256'], e['assets']['sha256']['moos.icns'])
+        for name, digest in e['assets']['sha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'apps/electron/assets' / name).read_bytes()).hexdigest(), digest)
+        self.assertIn(e['install']['state'], ['preflight-passed-awaiting-independent-terminal', 'success', 'stopped-for-review'])
+        if e['install']['state'] == 'success':
+            self.assertTrue(e['install']['resultRecord']['originalDatabaseRowsRetained'])
+            self.assertTrue(e['install']['resultRecord']['apiAndCredentialsIdentical'])
+
     def test_family_icon_assets_keep_formats_and_deployment_limits(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-family-icon-assets.json').read_text())
         self.assertEqual(e['id'], 'E107')

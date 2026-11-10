@@ -3,15 +3,12 @@ window.__ModuleLoader__.load({
   factory(require) {
     const { createElement, useEffect, useRef, useState } = require('react');
     const { Button } = require('@deepseek-ai/dsh-client-ui-primitives');
-    const sidebarIcon = ({ size }) => createElement('img', {
+    const sidebarIcon = ({ size, className }) => createElement('img', {
       src: 'data:image/png;base64,__MOOS_SIDEBAR_ICON__',
-      alt: '', width: size, height: size, draggable: false, 'data-moos-sidebar-icon': '',
+      alt: '', width: size, height: size, className, draggable: false, 'data-moos-sidebar-icon': '',
     });
     const sidebarName = () => createElement('span', { 'data-moos-sidebar-name': '', title: '沐码', lang: 'en' }, 'MuMa');
-    const mark = ({ size, className }) => createElement('span', {
-      className, 'aria-label': 'M', role: 'img', 'data-moos-mark': '',
-      style: { fontSize: size * 0.66, fontWeight: 720, lineHeight: 1 },
-    }, 'M');
+    const mark = sidebarIcon;
 
     const number = new Intl.NumberFormat('zh-CN');
     const percent = new Intl.NumberFormat('zh-CN', { style: 'percent', maximumFractionDigits: 1 });

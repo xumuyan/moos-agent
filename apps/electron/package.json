@@ -1,7 +1,7 @@
 {
   "name": "moos-electron",
   "productName": "MuMa",
-  "version": "0.1.37",
+  "version": "0.1.38",
   "private": true,
   "type": "module",
   "main": "main.mjs",

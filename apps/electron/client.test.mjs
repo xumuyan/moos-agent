@@ -65,7 +65,11 @@ test('the DSH client extension registers the MuMa brand and model services in th
   assert.equal(document.documentElement.dataset.platform, 'darwin');
   assert.equal(renderers.get('sidebar.brand.name')().children[0], 'MuMa');
   assert.equal(renderers.get('sidebar.brand.name')().props.title, '沐码');
-  assert.equal(renderers.get('conversation.hero.brand.mark')({ size: 34 }).children[0], 'M');
+  const heroIcon = renderers.get('conversation.hero.brand.mark')({ size: 34, className: 'hero-icon' });
+  assert.equal(heroIcon.element, 'img');
+  assert.equal(heroIcon.props.src, icon.props.src);
+  assert.equal(heroIcon.props.width, 34);
+  assert.equal(heroIcon.props.className, 'hero-icon');
   const renderSlot = () => null;
   assert.equal(renderers.get('models')({ renderSlot }).props.editor, editor);
   assert.equal(renderers.get('models')({ renderSlot }).props.renderSlot, renderSlot);

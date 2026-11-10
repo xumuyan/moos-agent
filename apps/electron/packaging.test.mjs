@@ -53,3 +53,24 @@ test('MuMa display branding keeps the existing application and user data identit
   assert.ok(main.includes("session.fromPartition('persist:moos-workbench')"));
   assert.ok(main.includes("'moos.sqlite'"));
 });
+
+test('MuMa app and sidebar icons are the approved family assets with a complete ICNS container', async () => {
+  const { createHash } = await import('node:crypto');
+  const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+  const manifest = JSON.parse(await readFile(join(here, 'assets/brand-assets.json'), 'utf8'));
+  assert.equal(manifest.name, 'MuMa · 沐码');
+  for (const [name, expected] of Object.entries(manifest.sha256)) {
+    assert.equal(digest(await readFile(join(here, 'assets', name))), expected, name);
+  }
+  const icns = await readFile(join(here, 'assets/moos.icns'));
+  assert.equal(icns.toString('ascii', 0, 4), 'icns');
+  assert.equal(icns.readUInt32BE(4), icns.length);
+  const types = [];
+  for (let offset = 8; offset < icns.length;) {
+    const length = icns.readUInt32BE(offset + 4);
+    assert.ok(length > 8 && offset + length <= icns.length);
+    types.push(icns.toString('ascii', offset, offset + 4));
+    offset += length;
+  }
+  assert.ok(types.includes('ic10'), '1024 pixel macOS representation exists');
+});
