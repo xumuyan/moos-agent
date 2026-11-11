@@ -77,6 +77,10 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
         `).get(ref.taskId, ref.projectId, 'dsh-message:' + ref.messageId);
       }
       if (!task) return null;
+      // 排队位次：仅排队中的任务统计全局队列里排在它前面的任务数（按创建顺序近似调度队列）。
+      const queueAhead = task.status === 'queued'
+        ? db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status = 'queued' AND rowid < (SELECT rowid FROM tasks WHERE id = ?)").get(task.id).n
+        : undefined;
 
       // Select only presentation inputs. Source code and tool output never
       // enter the read model or the workbench IPC response.
@@ -144,7 +148,7 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([
         ...[...files].map(([path, operations]) => [path, [...operations].join('、')]), ...confirmed,
       ]);
-      return { status: task.status, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
+      return { status: task.status, queueAhead, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
         files: [...mergedFiles].filter(([path]) => isWorkspaceChangeVisible(path)).map(([path, summary]) => ({ path, summary })) };
     },

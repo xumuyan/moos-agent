@@ -13,12 +13,14 @@ export class Scheduler {
   #stopped = false;
   #scheduled = false;
   #heartbeatMs;
+  #clock;
 
-  constructor({ store, run, concurrency = 2, onEvent = () => {}, heartbeatMs = 15000 }) {
+  constructor({ store, run, concurrency = 2, onEvent = () => {}, heartbeatMs = 15000, clock = () => Date.now() }) {
     if (!Number.isSafeInteger(concurrency) || concurrency < 1) throw new Error('Invalid concurrency');
     if (typeof run !== 'function' || typeof onEvent !== 'function') throw new Error('Invalid scheduler callback');
     if (!Number.isSafeInteger(heartbeatMs) || heartbeatMs < 1) throw new Error('Invalid heartbeat interval');
-    this.#store = store; this.#run = run; this.#concurrency = concurrency; this.#onEvent = onEvent; this.#heartbeatMs = heartbeatMs;
+    if (typeof clock !== 'function') throw new Error('Invalid scheduler clock');
+    this.#store = store; this.#run = run; this.#concurrency = concurrency; this.#onEvent = onEvent; this.#heartbeatMs = heartbeatMs; this.#clock = clock;
   }
   #publish(event) {
     try { Promise.resolve(this.#onEvent(event)).catch(() => {}); } catch { /* Observers cannot change task execution. */ }
@@ -76,11 +78,20 @@ export class Scheduler {
   async #execute(task, project, conversation, entry) {
     const { signal } = entry.controller;
     let open = true; let stage = 'running'; let heartbeat;
+    // 超时从实际开始执行起算（排队等待不计入）；检查粒度受心跳间隔限制，最大滞后为一个心跳周期。
+    const startedAt = this.#clock();
+    let timedOut = false;
+    const timeoutMessage = `任务执行超过设定上限（${Math.round(task.timeoutMs / 60000)} 分钟），已按设置停止`;
     try {
       if (signal.aborted) { this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' }); return; }
       this.#state(task.id, 'running');
       heartbeat = setInterval(() => {
         if (!open || signal.aborted) return;
+        if (this.#clock() - startedAt >= task.timeoutMs) {
+          timedOut = true;
+          entry.controller.abort();
+          return;
+        }
         const current = this.#store.heartbeatTask(task.id, stage);
         const event = this.#store.appendEvent(task.id, 'task_heartbeat', { stage, heartbeatAt: current.heartbeatAt });
         this.#publish(event);
@@ -99,7 +110,11 @@ export class Scheduler {
         },
       });
       open = false;
-      if (signal.aborted) { this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' }); return; }
+      if (signal.aborted) {
+        if (timedOut) this.#state(task.id, 'failed', { errorCode: 'timeout', error: timeoutMessage, stage: 'failed' });
+        else this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' });
+        return;
+      }
       if (!result || typeof result.text !== 'string') throw new Error('Invalid runner result');
       let event;
       this.#store.transaction(() => {
@@ -110,7 +125,10 @@ export class Scheduler {
       this.#publish(event);
     } catch (error) {
       open = false;
-      if (signal.aborted) this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' });
+      if (signal.aborted) {
+        if (timedOut) this.#state(task.id, 'failed', { errorCode: 'timeout', error: timeoutMessage, stage: 'failed' });
+        else this.#state(task.id, 'cancelled', { errorCode: 'cancelled', stage: 'cancelled' });
+      }
       else {
         const failure = classifyTaskError(error);
         this.#state(task.id, 'failed', { errorCode: failure.code, error: failure.message, stage: 'failed' });

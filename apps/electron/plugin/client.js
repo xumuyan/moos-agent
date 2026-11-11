@@ -363,9 +363,13 @@ window.__ModuleLoader__.load({
     }
 
     function PiProcess({ data, sessionId }) {
-      if (!data || (!data.actions.length && !data.route && !data.desktop && !data.shots?.length)) return null;
-      return createElement('details', { 'data-moos-pi-process': '' },
-        createElement('summary', null, '执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]),
+      const queued = data?.status === 'queued';
+      // 排队中的任务没有动作/路由/截图也要展示卡片，避免用户把等待误认为卡死。
+      if (!data || (!queued && !data.actions.length && !data.route && !data.desktop && !data.shots?.length)) return null;
+      return createElement('details', { 'data-moos-pi-process': '', ...(queued ? { 'data-moos-queued': 'true' } : {}) },
+        createElement('summary', null, ...(queued
+          ? [`排队中 · 前方 ${data.queueAhead ?? 0} 个任务`]
+          : ['执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]])),
         data.route ? createElement('p', { 'data-moos-model-route': '' },
           data.route.previous, ' → ', data.route.current, ' · ', routeReasons[data.route.reason]) : null,
         data.desktop ? createElement('p', { 'data-moos-desktop-state': '' },

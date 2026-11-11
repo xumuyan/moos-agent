@@ -174,3 +174,64 @@ test('active task prevents acquiring a terminal and shutdown prevents new leases
   await scheduler.shutdown();
   assert.equal(scheduler.reserveTerminal(c.projectId, 'late').ok, false);
 });
+
+test('tasks exceeding their timeout are stopped at the next heartbeat and marked failed with errorCode timeout', async t => {
+  let simulated = 1000;
+  const clock = () => simulated;
+  const gate = deferred(); let runnerSignal;
+  const { store, scheduler, conversations: [c], published } = await fixture(t, async ctx => {
+    runnerSignal = ctx.signal;
+    await new Promise((resolve, reject) => {
+      ctx.signal.addEventListener('abort', () => reject(new Error('aborted by timeout')));
+      gate.promise.then(resolve, reject);
+    });
+    return { text: 'must not be recorded' };
+  }, { heartbeatMs: 5, clock });
+  const task = scheduler.submit({ conversationId: c.id, message: 'long work', timeoutMs: 600000 });
+  await until(() => store.getTask(task.id).status === 'running');
+  assert.equal(runnerSignal.aborted, false);
+  simulated += 600001; // 推进模拟时钟越过上限；真实心跳最多一个周期后触发。
+  await until(() => store.getTask(task.id).status === 'failed');
+  assert.equal(store.getTask(task.id).errorCode, 'timeout');
+  assert.equal(store.getTask(task.id).error, '任务执行超过设定上限（10 分钟），已按设置停止');
+  assert.equal(runnerSignal.aborted, true);
+  gate.resolve(); await turn(); await turn();
+  assert.equal(store.getTask(task.id).status, 'failed', 'late runner settlement must not overwrite the timeout result');
+  assert.equal(store.listMessages(c.id).some(m => m.role === 'assistant'), false, 'timeout records no assistant text');
+  assert.deepEqual(published.filter(e => e.type === 'task_state').map(e => e.payload.status),
+    ['queued', 'running', 'failed']);
+});
+
+test('timeout clock starts at execution, so queue waiting never consumes the budget', async t => {
+  let simulated = 1000;
+  const clock = () => simulated;
+  const gates = new Map();
+  const { store, scheduler, conversations: [a] } = await fixture(t, async ({ task, signal }) => {
+    const gate = deferred(); gates.set(task.id, gate);
+    await new Promise((resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new Error('aborted')));
+      gate.promise.then(resolve, reject);
+    });
+    return { text: 'ok' };
+  }, { heartbeatMs: 5, clock });
+  const first = scheduler.submit({ conversationId: a.id, message: 'holds the slot', timeoutMs: 86400000 });
+  const second = scheduler.submit({ conversationId: a.id, message: 'queued behind', timeoutMs: 600000 });
+  await until(() => store.getTask(first.id).status === 'running');
+  assert.equal(store.getTask(second.id).status, 'queued');
+  simulated += 700000; // 超过第二个任务的全部预算，但它仍在排队：不得消耗。
+  await turn(); await turn(); await turn();
+  assert.equal(store.getTask(second.id).status, 'queued', 'queued waiting must not trigger the timeout');
+  gates.get(first.id).resolve();
+  await until(() => store.getTask(first.id).status === 'succeeded');
+  assert.equal(store.getTask(first.id).errorCode, null, 'success inside its own larger budget is unaffected');
+  await until(() => store.getTask(second.id).status === 'running');
+  simulated += 600001; // 从第二个任务实际开始执行起算。
+  await until(() => store.getTask(second.id).status === 'failed');
+  assert.equal(store.getTask(second.id).errorCode, 'timeout');
+  gates.get(second.id).resolve(); await turn();
+});
+
+test('invalid scheduler clock is rejected', async t => {
+  const { store, conversations: [c] } = await fixture(t, async () => ({ text: 'ok' }));
+  assert.throws(() => new Scheduler({ store, run: async () => ({ text: 'x' }), clock: 123 }), /Invalid scheduler clock/);
+});

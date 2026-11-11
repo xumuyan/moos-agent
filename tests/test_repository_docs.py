@@ -784,7 +784,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 16)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 17)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))
@@ -1700,6 +1700,59 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(acceptance['defaultInstalledExtensions'], ['@linxin666/dsh-client-ui-skin-center'])
         self.assertTrue(acceptance['addPluginEntryVisible'])
         self.assertTrue(all(value is False for value in report['limits'].values()))
+
+
+class TaskTimeoutQueueTests(unittest.TestCase):
+    """E125：任务超时强制执行与排队可见。"""
+
+    def test_task_timeout_and_queue_visibility_evidence_is_complete_and_plan_referenced(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-task-timeout-queue.json').read_text())
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertEqual(evidence['id'], 'E125')
+        self.assertIn('| E125 |', plan)
+        self.assertIn('证据 E125。', plan)
+        self.assertEqual(evidence['machine']['os'], 'macOS 27.0.1')
+        self.assertTrue(evidence['trigger']['readOnlyDiagnosis'])
+        self.assertIn('timeoutMs 仅在提交时校验并存储', ''.join(evidence['trigger']['defects']))
+        impl = evidence['implementation']
+        self.assertTrue(impl['timeoutEnforcedAtHeartbeat'])
+        self.assertIn('排队等待不消耗预算', impl['timeoutClockStartsAtExecution'])
+        self.assertIn('errorCode=timeout', impl['timeoutAction'])
+        self.assertTrue(impl['timeoutCoveredByUnitTestsWithFakeClock'])
+        self.assertEqual(impl['queuedCard']['selector'], '[data-moos-pi-process][data-moos-queued]')
+        self.assertEqual(impl['queuedCard']['summary'], '排队中 · 前方 N 个任务')
+        self.assertTrue(impl['noEventStreamAdditions'])
+        self.assertTrue(impl['productionUntouched'])
+        package = evidence['package']
+        self.assertEqual(package['version'], '0.1.45')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertFalse(package['includesPiFixture'])
+        self.assertIn('data-moos-queued', package['packagedSourceChecks'])
+        unit = evidence['unit']['totals']
+        self.assertEqual((unit['coreBefore'], unit['coreAfter']), (207, 210))
+        self.assertEqual((unit['electronBefore'], unit['electronAfter']), (108, 110))
+        validation = evidence['validation']
+        for name in ['core', 'electron', 'native', 'bridge', 'skin']:
+            self.assertEqual(validation[name]['failed'], 0, name)
+        self.assertEqual(validation['electron']['pass'], 110)
+        self.assertEqual(validation['core']['pass'], 210)
+        self.assertEqual(validation['native']['pass'], 11)
+        self.assertTrue(validation['validationJsonAllZero'])
+        gui = evidence['gui']
+        self.assertEqual(gui['run'], 'recovery-bZ9o2n')
+        self.assertEqual(gui['alphaQueuedSummary'], '排队中 · 前方 0 个任务')
+        self.assertEqual(gui['betaQueuedSummary'], '排队中 · 前方 1 个任务')
+        self.assertEqual(gui['storeQueueAheadOfBetaAtSnapshot'], 1)
+        self.assertTrue(gui['holdStillRunningWhileBetaQueued'])
+        self.assertTrue(gui['allTasksSucceededAfterDrain'])
+        self.assertTrue(gui['noTasksAddedAfterQuit'])
+        self.assertEqual(gui['gracefulExit'], {'code': 0, 'signal': None, 'method': 'Page.close'})
+        for field, value in gui['hashesSha256'].items():
+            self.assertRegex(value, r'^[0-9a-f]{64}$', field)
+        limits = evidence['limits']
+        self.assertTrue(limits['timeoutNotExercisedInGui'])
+        self.assertTrue(limits['installedNotUpdated'])
+
 
 
 if __name__ == '__main__':

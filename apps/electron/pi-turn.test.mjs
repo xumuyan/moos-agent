@@ -268,3 +268,36 @@ test('desktop queue state surfaces only while queued or running (M06 P06.5)', as
 });
 
 // Existing desktop lifecycle test also covers stale last-event cleanup on task terminal states.
+
+test('queued turns report the number of tasks waiting ahead; settled turns do not', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-turn-queue-')));
+  const dbPath = join(root, 'test.sqlite');
+  const store = new Store({ dbPath });
+  const reader = createPiTurnReader(dbPath, timelinePayload);
+  t.after(async () => {
+    reader.close();
+    store.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const project = await store.addProject(root);
+  const conversation = store.createConversation(project.id);
+  const first = store.createTask({ conversationId: conversation.id, message: 'first input' });
+  const second = store.createTask({ conversationId: conversation.id, message: 'second input' });
+  const third = store.createTask({ conversationId: conversation.id, message: 'third input' });
+  store.setSetting('dsh-session:queue-session', conversation.id);
+
+  const live = () => reader.read('queue-session', null);
+  assert.deepEqual([live().status, live().queueAhead], ['queued', 2], 'newest queued task sees two ahead');
+  store.updateTask(first.id, { status: 'running' });
+  assert.deepEqual([live().status, live().queueAhead], ['queued', 1], 'promotion shrinks the reported queue');
+  store.updateTask(second.id, { status: 'failed', errorCode: 'timeout' });
+  assert.deepEqual([live().status, live().queueAhead], ['queued', 0], 'only queued tasks count as ahead');
+  store.updateTask(third.id, { status: 'running' });
+  const running = live();
+  assert.equal(running.status, 'running');
+  assert.equal(running.queueAhead, undefined, 'running tasks do not carry a queue position');
+  store.updateTask(first.id, { status: 'succeeded' });
+  store.updateTask(third.id, { status: 'succeeded' });
+  assert.equal(live(), null, 'no live queued/running task remains');
+  assert.equal(reader.read('queue-session', 'retry'), null, 'succeeded last task is not a retry candidate');
+});

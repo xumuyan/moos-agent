@@ -19,6 +19,7 @@ async function loadClient(overrides = {}) {
   runInNewContext(source, {
     document,
     clearTimeout,
+    setTimeout,
     MutationObserver: class {
       observe() {}
       disconnect() {}
@@ -465,4 +466,29 @@ test('the settings page exposes an execution policy card wired to the moosExecut
   const form2 = component({}).element(component({}).props);
   await form2.props.onSubmit({ preventDefault() {} });
   assert.equal(saved.mode, 'workspace-write');
+});
+
+test('queued turns render a queue-position card without actions; empty running turns stay hidden', async () => {
+  const harness = await loadClient({
+    moosTurn: async () => ({ status: 'queued', queueAhead: 2, actions: [], shots: [] }),
+  });
+  // 首轮状态未就绪返回 null；usePiTurn 拉取后第三轮渲染出排队卡。
+  harness.render({ sessionId: 'session-queued', startSeq: null, live: false });
+  for (const effect of harness.effects.splice(0)) effect.callback();
+  await flush();
+  harness.render({ sessionId: 'session-queued', startSeq: null, live: false });
+  for (const effect of harness.effects.splice(0)) effect.callback();
+  await flush();
+  const tree = harness.render({ sessionId: 'session-queued', startSeq: null, live: false });
+  assert.equal(tree.element, 'details', 'queued card renders even with zero actions');
+  assert.equal(tree.props['data-moos-queued'], 'true');
+  assert.match(JSON.stringify(tree), /排队中 · 前方 2 个任务/);
+  assert.equal(JSON.stringify(tree).includes('执行过程'), false, 'queued summary must not reuse the running label');
+
+  const running = await loadClient({ moosTurn: async () => ({ status: 'running', actions: [], shots: [] }) });
+  running.render({ sessionId: 'session-running', startSeq: null, live: false });
+  for (const effect of running.effects.splice(0)) effect.callback();
+  await flush();
+  assert.equal(running.render({ sessionId: 'session-running', startSeq: null, live: false }), null,
+    'running turns without actions keep the existing hidden behaviour');
 });
