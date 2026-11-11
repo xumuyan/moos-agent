@@ -1,5 +1,5 @@
 probe server on http://127.0.0.1:51731
-page target: ws://127.0.0.1:9223/devtools/page/07BF90A6440E3B3F84A7D514917E7A48
+page target: ws://127.0.0.1:9223/devtools/page/703DBE7CAB818209DFAE11837D573368
 anchor click injected (target=_blank -> window-open path)
 probe hits after window-open path: [ '/link-ok?from=muma', '/favicon.ico' ]
 PASS: system browser opened the link and reached the probe server

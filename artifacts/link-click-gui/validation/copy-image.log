@@ -1,0 +1,7 @@
+page target ok
+hasFocus: true
+write after real click: ok
+direct write: {"hasClipboard":true,"hasClipboardItem":true,"directWrite":"ok"}
+plugin-style write: plugin-style ok
+clipboard PNGf: present
+PASS
