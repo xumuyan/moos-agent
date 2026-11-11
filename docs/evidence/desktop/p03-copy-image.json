@@ -14,8 +14,9 @@
     "docs": "python 文档检查在本轮提交前跑通（见 operatelog 验证结果）"
   },
   "deployment": {
-    "installed": false,
-    "note": "修复并入未发布的 0.1.41 候选包（同批 E113 外链 + E114 图片按张限额），最终构建 build-8lWx61；暂存包刷新与安装随 E84 流程进行，须用户授权的空闲窗口"
+    "installed": true,
+    "note": "已随 0.1.41（build-8lWx61）于 2026-11-11 12:44 安装到正式 /Applications/沐码.app。更新器核对 copyImageFixInInstalled=true；实际复制操作与界面显示须由用户在正式版中确认",
+    "installedAt": "2026-11-11T12:44+08:00"
   },
   "limits": [
     "macOS 系统级「允许跨应用粘贴」等隐私授权不在本修复范围；实机手工验收（正式实例右键图片复制）待安装后进行",

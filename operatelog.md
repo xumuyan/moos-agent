@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 16:35:00 +08:00｜沐码 0.1.41 安装成功（E113/E114/E115 已上线）与收尾清理
+
+- 修改或新增内容：无代码改动；E113（聊天外链打开系统浏览器）/E114（图片按张限额）/E115（复制图片修复）随 0.1.41（build-8lWx61）安装到正式 /Applications/沐码.app。三份证据 deployment.installed 改为 true 并补安装说明；文档测试三处对应断言更新；安装成功后按规则清理：卸载并删除 LaunchAgent dev.moos.update041、删除停机备份与旧包 /Applications/.moos-update-0.1.41（1.0G）。
+- 遇到的难题：无——launchd LaunchAgent 方案一次成功：更新器 12:44:19Z+8h 完成「normal-quit-requested → backing-up-stopped-data → backup-verified（5626 文件+权限校验）→ new-package-installed → success」全程，用户无感（等待空闲期间一直可用）。
+- 处理方式：核对 result.json 全部字段后执行清理；核对与清理分两步记录。
+- 验证结果：result.json state=success、stoppedActiveTasks=false、productionDataReset=false、automaticDataRestore=false；linkFixInInstalled/perImageLimitInInstalled/copyImageFixInInstalled=true；beforeCounts/afterCounts 一致（messages 549/conversations 7/tasks 282）、apiAndCredentialsIdentical=true、chatFilesRetained/piHistoryFilesRetained/skinsRetained/workspaceRetained/originalDatabaseRowsRetained/userPluginDependenciesRetained=true、readableSavedModels=6、installedMainProcesses=1；codesign --verify --deep --strict 通过、Info.plist 版本 0.1.41、单实例 pid 98927 自 12:44:12 运行且 hostRunning/loadedClientMatches=true；docs 93/93 通过（含三处断言更新）。
+- 遗留问题：三项修复的实际界面体验（外链开浏览器、两张截图发送、复制图片成功、Dock 新图标）请用户在正式版中顺手确认；0.1.41 不含 M06 桌面 helper（P06.2 之后构建的新能力），P06.6 实机验收需 0.1.42 构建并经授权安装。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="0.1.41 安装成功"` 查询。
+
+
 ## 2026-11-11 16:00:00 +08:00｜M06 P06.6 标注受阻（P06.1–P06.5 已完成）
 
 - 修改或新增内容：PLAN.md P06.6 保持未勾选并登记受阻原因与解除条件：正式 0.1.40 与待装 0.1.41（build-8lWx61）构建于 P06.2 之前、不含 desktop-helper（已核实两包 Resources/bin 均无 helper），且录屏/辅助功能权限未授予；实机验收（并发不串、不交错、取消/异常释放、权限拒绝报错、真实浏览器演示）需 0.1.42 构建安装并授权后进行。0.1.41 更新器（launchd `dev.moos.update041`，pid 35994）仍为 waiting-for-idle 正常等待，不被本轮开发影响。

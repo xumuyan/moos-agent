@@ -21,8 +21,9 @@
     "incident": "调试期间临时 console 打印已全部移除（grep MOOS_DEBUG_ROUTE = 0）；首版测试用例 [image,image] 无文本导致 fixture 场景 400，属用例设计问题非产品代码缺陷，已改为带 marker 文本"
   },
   "deployment": {
-    "installed": false,
-    "note": "修复并入未发布的 0.1.41 候选包（同批含 E113 外链修复）。候选 build-vWbJVc 已重建，/Applications/.moos-update-0.1.41 暂存包已刷新并重跑预检 PREFLIGHT_OK；更新脚本 accepted 路径指向 build-vWbJVc，新增 perImageLimitInStaged/Installed 标记。安装因用户在沐码中有活跃任务（更新脚本首次运行 21:56 空闲等待超时 stopped-for-review，正式实例未受影响）顺延为空闲等待模式，正式安装须用户授权的流程继续"
+    "installed": true,
+    "note": "已随 0.1.41（build-8lWx61）于 2026-11-11 12:44 安装到正式 /Applications/沐码.app。更新器核对 perImageLimitInInstalled=true、beforeCounts/afterCounts（messages 549/conversations 7/tasks 282）一致、apiAndCredentialsIdentical=true；本机权限测试须由用户在界面完成",
+    "installedAt": "2026-11-11T12:44+08:00"
   },
   "limits": [
     "多张图片总 base64 体积会相应增大，上下文占用由模型侧限制约束，本层不再按总和拦截（用户明确要求按张计）",

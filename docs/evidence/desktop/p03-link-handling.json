@@ -34,8 +34,9 @@
     "envResidue": "electron 全量首轮 88/89 的 ctx.on 失败为本机 Host 环境残留 MOOS_ELECTRON_PI_RUNTIME 所致（本工具运行于沐码 Host 内），补全 unset 后 90/90"
   },
   "deployment": {
-    "installed": false,
-    "note": "候选包 build-BLdcT7 已构建并通过全部验证；正式 /Applications/沐码.app 仍 0.1.40 旧逻辑，安装须用户另行明确授权"
+    "installed": true,
+    "note": "已随 0.1.41（build-8lWx61）于 2026-11-11 12:44 安装到正式 /Applications/沐码.app（E84 流程，launchd LaunchAgent 独立更新器，state=success）。更新器核对 linkFixInInstalled=true；启动后单实例运行，聊天/API 配置保留校验通过（result.json artifacts/installed-update-0.1.41/result.json）",
+    "installedAt": "2026-11-11T12:44+08:00"
   },
   "limits": [
     "验证为隔离实例 + 探针服务，非正式实例聊天界面截图对照；点击路径与真实聊天渲染一致（window-open 与 will-navigate 两类）",
