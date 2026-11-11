@@ -21,7 +21,9 @@ const originalShell = '0.1.40';
 const executable = '/Applications/沐码.app/Contents/MacOS/MuMa';
 const output = new URL('./result.json', import.meta.url);
 const record = { state: 'preflight', targetShell, originalShell, userAuthorizedUpdate: true, stoppedActiveTasks: false, productionDataReset: false, automaticDataRestore: false };
-const cli = (cmd, args, timeout = 30000) => execFileSync(cmd, args, { stdio: 'pipe', timeout });
+const cli = (cmd, args, timeout = 30000) => execFileSync(cmd, args, { stdio: 'pipe', timeout,
+  // ps 在 C locale 下把中文路径转义成 M-fM-2…，会导致进程匹配失效；固定 UTF-8。
+  env: { ...process.env, LC_ALL: 'en_US.UTF-8', LANG: 'en_US.UTF-8' } });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function exists(path) { try { await lstat(path); return true; } catch(e) { if(e.code !== 'ENOENT') throw e; return false; } }
 async function mark(state) { record.state = state; record.time = new Date().toISOString(); await writeFile(output, JSON.stringify(record, null, 2), { mode: 0o600 }); console.log(state); }
@@ -228,6 +230,8 @@ try {
   if (activeTasks()) throw new Error('Active work did not finish during the idle wait');
   const pids = mainPids();
   if (pids.length > 1) throw new Error('Multiple formal instances; stop for review');
+  // 正式实例应始终在运行；检测不到说明 locale/环境坏了（会误判已停机），必须停手。
+  if (!pids.length) throw new Error('Formal instance not detected; process matcher is unreliable here');
   await mark('normal-quit-requested');
   if (pids.length) {
     if (activeTasks()) throw new Error('A task started before shutdown');
@@ -244,7 +248,10 @@ try {
     await sleep(1000);
   }
   await mark('backing-up-stopped-data');
+  // 停机数据必须静止：两次快照一致才可信，否则说明有东西还在写（误判停机）。
   const entireData = await tree(data);
+  await sleep(2000);
+  if (JSON.stringify(entireData) !== JSON.stringify(await tree(data))) throw new Error('Data directory still changing before backup; aborting');
   cli('/usr/bin/ditto', [data, backup], 300000);
   async function protectBackup(path) {
     const info = await lstat(path);
