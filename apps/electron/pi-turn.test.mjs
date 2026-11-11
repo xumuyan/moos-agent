@@ -141,3 +141,33 @@ test('cache visibility filters known generated paths, not ordinary hidden config
   for (const path of ['.github/workflows/test.yml', '.gitignore', '.npmrc', 'src/cache.js',
     'package-lock.json', 'Library/source.js', '.local/project.js']) assert.equal(isWorkspaceChangeVisible(path), true, path);
 });
+
+test('desktop queue state surfaces only while queued or running (M06 P06.5)', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-desktop-')));
+  const dbPath = join(root, 'test.sqlite');
+  const store = new Store({ dbPath });
+  const reader = createPiTurnReader(dbPath, timelinePayload);
+  t.after(async () => {
+    reader.close();
+    store.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const project = await store.addProject(root);
+  const conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'private prompt' });
+  store.setSetting('dsh-session:desktop-session', conversation.id);
+  store.setSetting('dsh-turn:desktop-session:3', task.id);
+  store.updateTask(task.id, { status: 'running' });
+  assert.equal(reader.read('desktop-session', 3)?.desktop, undefined);
+  store.appendEvent(task.id, 'desktop_action', { phase: 'queued', owner: 'conversation:other', label: '截取屏幕', queueAhead: 2 });
+  let desktop = reader.read('desktop-session', 3)?.desktop;
+  assert.deepEqual(desktop, { phase: 'queued', label: '截取屏幕', queueAhead: 2 });
+  store.appendEvent(task.id, 'desktop_action', { phase: 'running', owner: 'conversation:other', label: '截取屏幕' });
+  desktop = reader.read('desktop-session', 3)?.desktop;
+  assert.deepEqual(desktop, { phase: 'running', label: '截取屏幕', queueAhead: null });
+  store.appendEvent(task.id, 'desktop_action', { phase: 'done', owner: 'conversation:other', label: '截取屏幕' });
+  assert.equal(reader.read('desktop-session', 3)?.desktop, undefined, 'finished phases stop rendering');
+  store.appendEvent(task.id, 'tool_start', { toolCallId: 'dt1', toolName: 'desktop_screenshot', args: { scope: 'display' } });
+  const actions = reader.read('desktop-session', 3)?.actions ?? [];
+  assert.ok(actions.some(action => action.label === '截取屏幕'), 'desktop tools appear in the action list');
+});

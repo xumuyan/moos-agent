@@ -1,0 +1,38 @@
+{
+  "id": "E120",
+  "task": "M06/P06.5",
+  "title": "渲染层桌面状态展示（工具动作标签 + 排队/执行状态 + 模型信息复用）",
+  "date": "2026-11-11",
+  "status": "rendering-complete-screenshot-thumbnail-deferred",
+  "scope": {
+    "files": [
+      "apps/electron/pi-turn.mjs",
+      "apps/electron/pi-turn.test.mjs",
+      "apps/electron/plugin/client.js",
+      "apps/electron/client.test.mjs"
+    ],
+    "design": [
+      "pi-turn read model labels gain the eight desktop_* tool names so desktop actions render in the per-turn action list alongside read/write/bash",
+      "read model surfaces the latest desktop_action event only while phase is queued/running (finished phases disappear; the action list row remains)",
+      "PiProcess renders a data-moos-desktop-state line: 桌面操作排队中（前面 N 个）：<label> / 桌面操作执行中：<label>",
+      "model routing info continues to reuse the existing model_route row; tool inputs/outputs still never enter the read model"
+    ]
+  },
+  "actual": {
+    "commands": [
+      "node --test apps/electron/pi-turn.test.mjs",
+      "node --test apps/electron/client.test.mjs",
+      "npm --prefix apps/electron test (packaged dsh env, build-8lWx61)"
+    ],
+    "results": {
+      "piTurnTests": "5/5 pass (new: queued/running phases render, done phase stops, desktop tools join action list)",
+      "clientTests": "3/3 pass (new: queued line 桌面操作排队中（前面 1 个）：截取屏幕, running line 桌面操作执行中：点击鼠标; marker probe uses 'in' because the data attribute value is empty-string)",
+      "electronSuite": "98/98 pass, 0 skipped (97 prior + 1 new pi-turn test)"
+    },
+    "debuggingNotes": [
+      "first client assertion failed because find(child => child?.props?.[marker]) treats the empty-string attribute value as falsy; switched to 'marker' in child.props",
+      "screenshot images are returned to the model as image content parts; the workbench currently shows the saved path text. Rendering an inline thumbnail in chat would need a dsh-image-style bridge and is deferred, recorded as not done"
+    ]
+  },
+  "executedAt": "2026-11-11T15:40+08:00"
+}

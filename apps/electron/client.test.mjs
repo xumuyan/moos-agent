@@ -123,8 +123,22 @@ test('the DSH client extension registers the MuMa brand and model services in th
   assert.equal(slots.has('moos-pi-live'), false);
   turnResult = { sessionId: 'test-session', startSeq: 12,
     data: { status: 'running', actions: [{ label: '运行命令', state: 'running' }], files: [], workspaceChanges: true } };
+  turnResult.data.desktop = { phase: 'queued', label: '截取屏幕', queueAhead: 1 };
   const process = renderers.get('moos-pi-process')({ sessionId: 'test-session', startSeq: 12, live: true });
-  assert.equal(process.element(process.props).element, 'details');
+  const processEl = process.element(process.props);
+  assert.equal(processEl.element, 'details');
+  const isDesktopState = child => child && child.props && 'data-moos-desktop-state' in child.props;
+  const queuedDesktop = processEl.children.find(isDesktopState);
+  assert.ok(queuedDesktop, 'queued desktop state renders');
+  const queuedText = queuedDesktop.children.filter(child => typeof child === 'string' || typeof child === 'number')
+    .map(String).join('');
+  assert.match(queuedText, /桌面操作排队中（前面 1 个）：截取屏幕/);
+  turnResult.data.desktop = { phase: 'running', label: '点击鼠标' };
+  const runningDesktop = process.element(process.props).children.find(isDesktopState);
+  const runningText = runningDesktop.children.filter(child => typeof child === 'string' || typeof child === 'number')
+    .map(String).join('');
+  assert.match(runningText, /桌面操作执行中：点击鼠标/);
+  turnResult.data.desktop = undefined;
   assert.deepEqual(Array.from(effect.dependencies), ['test-session', 12, true]);
   effect.callback()();
   assert.deepEqual(turnReads, [['test-session', 12]]);

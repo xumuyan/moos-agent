@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 15:50:00 +08:00｜M06 P06.5 渲染层桌面状态展示（electron 98/98）
+
+- 修改或新增内容：`pi-turn.mjs` 动作标签表补八个 desktop_* 工具中文名；read model 增读最新 desktop_action 事件（仅 queued/running 相位透出 desktop 字段：phase/label/queueAhead，结束相位不再显示）；`plugin/client.js` PiProcess 增 data-moos-desktop-state 行（「桌面操作排队中（前面 N 个）：<动作>」/「桌面操作执行中：<动作>」），空 desktop/actions/route 时不渲染面板。
+- 遇到的难题：client.test.mjs 断言首跑失败两次——① 误以为 renderer 返回结构可直接调用（实际 element 是组件函数、需以 process.props 调用）；② find 谓词用 `child?.props?.[标记]` 取真值，而 data 属性值是空字符串（falsy）导致永不命中，改为 `'data-moos-desktop-state' in child.props`。临时 DEBUG 日志打印 children 结构定位后删除。
+- 处理方式：断言改为「in 检查 + children 文本过滤拼接」（沿用既有 headingText 模式）；desktop 行渲染与结束相位隐藏行为以 pi-turn 独立测试覆盖（appendEvent queued→running→done 序列）。
+- 验证结果：pi-turn 5/5（新用例覆盖 queued/running/done 相位与 desktop 工具进入动作列表）、client 3/3（排队/执行两行文本断言）、electron 全量 98/98 0 skipped（97+1，build-8lWx61 包内 dsh 环境）。
+- 遗留问题：聊天内嵌截图缩略图未做（需 dsh-image 式桥接，如实记录）；真实界面中的桌面状态显示与截图演示待 P06.6 实机验收。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.5"` 查询。
+
+
 ## 2026-11-11 15:10:00 +08:00｜M06 P06.4 桌面动作事件管道（core 187/187）
 
 - 修改或新增内容：`desktop-queue.mjs` withLock 新增 onQueued({queued, queueAhead}) 排队位置通知（入队时与每次队列变化广播其余等待者，空闲直接接管不触发；通知器抛错被吞不影响队列）；`desktop-tools.mjs` guarded 经 runPiSdk 既有 emit 通道发 desktop_action 事件（phase=queued/running/done/timeout/cancelled/failed，附 owner/label/error；emit 异常吞掉）；`sdk-runtime.mjs` 装配时把会话 emit 传入 createDesktopTools。停止任务撤销排队动作复用既有 AbortSignal 语义（预取消/排队中取消此前已有单测）。

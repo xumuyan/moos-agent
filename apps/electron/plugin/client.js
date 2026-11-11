@@ -334,11 +334,15 @@ window.__ModuleLoader__.load({
     const routeReasons = { repair: '两轮修复后验证仍失败', rate_limit: '模型服务限流', quota: '模型服务额度不足', network: '模型服务连接失败' };
 
     function PiProcess({ data }) {
-      if (!data || (!data.actions.length && !data.route)) return null;
+      if (!data || (!data.actions.length && !data.route && !data.desktop)) return null;
       return createElement('details', { 'data-moos-pi-process': '' },
         createElement('summary', null, '执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]),
         data.route ? createElement('p', { 'data-moos-model-route': '' },
           data.route.previous, ' → ', data.route.current, ' · ', routeReasons[data.route.reason]) : null,
+        data.desktop ? createElement('p', { 'data-moos-desktop-state': '' },
+          data.desktop.phase === 'queued'
+            ? `桌面操作排队中（前面 ${data.desktop.queueAhead ?? 0} 个）：${data.desktop.label ?? ''}`
+            : `桌面操作执行中：${data.desktop.label ?? ''}`) : null,
         createElement('ul', null, data.actions.map((action, index) =>
           createElement('li', { key: index },
             createElement('span', null, action.label),
