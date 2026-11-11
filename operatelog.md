@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 17:52:12 +08:00｜P03.14 指定微信插件整合计划（来源受阻，未实施）
+
+- 修改或新增内容：按用户提供的微信文章链接新增 PLAN.md P03.14 六阶段：来源/最小使用场景→适配设计→PI执行桥与生命周期→设置/受限结果/按需管理→自动化及隔离打包验收→另获授权后的正式可用性验收；新增 docs/plugins/wechat-plugin-integration.md，逐项对照当前 Electron/DSH Host、PI resourceLoader/customTools、Scheduler/目录锁、桌面事务和受限UI入口。所有任务未勾选，M06原状态保留；不假定文章是MCP/Skill/DSH插件，不扩大为通用插件平台。新增文档契约测试，固定来源、依赖、未知状态及真实代码路径；保存独立回归脚本。
+- 遇到的难题：curl -L --max-time 45 -A 'Mozilla/5.0' 读取用户链接只返回微信「环境异常，完成验证后即可继续访问」，经本地7897代理同样受阻；公开文本服务直连连接失败，经代理访问也仅得到验证页。未读到文章标题/正文，插件名称/仓库/许可/功能/协议不能核实。当前 resourceLoader 返回空Skills/extensions，execution.patch.yml禁用mcp-resources/ui-skill，DSH旧执行器被拒绝回退，不能把直接安装等同于接通PI。
+- 处理方式：不绕过验证、不执行外部安装脚本、不猜测或安装替代插件；仅记录公开原链接及脱敏失败原因，不保存原始页面/验证跳转参数。请用户补文章正文、截图或官方仓库，无需密码/Cookie。先基于实际代码写条件适配路线与验收边界，来源核实后细化最小任务及确定路线；不停止可独立推进的P06.5a，桌面相关能力仍需P06.3a/P06.5a/P06.6。
+- 验证结果：本次提交前工作区基于ca897566788c7bd0654ab8fe59131c0f78f79f69，仅文档/文档测试/回归脚本变更，无运行时代码和版本修改。bash artifacts/plugin-integration-plan/validate.sh 实跑全部自动套件，逐命令exit0：npm test206/206、npm run test:electron104/104无跳过（复用build-QBaZWa包内DSH，皮肤只作只读夹具）、npm run test:desktop-native11/11（离线/单线程）、node --test probes/dsh-electron-pi/index.test.mjs 5/5、python3 -m unittest discover -s probes/dsh-electron-skin -v 4/4、PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 96/96。输出在artifacts/plugin-integration-plan/validation，各exit及validation.json为0。实际完成文档验收：公开来源请求确为验证页、十组代码入口已对照、六阶段均未勾选且解除条件明确；不分配插件功能完成证据。新增功能专项测试/插件实际调用/新构建/GUI/正式安装未执行，不借用E122声称插件可用。
+- 遗留问题：待用户提供可读取资料后才能确认插件身份、选择适配方案与专属验收场景；计划不等于已整合。未安装第三方依赖，未退出/替换/重启正式沐码，未改聊天、模型、凭据、皮肤或插件配置；正式0.1.41与隔离候选0.1.43不变。未来安装和数据格式迁移分别需要明确授权。
+- 对应 Git 提交：本次唯一说明 `docs(P03.14): plan requested plugin integration pending article access`；查询 `git log --all --oneline --fixed-strings --grep='docs(P03.14): plan requested plugin integration pending article access'`。本条写入时未提交/推送；随后创建提交、推送GitHub并用git ls-remote核对本地HEAD，源码推送不构成部署。
+
+
 ## 2026-11-11 17:14:28 +08:00｜P06.3a 有界桌面事务与焦点守卫（E122，候选未安装）
 
 - 修改或新增内容：新增 desktop-transaction.mjs，任务本地随机事务/观察ID，跨模型调用全程持有共享队列，20秒排队/120秒执行（含模型等待）/3秒取消宽限；旧观察单次使用且不可重放。desktop_begin/end 将工具扩为十一项，输入必须事务内观察，结果需重新截图观察后才能 verify 结束，结果字段明确不验证业务目标；异常、取消、超时、模型遗漏结束调用和 SDK 任务收尾释放。Swift helper v2 新增不含标题/URL/值的焦点快照及原生投递前检查（进程/窗口/AX角色、路径及矩形），坐标检查范围和遮挡，输入限可编辑角色，失焦不自动抢回；应用切换也需事务和两项权限。补打包、UI安全标签、SDK清理，版本0.1.43；新增事务/两真实SDK会话并发/焦点拒绝/真实子进程收尾/包内收尾/文档测试。

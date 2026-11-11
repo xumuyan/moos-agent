@@ -9,6 +9,29 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_requested_wechat_plugin_plan_keeps_unknown_source_and_acceptance_explicit(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        stage = plan.split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        guide = (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text()
+        url = 'https://mp.weixin.qq.com/s/QMGPqxxe0m5g8BSzYDNpRw'
+        for text in (stage, guide):
+            for required in (url, '环境异常', '正文', '仓库', '许可证', '未实现' if text == guide else '未实施',
+                             'PI', 'customTools', 'resourceLoader', 'P06.3a', 'P06.5a', 'P06.6',
+                             '凭据', '停止', '正式', 'E84', '授权'):
+                self.assertIn(required, text)
+        tasks = re.findall(r'^- \[([ x])\] P03\.14\.(\d+) (.+)$', stage, re.MULTILINE)
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 7)))
+        self.assertTrue(all(status == ' ' for status, _, _ in tasks))
+        for _, number, text in tasks:
+            self.assertTrue(all(int(ref) < int(number) for ref in re.findall(r'P03\.14\.(\d+)', text)))
+        for term in ('测试与实际验收', '受阻原因', '解除条件', '同目录串行', '不停止 P06.5a'):
+            self.assertIn(term, stage)
+        for term in ('仅计划', '条件路线', '不自动执行安装脚本', '普通 Node/Cordis 插件代码',
+                     '不是第三方插件已兼容的证明', '不绕过验证页', '不自动重放', '模拟和真实结果分开记录'):
+            self.assertIn(term, guide)
+        for path in re.findall(r'`((?:apps|packages|services)/[^`]+)`', guide):
+            self.assertTrue((ROOT / path).is_file(), path)
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')
