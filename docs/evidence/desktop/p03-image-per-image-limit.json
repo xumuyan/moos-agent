@@ -1,0 +1,31 @@
+{
+  "id": "E114",
+  "task": "P03.13.12 修订",
+  "scope": "图片附件限额从「每条消息所有图片总和 ≤ 5 MiB 且仅 1 张」改为「每张图片各自 ≤ 5 MiB，最多 8 张」，按用户 2026-11-10 反馈（发两张截图被拒）",
+  "createdAtBeijing": "2026-11-10T22:10:00+08:00",
+  "userReport": "用户发列表+弹框两张截图，界面报「每条消息可附带一张不超过 5 MiB 的图片」INVALID_REQUEST；用户明确期望按张计每张 5 MiB",
+  "change": {
+    "files": [
+      "apps/electron/plugin/pi-route.js：多张图片逐张校验（bytes ≤ 5 MiB/张），images 数组全量传递；新增每条消息 8 张上限（与附件总数一致）；文案改「每张图片不超过 5 MiB。」/「每条消息最多 8 张图片，每张不超过 5 MiB。」；纯文本重试（无图）不再误判缺图",
+      "apps/electron/plugin/pi-tasks.js：重试恢复元数据 dsh-image:<id> 从单对象改存数组；retryImage 返回数组（旧单对象由 pi-route 兼容读取）",
+      "packages/pi-runtime/sdk-runtime.mjs：无需改动（images 参数本就是数组）",
+      "apps/electron/pi-models.test.mjs：多张同附件通过、混合超限整条拒绝、9 张超数拒绝、retryImage 数组断言"
+    ],
+    "keep": "每张仍限 png/jpeg/webp/gif、尺寸字段校验、重试带新图仍拒绝、安全校验不变"
+  },
+  "validation": {
+    "electron": "npm run test:electron 90/90 0 skipped（build-vWbJVc 包内 dsh；含 pi-models 8/8 新语义、pi-tasks 纯文本重试回归）",
+    "core": "npm test 163/163",
+    "docs": "python3 -m unittest discover -s tests 91/91",
+    "gui": "artifacts/link-click-gui/verify.mjs build-vWbJVc exit 0（E113 外链两路径 PASS，验证本轮随包回归）",
+    "incident": "调试期间临时 console 打印已全部移除（grep MOOS_DEBUG_ROUTE = 0）；首版测试用例 [image,image] 无文本导致 fixture 场景 400，属用例设计问题非产品代码缺陷，已改为带 marker 文本"
+  },
+  "deployment": {
+    "installed": false,
+    "note": "修复并入未发布的 0.1.41 候选包（同批含 E113 外链修复）。候选 build-vWbJVc 已重建，/Applications/.moos-update-0.1.41 暂存包已刷新并重跑预检 PREFLIGHT_OK；更新脚本 accepted 路径指向 build-vWbJVc，新增 perImageLimitInStaged/Installed 标记。安装因用户在沐码中有活跃任务（更新脚本首次运行 21:56 空闲等待超时 stopped-for-review，正式实例未受影响）顺延为空闲等待模式，正式安装须用户授权的流程继续"
+  },
+  "limits": [
+    "多张图片总 base64 体积会相应增大，上下文占用由模型侧限制约束，本层不再按总和拦截（用户明确要求按张计）",
+    "真实多图端到端（正式实例聊天界面贴两张截图）待安装后在实机会话验收"
+  ]
+}

@@ -55,6 +55,7 @@ const PROMPT_FILES = 8;
 export { PROMPT_FILES, PROMPT_TEXT_BUDGET };
 const UPLOAD_SAVE_LIMIT = 100 * 1024 * 1024;
 const IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGES = 8;
 
 async function promptInput(content, readFile, saveUpload, signal) {
   let remainingBytes = PROMPT_TEXT_BUDGET;
@@ -142,29 +143,38 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     }
     const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
     const imageParts = user.content.filter(part => part.type === 'image');
-    let imageRef;
+    let imageRefs;
     let images;
     try {
-      if (imageParts.length > 1 || retryOf && imageParts.length) throw new Error('Invalid number of images');
-      imageRef = retryOf ? tasks.retryImage(sessionId, retryOf) : imageParts[0]?.attachment;
-      if (imageParts.length && !imageRef) throw new Error('Missing image reference');
-      if (imageRef) {
-        const { attachmentId, mediaType, bytes, width, height } = imageRef;
+      // 每张图片各自不超过 IMAGE_BYTES；一条消息最多 MAX_IMAGES 张；重试恢复时不接受新图。
+      if (retryOf && imageParts.length || imageParts.length > MAX_IMAGES) throw new Error('Invalid number of images');
+      const refs = retryOf ? tasks.retryImage(sessionId, retryOf) : imageParts.map(part => part.attachment);
+      const list = refs == null ? [] : Array.isArray(refs) ? refs : [refs];
+      // 带图消息必须有可用的附件引用；纯文本重试没有图是正常状态。
+      if (imageParts.length && (!list.length || list.some(ref => !ref))) throw new Error('Missing image reference');
+      imageRefs = list.map(ref => {
+        const { attachmentId, mediaType, bytes, width, height } = ref;
         if (!models || !/^sha256:[a-f0-9]{64}$/.test(attachmentId) ||
             !['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(mediaType) ||
             !Number.isSafeInteger(bytes) || bytes < 1 || bytes > IMAGE_BYTES ||
             !Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1) {
           throw new Error('Invalid PI image');
         }
-        imageRef = { attachmentId, mediaType, bytes, width, height };
-        const { data } = await readImage(imageRef, signal);
+        return { attachmentId, mediaType, bytes, width, height };
+      });
+      images = [];
+      for (const ref of imageRefs) {
+        const { data } = await readImage(ref, signal);
         signal.throwIfAborted();
-        if (data.byteLength !== bytes) throw new Error('Invalid PI image length');
-        images = [{ type: 'image', mimeType: mediaType, data: Buffer.from(data).toString('base64') }];
+        if (data.byteLength !== ref.bytes) throw new Error('Invalid PI image length');
+        images.push({ type: 'image', mimeType: ref.mediaType, data: Buffer.from(data).toString('base64') });
       }
     } catch {
       yield signal.aborted ? aborted : { type: 'finish', reason: { kind: 'error',
-        failure: { code: 'INVALID_REQUEST', message: retryOf ? '无法恢复该任务的附件或状态' : `每条消息可附带一张不超过 ${IMAGE_BYTES / 1024 / 1024} MiB 的图片。` } } };
+        failure: { code: 'INVALID_REQUEST', message: retryOf ? '无法恢复该任务的附件或状态'
+          : imageParts.length > MAX_IMAGES
+            ? `每条消息最多 ${MAX_IMAGES} 张图片，每张不超过 ${IMAGE_BYTES / 1024 / 1024} MiB。`
+            : `每张图片不超过 ${IMAGE_BYTES / 1024 / 1024} MiB。` } } };
       return;
     }
     let input;
@@ -180,9 +190,9 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     let plan;
     if (models) {
       try {
-        plan = await models.plan(request.model, Boolean(imageRef));
+        plan = await models.plan(request.model, Boolean(images?.length));
         if (!plan.provider) {
-          yield imageRef ? { type: 'finish', reason: { kind: 'error',
+          yield images?.length ? { type: 'finish', reason: { kind: 'error',
             failure: { code: 'INVALID_CONFIG', message: '请选择已启用图片输入的模型服务' } } } : selectionRequired;
           return;
         }
@@ -196,7 +206,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     try {
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
-        input: input || (imageRef ? '请查看我附带的图片。' : ''), imageRef, images,
+        input: input || (images?.length ? '请查看我附带的图片。' : ''), imageRefs, images,
         messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',

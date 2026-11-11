@@ -49,7 +49,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   }
 
   async function open({ sessionId, turnStartSeq, cwd, input, messageId, fork, retryOf, signal, permissions, provider, backup,
-    imageRef, images }) {
+    imageRefs, images }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || (!retryOf && (typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)))) throw new Error('Invalid PI task');
@@ -92,7 +92,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
         store.setSetting('dsh-turn:' + sessionId + ':' + turnStartSeq, created.id);
       }
       if (captureCheckpoint) store.setSetting('dsh-message:' + messageId, created.id);
-      if (imageRef) store.setSetting('dsh-image:' + created.id, JSON.stringify(imageRef));
+      if (imageRefs?.length) store.setSetting('dsh-image:' + created.id, JSON.stringify(imageRefs));
       if (previous) store.appendEvent(created.id, 'task_retry', { previousTaskId: previous.id });
     } });
     contextByTask.set(task.id, { permissions, provider, backup, images, retry: Boolean(previous), captureCheckpoint,

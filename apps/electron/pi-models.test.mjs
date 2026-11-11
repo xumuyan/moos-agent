@@ -176,8 +176,8 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
   }
   const content = [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }, image];
   assert.equal((await turn('glm', content)).failure.code, 'INVALID_CONFIG');
-  assert.equal((await turn('auto', [image, image])).failure.code, 'INVALID_REQUEST');
-  assert.equal((await turn('auto', content)).kind, 'stop');
+  // 每张图片各自不超过 5 MiB：多张同附件也应通过（E110 修订：按张计，不按总和）。
+  assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }, image, image])).kind, 'stop');
   assert.equal(requests.at(-1).model, 'mock-gpt');
   assert.equal(imageRequests.at(-1), true);
   // 图片上限 5 MiB：一张约 1 MiB 的图片应通过，超过 5 MiB 拒绝并提示上限。
@@ -200,13 +200,32 @@ test('a configured desktop profile runs arbitrary workspace text through PI with
       attachment: { attachmentId: 'sha256:' + 'c'.repeat(64), mediaType: 'image/png',
         width: 2048, height: 1536, bytes: oversizeImage.length } }] }] })) oversizeOutput.push(event);
   assert.equal(oversizeOutput.at(-1).reason.failure.code, 'INVALID_REQUEST');
-  assert.equal(oversizeOutput.at(-1).reason.failure.message, '每条消息可附带一张不超过 5 MiB 的图片。');
+  assert.equal(oversizeOutput.at(-1).reason.failure.message, '每张图片不超过 5 MiB。');
+  // 混合多张：只要有一张超限就整条拒绝；超过 8 张也拒绝。
+  const mixedOutput = [];
+  for await (const event of oversizeVision.stream({ model: 'auto', sessionId: 'vision-mixed',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: [
+      { type: 'image', attachment: { attachmentId: 'sha256:' + 'd'.repeat(64), mediaType: 'image/png',
+        width: 64, height: 32, bytes: 1024 } },
+      { type: 'image', attachment: { attachmentId: 'sha256:' + 'c'.repeat(64), mediaType: 'image/png',
+        width: 2048, height: 1536, bytes: oversizeImage.length } }] }] })) mixedOutput.push(event);
+  assert.equal(mixedOutput.at(-1).reason.failure.code, 'INVALID_REQUEST');
+  assert.equal(mixedOutput.at(-1).reason.failure.message, '每张图片不超过 5 MiB。');
+  const nineImages = Array.from({ length: 9 }, (_, i) => ({ type: 'image',
+    attachment: { attachmentId: 'sha256:' + String.fromCharCode(97 + i).repeat(64).slice(0, 64).padEnd(64, 'a'),
+      mediaType: 'image/png', width: 8, height: 8, bytes: 64 } }));
+  const nineOutput = [];
+  for await (const event of largeVision.stream({ model: 'auto', sessionId: 'vision-nine',
+    messages: [{ role: 'user', source: { kind: 'user' }, content: nineImages }] })) nineOutput.push(event);
+  assert.equal(nineOutput.at(-1).reason.failure.code, 'INVALID_REQUEST');
+  assert.equal(nineOutput.at(-1).reason.failure.message, '每条消息最多 8 张图片，每张不超过 5 MiB。');
   const priorRequestCount = requests.length;
   assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_WRITE no_previous_image' }])).kind, 'stop');
   assert.ok(imageRequests.slice(priorRequestCount).every(hasImage => !hasImage));
   assert.equal((await turn('auto', [{ type: 'text', text: 'fixture-invalid' }, image], undefined, 'vision-retry')).kind, 'error');
   const failed = store.listTasks()[0];
-  assert.deepEqual(tasks.retryImage('vision-retry', failed.id), image.attachment);
+  // 修订后存的是数组；旧版单对象由 pi-route 兼容读取。
+  assert.deepEqual(tasks.retryImage('vision-retry', failed.id), [image.attachment]);
   assert.throws(() => tasks.retryImage('another-session', failed.id));
   assert.equal((await turn('auto', [{ type: 'text', text: 'MOOS_FIXTURE_RESPONSES' }],
     `moos-pi-retry:${failed.id}:00000000-0000-4000-8000-000000000001`, 'vision-retry')).kind, 'error');

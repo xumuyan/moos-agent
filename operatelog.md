@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 22:15:00 +08:00｜E114：图片附件限额改为按张计（P03.13.12 修订，未安装）
+
+- 修改或新增内容：用户发列表+弹框两张截图被拒（报「每条消息可附带一张不超过 5 MiB 的图片」），明确要求按张计。apps/electron/plugin/pi-route.js 图片处理重写：逐张校验各自 ≤ 5 MiB，每条消息最多 8 张，images 数组全量传给 PI；文案改「每张图片不超过 5 MiB。」（超数量另提示）；pi-tasks.js 重试恢复元数据 dsh-image:<id> 改存数组、retryImage 返回数组，pi-route 兼容旧单对象；修正纯文本重试被误判「缺图」的回归；sdk-runtime images 参数本为数组无需改。新增证据 E114。
+- 遇到的难题：① 首版新测试用例 [image,image] 无文本，promptInput 得空串走 fallback 文案，fixture 匹配不到场景返回 400 使任务 INTERNAL 失败——属用例设计问题非产品缺陷，改为带 marker 文本；② 纯文本重试任务（retryOf 无图）被新校验误判 Missing image reference，pi-tasks.test 重试回归 89/90 抓到，条件改为仅消息带图时要求引用有效；③ 首次安装尝试因用户在沐码中有活跃任务，更新脚本空闲等待 60 分钟超时于 21:56 自动 stopped-for-review，正式实例未退出未换包，无数据影响。
+- 处理方式：调试用临时 console 打印（pi-route/sdk-runtime/fixture/测试）已全部移除，grep MOOS_DEBUG_ROUTE 计 0；更新脚本空闲等待上限放宽，accepted 路径改指 build-vWbJVc，暂存包刷新并重跑预检 PREFLIGHT_OK，新增 perImageLimitInStaged/Installed 标记。
+- 验证结果：electron 全量 90/90 0 skipped（build-vWbJVc 包内 dsh，含 pi-models 8/8 新语义、pi-tasks 重试回归）；npm test 163/163；python 文档检查 91/91；候选包外链端到端两路径 PASS（exit 0）。暂存包签名校验通过。
+- 遗留问题：0.1.41（E113 外链 + E114 图片限额）仍未安装，等待用户在沐码中的任务自然结束后的空闲窗口，正式安装继续按 E84 流程并须用户授权；真实多图贴图实机验收待安装后进行。
+- 对应 Git 提交：本次唯一提交（E114 图片按张限额），可用 `git log --oneline --grep="E114"` 查询。
+
 ## 2026-11-10 14:30:00 +08:00｜E113：修复聊天外链点击无反应（P03.13.14，未安装）
 
 - 修改或新增内容：用户报告聊天内 http://127.0.0.1:5173/ 链接点击没反应。根因：main.mjs 的 setWindowOpenHandler 一律 action:deny（target=_blank 静默拒绝），will-navigate/will-redirect 异源仅 preventDefault 不打开浏览器。修复：新增 apps/electron/link-handler.mjs（纯函数分类器：http/https 异源→open-external、同源→allow、其余协议→deny）；main.mjs 两条路径统一接分类器，外链 shell.openExternal 交系统浏览器，窗口内永不新开窗口、永不导航异源；prepare-local.mjs 打包清单补 link-handler.mjs。新增 artifacts/link-click-gui/verify.mjs 端到端验证脚本与证据 E113。

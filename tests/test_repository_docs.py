@@ -141,6 +141,17 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertEqual(check['icnsDecodedImages'], 10)
         self.assertTrue(any('Lanczos' in limit for limit in e['limits']))
 
+    def test_image_per_image_limit_evidence_matches_change(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-image-per-image-limit.json').read_text())
+        self.assertEqual(e['id'], 'E114')
+        self.assertIn('每张图片各自', e['scope'])
+        self.assertEqual(e['validation']['electron'].split()[0], 'npm')
+        self.assertFalse(e['deployment']['installed'])
+        self.assertIn('PREFLIGHT_OK', e['deployment']['note'])
+        self.assertIn('E114', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('| E114 |', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('图片附件按张限额修订（E114', (ROOT / 'PLAN.md').read_text())
+
     def test_link_handling_evidence_matches_fix_and_deployment(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-link-handling.json').read_text())
         self.assertEqual(e['id'], 'E113')
