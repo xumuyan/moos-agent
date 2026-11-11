@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-10 23:10:00 +08:00｜E115：修复聊天图片「复制图片」报错（P03.13.15，未安装）
+
+- 修改或新增内容：用户报告消息图片「复制图片」toast「无法复制，请检查内容是否可用后重试」。排查：toast 文案来自 DSH file-actions 插件，复制走 navigator.clipboard.write([ClipboardItem image/png])；新增 e2e 复现脚本（CDP 真实点击 + 插件风格写入）在候选包上稳定复现 NotAllowedError: Write permission denied。根因：apps/electron/main.mjs 为 persist:moos-workbench partition 设置的权限 handler 全部 callback(false)，clipboard-sanitized-write 被连带拒绝（复制文本 writeText 不需要该权限所以一直正常）。修复：该 partition 只放行 clipboard-sanitized-write，其余权限保持全拒；不改 DSH 上游 bundle。新增证据 E115。
+- 遇到的难题：toast 文案在仓库与 dsh 用户目录均搜不到，最终在正式应用包 host-runtime/dsh/node_modules/@deepseek-ai/dsh-client-ui-file-actions 定位；首次修复误设在 session.defaultSession 上无效（窗口实际用 partition），第二轮改 partition 后生效。
+- 处理方式：复现脚本固化为 artifacts/copy-image-repro/repro.mjs（含退出码与系统剪贴板断言），可直接回归。
+- 验证结果：e2e repro 修复后三种写入全部 ok 且 osascript clipboard info 含 «class PNGf»（exit 0）；electron 全量 90/90 0 skipped（build-8lWx61 包内 dsh）；npm test 163/163；外链 e2e（E113）在该包复验两路径 PASS。
+- 遗留问题：0.1.41（E113 外链 + E114 图片按张限额 + E115 图片复制）仍未安装，等待用户授权下的空闲窗口按 E84 流程安装；实机手工复制图片验收待安装后进行。
+- 对应 Git 提交：本次唯一提交（E115 图片复制修复），可用 `git log --oneline --grep="E115"` 查询。
+
 ## 2026-11-10 22:15:00 +08:00｜E114：图片附件限额改为按张计（P03.13.12 修订，未安装）
 
 - 修改或新增内容：用户发列表+弹框两张截图被拒（报「每条消息可附带一张不超过 5 MiB 的图片」），明确要求按张计。apps/electron/plugin/pi-route.js 图片处理重写：逐张校验各自 ≤ 5 MiB，每条消息最多 8 张，images 数组全量传给 PI；文案改「每张图片不超过 5 MiB。」（超数量另提示）；pi-tasks.js 重试恢复元数据 dsh-image:<id> 改存数组、retryImage 返回数组，pi-route 兼容旧单对象；修正纯文本重试被误判「缺图」的回归；sdk-runtime images 参数本为数组无需改。新增证据 E114。

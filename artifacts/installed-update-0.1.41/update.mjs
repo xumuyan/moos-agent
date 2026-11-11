@@ -15,7 +15,7 @@ const staged = join(update, '沐码.app');
 const old = join(update, 'previous/沐码.app');
 const backup = join(update, 'data-before-install');
 const repo = '/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent';
-const accepted = join(repo, '.generated/moos-electron/build-vWbJVc/沐码.app/Contents/Resources');
+const accepted = join(repo, '.generated/moos-electron/build-8lWx61/沐码.app/Contents/Resources');
 const targetShell = '0.1.41';
 const originalShell = '0.1.40';
 const executable = '/Applications/沐码.app/Contents/MacOS/MuMa';
@@ -153,6 +153,11 @@ async function preflight() {
     if (!routeSource.includes('MAX_IMAGES') || !routeSource.includes('每张图片不超过') || routeSource.includes('每条消息可附带')) throw new Error('Candidate lacks the per-image attachment limit');
   }
   record.perImageLimitInStaged = true;
+  {
+    const mainSource = (await readFile(join(staged, 'Contents/Resources/app/main.mjs'), 'utf8'));
+    if (!mainSource.includes('clipboard-sanitized-write')) throw new Error('Candidate lacks the copy-image permission fix');
+  }
+  record.copyImageFixInStaged = true;
   // E111: bundled icon assets must match the repository brand manifest digests.
   const manifest = JSON.parse(await readFile(join(repo, 'apps/electron/assets/brand-assets.json'), 'utf8'));
   for (const name of ['moos.icns']) {
@@ -218,7 +223,7 @@ try {
     if (code !== 0) throw new Error('Validation gate failed for ' + name);
   }
   await mark('waiting-for-idle');
-  const deadline = Date.now() + 60 * 60 * 1000;
+  const deadline = Date.now() + 150 * 60 * 1000; // 用户在沐码中可能有长任务；覆盖任务 2h 超时上限
   while (activeTasks() && Date.now() < deadline) await sleep(3000);
   if (activeTasks()) throw new Error('Active work did not finish during the idle wait');
   const pids = mainPids();
@@ -274,6 +279,7 @@ try {
   cli('/usr/bin/codesign', ['--verify', '--deep', '--strict', installed]);
   record.linkFixInInstalled = await assertLinkFix(join(installed, 'Contents/Resources'));
   record.perImageLimitInInstalled = (await readFile(join(installed, 'Contents/Resources/host-runtime/dsh/moos-pi/pi-route.js'), 'utf8')).includes('MAX_IMAGES');
+  record.copyImageFixInInstalled = (await readFile(join(installed, 'Contents/Resources/app/main.mjs'), 'utf8')).includes('clipboard-sanitized-write');
   await mark('new-package-installed');
   const env = { ...process.env, HOME: '/Users/xuguopeng', TMPDIR: '/private/tmp/' };
   for (const name of ['MOOS_ELECTRON_DATA', 'MOOS_ELECTRON_PI_FIXTURE', 'ELECTRON_RUN_AS_NODE', 'NODE_OPTIONS', 'NODE_PATH']) delete env[name];
@@ -309,7 +315,7 @@ try {
   const depsAfter = JSON.parse(await readFile(join(data, 'dsh/profiles/web/package.json'), 'utf8')).dependencies;
   record.userPluginDependenciesRetained = Object.entries(depsBefore).every(([name, spec]) => name === 'moos-electron-shell' || depsAfter[name] === spec);
   record.installedMainProcesses = mainPids().length;
-  if (record.installedMainProcesses !== 1 || ![record.loadedClientMatches, record.hostRunning, record.installedIconMatchesManifest, record.sidebarIconInLiveClient, record.attachmentLimitsInInstalled, record.imageToolInInstalled, record.executionPolicyInInstalled, record.tableFixInInstalled, record.apiAndCredentialsIdentical, record.chatFilesRetained, record.piHistoryFilesRetained, record.skinsRetained, record.workspaceRetained, record.originalDatabaseRowsRetained, record.userPluginDependenciesRetained, record.linkFixInInstalled, record.perImageLimitInInstalled].every(Boolean)) throw new Error('Data preservation verification did not fully pass; preserve backup and request review');
+  if (record.installedMainProcesses !== 1 || ![record.loadedClientMatches, record.hostRunning, record.installedIconMatchesManifest, record.sidebarIconInLiveClient, record.attachmentLimitsInInstalled, record.imageToolInInstalled, record.executionPolicyInInstalled, record.tableFixInInstalled, record.apiAndCredentialsIdentical, record.chatFilesRetained, record.piHistoryFilesRetained, record.skinsRetained, record.workspaceRetained, record.originalDatabaseRowsRetained, record.userPluginDependenciesRetained, record.linkFixInInstalled, record.perImageLimitInInstalled, record.copyImageFixInInstalled].every(Boolean)) throw new Error('Data preservation verification did not fully pass; preserve backup and request review');
   await mark('success');
   console.log('更新完成：沐码 0.1.41（E113 聊天外链打开系统浏览器）。聊天与 API 配置保留校验通过，历史功能标记与图标资产一致。');
 } catch(error) {

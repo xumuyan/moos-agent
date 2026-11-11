@@ -1,0 +1,24 @@
+{
+  "id": "E115",
+  "task": "P03.13.15",
+  "scope": "修复聊天图片「复制图片」始终报「无法复制，请检查内容是否可用后重试」：工作台 session partition 显式拒绝全部权限，连带拒绝了 Chromium 的 clipboard-sanitized-write，导致 navigator.clipboard.write（图片写入）永远 NotAllowedError",
+  "createdAtBeijing": "2026-11-10T23:05:00+08:00",
+  "userReport": "用户在消息图片上执行复制图片操作，toast 报「无法复制，请检查内容是否可用后重试」；复制文本不受影响（writeText 不需要该权限）",
+  "rootCause": "apps/electron/main.mjs 为 persist:moos-workbench partition 设置 setPermissionRequestHandler/setPermissionCheckHandler 全部 callback(false)，clipboard-sanitized-write 被拒；DSH file-actions 插件的复制图片走 navigator.clipboard.write([new ClipboardItem({'image/png': …})])，需要该权限",
+  "fix": "partition 权限 handler 只放行 clipboard-sanitized-write（Chromium 已消毒的 PNG 图像写入），其余权限（媒体、地理位置、通知、未消毒剪贴板）保持全部拒绝；不修改 DSH 上游 bundle",
+  "validation": {
+    "repro": "artifacts/copy-image-repro/repro.mjs：修复前候选包上真实 CDP 点击后写剪贴板报 NotAllowedError: Write permission denied；修复后同一脚本三种写入（真实点击后、直接、插件风格 promise ClipboardItem）全部 ok，且 osascript clipboard info 确认系统剪贴板含 «class PNGf»；exit 0 记录于 validation.log",
+    "electron": "npm run test:electron 90/90 0 skipped（build-8lWx61 包内 dsh）",
+    "core": "npm test 163/163",
+    "linkE2e": "artifacts/link-click-gui/verify.mjs build-8lWx61 两路径 PASS（外链修复未受影响）",
+    "docs": "python 文档检查在本轮提交前跑通（见 operatelog 验证结果）"
+  },
+  "deployment": {
+    "installed": false,
+    "note": "修复并入未发布的 0.1.41 候选包（同批 E113 外链 + E114 图片按张限额），最终构建 build-8lWx61；暂存包刷新与安装随 E84 流程进行，须用户授权的空闲窗口"
+  },
+  "limits": [
+    "macOS 系统级「允许跨应用粘贴」等隐私授权不在本修复范围；实机手工验收（正式实例右键图片复制）待安装后进行",
+    "放行的权限仅限本应用工作台窗口所在 partition，不影响其他应用"
+  ]
+}

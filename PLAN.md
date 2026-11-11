@@ -110,6 +110,7 @@ E38 已验证本机 Electron 应用、独立数据、Moos 窗口与 Finder 图�
 - [x] P03.13.12 **附件与图片上限调整。** 依赖 P03.13.11。图片上限 512 KiB→5 MiB（路由与 attachment-local 同步），文本内联预算 32 KiB→128 KiB，二进制/超预算文件转存会话工作区 .moos-uploads/（sha256 前缀+净化文件名，单文件 100 MiB 上限），每条消息仍 8 附件/1 图。证据 E110：core 163/163、electron 82/82、docs 86/86；build-g04nDJ 0.1.40 构建验签与隔离 GUI recovery-kzbAHF 通过。源码提交 f739a34 已推送核对；正式安装未经授权、未执行，>512 KiB 端到端待安装后确认。
 - [x] P03.13.13 **沐码应用图标 v2 纯平重设计（DeepSeek 设计语言，兼顾 Apple HIG/Google Play 规范）。** 依赖 P03.13.11。用户反馈 E107/E108 的 3D 渐变玻璃图标看多仍不满意，要求参考 DeepSeek 设计规范，后续又要求简单明了并符合苹果与安卓官方规范：从随包 dsh-web-frontend 提取官方单色飦鱼 path 仅作本地对照，提炼白底圆角方、纯平单色、单一符号、留白充足、16px 可读的规范；用 `artifacts/family-icons/muma_v2_icons.py` 程序化绘制终端提示符 `>_`（候选 A）替换正式资产（moos-icon-v1.png/moos.icns/sidebar-icon.png 文件名不变，manifest 哈希更新），icns 16-64px 与侧栏反转为青底白标、128+ 为白底青标；另按 Google Play 规范原文与 Apple HIG 要点产出 512/1024 全出血不透明变体（图形在中央框线网格内并有自动安全区断言，未集成进应用、未上传商店）；候选 B `</>`、C `M.` 保留未集成。E108 历史证据保留原哈希不改写。证据 E111：build-JHNLSY 0.1.40（含 E110 附件上限）重建验签、包内 icns/侧栏内联/代码字节核对通过；electron 82/82、core 163/163、隔离 GUI recovery-5qxDGt 品牌/折叠/优雅退出 exit=0。安装未授权未执行，Finder/Dock 新图标目视待安装后确认；B/C 及平台变体切换需重跑脚本重建。
 - [ ] P03.13.14 **聊天外链打开系统浏览器。** 依赖 P03.13.6。用户报告聊天内 http://127.0.0.1:5173/ 链接点击无反应（E113）：setWindowOpenHandler 一律 deny、will-navigate 异源仅拦截不打开。修复：新增 link-handler.mjs 分类器，http(s) 外链（含本地端口）经 shell.openExternal 交给系统浏览器，同 origin 保持窗口内路由，非 http(s) 协议一律拒绝，永不打开第二窗口。单测 7 项 + 打包清单防退化断言；electron 全量 90/90；候选包 build-BLdcT7 端到端实测两路径（target=_blank 与普通链接）均真实打开系统浏览器并命中探针服务。正式安装未授权未执行。同批候选包并入图片附件限额修订（E114，按用户反馈改为每张 5 MiB、最多 8 张，原为每条消息总和且仅 1 张），详见 E114。
+- [ ] P03.13.15 **聊天图片「复制图片」修复。** 依赖 P03.13.14。用户报告消息图片复制始终报「无法复制，请检查内容是否可用后重试」（E115）：persist:moos-workbench partition 的权限 handler 全部拒绝，连带拒绝 Chromium clipboard-sanitized-write，navigator.clipboard.write 永远 NotAllowedError（复制文本不受影响）。修复：该 partition 只放行 clipboard-sanitized-write（PNG 图像写入），其余权限保持全拒；不改 DSH 上游 bundle。e2e 复现脚本在修复前稳定复现 Write permission denied、修复后三种写入全部成功且系统剪贴板确认含 PNG；electron 90/90、core 163/163、外链 e2e 复验通过。详见 E115。
 
 ## P03.12｜原版 DSH Electron 前端接入 Moos PI
 
@@ -656,6 +657,7 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 | E112 | 沐言家族素材 v2 纯平重做（素材交付，未集成应用）：与沐码 v2 同语言，珊瑚 #F76B5B 气泡+三根语音波形竖条，替换 E107 家族包沐言目录与 zip（37 文件，ICNS 往返、ICO 7/3 分辨率、checksums 全通过）并同步 Downloads；沐宿/沐序仍为 E107 v1。生成/打包脚本 `artifacts/family-icons/muyan_v2_icons.py`、`muyan_v2_package.py` 入库。证据 `docs/evidence/desktop/p03-muyan-icon-v2.json`。 | iconutil 往返 10 图通过；Windows ICO 7 分辨率、web ICO 3 分辨率在包内实测；Play 变体安全区断言 worst=118.7 ≤ 148.6 (px@512)；zip sha256 8c3b813a…记录于证据；素材在 Git 忽略目录，入库仅脚本与证据；无应用集成、无商店上传，视觉终审待用户。 |
 | E113 | P03.13.14 聊天外链打开系统浏览器（0.1.40 后修复，未安装）：新增 link-handler.mjs 分类器，http(s) 外链（含本地端口）经 shell.openExternal 交给系统浏览器，同 origin 保留窗口内路由，非 http(s) 协议拒绝，永不打开第二窗口；打包清单补 link-handler.mjs 并新增防退化断言。证据 `docs/evidence/desktop/p03-link-handling.json`。 | link-handler 单测 7/7、packaging 4/4；electron 全量 90/90 0 skipped（build-BLdcT7 包内 dsh，宿主环境残留 MOOS_ELECTRON_PI_RUNTIME 已补全 unset）；端到端 artifacts/link-click-gui/verify.mjs 实测两路径：target=_blank 与普通链接点击均真实打开系统浏览器并命中探针服务（exit 0）。首版候选包因打包白名单缺文件而损坏，已由新断言与重构建修复。正式安装未授权未执行。 |
 | E114 | P03.13.12 图片附件限额修订（0.1.41 候选包并入，未安装）：用户发两张截图被拒后按用户要求把限额从「每条消息总和 ≤ 5 MiB 且仅 1 张」改为「每张各自 ≤ 5 MiB、最多 8 张」；重试恢复元数据改存数组并兼容旧单对象；文案同步更新。证据 `docs/evidence/desktop/p03-image-per-image-limit.json`。 | electron 90/90 0 skipped（含 pi-models 8/8 新语义与 pi-tasks 纯文本重试回归）、core 163/163、docs 91/91、候选 build-vWbJVc 链接端到端两路径 PASS；暂存包刷新后 PREFLIGHT_OK。首版新用例 [image,image] 无文本致 fixture 场景 400 属用例设计问题，已改带 marker 文本；临时调试打印已全部移除。正式安装顺延为空闲等待，须用户授权流程继续；真实多图实机验收待安装后。 |
+| E115 | P03.13.15 聊天图片复制修复（0.1.41 候选包并入，未安装）：工作台 partition 权限全拒连带拒绝 clipboard-sanitized-write，图片复制永远 NotAllowedError；改为仅放行该权限。证据 `docs/evidence/desktop/p03-copy-image.json`。 | e2e repro 修复前复现 Write permission denied、修复后三种写入 ok 且系统剪贴板含 «class PNGf»（exit 0）；electron 90/90 0 skipped、core 163/163、外链 e2e 两路径 PASS（build-8lWx61）。实机手工复制验收待安装后。 |
 
 
 ## STORAGE-CLEANUP-20261109：用户授权本机缓存维护
@@ -707,6 +709,11 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 
 - 用户反馈发两张截图被拒（旧逻辑：每条消息图片总和 ≤ 5 MiB 且仅 1 张）。按用户明确要求改为每张图片各自 ≤ 5 MiB、每条消息最多 8 张，错误文案同步改为「每张图片不超过 5 MiB。」。pi-route.js 逐张校验并全量传递 images 数组；pi-tasks.js 重试恢复元数据 dsh-image:<id> 改存数组，兼容旧单对象；纯文本重试不再误判缺图。
 - 验证：electron 90/90 0 skipped、core 163/163、docs 91/91、候选 build-vWbJVc 外链端到端两路径 PASS；暂存包 /Applications/.moos-update-0.1.41 刷新后预检 PREFLIGHT_OK。并入未发布的 0.1.41（同批 E113）。安装因用户在沐码中有活跃任务顺延为空闲等待；真实多图实机验收待安装后。E114 `docs/evidence/desktop/p03-image-per-image-limit.json`。
+
+### 聊天图片「复制图片」修复（E115，P03.13.15，未安装）
+
+- 用户报告消息图片复制图片报「无法复制，请检查内容是否可用后重试」。根因：persist:moos-workbench partition 的 setPermissionRequestHandler/setPermissionCheckHandler 全部 callback(false)，Chromium 的 clipboard-sanitized-write 被拒，navigator.clipboard.write（图片写入必需）永远 NotAllowedError；复制文本走 writeText 不需要该权限所以正常。
+- 修复：partition 权限 handler 只放行 clipboard-sanitized-write（Chromium 消毒的 PNG 写入），其余权限保持全拒；不改 DSH 上游 bundle。验证：e2e repro（artifacts/copy-image-repro/repro.mjs）修复前稳定复现 Write permission denied，修复后真实点击后写入、直接写入、插件风格 promise 写入全部 ok 且 osascript 确认系统剪贴板含 «class PNGf»；electron 90/90 0 skipped、core 163/163、外链 e2e 复验通过（build-8lWx61）。并入未发布的 0.1.41（同批 E113/E114）。实机手工复制验收待安装后。E115 `docs/evidence/desktop/p03-copy-image.json`。
 
 ### 聊天外链打开系统浏览器（E113，P03.13.14，未安装）
 

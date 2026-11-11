@@ -50,8 +50,12 @@ async function launch() {
     import(pathToFileURL(join(piRuntime, 'services/agent/provider-diagnostics.mjs')).href),
   ]);
   const partition = session.fromPartition('persist:moos-workbench');
-  partition.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
-  partition.setPermissionCheckHandler(() => false);
+  // Only sanitized clipboard writes (image/png via navigator.clipboard.write)
+  // are granted: the chat "copy image" action needs them. Everything else —
+  // media, geolocation, notifications, unsanitized clipboard — stays denied.
+  partition.setPermissionRequestHandler((_contents, permission, callback) =>
+    callback(permission === 'clipboard-sanitized-write'));
+  partition.setPermissionCheckHandler((_wc, permission) => permission === 'clipboard-sanitized-write');
   const mac = process.platform === 'darwin';
   const win = new BrowserWindow({
     title: '沐码', width: 1240, height: 820, minWidth: 760, minHeight: 480, show: false,

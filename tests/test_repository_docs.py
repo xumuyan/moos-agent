@@ -141,6 +141,16 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertEqual(check['icnsDecodedImages'], 10)
         self.assertTrue(any('Lanczos' in limit for limit in e['limits']))
 
+    def test_copy_image_evidence_matches_fix(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-copy-image.json').read_text())
+        self.assertEqual(e['id'], 'E115')
+        self.assertIn('clipboard-sanitized-write', e['rootCause'])
+        self.assertIn('只放行 clipboard-sanitized-write', e['fix'])
+        self.assertFalse(e['deployment']['installed'])
+        self.assertIn('P03.13.15', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('| E115 |', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('聊天图片「复制图片」修复（E115', (ROOT / 'PLAN.md').read_text())
+
     def test_image_per_image_limit_evidence_matches_change(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-image-per-image-limit.json').read_text())
         self.assertEqual(e['id'], 'E114')
@@ -556,7 +566,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 15)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 16)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))
