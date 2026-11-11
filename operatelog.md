@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-11 11:35:00 +08:00｜更正与补记：0.1.41 安装第二次停止的根因与处理（正式实例无恙）
+
+- 修改或新增内容：补记 10:53 发生的第二次自动停止：等待进程启动时未传 LANG/LC_ALL，ps 在 C locale 下把中文应用路径转义为 M-fM-2…，update.mjs 的 mainPids() 匹配落空 → 误判正式沐码已退出 → 跳过正常退出请求 → 对仍在运行的数据目录做「停机」备份 → 内容持续变化致校验失败（Full stopped backup does not match the source files）。三层保护生效：未换包、未改数据，正式实例 0.1.40（pid 13744）全程运行，本次对话与用户数据未受影响。脚本三处加固：① cli() 统一注入 LC_ALL/LANG=en_US.UTF-8（提交 ae07294）；② idle 后检测不到正式实例即停止；③ 备份前两次快照静止校验。已在 LC_ALL=C 环境验证修复后进程匹配正确返回 [13744]。
+- 遇到的难题：① 首条补记因 `&&` 链在失败的预检处中断而未写入 operatelog，本次一并补上；② 上次失败遗留的 previous/ 与 data-before-install 经核实仅含空目录、0 个文件（备份从未写入），只会触发脚本「Unexpected update checkpoint」自保护，已删除，预检恢复 PREFLIGHT_OK；③ 核对发现 0.1.41 版本号（apps/electron/package.json 与 plugin/package.json）自 build-JhTsez 轮起一直留在工作区未提交，本次随条目落库。
+- 处理方式：删除检查点前先 find 核实 0 文件；脚本拒接半完成检查点属正确保护，未绕过。
+- 验证结果：node --check 通过；matcher 在坏 locale 下验证通过；--preflight 通过；docs 检查通过。
+- 遗留问题：0.1.41（E113 外链 + E114 图片按张限额 + E115 图片复制）仍未安装；等待进程以修复后脚本重新挂起（启动环境显式携带 UTF-8 locale 双保险），继续等用户授权下的空闲窗口。
+- 对应 Git 提交：脚本加固 ae07294；本条目及版本号落库见本次提交，可用 `git log --oneline --grep="0.1.41"` 查询。
+
 ## 2026-11-10 23:10:00 +08:00｜E115：修复聊天图片「复制图片」报错（P03.13.15，未安装）
 
 - 修改或新增内容：用户报告消息图片「复制图片」toast「无法复制，请检查内容是否可用后重试」。排查：toast 文案来自 DSH file-actions 插件，复制走 navigator.clipboard.write([ClipboardItem image/png])；新增 e2e 复现脚本（CDP 真实点击 + 插件风格写入）在候选包上稳定复现 NotAllowedError: Write permission denied。根因：apps/electron/main.mjs 为 persist:moos-workbench partition 设置的权限 handler 全部 callback(false)，clipboard-sanitized-write 被连带拒绝（复制文本 writeText 不需要该权限所以一直正常）。修复：该 partition 只放行 clipboard-sanitized-write，其余权限保持全拒；不改 DSH 上游 bundle。新增证据 E115。
