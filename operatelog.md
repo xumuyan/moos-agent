@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 15:10:00 +08:00｜M06 P06.4 桌面动作事件管道（core 187/187）
+
+- 修改或新增内容：`desktop-queue.mjs` withLock 新增 onQueued({queued, queueAhead}) 排队位置通知（入队时与每次队列变化广播其余等待者，空闲直接接管不触发；通知器抛错被吞不影响队列）；`desktop-tools.mjs` guarded 经 runPiSdk 既有 emit 通道发 desktop_action 事件（phase=queued/running/done/timeout/cancelled/failed，附 owner/label/error；emit 异常吞掉）；`sdk-runtime.mjs` 装配时把会话 emit 传入 createDesktopTools。停止任务撤销排队动作复用既有 AbortSignal 语义（预取消/排队中取消此前已有单测）。
+- 遇到的难题：新补的事件测试假 helper 的 screenshot 分支起初未写文件，工具层 readFile 目标 ENOENT——假 helper 补 writeFileSync 后通过；desktop-queue.test.mjs 新测试用了 deferred 辅助但文件里原本是内联 IIFE 风格，补统一 deferred 定义。
+- 处理方式：队列广播用 try/catch 隔离每个通知器；工具事件 report() 同样吞异常，保证「事件失败绝不影响动作本身」。
+- 验证结果：队列测试 13/13（新增位置广播时序与通知器隔离 2 项）、工具测试 11/11（新增生命周期相位 1 项：screenshot 产生 running→done、非法点击坐标锁外拒绝不产生 running、emit 抛错不破坏 permissions）；core `npm test` 187/187 0 skipped（184+3）。
+- 遗留问题：desktop_action 的 UI 渲染与排队状态展示属 P06.5；真实模型驱动调用待权限后 P06.6。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.4"` 查询。
+
+
 ## 2026-11-11 14:20:00 +08:00｜M06 P06.3 桌面工具组注册（core 184/184、electron 97/97）
 
 - 修改或新增内容：新增 `packages/pi-runtime/desktop-tools.mjs` 与测试——八个 PI 自定义工具（desktop_permissions/desktop_screenshot/desktop_click/desktop_type/desktop_key/desktop_scroll/desktop_windows/desktop_app），helper 缺失时整体不挂载；需权限动作全部经 P06.1 共享独占队列（模块级单例，跨会话跨项目串行）；read-only 会话拒绝桌面动作；截图落盘 `<dataDir>/sessions/screenshots/<conversation>/` 并在结果中携带 image content part（PNG base64）与保存路径；click 支持 verify=screenshot 单次锁内完成观察—操作—验证；键名→keycode 映射表；blocked 结构化中文指引（含恢复入口）。`sdk-runtime.mjs` 装配（desktop 参数 + ownerId=conversation id）；`host.js` 从打包布局推导 helperPath（Resources/app/plugin → ../../bin，MOOS_DESKTOP_HELPER 测试覆盖）；`prepare-local.mjs` 拷贝清单加 desktop-queue/desktop-tools。

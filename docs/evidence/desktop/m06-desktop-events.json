@@ -1,0 +1,37 @@
+{
+  "id": "E119",
+  "task": "M06/P06.4",
+  "title": "桌面动作事件管道（队列位置广播 + desktop_action 生命周期事件）",
+  "date": "2026-11-11",
+  "status": "pipeline-complete-ui-rendering-p06.5",
+  "scope": {
+    "files": [
+      "packages/pi-runtime/desktop-queue.mjs",
+      "packages/pi-runtime/desktop-queue.test.mjs",
+      "packages/pi-runtime/desktop-tools.mjs",
+      "packages/pi-runtime/desktop-tools.test.mjs",
+      "packages/pi-runtime/sdk-runtime.mjs"
+    ],
+    "design": [
+      "desktop-queue withLock gains onQueued({queued, queueAhead}): fired on enqueue and on every queue shift; idle takeover does not fire; notifier exceptions never break the queue",
+      "desktop tools report desktop_action {phase: queued|running|done|timeout|cancelled|failed, owner, label, error?} through runPiSdk's emit channel (same pipeline as model_route); emit failures are swallowed",
+      "sdk-runtime passes emit into createDesktopTools per conversation"
+    ]
+  },
+  "actual": {
+    "commands": [
+      "node --test packages/pi-runtime/desktop-queue.test.mjs packages/pi-runtime/desktop-tools.test.mjs",
+      "npm test (core, clean env)"
+    ],
+    "results": {
+      "queueTests": "13/13 pass (11 prior + onQueued shift notifications + notifier-failure isolation)",
+      "toolTests": "11/11 pass (10 prior + lifecycle event phases; invalid input produces no running event; throwing emit does not break actions)",
+      "coreSuite": "187/187 pass, 0 skipped (184 prior + 3 new)"
+    },
+    "notYetDone": [
+      "UI rendering of queued state / tool actions (P06.5)",
+      "real model-driven calls (P06.6)"
+    ]
+  },
+  "executedAt": "2026-11-11T15:00+08:00"
+}

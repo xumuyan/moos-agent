@@ -160,3 +160,38 @@ test('shared queue serializes desktop actions across tool instances (cross-conve
   assert.equal(SHARED_QUEUE.status().locked, false);
   assert.ok(events.length === 0);
 });
+
+test('desktop tools emit desktop_action lifecycle events (queued/running/done)', async () => {
+  const events = [];
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
+const mode = process.argv[2];
+const out = (v) => { process.stdout.write(JSON.stringify(v)); process.exit(0); };
+if (mode === 'permissions') out({ screenCaptureGranted: true, accessibilityGranted: true, activeDisplays: 2, helperVersion: '1' });
+if (mode === 'screenshot') {
+  writeFileSync(process.argv[process.argv.indexOf('--out') + 1], Buffer.from('89504e47', 'hex'));
+  out({ status: 'ok', scope: 'display', imageWidth: 4, imageHeight: 4 });
+}
+process.exit(2);
+`);
+  const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-events-'));
+  const tools = createDesktopTools({
+    helperPath: helper, dataDir, ownerId: 'conversation:evt', getMode: () => 'danger-full-access',
+    emit: (type, payload) => events.push([type, payload]),
+  });
+  const screenshot = tools.find(t => t.name === 'desktop_screenshot');
+  await screenshot.execute('t1', { scope: 'display' }, undefined);
+  const phases = events.map(([, e]) => e.phase);
+  assert.deepEqual(phases, ['running', 'done']);
+  // 失败路径：点击坐标非法在锁外拒绝，不产生 running。
+  events.length = 0;
+  const click = tools.find(t => t.name === 'desktop_click');
+  await assert.rejects(click.execute('t1', { x: -5, y: 0 }, undefined), /点击坐标/);
+  assert.deepEqual(events, []);
+  // emit 抛错不影响动作。
+  const noisy = createDesktopTools({
+    helperPath: helper, dataDir, ownerId: 'conversation:noise',
+    getMode: () => 'danger-full-access', emit: () => { throw new Error('emit broken'); },
+  });
+  await noisy.find(t => t.name === 'desktop_permissions').execute('t1', {}, undefined);
+});

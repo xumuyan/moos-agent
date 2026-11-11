@@ -4,6 +4,8 @@ import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createDesktopQueue, QueueTimeoutError, QueueCancelledError } from './desktop-queue.mjs';
 
+const deferred = () => { let resolve; const promise = new Promise((r) => { resolve = r; }); return { promise, resolve }; };
+
 test('desktop queue grants exclusive access and serializes holders', async () => {
   const queue = createDesktopQueue();
   const events = [];
@@ -161,5 +163,44 @@ test('desktop queue releaseAll aborts holder and rejects all waiters', async () 
   queue.releaseAll('cleanup');
   assert.equal(await holder, 'aborted-out');
   await assert.rejects(waiter, QueueCancelledError);
+  assert.equal(queue.status().locked, false);
+});
+
+test('onQueued reports queue position on enqueue and on every shift', async () => {
+  const queue = createDesktopQueue();
+  const seen = { a: [], b: [], c: [] };
+  const releaseGate = deferred();
+  const first = queue.withLock({ owner: 'a', label: 'A', waitTimeoutMs: 5000, runTimeoutMs: 5000, graceMs: 100,
+    onQueued: (info) => seen.a.push(info) },
+    () => releaseGate.promise);
+  const second = queue.withLock({ owner: 'b', label: 'B', waitTimeoutMs: 5000, runTimeoutMs: 5000, graceMs: 100,
+    onQueued: (info) => seen.b.push(info) },
+    async () => 'b-done');
+  const third = queue.withLock({ owner: 'c', label: 'C', waitTimeoutMs: 5000, runTimeoutMs: 5000, graceMs: 100,
+    onQueued: (info) => seen.c.push(info) },
+    async () => 'c-done');
+  await delay(20);
+  // 空闲接管不触发；b/c 入队各通知一次（b 前 0 个，c 前 1 个）。
+  assert.deepEqual(seen.a, []);
+  assert.equal(seen.b.at(-1).queueAhead, 0);
+  assert.equal(seen.c.at(-1).queueAhead, 1);
+  releaseGate.resolve('a-done');
+  await delay(20);
+  // a 释放后：b 接管（不再收到通知），c 前移到 0。
+  assert.ok(seen.c.length >= 2, 'c should be notified again after shift');
+  assert.equal(seen.c.at(-1).queueAhead, 0);
+  assert.deepEqual(await Promise.all([first, second, third]), ['a-done', 'b-done', 'c-done']);
+  assert.equal(queue.status().locked, false);
+});
+
+test('onQueued notifier failures never break the queue', async () => {
+  const queue = createDesktopQueue();
+  const gate = deferred();
+  const holder = queue.withLock({ owner: 'h', label: 'H', waitTimeoutMs: 5000, runTimeoutMs: 5000, graceMs: 100 }, () => gate.promise);
+  const result = queue.withLock({ owner: 'w', label: 'W', waitTimeoutMs: 5000, runTimeoutMs: 5000, graceMs: 100,
+    onQueued: () => { throw new Error('notifier exploded'); } }, async () => 'w-done');
+  gate.resolve('h-done');
+  assert.equal(await result, 'w-done');
+  await holder;
   assert.equal(queue.status().locked, false);
 });

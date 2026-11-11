@@ -81,9 +81,12 @@ function assertHelperPayload(payload) {
   return payload;
 }
 
-export function createDesktopTools({ helperPath, dataDir, ownerId, getMode }) {
+export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit }) {
   if (!helperPath || typeof helperPath !== 'string' || !existsSync(helperPath)) return [];
   const mode = getMode ?? (() => 'danger-full-access');
+  const report = (phase, extra) => {
+    try { emit?.('desktop_action', { phase, owner: ownerId, ...extra }); } catch { /* 事件失败不影响动作 */ }
+  };
   const queue = SHARED_QUEUE;
   const screenshotsDir = dataDir ? join(dataDir, 'screenshots', ownerId.replace(/[^a-zA-Z0-9_-]/g, '_')) : null;
 
@@ -103,7 +106,23 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode }) {
 
   async function guarded(label, signal, fn) {
     if (mode() === 'read-only') throw new Error('当前会话为只读权限，桌面操作会产生全局副作用，已拒绝执行');
-    return queue.withLock(queueOptions(ownerId, label, signal), async (lockSignal) => fn(lockSignal));
+    const options = queueOptions(ownerId, label, signal);
+    return queue.withLock({
+      ...options,
+      onQueued: (info) => report('queued', { label, queueAhead: info.queueAhead }),
+    }, async (lockSignal) => {
+      report('running', { label });
+      try {
+        const result = await fn(lockSignal);
+        report('done', { label });
+        return result;
+      } catch (error) {
+        const phase = error?.name === 'QueueTimeoutError' ? 'timeout'
+          : error?.name === 'QueueCancelledError' ? 'cancelled' : 'failed';
+        report(phase, { label, error: error.message });
+        throw error;
+      }
+    });
   }
 
   const tools = [];

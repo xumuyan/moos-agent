@@ -133,7 +133,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       // 全部动作经全局桌面独占队列跨项目串行（P06.1/P06.3）。
       const desktopTools = desktop?.helperPath
         ? createDesktopTools({ helperPath: desktop.helperPath, dataDir, ownerId: `conversation:${conversation?.id ?? task?.id ?? 'anon'}`,
-          getMode: permissions ? () => permissions.getMode() : undefined })
+          getMode: permissions ? () => permissions.getMode() : undefined, emit })
         : [];
       const extraTools = [image, ...desktopTools].filter(Boolean);
       const customTools = extraTools.length ? [...(base ?? []), ...extraTools] : base;

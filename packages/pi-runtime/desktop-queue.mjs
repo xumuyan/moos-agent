@@ -61,6 +61,12 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
     };
   }
 
+  function notifyWaiting() {
+    waiting.forEach((entry, index) => {
+      try { entry.onQueued?.({ queued: true, queueAhead: index }); } catch { /* 通知失败不影响队列 */ }
+    });
+  }
+
   function removeWaiting(entry) {
     const index = waiting.indexOf(entry);
     if (index !== -1) waiting.splice(index, 1);
@@ -76,6 +82,7 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
   function pump() {
     if (holder || waiting.length === 0) return;
     const entry = waiting.shift();
+    notifyWaiting();
     if (entry.waitTimer) { clearTimeout(entry.waitTimer); entry.waitTimer = null; }
     holder = { owner: entry.owner, label: entry.label, abortController: entry.runAbort, forced: false };
     entry.resolve(entry.runAbort.signal);
@@ -89,6 +96,8 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
    * @param {number} [options.runTimeoutMs=120000] 持锁执行上限。
    * @param {number} [options.graceMs=5000] 执行超时后的宽限时间。
    * @param {AbortSignal} [options.signal] 外部取消（排队与执行均生效）。
+   * @param {(info: { queued: boolean, queueAhead: number }) => void} [options.onQueued]
+   *   排队位置通知：入队时与队列每次变化时触发；空闲接管不触发。
    * @param {(signal: AbortSignal) => Promise<any>} fn 持锁执行的「观察—操作—验证」序列。
    */
   async function withLock(options, fn) {
@@ -110,6 +119,7 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
       const entry = waiting.find((item) => item.runAbort === runAbort);
       if (entry) {
         removeWaiting(entry);
+        notifyWaiting();
         entry.reject(new QueueCancelledError('desktop operation cancelled while queued', {
           owner, label, queueAhead: 0, reason: 'cancelled',
         }));
@@ -120,6 +130,7 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
     const acquired = await new Promise((resolve, reject) => {
       const entry = {
         owner, label, signal, runAbort,
+        onQueued: typeof options?.onQueued === 'function' ? options.onQueued : null,
         waitTimer: null, resolve, reject,
       };
       if (!holder) {
@@ -129,11 +140,10 @@ export function createDesktopQueue({ clock = Date.now } = {}) {
         return;
       }
       waiting.push(entry);
-      if (signal) {
-        // 位置变化与取消统一由 onOuterSignal 处理；这里只负责等待计时。
-      }
+      notifyWaiting();
       entry.waitTimer = setTimeout(() => {
         removeWaiting(entry);
+        notifyWaiting();
         entry.reject(new QueueTimeoutError('desktop operation timed out while queued', {
           owner, label, waitedMs: waitTimeoutMs,
           holderOwner: holder?.owner ?? null,
