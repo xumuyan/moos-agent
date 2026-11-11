@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 14:20:00 +08:00｜M06 P06.3 桌面工具组注册（core 184/184、electron 97/97）
+
+- 修改或新增内容：新增 `packages/pi-runtime/desktop-tools.mjs` 与测试——八个 PI 自定义工具（desktop_permissions/desktop_screenshot/desktop_click/desktop_type/desktop_key/desktop_scroll/desktop_windows/desktop_app），helper 缺失时整体不挂载；需权限动作全部经 P06.1 共享独占队列（模块级单例，跨会话跨项目串行）；read-only 会话拒绝桌面动作；截图落盘 `<dataDir>/sessions/screenshots/<conversation>/` 并在结果中携带 image content part（PNG base64）与保存路径；click 支持 verify=screenshot 单次锁内完成观察—操作—验证；键名→keycode 映射表；blocked 结构化中文指引（含恢复入口）。`sdk-runtime.mjs` 装配（desktop 参数 + ownerId=conversation id）；`host.js` 从打包布局推导 helperPath（Resources/app/plugin → ../../bin，MOOS_DESKTOP_HELPER 测试覆盖）；`prepare-local.mjs` 拷贝清单加 desktop-queue/desktop-tools。
+- 遇到的难题：① permissions 的版本校验字段用错（helper 输出 helperVersion 非 version）导致 4 个测试失败，修正为双字段兼容；② blocked 测试在 dataDir 缺失时先撞截图目录前置检查而非权限指引——保留目录前置检查（正确行为），测试补 mkdtemp；③ 假 helper 的 key 分支写死 keycode 36 掩盖映射错误，改为回显 --code 参数；④ electron 全量首跑 packaging 防退化断言按设计拦下「desktop-tools.mjs 未进拷贝清单」，补清单后复绿——该断言首次实战拦截成功。
+- 处理方式：版本字段改双字段兼容；目录前置检查保留、blocked 测试补独立临时目录；假 helper 改为回显 --code 保证映射断言有效；packaging 拦截按断言设计补拷贝清单，不改断言。
+- 验证结果：工具测试 10/10（假 helper 覆盖挂载/schema/权限拦截/截图落盘与 image part/队列串行与跨会话共享队列/类型校验/键名映射/bundleId 校验）；core `npm test` 184/184 0 skipped（174+10）；electron 全量 97/97 0 skipped（build-8lWx61 包内 dsh 环境）。
+- 遗留问题：真实模型驱动的桌面调用待正式沐码获得录屏/辅助功能权限后 P06.6 实机验收；队列排队状态暴露给 UI 属 P06.5。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.3"` 查询。
+
+
 ## 2026-11-11 13:05:00 +08:00｜M06 P06.2 通用桌面 helper 完成（electron 97/97）
 
 - 修改或新增内容：新增 `apps/electron/desktop-helper.swift`（M06 桌面操作 helper，泛化 M01 native.swift：version/permissions/displays/windows/screenshot/click/scroll/key/type/activate/launch；顶左原点全局坐标协议；私有 CGEventSource 显式修饰键；SCContentFilter/SCScreenshotManager；权限拦截结构化 JSON exit 3；父进程看门狗）与 `desktop-helper.test.mjs`（6 项：编译冒烟、只读命令、blocked 路径、参数校验、源码规范防探针残留）；prepare-local.mjs 编译 helper 到 Resources/bin 并冒烟校验；packaging.test.mjs 增防退化断言。PLAN.md P06.2 勾选（证据 E117）。

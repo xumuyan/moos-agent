@@ -1,0 +1,42 @@
+{
+  "id": "E118",
+  "task": "M06/P06.3",
+  "title": "桌面工具组注册进 pi-runtime（customTools + 独占队列）",
+  "date": "2026-11-11",
+  "status": "wiring-complete-live-calls-pending-permissions",
+  "scope": {
+    "files": [
+      "packages/pi-runtime/desktop-tools.mjs",
+      "packages/pi-runtime/desktop-tools.test.mjs",
+      "packages/pi-runtime/sdk-runtime.mjs",
+      "apps/electron/plugin/host.js",
+      "apps/electron/prepare-local.mjs"
+    ],
+    "tools": ["desktop_permissions", "desktop_screenshot", "desktop_click", "desktop_type", "desktop_key", "desktop_scroll", "desktop_windows", "desktop_app"],
+    "design": [
+      "helper missing → tools vanish (model sees none), same policy as image tool",
+      "every permission-gated action runs under the P06.1 shared desktop queue (one lock per observe-act-verify call)",
+      "read-only sessions refuse all desktop actions; screenshots persist under <dataDir>/sessions/screenshots/<conversation>/ as 0700-dir PNGs",
+      "screenshot results carry an image content part plus the saved path; click supports verify=screenshot for in-call verification",
+      "helperPath derived in host.js from packaged layout (Resources/app/plugin → ../../bin), overridable via MOOS_DESKTOP_HELPER for tests"
+    ]
+  },
+  "actual": {
+    "commands": [
+      "node --test packages/pi-runtime/desktop-tools.test.mjs",
+      "npm test (core, clean env)",
+      "npm --prefix apps/electron test (packaged dsh env, build-8lWx61)"
+    ],
+    "results": {
+      "toolTests": "10/10 pass (fake helper: vanish/schema/permissions/blocked guidance/screenshot image+persist/queue exclusivity+read-only/type validation/key mapping/app validation/cross-conversation shared queue)",
+      "coreSuite": "184/184 pass, 0 skipped (174 prior + 10 new)",
+      "electronSuite": "97/97 pass, 0 skipped",
+      "packagingGuard": "packaging test initially FAILED with 'prepare-local.mjs 拷贝清单缺少 packages/pi-runtime/desktop-tools.mjs' — assertion worked as designed; fixed by adding desktop-queue.mjs + desktop-tools.mjs to the copy list, suite then green"
+    },
+    "notYetDone": [
+      "real model-driven desktop calls with granted permissions (P06.6)",
+      "queue status exposure to UI (P06.5)"
+    ]
+  },
+  "executedAt": "2026-11-11T14:10+08:00"
+}

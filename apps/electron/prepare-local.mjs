@@ -119,6 +119,7 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
     { cwd: runtime, stdio: 'inherit' });
   for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/image-tool.mjs', 'packages/pi-runtime/tool-policy.mjs', 'packages/pi-runtime/toolchain.mjs',
     'packages/pi-runtime/repair-routing.mjs', 'packages/pi-runtime/session-fork.mjs', 'packages/pi-adapter/index.mjs',
+    'packages/pi-runtime/desktop-queue.mjs', 'packages/pi-runtime/desktop-tools.mjs',
     'services/agent/store.mjs', 'services/agent/scheduler.mjs',
     'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
     'services/agent/provider-diagnostics.mjs',

@@ -1,8 +1,8 @@
 import { mkdir, realpath, writeFile } from 'node:fs/promises';
 import { statSync, unwatchFile, watchFile, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, isAbsolute, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createPiTasks } from './pi-tasks.js';
 import { piModels } from './pi-models.js';
 
@@ -94,6 +94,9 @@ export async function apply(ctx) {
         if (key) backup = { ...options.backup, apiKey: key };
       }
       return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
+        // M06 桌面工具：包内 Resources/bin 的 Swift helper；开发检出不打包时文件不存在，工具自动不挂载。
+        desktop: { helperPath: process.env.MOOS_DESKTOP_HELPER
+          || resolve(dirname(fileURLToPath(import.meta.url)), '../../bin/moos-desktop-helper') },
         // 设置页图片服务配置优先；未配置时 sdk-runtime 回退读 private/image-gen.json（无则不挂载工具）。
         ...(models ? { imageGen: imageGen ?? null } : {}), routing: { backup } });
     },

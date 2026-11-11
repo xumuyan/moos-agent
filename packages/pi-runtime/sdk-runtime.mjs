@@ -11,6 +11,7 @@ import { ALLOWED_TASK_TIMEOUTS, taskTimeout } from '../../services/agent/task-po
 import { normalizeUsage } from '../../services/agent/usage.mjs';
 import { workspaceTools } from './tool-policy.mjs';
 import { createImageTool } from './image-tool.mjs';
+import { createDesktopTools } from './desktop-tools.mjs';
 import { repairRouting } from './repair-routing.mjs';
 import { openPiSession } from './session-fork.mjs';
 
@@ -57,7 +58,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images, imageGen }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images, imageGen, desktop }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   if (images?.length && !provider.imageInput) throw new TaskFailure('model_capability');
@@ -128,9 +129,16 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       // 设置页配置经 host 注入（imageGen），未注入时回退读 <dataDir>/private/image-gen.json。
       const image = await createImageTool({ cwd, dataDir, getMode: permissions ? () => permissions.getMode() : undefined,
         ...(imageGen !== undefined ? { config: imageGen } : {}) });
-      const customTools = image ? [...(base ?? []), image] : base;
-      const toolNames = image
-        ? [...(base ? base.map(tool => tool.name) : defaultToolNames), image.name]
+      // M06 桌面工具：helper 未随包提供（desktop.helperPath 缺失/文件不存在）时返回 []，模型看不到；
+      // 全部动作经全局桌面独占队列跨项目串行（P06.1/P06.3）。
+      const desktopTools = desktop?.helperPath
+        ? createDesktopTools({ helperPath: desktop.helperPath, dataDir, ownerId: `conversation:${conversation?.id ?? task?.id ?? 'anon'}`,
+          getMode: permissions ? () => permissions.getMode() : undefined })
+        : [];
+      const extraTools = [image, ...desktopTools].filter(Boolean);
+      const customTools = extraTools.length ? [...(base ?? []), ...extraTools] : base;
+      const toolNames = extraTools.length
+        ? [...(base ? base.map(tool => tool.name) : defaultToolNames), ...extraTools.map(tool => tool.name)]
         : base ? base.map(tool => tool.name) : defaultToolNames;
       ({ session } = await createAgentSession({
         cwd, agentDir, modelRuntime, model: active.model, thinkingLevel: active.thinkingLevel,
