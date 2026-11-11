@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { Type } from 'typebox';
 import { createDesktopQueue } from './desktop-queue.mjs';
@@ -121,7 +122,9 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
   async function capturePng(args, signal, checkFocus = false) {
     if (!screenshotsDir) throw new Error('截图保存目录不可用（数据目录缺失），无法截屏');
     const stamp = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
-    const target = join(screenshotsDir, `${stamp}-${Math.random().toString(36).slice(2, 8)}.png`);
+    // shotId = 文件名去掉扩展名（14 位时间戳 + 12 位十六进制随机数），聊天桥接按它受控读取。
+    const shotId = `${stamp}-${randomBytes(6).toString('hex')}`;
+    const target = join(screenshotsDir, `${shotId}.png`);
     await mkdir(dirname(target), { recursive: true, mode: 0o700 });
     const focus = checkFocus ? await readFocus(signal) : undefined;
     if (checkFocus) {
@@ -136,7 +139,14 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     }
     if (checkFocus) lastFocus = focus;
     const bytes = await readFile(target);
-    return { payload, target, bytes, focus };
+    // 受限事件：只含截图 ID 与尺寸，不含路径与图像内容；聊天缩略图按 ID 经 IPC 受控读取。
+    try {
+      emit?.('desktop_screenshot', {
+        shotId, scope: payload.scope, imageWidth: payload.imageWidth, imageHeight: payload.imageHeight,
+        size: bytes.length, savedTo: target,
+      });
+    } catch { /* 事件失败不影响动作 */ }
+    return { payload, target, bytes, focus, shotId };
   }
 
   function imagePart(bytes) {
@@ -235,11 +245,11 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
           }
           if (Number.isFinite(input.displayId)) args.push('--display', String(Math.trunc(input.displayId)));
         }
-        const { payload, target, bytes, focus } = await capturePng(args, lockSignal, Boolean(input.transactionId));
-        const text = `截图已保存（${payload.scope}，${payload.imageWidth}x${payload.imageHeight} 像素）：${target}。图片已返回给模型观察，聊天缩略图尚未接入。`;
+        const { payload, target, bytes, focus, shotId } = await capturePng(args, lockSignal, Boolean(input.transactionId));
+        const text = `截图已保存（${payload.scope}，${payload.imageWidth}x${payload.imageHeight} 像素）：${target}。图片已返回给模型观察，缩略图（ID ${shotId}）会在聊天中显示。`;
         return {
           content: [{ type: 'text', text }, imagePart(bytes)],
-          details: { ...payload, savedTo: target, bytes: bytes.length, ...(focus ? { focus } : {}) },
+          details: { ...payload, shotId, savedTo: target, bytes: bytes.length, ...(focus ? { focus } : {}) },
         };
       }, input, false);
       if (input.transactionId) {

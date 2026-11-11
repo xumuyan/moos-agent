@@ -333,8 +333,37 @@ window.__ModuleLoader__.load({
       cancelled: '已停止', interrupted: '已中断' };
     const routeReasons = { repair: '两轮修复后验证仍失败', rate_limit: '模型服务限流', quota: '模型服务额度不足', network: '模型服务连接失败' };
 
-    function PiProcess({ data }) {
-      if (!data || (!data.actions.length && !data.route && !data.desktop)) return null;
+    // 桌面截图缩略图：只拿受限 IPC 返回的 data URL（不含路径），同一 ID 全局只拉取一次。
+    const shotCache = new Map();
+    function DesktopShot({ sessionId, shot }) {
+      const [src, setSrc] = useState(shotCache.get(shot.id));
+      useEffect(() => {
+        let closed = false;
+        (async () => {
+          const cached = shotCache.get(shot.id);
+          if (cached) { setSrc(cached); return; }
+          try {
+            const result = await window.moosShot?.(sessionId, shot.id);
+            if (!closed && result?.dataUrl) {
+              shotCache.set(shot.id, result.dataUrl);
+              setSrc(result.dataUrl);
+            }
+          } catch { /* 读取失败保持占位，不显示路径 */ }
+        })();
+        return () => { closed = true; };
+      }, [sessionId, shot.id]);
+      const title = `桌面截图${shot.width ? ` ${shot.width}×${shot.height ?? '?'}` : ''}`;
+      return createElement('img', {
+        src, alt: title, title, draggable: false, 'data-moos-desktop-shot': shot.id,
+        style: {
+          maxWidth: 160, maxHeight: 96, borderRadius: 6,
+          border: '1px solid color-mix(in srgb, currentColor 14%, transparent)',
+        },
+      });
+    }
+
+    function PiProcess({ data, sessionId }) {
+      if (!data || (!data.actions.length && !data.route && !data.desktop && !data.shots?.length)) return null;
       return createElement('details', { 'data-moos-pi-process': '' },
         createElement('summary', null, '执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]),
         data.route ? createElement('p', { 'data-moos-model-route': '' },
@@ -343,6 +372,8 @@ window.__ModuleLoader__.load({
           data.desktop.phase === 'queued'
             ? `桌面操作排队中（前面 ${data.desktop.queueAhead ?? 0} 个）：${data.desktop.label ?? ''}`
             : `桌面操作执行中：${data.desktop.label ?? ''}`) : null,
+        data.shots?.length ? createElement('div', { 'data-moos-desktop-shots': '' },
+          data.shots.map(shot => createElement(DesktopShot, { key: shot.id, sessionId, shot }))) : null,
         createElement('ul', null, data.actions.map((action, index) =>
           createElement('li', { key: index },
             createElement('span', null, action.label),
@@ -352,7 +383,7 @@ window.__ModuleLoader__.load({
     }
 
     function PiTurnProcess({ sessionId, startSeq, live }) {
-      return createElement(PiProcess, { data: usePiTurn(sessionId, startSeq, live) });
+      return createElement(PiProcess, { data: usePiTurn(sessionId, startSeq, live), sessionId });
     }
 
     function PiRetry({ sessionId, submit }) {
@@ -520,6 +551,7 @@ window.__ModuleLoader__.load({
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
+        [data-moos-desktop-shots] { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
         [data-moos-pi-retry] { display: inline-flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 2px 8px; border-radius: 10px; color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-module-platform); font-size: 12px; }
         [data-moos-pi-retry] button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-module-platform); color: inherit; font: inherit; }
         [data-moos-pi-tasks] { box-sizing: border-box; height: 100%; overflow: auto; padding: 32px clamp(18px, 5vw, 56px); }

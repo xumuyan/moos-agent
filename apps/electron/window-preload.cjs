@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('moosUsage', {
 });
 contextBridge.exposeInMainWorld('moosTurn', (sessionId, startSeq) => ipcRenderer.invoke('moos:pi-turn', sessionId, startSeq));
 contextBridge.exposeInMainWorld('moosActiveTasks', () => ipcRenderer.invoke('moos:pi-active'));
+contextBridge.exposeInMainWorld('moosShot', (sessionId, shotId) => ipcRenderer.invoke('moos:pi-shot', sessionId, shotId));
 contextBridge.exposeInMainWorld('moosModelSettings', {
   list: () => ipcRenderer.invoke('moos:models:list'),
   save: input => ipcRenderer.invoke('moos:models:save', input),

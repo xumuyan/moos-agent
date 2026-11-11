@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { Store } from '../../services/agent/store.mjs';
 import { timelinePayload } from '../../services/agent/timeline-view.mjs';
@@ -68,6 +68,86 @@ test('PI turn summaries keep verified actions and workspace paths while excludin
 
   store.createTask({ conversationId: conversation.id, message: 'newer task' });
   assert.equal(reader.read('session-one', 'retry'), null);
+});
+
+test('desktop screenshots expose only ids to the read model and are read back through the restricted bridge', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-shot-')));
+  const dbPath = join(root, 'test.sqlite');
+  const store = new Store({ dbPath });
+  const shotsRoot = join(root, 'sessions', 'screenshots');
+  const reader = createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot: shotsRoot });
+  t.after(async () => {
+    reader.close();
+    store.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const project = await store.addProject(root);
+  const conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'private input' });
+  store.setSetting('dsh-session:session-one', conversation.id);
+  store.setSetting('dsh-turn:session-one:12', task.id);
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
+  const shotId = '20261112100000-abcdef123456';
+  const shotDir = join(shotsRoot, 'conversation_' + conversation.id);
+  const shotPath = join(shotDir, shotId + '.png');
+  await mkdir(shotDir, { recursive: true });
+  await writeFile(shotPath, png);
+  store.appendEvent(task.id, 'desktop_screenshot', {
+    shotId, scope: 'display', imageWidth: 64, imageHeight: 32, size: png.length, savedTo: shotPath });
+  store.appendEvent(task.id, 'desktop_screenshot', { shotId: 'garbage-id', savedTo: '/etc/passwd' });
+
+  // 读取模型只暴露 ID 与尺寸；路径与图像内容绝不进入读取模型。
+  const live = reader.read('session-one', null);
+  assert.deepEqual(live.shots, [{ id: shotId, width: 64, height: 32 }]);
+  assert.doesNotMatch(JSON.stringify(live), /savedTo|screenshots|\.png/);
+
+  // 受限读取：归属会话 + 事件登记的 ID 才能取到 PNG 字节。
+  const shot = reader.shot('session-one', shotId);
+  assert.deepEqual({ id: shot.id, mime: shot.mime }, { id: shotId, mime: 'image/png' });
+  assert.deepEqual(shot.data, png);
+
+  // 拒绝：非法 ID、未知会话、未登记 ID、越界路径。
+  assert.equal(reader.shot('session-one', 'garbage-id'), null);
+  assert.equal(reader.shot('unknown-session', shotId), null);
+  assert.equal(reader.shot('session-one', '20261112100000-000000000000'), null);
+  assert.equal(reader.shot('session-one', shotId + ' '), null);
+  const forged = join(root, 'forged.png');
+  await writeFile(forged, png);
+  store.appendEvent(task.id, 'desktop_screenshot', {
+    shotId: '20261112100001-abcdef123456', scope: 'display', imageWidth: 1, imageHeight: 1,
+    size: png.length, savedTo: forged });
+  assert.equal(reader.shot('session-one', '20261112100001-abcdef123456'), null, 'files outside the screenshots root are refused');
+
+  // 符号链接逃逸：登记名在根内但 realpath 落到根外，拒绝。
+  const escape = join(root, 'escape.png');
+  await writeFile(escape, png);
+  const linkPath = join(shotDir, '20261112100002-abcdef123456.png');
+  await symlink(escape, linkPath);
+  store.appendEvent(task.id, 'desktop_screenshot', {
+    shotId: '20261112100002-abcdef123456', scope: 'display', imageWidth: 1, imageHeight: 1,
+    size: png.length, savedTo: linkPath });
+  assert.equal(reader.shot('session-one', '20261112100002-abcdef123456'), null, 'symlink escape is refused');
+
+  // 非 PNG 字节与超大小上限拒绝。
+  const textPath = join(shotDir, '20261112100003-abcdef123456.png');
+  await writeFile(textPath, 'not a png');
+  store.appendEvent(task.id, 'desktop_screenshot', {
+    shotId: '20261112100003-abcdef123456', scope: 'display', imageWidth: 1, imageHeight: 1,
+    size: 9, savedTo: textPath });
+  assert.equal(reader.shot('session-one', '20261112100003-abcdef123456'), null, 'non-png bytes are refused');
+  const capped = createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot: shotsRoot, maxShotBytes: 4 });
+  try { assert.equal(capped.shot('session-one', shotId), null, 'oversized files are refused'); } finally { capped.close(); }
+
+  // 其他会话拿不到这个截图（跨会话隔离）。
+  const other = store.createConversation(project.id);
+  const otherTask = store.createTask({ conversationId: other.id, message: 'private input' });
+  store.setSetting('dsh-session:session-two', other.id);
+  store.setSetting('dsh-turn:session-two:12', otherTask.id);
+  assert.equal(reader.shot('session-two', shotId), null);
+
+  // 默认根目录缺失时拒绝（fail-closed），且读取模型不受影响。
+  const plain = createPiTurnReader(dbPath, timelinePayload);
+  try { assert.equal(plain.shot('session-one', shotId), null); } finally { plain.close(); }
 });
 
 test('the workspace summary detects command changes without including pre-existing dirty files or changing the index', async t => {

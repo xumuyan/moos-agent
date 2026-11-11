@@ -8,6 +8,56 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class M06ShotBridgeTests(unittest.TestCase):
+    """E123：P06.5a 截图聊天可见受限桥（路径不进读取模型/DOM/IPC 响应）。"""
+
+    def test_m06_shot_bridge_keeps_thumbnail_path_free_and_installation_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-shot-bridge.json').read_text())
+        self.assertEqual(e['id'], 'E123')
+        self.assertEqual(e['status'], 'candidate-verified')
+        impl = e['implementation']
+        for key in ['screenshotEventNoImageBytes', 'noPathInReadModel', 'noPathInIpcResponse',
+                    'ipcBehindVerifyWorkbench']:
+            self.assertTrue(impl[key], key)
+        self.assertEqual(impl['readModelShotFieldsOnly'], ['height', 'id', 'width'])
+        self.assertIn('realpath 必须位于会话截图根目录内', impl['restrictedShotReaderChecks'])
+        self.assertIn('PNG 魔数 89504e470d0a1a0a', impl['restrictedShotReaderChecks'])
+        self.assertIn('MOOS_FIXTURE_SHOT', impl['fixtureScenario'])
+        self.assertFalse(impl['businessGoalAutomaticallyVerified'])
+        package = e['package']
+        self.assertEqual(package['version'], '0.1.44')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertTrue(package['strictDeepSignatureVerified'])
+        self.assertFalse(package['includesPiFixture'])
+        self.assertFalse(package['nativeInputOrScreenCaptureExecuted'])
+        self.assertRegex(package['helperSha256'], r'^[0-9a-f]{64}$')
+        self.assertTrue(package['clientEmbedded'])
+        for check in e['checks'].values():
+            self.assertEqual((check['failed'], check['exit'], check['skipped']), (0, 0, 0))
+        gui = e['gui']
+        self.assertTrue(gui['isolatedData'])
+        self.assertTrue(gui['syntheticHelperOnly'])
+        self.assertTrue(gui['noRealScreenCapture'])
+        self.assertTrue(gui['report']['thumbnailRendered'])
+        self.assertEqual(gui['report']['thumbnailNatural'], {'width': 768, 'height': 384})
+        self.assertTrue(gui['report']['noPathInText'])
+        self.assertTrue(gui['report']['noPathInDom'])
+        self.assertEqual(gui['exit'], {'code': 0, 'signal': None, 'method': 'Page.close'})
+        for key, value in e['limits'].items():
+            if key != 'notes':
+                self.assertFalse(value, key)
+        for key in ['installed', 'productionAppExitedOrReplaced', 'productionUserDataModifiedForTests', 'migration']:
+            self.assertFalse(e['deployment'][key], key)
+        self.assertEqual(e['deployment']['productionVersion'], '0.1.41')
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('- [x] P06.5a', plan)
+        self.assertIn('证据：E123', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        self.assertIn('| E123 |', plan)
+        self.assertIn('MOOS_FIXTURE_SHOT', plan)
+
+
 class RepositoryDocsTests(unittest.TestCase):
     def test_requested_wechat_plugin_plan_keeps_unknown_source_and_acceptance_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text()
@@ -79,7 +129,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['deployment']['productionVersion'], '0.1.41')
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('| E122 |', plan)
-        for pending in ['P06.3a', 'P06.5a', 'P06.6']:
+        for pending in ['P06.3a', 'P06.6']:
             self.assertIn('- [ ] ' + pending, plan)
 
     def test_m06_candidate_separates_packaged_readonly_acceptance_from_desktop_completion(self):
@@ -115,7 +165,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertFalse(evidence['deployment']['productionAppExitedOrReplaced'])
         self.assertFalse(evidence['deployment']['productionUserDataModifiedForTests'])
         plan = (ROOT / 'PLAN.md').read_text()
-        for pending in ['P06.3a', 'P06.5a', 'P06.6']:
+        for pending in ['P06.3a', 'P06.6']:
             self.assertIn('- [ ] ' + pending, plan)
         self.assertIn('| E121 |', plan)
         self.assertIn('跨调用', plan)

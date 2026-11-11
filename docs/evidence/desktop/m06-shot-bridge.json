@@ -1,0 +1,113 @@
+{
+  "id": "E123",
+  "status": "candidate-verified",
+  "task": "P06.5a 截图 UI 桥接",
+  "recordedAt": "2026-11-11T19:26:06+08:00",
+  "environment": {
+    "system": "macOS 27.0.1 (Build 26A434)",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "baseCommit": "22880e5afcef58bb2864c08631f87a57859ad997"
+  },
+  "implementation": {
+    "shotIdContract": "14位时间戳-12位hex，randomBytes 生成，每次截图唯一",
+    "screenshotFileLayout": "<dataDir>/sessions/screenshots/<conversation>/<shotId>.png（目录 0o700）",
+    "screenshotEventPayloadFields": ["imageHeight", "imageWidth", "savedTo", "scope", "shotId", "size"],
+    "screenshotEventNoImageBytes": true,
+    "readModelShotFieldsOnly": ["height", "id", "width"],
+    "readModelShotDimensionCap": 20000,
+    "shotEventsPerTurnCap": 12,
+    "shotEventSearchLimit": 96,
+    "restrictedShotReaderChecks": [
+      "sessionId 模式校验", "dsh-session 归属核对", "已登记 desktop_screenshot 事件查找",
+      "savedTo 以 shotId.png 结尾", "realpath 必须位于会话截图根目录内",
+      "大小 8 字节…25MiB 上限（读取后复核防 TOCTOU）", "PNG 魔数 89504e470d0a1a0a"
+    ],
+    "restrictedShotReaderFailClosed": "任一步失败返回 null，不抛错不泄漏",
+    "ipcChannel": "moos:pi-shot（主进程 nativeImage 缩放宽 768，仅回 { id, dataUrl }）",
+    "preloadBridge": "window.moosShot",
+    "ipcBehindVerifyWorkbench": true,
+    "clientComponent": "DesktopShot：data-moos-desktop-shots 行内缩略图，img maxWidth 160/maxHeight 96，按 shotId 全局缓存每 ID 只取一次",
+    "noPathInReadModel": true,
+    "noPathInIpcResponse": true,
+    "fixtureScenario": "MOOS_FIXTURE_SHOT（services/agent/fixture.mjs，合成 helper v2 协议，非真实录屏）",
+    "versions": { "shell": "0.1.44", "helperProtocol": "2" },
+    "businessGoalAutomaticallyVerified": false
+  },
+  "package": {
+    "build": ".generated/moos-electron/build-1B2p13/沐码.app",
+    "version": "0.1.44",
+    "bundleId": "dev.moos.agent.electron",
+    "strictDeepSignatureVerified": true,
+    "includesPiFixture": false,
+    "helperSha256": "759658664413f7cdcc91712be1392436e58f1699cb97c2bbe565a31e72ab61c8",
+    "helperSourceSha256": "0f1e9b1a1b1a7443254eb2dd9630c6cc6b0743afe9790a2e08bd1370ce1b225a",
+    "sourceMatches": [
+      "apps/electron/main.mjs",
+      "apps/electron/pi-turn.mjs",
+      "apps/electron/window-preload.cjs",
+      "apps/electron/plugin/host.js",
+      "apps/electron/plugin/package.json",
+      "packages/pi-runtime/desktop-queue.mjs",
+      "packages/pi-runtime/desktop-tools.mjs",
+      "packages/pi-runtime/desktop-transaction.mjs",
+      "packages/pi-runtime/sdk-runtime.mjs"
+    ],
+    "clientEmbedded": true,
+    "blockedFocus": { "mode": "focus", "exit": 3, "permission": "accessibility" },
+    "nonPostingFocusPlans": true,
+    "permissionsSnapshot": { "accessibilityGranted": false, "screenCaptureGranted": false, "activeDisplays": 2 },
+    "nativeInputOrScreenCaptureExecuted": false,
+    "logicalFileBytesExcludingSymlinks": 616328430,
+    "allocatedKiB": 691592,
+    "verifyScript": "artifacts/desktop-shot-bridge/verify-package.py → final/package-acceptance.json"
+  },
+  "checks": {
+    "core": { "command": "npm test", "passed": 207, "failed": 0, "skipped": 0, "exit": 0 },
+    "electron": { "command": "npm run test:electron（DSH CLI 指向 build-1B2p13 包内）", "passed": 106, "failed": 0, "skipped": 0, "exit": 0 },
+    "native": { "command": "npm run test:desktop-native", "passed": 11, "failed": 0, "skipped": 0, "exit": 0 },
+    "bridge": { "command": "node --test probes/dsh-electron-pi/index.test.mjs", "passed": 5, "failed": 0, "skipped": 0, "exit": 0 },
+    "skin": { "command": "python3 -m unittest discover -s probes/dsh-electron-skin -v", "passed": 4, "failed": 0, "skipped": 0, "exit": 0 },
+    "gui": { "command": "node artifacts/desktop-shot-bridge/gui.mjs build-1B2p13 artifacts/desktop-shot-bridge/final/gui", "passed": 12, "failed": 0, "skipped": 0, "exit": 0 },
+    "docs": { "command": "python3 -m unittest discover -s tests -v", "passed": 97, "failed": 0, "skipped": 0, "exit": 0 }
+  },
+  "gui": {
+    "isolatedData": true,
+    "syntheticHelperOnly": true,
+    "noRealScreenCapture": true,
+    "scenario": "隔离 GUI + 本地 fixture 模型调用 desktop_screenshot（合成 helper 写入 96×48 PNG）",
+    "report": {
+      "shell": "0.1.44",
+      "thumbnailRendered": true,
+      "shotId": "20261111111620-65cddd4d2ca6",
+      "thumbnailNatural": { "width": 768, "height": 384 },
+      "summaryText": "执行过程 · 1 项操作 · 已完成",
+      "shotRowsInDom": 1,
+      "noPathInText": true,
+      "noPathInDom": true,
+      "turnCompleted": true
+    },
+    "exit": { "code": 0, "signal": null, "method": "Page.close" },
+    "artifacts": "artifacts/desktop-shot-bridge/final/gui/recovery-ULcFkG/{report.json,exit.json,shot-bridge.png,app-stderr.log}"
+  },
+  "firstRunCorrections": [
+    "首轮回归 electron 105/106：window-preload.test.mjs 断言未包含新增 moosShot 桥，属预期契约变更，更新断言后通过",
+    "首轮回归 native 失败：validate.sh PATH 漏 ~/.cargo/bin 致 cargo 未找到，补 PATH 后 11/11 通过",
+    "GUI 脚本首轮按旧二进制名 Moos/Moos.app 启动 ENOENT：0.1.44 实际 CFBundleExecutable=MuMa，改用实际名称后通过"
+  ],
+  "limits": {
+    "realPermissionCaptureExecuted": false,
+    "installedAppVerified": false,
+    "onlineModelExecuted": false,
+    "retinaMultiDisplayCaptureVerified": false,
+    "productionTouched": false,
+    "notes": "GUI 验收用合成 helper 写入的固定 PNG，不执行真实屏幕捕获；真实权限下的截图缩略图、正式安装版显示效果与多屏捕获仍待 P06.6 授权后验收。"
+  },
+  "deployment": {
+    "installed": false,
+    "productionVersion": "0.1.41",
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "migration": false
+  }
+}

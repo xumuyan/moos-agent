@@ -152,8 +152,9 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       const table = /\bMOOS_FIXTURE_TABLE\b/.test(text);
       const envProbe = /\bMOOS_FIXTURE_ENV\b/.test(text);
       const many = /\bMOOS_FIXTURE_MANY\b/.test(text);
+      const shot = /\bMOOS_FIXTURE_SHOT\b/.test(text);
       if (match && !/^[A-Za-z0-9_]+$/.test(match[1])) return reply(res, 400, 'Invalid fixture marker');
-      if ([Boolean(match), hold, allTools, policy, approval, image, table, envProbe, many].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
+      if ([Boolean(match), hold, allTools, policy, approval, image, table, envProbe, many, shot].filter(Boolean).length !== 1 || (text.includes('MOOS_FIXTURE_WRITE') && !match)) {
         return reply(res, 400, 'Expected one fixture scenario');
       }
       const marker = match?.[1];
@@ -174,6 +175,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       if (image) sequence = ['generate_image'];
       if (envProbe) sequence = ['bash'];
       if (many) sequence = ['bash'];
+      if (shot) sequence = ['desktop_screenshot'];
       if (allTools) sequence = desktopPolicy ? ['write', 'read', 'edit', 'ls', 'bash']
         : ['write', 'read', 'edit', 'grep', 'find', 'ls', 'bash'];
       if (approval) sequence = ['bash_escalated'];
@@ -203,7 +205,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
           const written = (resultText.match(/many-\d+\.txt/g) ?? []).length;
           return stream(res, { content: `完成 MANY ${written}` }, 'stop');
         }
-        const result = hold ? 'HOLD' : allTools ? 'TOOLS' : policy ? 'POLICY' : approval ? 'APPROVAL' : marker;
+        const result = hold ? 'HOLD' : allTools ? 'TOOLS' : policy ? 'POLICY' : approval ? 'APPROVAL' : shot ? 'SHOT' : marker;
         return stream(res, { content: `完成 ${result}` }, 'stop');
       }
       if (policy) {
@@ -213,6 +215,7 @@ export async function startFixture({ longDelayMs = 605000, desktopPolicy = false
       if (approval) return tool(res, 'bash_escalated', { command: "printf 'approved\\n' > ../moos-policy-approved.txt" }, turn);
       if (envProbe) return tool(res, 'bash', { command: 'printf "HOME=%s" "$HOME"' }, turn);
       if (many) return tool(res, 'bash', { command: 'i=1; while [ "$i" -le 12 ]; do printf "many %s\\n" "$i" > "many-$i.txt"; echo "many-$i.txt written"; i=$((i+1)); done', timeout: 10 }, turn);
+      if (shot) return tool(res, 'desktop_screenshot', { scope: 'display' }, turn);
       if (image) return tool(res, 'generate_image', { prompt: 'MOOS acceptance marker image', size: '1024x1024', quality: 'high' }, turn);
       if (hold) {
         if (desktopPolicy) return tool(res, 'bash', { command: 'printf "%s" "$$" > fixture-hold.pid && exec /bin/sleep 25', timeout: 30 }, turn);

@@ -190,7 +190,9 @@ process.exit(2);
   });
   const screenshot = tools.find(t => t.name === 'desktop_screenshot');
   await screenshot.execute('t1', { scope: 'display' }, undefined);
-  const phases = events.map(([, e]) => e.phase);
+  // 相位断言只看 desktop_action；观察截图同时发出一条 desktop_screenshot 事件（无 phase）。
+  assert.equal(events.filter(([type]) => type === 'desktop_screenshot').length, 1);
+  const phases = events.filter(([, e]) => Object.hasOwn(e, 'phase')).map(([, e]) => e.phase);
   assert.deepEqual(phases, ['running', 'done']);
   // 失败路径：点击坐标非法在锁外拒绝，不产生 running。
   events.length = 0;
@@ -203,6 +205,56 @@ process.exit(2);
     getMode: () => 'danger-full-access', emit: () => { throw new Error('emit broken'); },
   });
   await noisy.find(t => t.name === 'desktop_permissions').execute('t1', {}, undefined);
+});
+
+test('desktop_screenshot emits a path-free desktop_screenshot event and returns a stable shot id', async () => {
+  const events = [];
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
+const mode = process.argv[2];
+const out = (v) => { process.stdout.write(JSON.stringify(v)); process.exit(0); };
+if (mode === 'permissions') out({ screenCaptureGranted: true, accessibilityGranted: true, activeDisplays: 2, helperVersion: '2' });
+if (mode === 'screenshot') {
+  writeFileSync(process.argv[process.argv.indexOf('--out') + 1], Buffer.from('89504e470d0a1a0a', 'hex'));
+  out({ status: 'ok', scope: 'display', imageWidth: 6, imageHeight: 7 });
+}
+process.exit(2);
+`);
+  const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-shot-'));
+  const tools = createDesktopTools({
+    helperPath: helper, dataDir, ownerId: 'conversation:shot', getMode: () => 'danger-full-access',
+    emit: (type, payload) => events.push([type, payload]),
+  });
+  const screenshot = tools.find(t => t.name === 'desktop_screenshot');
+  const first = await screenshot.execute('t1', { scope: 'display' }, undefined);
+  assert.match(first.content[0].text, /缩略图（ID \d{14}-[0-9a-f]{12}）/);
+  assert.equal(first.details.shotId, first.content[0].text.match(/ID (\d{14}-[0-9a-f]{12})/)[1]);
+  const second = await screenshot.execute('t1', { scope: 'display' }, undefined);
+  assert.notEqual(second.details.shotId, first.details.shotId, 'every capture gets a unique id');
+  const shots = events.filter(([type]) => type === 'desktop_screenshot').map(([, e]) => e);
+  assert.deepEqual(shots.map(e => e.shotId), [first.details.shotId, second.details.shotId]);
+  for (const shot of shots) {
+    assert.deepEqual(Object.keys(shot).sort(), ['imageHeight', 'imageWidth', 'savedTo', 'scope', 'shotId', 'size']);
+    assert.equal(shot.scope, 'display');
+    assert.equal(shot.imageWidth, 6);
+    assert.equal(shot.imageHeight, 7);
+    assert.match(shot.savedTo, new RegExp(shot.shotId + '\\b'));
+    assert.ok(shot.size >= 8);
+  }
+  // 事件不含图像内容（base64）或 PNG 字节。
+  assert.equal(JSON.stringify(shots).includes(first.content[1].data), false);
+  // helper 写盘失败时事件也不应发出。
+  const failing = await fakeHelper(`#!/usr/bin/env node
+if (process.argv[2] === 'screenshot') { process.exit(1); }
+process.stdout.write(JSON.stringify({ status: 'failed' }));
+`);
+  const broken = createDesktopTools({
+    helperPath: failing, dataDir, ownerId: 'conversation:shot-fail', getMode: () => 'danger-full-access',
+    emit: (type, payload) => events.push([type, payload]),
+  });
+  const countBefore = events.filter(([type]) => type === 'desktop_screenshot').length;
+  await assert.rejects(broken.find(t => t.name === 'desktop_screenshot').execute('t1', { scope: 'display' }, undefined));
+  assert.equal(events.filter(([type]) => type === 'desktop_screenshot').length, countBefore);
 });
 
 test('queued cancellation and timeout emit one terminal event without running', async () => {
@@ -325,7 +377,9 @@ process.exit(2);
   assert.equal(queue.status().locked, false);
   assert.equal(await readFile(actions, 'utf8').catch(() => ''), '');
   await assert.rejects(input.execute('retry', { ...ids, text: 'must-not-run' }), /事务/);
-  assert.deepEqual(events.map(e => e.phase), ['running', 'failed']);
+  // 观察截图也会发出 desktop_screenshot 事件（无 phase 字段），相位断言只看 desktop_action。
+  assert.deepEqual(events.filter(e => Object.hasOwn(e, 'phase')).map(e => e.phase), ['running', 'failed']);
+  assert.equal(events.filter(e => !Object.hasOwn(e, 'phase')).length, 1, 'observation emits exactly one desktop_screenshot event');
   assert.ok(!JSON.stringify(events).includes('private-fixture'));
   // Even a new observation or explicit activate in a live lease must not silently accept user focus theft.
   for (const name of ['desktop_screenshot', 'desktop_app', 'desktop_end']) {
@@ -375,7 +429,8 @@ setInterval(() => {}, 1000);
   assert.ok(pid);
   const next = queue.withLock({ owner: 'b' }, async () => assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }));
   task.abort(); await rejected; await next;
-  assert.deepEqual(events.map(e => e.phase), ['running', 'cancelled']);
+  assert.deepEqual(events.filter(e => Object.hasOwn(e, 'phase')).map(e => e.phase), ['running', 'cancelled']);
+  assert.equal(events.filter(e => !Object.hasOwn(e, 'phase')).length, 1, 'observation emits exactly one desktop_screenshot event');
   assert.equal(queue.status().locked, false);
 });
 

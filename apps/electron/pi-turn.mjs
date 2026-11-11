@@ -1,6 +1,7 @@
 import { isWorkspaceChangeVisible } from './plugin/pi-workspace-changes.js';
 import { DatabaseSync } from 'node:sqlite';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, dirname, relative, resolve, sep } from 'node:path';
+import { readFileSync, realpathSync, statSync } from 'node:fs';
 
 const labels = {
   read: '读取文件', write: '写入文件', edit: '局部修改', bash: '运行命令',
@@ -19,7 +20,10 @@ function workspacePath(cwd, path) {
   return name || '.';
 }
 
-export function createPiTurnReader(dbPath, timelinePayload) {
+export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, maxShotBytes = 25 * 1024 * 1024, shotLimit = 12 } = {}) {
+  // 截图默认位于应用数据目录 sessions/screenshots 下；root 不存在或越界一律拒绝读取。
+  const shotsRoot = screenshotsRoot ?? join(dirname(dbPath), 'sessions', 'screenshots');
+  const shotPattern = /^\d{14}-[0-9a-f]{12}$/;
   let db;
   return {
     active() {
@@ -110,6 +114,18 @@ export function createPiTurnReader(dbPath, timelinePayload) {
         SELECT payload FROM events WHERE taskId = ? AND type = 'workspace_changes' ORDER BY id DESC LIMIT 1
       `).get(task.id);
       const changes = snapshot ? JSON.parse(snapshot.payload) : undefined;
+      // 桌面截图列表：只含截图 ID 与尺寸，不含路径/图像内容；聊天缩略图按 ID 经受限 IPC 另取。
+      const shotEvents = db.prepare(`
+        SELECT payload FROM events WHERE taskId = ? AND type = 'desktop_screenshot' ORDER BY id DESC LIMIT ?
+      `).all(task.id, shotLimit);
+      const shots = shotEvents.flatMap(event => {
+        let payload;
+        try { payload = JSON.parse(event.payload); } catch { return []; }
+        if (typeof payload?.shotId !== 'string' || !shotPattern.test(payload.shotId)) return [];
+        const width = Number.isSafeInteger(payload.imageWidth) && payload.imageWidth > 0 && payload.imageWidth <= 20000 ? payload.imageWidth : undefined;
+        const height = Number.isSafeInteger(payload.imageHeight) && payload.imageHeight > 0 && payload.imageHeight <= 20000 ? payload.imageHeight : undefined;
+        return [{ id: payload.shotId, width, height }];
+      }).reverse();
       const route = db.prepare(`
         SELECT json_extract(payload, '$.from') AS previous, json_extract(payload, '$.to') AS current,
           json_extract(payload, '$.reason') AS reason
@@ -128,9 +144,48 @@ export function createPiTurnReader(dbPath, timelinePayload) {
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([
         ...[...files].map(([path, operations]) => [path, [...operations].join('、')]), ...confirmed,
       ]);
-      return { status: task.status, actions: [...actions.values()], route, desktop, limited: events.length > 400,
+      return { status: task.status, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
         files: [...mergedFiles].filter(([path]) => isWorkspaceChangeVisible(path)).map(([path, summary]) => ({ path, summary })) };
+    },
+    // 受限截图读取：先验证会话归属，再在事件记录的 savedTo 中找该 ID，
+    // realpath 归一到默认截图根目录内、大小与 PNG 魔数校验后才返回字节；任何一步失败返回 null。
+    shot(sessionId, shotId) {
+      if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)) return null;
+      if (typeof shotId !== 'string' || !shotPattern.test(shotId)) return null;
+      const conversation = db?.prepare('SELECT value FROM settings WHERE key = ?').get('dsh-session:' + sessionId);
+      if (!conversation?.value) return null;
+      const rows = db.prepare(`
+        SELECT payload FROM events WHERE type = 'desktop_screenshot'
+          AND taskId IN (SELECT id FROM tasks WHERE conversationId = ?)
+        ORDER BY id DESC LIMIT 96
+      `).all(conversation.value);
+      let claimed;
+      for (const row of rows) {
+        let payload;
+        try { payload = JSON.parse(row.payload); } catch { continue; }
+        if (typeof payload?.shotId === 'string' && payload.shotId === shotId
+          && typeof payload.savedTo === 'string' && payload.savedTo.endsWith(shotId + '.png')) {
+          claimed = payload.savedTo;
+          break;
+        }
+      }
+      if (!claimed || !isAbsolute(claimed)) return null;
+      let real;
+      let size = 0;
+      try {
+        real = realpathSync(claimed);
+        const rel = relative(realpathSync(shotsRoot), real);
+        if (rel === '' || rel.startsWith('..' + sep) || isAbsolute(rel)) return null;
+        size = statSync(real).size;
+        if (!Number.isSafeInteger(size) || size < 8 || size > maxShotBytes) return null;
+      } catch {
+        return null;
+      }
+      const bytes = readFileSync(real);
+      if (bytes.length !== size
+        || !bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return null;
+      return { id: shotId, mime: 'image/png', data: bytes };
     },
     close() {
       db?.close();

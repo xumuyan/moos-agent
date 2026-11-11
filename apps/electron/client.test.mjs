@@ -3,6 +3,125 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
+async function loadClient(overrides = {}) {
+  const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
+  let entry;
+  const effects = [];
+  const stateStore = new Map();
+  let stateIndex = 0;
+  const document = {
+    documentElement: { dataset: { moosWindow: 'darwin' } },
+    title: 'DeepSeek Harness',
+    createElement: () => ({ remove() {} }),
+    querySelector: () => ({}),
+    head: { append() {} },
+  };
+  runInNewContext(source, {
+    document,
+    clearTimeout,
+    MutationObserver: class {
+      observe() {}
+      disconnect() {}
+    },
+    window: {
+      __ModuleLoader__: { load(value) { entry = value; } },
+      ...overrides,
+    },
+  });
+  const plugin = entry.factory(() => ({
+    createElement: (element, props, ...children) => ({ element, props, children }),
+    useState: init => {
+      const key = stateIndex++;
+      if (!stateStore.has(key)) stateStore.set(key, typeof init === 'function' ? init() : init);
+      return [stateStore.get(key), value => stateStore.set(key, value)];
+    },
+    useEffect: (callback, dependencies) => effects.push({ callback, dependencies }),
+    useRef: () => ({ current: undefined }),
+  }));
+  const renderers = new Map();
+  plugin.apply({
+    locale: { bind: () => key => key },
+    slots: {
+      inject(_slot, register) { register(); },
+      register({ name, id }, component) { renderers.set(id ?? name, component); },
+    },
+    on() {},
+  });
+  const render = (...args) => {
+    stateIndex = 0; // 每次渲染重置 hook 序号，状态值沿用上一轮（与 React 行为一致）。
+    let element = renderers.get('moos-pi-process')(...args);
+    element = element.element(element.props);
+    // 递归渲染函数组件子节点（React 渲染语义）。
+    const walk = node => {
+      if (!node || typeof node !== 'object') return node;
+      if (Array.isArray(node)) return node.map(walk);
+      if (typeof node.element === 'function') return walk(node.element(node.props));
+      if (Array.isArray(node.children)) node.children = node.children.map(walk);
+      return node;
+    };
+    return walk(element);
+  };
+  return { render, effects, source };
+}
+
+async function flush() {
+  for (let i = 0; i < 5; i++) await new Promise(resolve => setTimeout(resolve, 0));
+}
+
+test('desktop screenshots render restricted thumbnails through the cached IPC bridge', async () => {
+  const shots = { 'shot-loaded': 'data:image/png;base64,AAAA' };
+  const shotCalls = [];
+  const harness = await loadClient({
+    moosTurn: async () => ({
+      status: 'succeeded', actions: [], shots: [
+        { id: 'shot-loaded', width: 64, height: 32 }, { id: 'shot-missing', width: 100, height: 50 }],
+    }),
+    moosShot: async (...args) => { shotCalls.push(args); return shots[args[1]] ? { id: args[1], dataUrl: shots[args[1]] } : null; },
+  });
+
+  // 首轮渲染 + 执行 effect：usePiTurn 拉到 shots 数据，缩略图开始拉取。
+  let tree = harness.render({ sessionId: 'session-a', startSeq: 1, live: false });
+  for (const effect of harness.effects.splice(0)) effect.callback();
+  await flush();
+  // 重新渲染（状态已更新）：shot-loaded 拿到 data URL，shot-missing 保持占位。
+  tree = harness.render({ sessionId: 'session-a', startSeq: 1, live: false });
+  for (const effect of harness.effects.splice(0)) effect.callback();
+  await flush();
+  // 第三轮渲染：moosShot 结果已写入状态/缓存。
+  tree = harness.render({ sessionId: 'session-a', startSeq: 1, live: false });
+  assert.equal(tree.element, 'details');
+  const shotRow = tree.children.find(child => child?.props && 'data-moos-desktop-shots' in child.props);
+  assert.ok(shotRow, 'desktop shots row renders');
+  const [loaded, missing] = shotRow.children[0]; // 递归渲染已展开函数组件。
+  const loadedImg = loaded;
+  const missingImg = missing;
+  assert.equal(loadedImg.element, 'img');
+  assert.equal(loadedImg.props['data-moos-desktop-shot'], 'shot-loaded');
+  assert.equal(loadedImg.props.src, 'data:image/png;base64,AAAA');
+  assert.equal(loadedImg.props.title, '桌面截图 64×32');
+  assert.equal(missingImg.props['data-moos-desktop-shot'], 'shot-missing');
+  assert.equal(missingImg.props.src, undefined, 'failed reads keep the placeholder without leaking paths');
+  assert.equal(JSON.stringify(tree).includes('screenshots'), false, 'no path or raw tool output enters the UI tree');
+
+  // 同一截图 ID 只拉取一次（全局缓存）。
+  tree = harness.render({ sessionId: 'session-a', startSeq: 1, live: false });
+  await flush();
+  assert.deepEqual(shotCalls, [
+    ['session-a', 'shot-loaded'], ['session-a', 'shot-missing'],
+  ], 'each shot id is fetched exactly once');
+  const cachedTree = harness.render({ sessionId: 'session-a', startSeq: 1, live: false });
+  const cachedImg = cachedTree.children.find(child => child?.props && 'data-moos-desktop-shots' in child.props).children[0][0];
+  assert.equal(cachedImg.props.src, 'data:image/png;base64,AAAA');
+
+  // 只有一条空 shots 列表时不渲染卡片。
+  const empty = await loadClient({ moosTurn: async () => ({ status: 'succeeded', actions: [], shots: [] }) });
+  const emptyTree = empty.render({ sessionId: 'session-b', startSeq: 2, live: false });
+  for (const effect of empty.effects.splice(0)) effect.callback();
+  await flush();
+  assert.equal(empty.render({ sessionId: 'session-b', startSeq: 2, live: false }), null);
+  assert.equal(emptyTree, null);
+});
+
 test('the DSH client extension registers the MuMa brand and model services in the original settings section', async () => {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;

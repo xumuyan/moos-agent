@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, session, shell } from 'electron';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -104,6 +104,19 @@ async function launch() {
     verifyWorkbench(event);
     return turns.active();
   });
+  // 受限截图缩略图：按会话归属 + 截图 ID 经 turns.shot() 读取 PNG 字节，
+  // 主进程用 nativeImage 等比压缩到宽 768 后转 data URL；只回缩略图，不回路径或原始字节。
+  ipcMain.handle('moos:pi-shot', (event, sessionId, shotId) => {
+    verifyWorkbench(event);
+    const shot = turns.shot(sessionId, shotId);
+    if (!shot) return null;
+    const image = nativeImage.createFromBuffer(shot.data);
+    if (image.isEmpty()) return null;
+    const thumbnail = image.resize({ width: 768 });
+    const target = !thumbnail.isEmpty() ? thumbnail : image;
+    if (target.isEmpty()) return null;
+    return { id: shot.id, dataUrl: 'data:image/png;base64,' + target.toPNG().toString('base64') };
+  });
   const modelHandlers = {
     'moos:models:list': () => models.groups(),
     'moos:models:save': input => models.saveGroup(input),
@@ -126,6 +139,7 @@ async function launch() {
     ipcMain.removeHandler('moos:pi-usage');
     ipcMain.removeHandler('moos:pi-turn');
     ipcMain.removeHandler('moos:pi-active');
+    ipcMain.removeHandler('moos:pi-shot');
     for (const channel of Object.keys(modelHandlers)) ipcMain.removeHandler(channel);
     usage.close();
     turns.close();
