@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-11 12:30:00 +08:00｜M06 开工：P06.1 全局桌面独占队列模块完成（核心 174/174）
+
+- 修改或新增内容：用户拍板开始 M06 桌面操作开发。新增 `packages/pi-runtime/desktop-queue.mjs`（全局桌面独占队列：单 Host 进程内跨项目共享，独占 FIFO、等待超时携带 holder 信息、排队取消、执行超时 AbortSignal+宽限后强制释放、超时后结果不可信一律拒绝、异常释放、status() 队列展示）与 11 项单测 `desktop-queue.test.mjs`。PLAN.md M06 章节新增 P06.1–P06.6 子任务分解（对齐 M06 五个 checkbox），P06.1 勾选。
+- 遇到的难题：首版实现里执行超时后若执行方响应 abort 正常返回，会把迟到结果当成功；修正为超时触发后一律抛 QueueCancelledError（锁可能已易主，结果不可信）。
+- 处理方式：确认 pi-tasks.js/sdk-runtime 同进程承载全部项目会话，故进程内队列即可跨项目互斥；工具接线（P06.3）与 UI 排队展示（P06.5）完成前不勾 M06 队列 checkbox。
+- 验证结果：desktop-queue 单测 11/11；core 全量 174/174（原 163 + 新 11），0 skipped；docs 检查通过。
+- 遗留问题：0.1.41 安装等待进程仍在 waiting-for-idle；P06.2 Swift helper 泛化进行中；实机权限（正式沐码的录屏/辅助功能授权）待安装后在系统设置添加。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.1"` 查询。
+
 ## 2026-11-11 11:50:00 +08:00｜安装等待改由 launchd 派生并第三次挂起成功（waiting-for-idle）
 
 - 修改或新增内容：11:47 从沐码内 bash 直接 nohup 的等待进程被脚本祖先检查正确拒绝（Installer still belongs to Moos——bash 工具本身是沐码 Host 后代，且命令中的 sleep 使父进程存活到检查时刻）。改为 LaunchAgent 方案：~/Library/LaunchAgents/dev.moos.update041.plist 由 launchd 派生（父进程非沐码树），EnvironmentVariables 固定 HOME/PATH/LANG/LC_ALL/TMPDIR，日志重定向 update.log。首次 load 又遇 codesign 校验 30 秒超时（launchd 会话实测 ~14 秒、系统繁忙更久），cli 超时放宽到 120 秒后预检通过并第三次挂起：状态 waiting-for-idle（03:14:48Z）。
