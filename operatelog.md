@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 23:47:00 +08:00｜0.1.45 经用户授权启动安装（E84 流程，独立进程执行中，结果待核）
+
+- 背景：用户在 E125（P03.13.16 任务超时强制执行与排队可见，0.1.45 候选 build-RYzEWU）交付后明确回复「更新吧」，构成安装授权。按 AGENTS.md「已验证的 Mac 应用更新流程」（E84）执行，代码推送不构成部署，本轮为独立安装动作。
+- 预检与暂存（对话内只读+复制，未触碰生产）：原安装 /Applications/沐码.app 0.1.41（CFBundleIdentifier dev.moos.agent.electron，ad-hoc 签名 codesign --deep --strict 通过）；候选 .generated/moos-electron/build-RYzEWU/沐码.app 0.1.45（同签名验证通过，moos-runtime.json includesPiFixture=false）；可用空间 43.7GB；数据目录 providers.json/private/credentials.json/pi/moos.sqlite/dsh 会话/皮肤/工作区俱在；生产数据库只读核查活动任务 1 个（即当前对话任务 b177eb38）。已 ditto 暂存到 /Applications/.moos-update-0.1.45/沐码.app（675MB，/Applications 同卷，暂存后再次 strict 验签通过），保留旧包回退位 previous/。
+- 更新脚本 artifacts/installed-update-0.1.45/update.mjs（一次性、固定路径；同步副本在 /Applications/.moos-update-0.1.45/）：沿用 0.1.41 已验证流程——进程祖先必须脱离沐码（ refusal 检查）、验证 gate（task-timeout-queue 七项 .exit 全 0）、等待任务自然结束（150 分钟上限，不强杀）、正常退出（osascript quit）、停机两次快照静止后整目录备份（0700/0600，逐文件哈希核对）、只换程序不换数据（原子 rename，失败恢复旧包）、启动后核对（版本 0.1.45、单实例、Host 活跃、live client 与包内一致、providers/credentials 原字节、会话/皮肤/工作区保留、SQLite id 保留、插件依赖保留）并新增本轮标记（timeoutEnforcementInInstalled、queuedCardInLiveClient、queueAheadReadModelInInstalled）；tasks 保留核对沿用 SELECT id（正常退出带来的任务终态变化如实允许，不误判失败）。任何一步失败写 result.json state=stopped-for-review 并保留备份，不自动恢复覆盖。
+- 执行方式与交接：osascript 从独立 Terminal 运行 update.command，nohup+disown；实测更新进程 pid 64134 ppid=1（launchd），祖先链不含沐码，可在本对话中断后继续完成。对话内 --preflight 返回 PREFLIGHT_OK 后正式启动；脚本于 2026-11-11 23:37:19（UTC，result.json 时间）进入 waiting-for-idle，tasksAtStart=1、七项验证 gate 全 0、进程存活。本条目写入时安装未完成——脚本将等待当前对话任务终态后退出沐码并继续安装，本对话会随退出中断，属预期。
+- 验证结果：以上均为实测；安装结果不得以窗口重现宣称成功，须读取 /Applications/.moos-update-0.1.45/result.json 与 update.log 核对 state=success 及各项保留检查，下一轮对话核对后更新 PLAN/evidence/文档检查并再次提交推送。
+- 遗留问题：安装完成与否待 result.json；若 stopped-for-review 则保留备份与旧包等待人工处置；成功后的停机备份与旧包清理须待新版确认聊天/配置可读后再执行；本轮更新脚本与启动器已随本条目提交入库（force-add）。
+- 对应 Git 提交：本次唯一说明 `chore(P03.13.16): start authorized 0.1.45 install via E84 flow`；查询 `git log --all --oneline --grep='chore(P03.13.16): start authorized 0.1.45 install via E84 flow'`。本条写入时未推送；随后提交推送并核对远程 HEAD 一致。安装结果核对与文档收尾在下轮完成。
+
 ## 2026-11-11 22:09:27 +08:00｜P03.13.16 任务超时强制执行与排队可见（E125，0.1.45 隔离候选，未安装）
 
 - 背景：用户报告一个任务运行超过两小时且可见输出极少。对生产 0.1.41 数据做只读 SQLite 诊断（node:sqlite readOnly，未杀进程、未写生产数据）：任务 cca9cdc0 排队约 55 分钟（零事件）后执行约 92 分钟「正常」完成，timeoutMs=7200000 仅在提交时校验存储、调度器从不检查；队列等待在聊天 UI 中与执行不可区分。确认两处缺陷后按此前向用户报告的 A+B 方案实施；诊断查询本身作为生产任务 b324ff6e 的事件被记录，如实说明。
