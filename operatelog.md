@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 16:00:00 +08:00｜M06 P06.6 标注受阻（P06.1–P06.5 已完成）
+
+- 修改或新增内容：PLAN.md P06.6 保持未勾选并登记受阻原因与解除条件：正式 0.1.40 与待装 0.1.41（build-8lWx61）构建于 P06.2 之前、不含 desktop-helper（已核实两包 Resources/bin 均无 helper），且录屏/辅助功能权限未授予；实机验收（并发不串、不交错、取消/异常释放、权限拒绝报错、真实浏览器演示）需 0.1.42 构建安装并授权后进行。0.1.41 更新器（launchd `dev.moos.update041`，pid 35994）仍为 waiting-for-idle 正常等待，不被本轮开发影响。
+- 遇到的难题：无新增（核实性工作）。
+- 处理方式：按规则不提前勾选；解除条件写入 PLAN。
+- 验证结果：`ls` 核实 staged 0.1.41 与 installed 0.1.40 的 Resources/bin 均无 moos-desktop-helper；pgrep 确认更新器进程与 result.json state=waiting-for-idle。
+- 遗留问题：P06.6 实机验收；0.1.41 安装结果待更新器自然 idle 触发后核对；0.1.42 需另行构建（含 M06 全部桌面能力）。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.6"` 查询。
+
+
 ## 2026-11-11 15:50:00 +08:00｜M06 P06.5 渲染层桌面状态展示（electron 98/98）
 
 - 修改或新增内容：`pi-turn.mjs` 动作标签表补八个 desktop_* 工具中文名；read model 增读最新 desktop_action 事件（仅 queued/running 相位透出 desktop 字段：phase/label/queueAhead，结束相位不再显示）；`plugin/client.js` PiProcess 增 data-moos-desktop-state 行（「桌面操作排队中（前面 N 个）：<动作>」/「桌面操作执行中：<动作>」），空 desktop/actions/route 时不渲染面板。

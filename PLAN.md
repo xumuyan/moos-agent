@@ -458,7 +458,9 @@ E01—E05 对应提交说明 `feat(M01): add packaged PI RPC and macOS feasibili
 - [x] P06.3 桌面工具组注册（pi-runtime customTools，照 image-tool 模式）：desktop_permissions（免锁）/desktop_screenshot/desktop_click/desktop_type/desktop_key/desktop_scroll/desktop_windows/desktop_app 八工具；helper 未随包提供时工具整体不挂载（模型不可见）；每次动作调用（含观察—操作—验证）经 desktop-queue 模块级单例持锁；read-only 会话拒绝桌面动作；未授权时结构化中文报错附系统设置恢复指引；截图落盘 <dataDir>/sessions/screenshots/<conversation>/ 并随结果携带 image part（PNG base64）；click 支持 verify=screenshot 单锁内验证；host.js 从打包布局推导 helperPath（MOOS_DESKTOP_HELPER 可覆盖）。证据：E118 工具测试 10/10、core 184/184、electron 97/97 0 skipped（packaging 防退化断言按设计先拦后修）；真实模型调用待权限后 P06.6。
 - [x] P06.4 事件与状态管道：desktop-queue withLock 新增 onQueued({queued, queueAhead})——入队与每次队列前移触发、空闲接管不触发、通知器异常不影响队列；desktop_tools 经 runPiSdk 既有 emit 通道（同 model_route 管道）发 desktop_action {phase: queued/running/done/timeout/cancelled/failed, owner, label, error?}，emit 异常吞掉不影响动作；停止任务时外部 AbortSignal 取消排队动作（预取消与排队中取消均已有单测）即撤销未执行动作；UI 渲染属 P06.5。证据：E119 队列 13/13（+位置广播/通知器隔离）、工具 11/11（+生命周期事件，非法输入不产生 running、emit 抛错不破坏动作）、core 187/187 0 skipped。
 - [x] P06.5 渲染层显示：pi-turn read model 动作标签补八个 desktop_* 工具（工具动作与 read/write/bash 同列展示，工具输入/输出仍不进 read model）；desktop_action 事件仅在 queued/running 相位展示为「桌面操作排队中（前面 N 个）：<动作>」/「桌面操作执行中：<动作>」（data-moos-desktop-state，结束相位消失、动作行保留）；模型信息复用既有 model_route 行。截图在工具结果文本中显示保存路径（图片本体已作为 image part 给模型；聊天内嵌缩略图需 dsh-image 式桥接，未做，如实记录）。证据：E120 pi-turn 5/5、client 3/3（排队/执行两行断言）、electron 98/98 0 skipped。
-- [ ] P06.6 实机验收：两项目并发不串任务、桌面操作不交错、取消/异常释放锁、项目 A 代码任务与项目 B 浏览器操作互不阻塞、系统权限拒绝时明确报错；含真实浏览器启动/地址栏/URL/页面确认截图演示。
+- [ ] P06.6 实机验收（受阻）：两项目并发不串任务、桌面操作不交错、取消/异常释放锁、项目 A 代码任务与项目 B 浏览器操作互不阻塞、系统权限拒绝时明确报错；含真实浏览器启动/地址栏/URL/页面确认截图演示。
+  - 受阻原因（2026-11-11）：正式安装版 0.1.40 与已授权待装的 0.1.41（build-8lWx61）均构建于 P06.2 之前，不含桌面 helper；本机录屏与辅助功能权限尚未授予正式沐码。
+  - 解除条件：构建 0.1.42（含 desktop-helper + 桌面工具组 + UI 状态行）→ 用户明确授权后按 E84 流程安装（0.1.41 更新器 waiting-for-idle 仍在等待，可先完成 0.1.41 安装再作 0.1.42 轮次）→ 用户在系统设置完成「屏幕录制与系统录音」「设备控制和数据访问」授权 → 按 P06.6 清单实机验收并登记 E 编号。
 
 测试与实际验收：并发测试验证两个项目不串任务；两个桌面任务不能交错操作；取消/异常后锁释放。实际演示项目 A 修改代码并跑测试，同时项目 B 打开验收页面；阻塞 B 桌面操作不妨碍 A。停止一个任务不影响另一个。系统权限拒绝时明确报错。
 
