@@ -58,6 +58,62 @@ class M06ShotBridgeTests(unittest.TestCase):
         self.assertIn('MOOS_FIXTURE_SHOT', plan)
 
 
+class ForkRestartRecoveryTests(unittest.TestCase):
+    """E124：P03.13 会话恢复子项收尾（分支跨应用重启恢复 + 超限前缀窗口回归）。"""
+
+    def test_fork_restart_recovery_evidence_and_plan_state(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/p03-fork-restart.json').read_text())
+        self.assertEqual(e['id'], 'E124')
+        self.assertIn('P03.13 会话恢复子项', e['task'])
+        self.assertIn('分支应用重启恢复', e['task'])
+        self.assertIn('超限前缀', e['task'])
+        unit = e['unit']
+        self.assertEqual(unit['totalAfter'], 7)
+        self.assertEqual(unit['totalBefore'], 5)
+        self.assertEqual(len(unit['added']), 2)
+        gui = e['gui']
+        self.assertTrue(gui['branchViewExcludesLaterTurn'])
+        self.assertTrue(gui['branchViewShowsSelectedTurn'])
+        self.assertEqual(gui['inheritedCardAfterBranch'], '执行过程 · 2 项操作 · 已完成')
+        self.assertEqual(gui['inheritedCardAfterFullRestart'], '执行过程 · 2 项操作 · 已完成')
+        self.assertTrue(gui['restartViewExcludesLaterTurn'])
+        self.assertTrue(gui['noTasksOrEventsAddedByReopen'])
+        self.assertEqual(gui['tasksAfterBranch'], gui['tasksAfterRestart'])
+        self.assertEqual(gui['eventsAfterBranch'], gui['eventsAfterRestart'])
+        self.assertTrue(gui['branchHasNoPiSessionUntilSubmit'])
+        self.assertTrue(gui['parentHasPiSession'])
+        self.assertGreaterEqual(gui['inheritedRefsPersistedInSqlite'], 1)
+        self.assertEqual(gui['branchReopenMethod'], 'sidebar-row-click')
+        self.assertEqual(gui['firstGracefulExit']['code'], 0)
+        self.assertEqual(gui['secondGracefulExit']['code'], 0)
+        self.assertIsNone(gui['firstGracefulExit']['signal'])
+        self.assertIsNone(gui['secondGracefulExit']['signal'])
+        self.assertFalse(e['scope']['productionDataTouched'])
+        self.assertFalse(e['scope']['deploymentPerformed'])
+        self.assertIn('0.1.41', e['scope']['productionStill'])
+        # 超限行为如实记录为单元回归覆盖，未用真实 1600+ 事件会话实测
+        self.assertTrue(any('未用真实 1600+ 事件会话实测' in item for item in e['limits']))
+        regression = e['regression']
+        self.assertEqual(regression['core'], '207/207 0 fail 0 skipped')
+        self.assertEqual(regression['electron'], '108/108 0 fail 0 skipped（含本轮新增 2 项分支窗口回归）')
+        self.assertEqual(regression['guiExit'], 0)
+        self.assertEqual(regression['docs'], '98/98')
+        evidence_dir = ROOT / e['evidence']['directory']
+        self.assertTrue((evidence_dir / 'report.json').exists())
+        self.assertTrue((evidence_dir / 'restart-view.png').exists())
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('- [x] P03.13 会话恢复子项', plan)
+        self.assertIn('证据：E124。', plan)
+        self.assertIn('| E124 |', plan)
+        # E113/E115/E114 安装状态更正与证据 deployment.installed=true 一致
+        for name in ('p03-link-handling.json', 'p03-copy-image.json', 'p03-image-per-image-limit.json'):
+            self.assertTrue(json.loads((ROOT / 'docs/evidence/desktop' / name).read_text())['deployment']['installed'], name)
+        self.assertIn('已随 0.1.41（build-8lWx61）于 2026-11-11 12:44 经 E84 流程安装', plan)
+        self.assertIn('linkFixInInstalled=true', plan)
+        self.assertIn('copyImageFixInInstalled=true', plan)
+        self.assertIn('perImageLimitInInstalled=true', plan)
+
+
 class RepositoryDocsTests(unittest.TestCase):
     def test_requested_wechat_plugin_plan_keeps_unknown_source_and_acceptance_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text()

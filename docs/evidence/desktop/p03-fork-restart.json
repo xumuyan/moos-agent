@@ -1,0 +1,89 @@
+{
+  "id": "E124",
+  "dateBeijing": "2026-11-11",
+  "machine": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64"
+  },
+  "source": {
+    "baseCommit": "9edfc0b",
+    "state": "pre-commit workspace: fork restart GUI acceptance harness + over-limit inherited-window unit tests",
+    "shellVersion": "0.1.44",
+    "build": "build-1B2p13",
+    "signature": "ad-hoc deep re-sign of copied bundle; isolated build only"
+  },
+  "task": "P03.13 会话恢复子项收尾：补验 E83 遗留的分支应用重启恢复与超限前缀（>1600 事件窗口）行为",
+  "unit": {
+    "file": "apps/electron/fork-process.test.mjs",
+    "totalBefore": 5,
+    "totalAfter": 7,
+    "added": [
+      "turns outside the 1600-event inherited window are never examined and gain no process",
+      "forkPrefix reads only the final 1600-event window and keeps the 48-message budget"
+    ],
+    "asserts": {
+      "windowRequest": "inheritTurns 只请求 [end-1600, end)；窗口外完成轮次即使映射齐备也不获 dsh-inherited-turn 引用、读取模型返回 null",
+      "forkPrefixBudget": "末尾 1600 事件窗口内仅保留最后 48 条消息（24 个完整轮次），检查点为窗口内最后完成轮次的用户消息"
+    }
+  },
+  "gui": {
+    "harness": "artifacts/fork-recovery-restart/gui.mjs（隔离复制包，show() 抑制，ad-hoc 重签）",
+    "scenario": "两个 MOOS_FIXTURE_WRITE 轮次（desktopPolicy shell 变体，本地 fixture 模型）→ 点击第一轮 aria-label=在新对话中分支 → 校验分支视图 → Page.close 正常退出 → 同一数据目录重启 → 侧栏重选分支会话 → 校验恢复 → 再次正常退出 → 只读 SQLite 核对",
+    "twoFixtureWriteTurnsCompleted": true,
+    "branchFromFirstTurn": true,
+    "branchViewExcludesLaterTurn": true,
+    "branchViewShowsSelectedTurn": true,
+    "inheritedCardAfterBranch": "执行过程 · 2 项操作 · 已完成",
+    "firstGracefulExit": { "code": 0, "signal": null, "method": "Page.close" },
+    "secondGracefulExit": { "code": 0, "signal": null, "method": "Page.close" },
+    "restartLandedOn": "新会话（应用重启后不自动恢复上次会话）",
+    "branchReopenMethod": "sidebar-row-click",
+    "reopenedSidebarTitle": "MOOS_FIXTURE_WRITE alpha (1)刚刚",
+    "inheritedCardAfterFullRestart": "执行过程 · 2 项操作 · 已完成",
+    "restartViewExcludesLaterTurn": true,
+    "tasksAfterBranch": 2,
+    "tasksAfterRestart": 2,
+    "eventsAfterBranch": 28,
+    "eventsAfterRestart": 28,
+    "noTasksOrEventsAddedByReopen": true,
+    "branchHasNoPiSessionUntilSubmit": true,
+    "parentHasPiSession": true,
+    "inheritedRefsPersistedInSqlite": 1,
+    "sessionIdsIsolated": ["see report.json checks.parentSessionId / branchSessionId"]
+  },
+  "regression": {
+    "command": "bash artifacts/fork-recovery-restart/validate.sh build-1B2p13",
+    "core": "207/207 0 fail 0 skipped",
+    "electron": "108/108 0 fail 0 skipped（含本轮新增 2 项分支窗口回归）",
+    "native": "11/11",
+    "bridge": "5/5",
+    "skin": "4/4",
+    "guiExit": 0,
+    "docs": "98/98",
+    "validationJson": "artifacts/fork-recovery-restart/final/validation.json 全 0"
+  },
+  "scope": {
+    "qaVisibilityOverride": "copied bundle suppresses show() and is re-signed ad hoc",
+    "model": "real PI SDK against local fixture only",
+    "productionDataTouched": false,
+    "productionStill": "0.1.41 build-8lWx61（本轮只读核对，未替换未重启）",
+    "deploymentPerformed": false,
+    "screenshotsVisuallyReviewed": false
+  },
+  "limits": [
+    "超限前缀（>1600 继承事件）由合成会话单元回归覆盖窗口截断与预算行为，未用真实 1600+ 事件会话实测。",
+    "分支重启验收使用本地 fixture 模型；真实线上模型的分支重启未运行。",
+    "正式安装版（0.1.41）不含本轮任何改动；本轮仅隔离候选验证，未部署。",
+    "分支会话提交后的新轮次执行不在本轮范围（E83/E124 均只验继承展示与不重放）。"
+  ],
+  "evidence": {
+    "directory": "artifacts/fork-recovery-restart/final/gui/recovery-gDj96a",
+    "reportSha256": "eb601224c281b02e47c31bbf13aafd0414c719366b59ef951cda7808609cd20b",
+    "screenshots": {
+      "branch-view.png": "ff7987a79ca0fbb05539c74bf2b2b2833ccd774b459e6381d042845fd968dcb3",
+      "restart-view.png": "a9abcfda1974fc6014fa440f320fef85600f554ca843633e5c36d6c4db3d9df2"
+    },
+    "sidebarDumps": ["sidebar-before-branch.json", "sidebar-after-branch.json", "sidebar-after-restart.json"],
+    "validation": "artifacts/fork-recovery-restart/final/validation.json"
+  }
+}

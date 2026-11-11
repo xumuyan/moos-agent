@@ -8,6 +8,7 @@ import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { timelinePayload } from '../../services/agent/timeline-view.mjs';
 import { createPiTasks } from './plugin/pi-tasks.js';
 import { createPiTurnReader } from './pi-turn.mjs';
+import { forkPrefix } from './plugin/pi-fork.js';
 
 async function fixture(t) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-fork-process-')));
@@ -107,4 +108,59 @@ test('unavailable or tampered inherited references stay hidden and do not become
   f.store.setSetting('dsh-inherited-turn:child:2', JSON.stringify({ taskId, projectId: f.project.id, messageId: 'later' }));
   assert.equal(f.reader.read('child', 2), null);
   assert.deepEqual(f.reader.active(), []);
+});
+
+test('turns outside the 1600-event inherited window are never examined and gain no process', async t => {
+  const f = await fixture(t);
+  const count = f.store.listTasks().length;
+  // 窗口外与窗口内各一个完整轮次，映射齐备；窗口外轮次必须不被检查、不获得引用。
+  f.store.setSetting('dsh-turn:parent:0', f.store.getSetting('dsh-message:first'));
+  f.store.setSetting('dsh-message:outside', f.store.getSetting('dsh-message:first'));
+  f.store.setSetting('dsh-turn:parent:102', f.store.getSetting('dsh-message:first'));
+  const end = 1700;
+  const events = [
+    { seq: 0, type: 'turn/start', data: {} },
+    { seq: 1, type: 'user/message', data: { id: 'outside', source: { kind: 'user' } } },
+    { seq: 97, type: 'turn/end', data: { reason: { kind: 'completed' } } },
+    { seq: 102, type: 'turn/start', data: {} },
+    { seq: 103, type: 'user/message', data: { id: 'first', source: { kind: 'user' } } },
+    { seq: 107, type: 'turn/end', data: { reason: { kind: 'completed' } } },
+  ];
+  const windows = [];
+  const session = {
+    id: 'child', header: { isSeeded: true, parentSession: 'parent', cwd: f.root }, inheritedEventCount: end,
+    snapshotEvents: (from, to) => { windows.push([from, to]); return events.filter(e => e.seq >= from && e.seq < to); },
+  };
+  await f.tasks.inheritTurns(session);
+  assert.deepEqual(windows, [[end - 1600, end]], '只请求末尾 1600 事件窗口');
+  assert.ok(f.store.getSetting('dsh-inherited-turn:child:102'), '窗口内轮次获得引用');
+  assert.equal(f.store.getSetting('dsh-inherited-turn:child:0'), undefined, '窗口外轮次不获得引用');
+  assert.deepEqual(f.reader.read('child', 102), f.reader.read('parent', 2));
+  assert.equal(f.reader.read('child', 0), null);
+  assert.equal(f.store.listTasks().length, count, '不创建新任务');
+});
+
+test('forkPrefix reads only the final 1600-event window and keeps the 48-message budget', () => {
+  const events = [];
+  for (let turn = 0; turn < 100; turn++) {
+    const base = turn * 17;
+    events.push(
+      { seq: base, type: 'turn/start', data: {}, time: base },
+      { seq: base + 1, type: 'user/message', data: { id: `m${turn}`, source: { kind: 'user' }, content: [{ type: 'text', text: `问题 ${turn}` }] }, time: base + 1 },
+      { seq: base + 2, type: 'assistant/message', data: { message: { content: [{ type: 'text', text: `回答 ${turn}` }] } }, time: base + 2 },
+      { seq: base + 3, type: 'turn/end', data: { reason: { kind: 'completed' } }, time: base + 3 });
+  }
+  const end = 1700;
+  const windows = [];
+  const session = {
+    header: { isSeeded: true }, inheritedEventCount: end,
+    snapshotEvents: (from, to) => { windows.push([from, to]); return events.filter(e => e.seq >= from && e.seq < to); },
+  };
+  const prefix = forkPrefix(session);
+  assert.deepEqual(windows, [[end - 1600, end]]);
+  assert.equal(prefix.checkpoint, 'm99', '检查点是窗口内最后一个完成轮次的用户消息');
+  assert.equal(prefix.history.length, 48, '历史保留最后 48 条消息（24 个完整轮次）');
+  assert.match(prefix.history[0].text, /问题 76/);
+  assert.match(prefix.history.at(-1).text, /回答 99/);
+  assert.ok(prefix.history.every(item => Number(item.text.match(/\d+/)?.[0]) >= 76), '窗口外与预算外轮次不进入历史');
 });
