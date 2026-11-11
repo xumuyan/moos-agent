@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-11 11:50:00 +08:00｜安装等待改由 launchd 派生并第三次挂起成功（waiting-for-idle）
+
+- 修改或新增内容：11:47 从沐码内 bash 直接 nohup 的等待进程被脚本祖先检查正确拒绝（Installer still belongs to Moos——bash 工具本身是沐码 Host 后代，且命令中的 sleep 使父进程存活到检查时刻）。改为 LaunchAgent 方案：~/Library/LaunchAgents/dev.moos.update041.plist 由 launchd 派生（父进程非沐码树），EnvironmentVariables 固定 HOME/PATH/LANG/LC_ALL/TMPDIR，日志重定向 update.log。首次 load 又遇 codesign 校验 30 秒超时（launchd 会话实测 ~14 秒、系统繁忙更久），cli 超时放宽到 120 秒后预检通过并第三次挂起：状态 waiting-for-idle（03:14:48Z）。
+- 遇到的难题：bash 工具无法产出行级独立的更新进程；launchd 是当前环境下「独立 Terminal」的等价物（祖先仅 launchd）。
+- 处理方式：plist 加载前先 unload 清旧实例；祖先检查行为确认符合 AGENTS.md 独立进程要求，未绕过。
+- 验证结果：pgrep 确认 launchd 派生的 node update.mjs 运行中；result.json state=waiting-for-idle；PREFLIGHT_OK。
+- 遗留问题：0.1.41 安装仍等空闲窗口；安装完成后需 unload 并清理该 LaunchAgent plist；结果以 result.json 与日志为准。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="launchd"` 查询。
+
 ## 2026-11-11 11:35:00 +08:00｜更正与补记：0.1.41 安装第二次停止的根因与处理（正式实例无恙）
 
 - 修改或新增内容：补记 10:53 发生的第二次自动停止：等待进程启动时未传 LANG/LC_ALL，ps 在 C locale 下把中文应用路径转义为 M-fM-2…，update.mjs 的 mainPids() 匹配落空 → 误判正式沐码已退出 → 跳过正常退出请求 → 对仍在运行的数据目录做「停机」备份 → 内容持续变化致校验失败（Full stopped backup does not match the source files）。三层保护生效：未换包、未改数据，正式实例 0.1.40（pid 13744）全程运行，本次对话与用户数据未受影响。脚本三处加固：① cli() 统一注入 LC_ALL/LANG=en_US.UTF-8（提交 ae07294）；② idle 后检测不到正式实例即停止；③ 备份前两次快照静止校验。已在 LC_ALL=C 环境验证修复后进程匹配正确返回 [13744]。

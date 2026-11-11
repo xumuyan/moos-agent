@@ -123,7 +123,7 @@ async function preflight() {
   const capacity = await statfs(update);
   if (capacity.bavail * capacity.bsize < 4 * 1024 ** 3) throw new Error('Insufficient space for stopped backup and safe replacement');
   for (const path of [staged, installed]) {
-    cli('/usr/bin/codesign', ['--verify', '--deep', '--strict', path]);
+    cli('/usr/bin/codesign', ['--verify', '--deep', '--strict', path], 120000); // launchd 会话下实测 ~14s，系统繁忙时更久
     const identity = cli('/usr/libexec/PlistBuddy', ['-c', 'Print CFBundleIdentifier', join(path, 'Contents/Info.plist')]).toString().trim();
     if (identity !== 'dev.moos.agent.electron') throw new Error('Bundle identity mismatch');
   }
