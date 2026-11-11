@@ -106,7 +106,7 @@ await cp(join(source, 'plugin/pi-workspace-changes.js'), join(appSource, 'plugin
     '-o', join(helperBin, 'moos-desktop-helper'), helperSource], { stdio: 'inherit' });
   await chmod(join(helperBin, 'moos-desktop-helper'), 0o755);
   const version = execFileSync(join(helperBin, 'moos-desktop-helper'), ['version'], { encoding: 'utf8' });
-  if (!version.includes('"version":"1"')) throw new Error('desktop helper smoke check failed');
+  if (!version.includes('"version":"2"')) throw new Error('desktop helper smoke check failed');
 }
 const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ dshVersion, includesPiFixture }));
@@ -119,7 +119,7 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
     { cwd: runtime, stdio: 'inherit' });
   for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/image-tool.mjs', 'packages/pi-runtime/tool-policy.mjs', 'packages/pi-runtime/toolchain.mjs',
     'packages/pi-runtime/repair-routing.mjs', 'packages/pi-runtime/session-fork.mjs', 'packages/pi-adapter/index.mjs',
-    'packages/pi-runtime/desktop-queue.mjs', 'packages/pi-runtime/desktop-tools.mjs',
+    'packages/pi-runtime/desktop-queue.mjs', 'packages/pi-runtime/desktop-tools.mjs', 'packages/pi-runtime/desktop-transaction.mjs',
     'services/agent/store.mjs', 'services/agent/scheduler.mjs',
     'services/agent/task-policy.mjs', 'services/agent/timeline-view.mjs', 'services/agent/errors.mjs',
     'services/agent/provider-diagnostics.mjs',

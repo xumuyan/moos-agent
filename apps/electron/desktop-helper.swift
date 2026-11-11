@@ -8,7 +8,7 @@ import ApplicationServices
 import CoreGraphics
 import ScreenCaptureKit
 
-let helperVersion = "1"
+let helperVersion = "2"
 
 func emit(_ value: [String: Any], code: Int32 = 0) -> Never {
     do { FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])) }
@@ -59,6 +59,90 @@ func requireInput() {
 
 func screenID(_ screen: NSScreen) -> CGDirectDisplayID {
     (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! NSNumber).uint32Value
+}
+
+// Focus snapshots never include window titles, text values, URLs or accessibility descriptions.
+// Fail closed when AX focus cannot be mapped uniquely to a visible Quartz window.
+func axValue(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
+    var result: CFTypeRef?
+    guard AXUIElementCopyAttributeValue(element, name as CFString, &result) == .success else { return nil }
+    return result
+}
+func axRect(_ element: AXUIElement) -> CGRect? {
+    guard let p = axValue(element, kAXPositionAttribute), CFGetTypeID(p) == AXValueGetTypeID(),
+          let s = axValue(element, kAXSizeAttribute), CFGetTypeID(s) == AXValueGetTypeID() else { return nil }
+    var point = CGPoint.zero, size = CGSize.zero
+    guard AXValueGetValue(p as! AXValue, .cgPoint, &point), AXValueGetValue(s as! AXValue, .cgSize, &size) else { return nil }
+    return CGRect(origin: point, size: size)
+}
+func rectObject(_ r: CGRect) -> [String: Double] {
+    ["x": r.minX, "y": r.minY, "width": r.width, "height": r.height]
+}
+func focusSnapshot() -> [String: Any] {
+    requireInput()
+    guard let app = NSWorkspace.shared.frontmostApplication,
+          let bundle = app.bundleIdentifier else { fail("focus-unavailable") }
+    let application = AXUIElementCreateApplication(app.processIdentifier)
+    AXUIElementSetMessagingTimeout(application, 1)
+    guard let w = axValue(application, kAXFocusedWindowAttribute), CFGetTypeID(w) == AXUIElementGetTypeID(),
+          let f = axValue(application, kAXFocusedUIElementAttribute), CFGetTypeID(f) == AXUIElementGetTypeID() else { fail("focus-unavailable") }
+    let window = w as! AXUIElement, focused = f as! AXUIElement
+    guard let bounds = axRect(window), let elementBounds = axRect(focused),
+          let role = axValue(focused, kAXRoleAttribute) as? String else { fail("focus-unavailable") }
+    let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+    let matches = windows.filter { entry in
+        guard entry[kCGWindowOwnerPID as String] as? Int32 == app.processIdentifier,
+              entry[kCGWindowLayer as String] as? Int == 0,
+              let b = entry[kCGWindowBounds as String] as? [String: CGFloat] else { return false }
+        return abs((b["X"] ?? .infinity) - bounds.minX) < 1 && abs((b["Y"] ?? .infinity) - bounds.minY) < 1 &&
+            abs((b["Width"] ?? 0) - bounds.width) < 1 && abs((b["Height"] ?? 0) - bounds.height) < 1
+    }
+    guard matches.count == 1, let id = matches[0][kCGWindowNumber as String] as? Int else { fail("focus-unavailable") }
+    var ancestors: [Int] = []
+    var cursor = focused
+    for _ in 0..<32 {
+        if CFEqual(cursor, window) { break }
+        guard let rawParent = axValue(cursor, kAXParentAttribute), CFGetTypeID(rawParent) == AXUIElementGetTypeID(),
+              let children = axValue(rawParent as! AXUIElement, kAXChildrenAttribute) as? [AXUIElement],
+              let index = children.firstIndex(where: { CFEqual($0, cursor) }) else { fail("focus-unavailable") }
+        ancestors.append(index); cursor = rawParent as! AXUIElement
+    }
+    guard CFEqual(cursor, window) else { fail("focus-unavailable") }
+    return ["pid": Int(app.processIdentifier), "bundleId": bundle, "windowId": id,
+            "window": rectObject(bounds), "element": rectObject(elementBounds), "role": role, "path": ancestors]
+}
+func expectedFocus(_ args: [String]) -> [String: Any] {
+    guard let raw = value("--expect-focus", in: args), raw.utf8.count < 8192,
+          let data = raw.data(using: .utf8), let expected = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+          expected["pid"] as? Int != nil, expected["windowId"] as? Int != nil,
+          expected["bundleId"] as? String != nil, expected["path"] as? [Int] != nil,
+          expected["window"] as? [String: Double] != nil, expected["element"] as? [String: Double] != nil,
+          expected["role"] as? String != nil else { fail("focus-required", code: 2) }
+    return expected
+}
+func focusRejection(_ expected: [String: Any], _ actual: [String: Any], typing: Bool) -> String? {
+    guard NSDictionary(dictionary: expected).isEqual(to: actual) else { return "focus-changed" }
+    if typing && !["AXTextField", "AXTextArea", "AXComboBox"].contains(actual["role"] as? String ?? "") {
+        return "focus-not-editable"
+    }
+    return nil
+}
+func checkFocus(_ args: [String], point: CGPoint? = nil, typing: Bool = false) {
+    let expected = expectedFocus(args)
+    let actual = focusSnapshot()
+    if let reason = focusRejection(expected, actual, typing: typing) { fail(reason, code: 5) }
+    if let point = point, let b = actual["window"] as? [String: Double] {
+        let bounds = CGRect(x: b["x"]!, y: b["y"]!, width: b["width"]!, height: b["height"]!)
+        guard bounds.contains(point) else { fail("point-outside-target", code: 5) }
+        // A floating window/popover above the target must not receive a coordinate action.
+        let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        let hit = list.first { entry in
+            guard (entry[kCGWindowAlpha as String] as? Double ?? 1) > 0,
+                  let b = entry[kCGWindowBounds as String] as? [String: CGFloat] else { return false }
+            return CGRect(x: b["X"] ?? 0, y: b["Y"] ?? 0, width: b["Width"] ?? 0, height: b["Height"] ?? 0).contains(point)
+        }
+        guard hit?[kCGWindowNumber as String] as? Int == actual["windowId"] as? Int else { fail("target-occluded", code: 5) }
+    }
 }
 
 // 事件工厂：私有 source；down 携带显式 flags，up 显式清空。
@@ -112,6 +196,16 @@ if mode == "permissions" {
           "activeDisplays": NSScreen.screens.count,
           "system": ProcessInfo.processInfo.operatingSystemVersionString, "helperVersion": helperVersion])
 }
+
+// Non-posting diagnostic of the same comparison predicate; never reads/replaces live AX state.
+if mode == "plan-focus" {
+    let expected = expectedFocus(args)
+    guard let raw = value("--actual-focus", in: args), let data = raw.data(using: .utf8),
+          let actual = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { exit(2) }
+    let reason = focusRejection(expected, actual, typing: flag("--typing", in: args))
+    emit(["posted": false, "accepted": reason == nil, "reason": reason ?? "matched"])
+}
+if mode == "focus" { emit(["status": "ok", "focus": focusSnapshot()]) }
 
 if mode == "displays" {
     let displays: [[String: Any]] = NSScreen.screens.map { screen in
@@ -235,7 +329,7 @@ if mode == "click" || mode == "plan-click" {
     guard let point = numbers("--at", count: 2, in: args) else {
         fputs("Usage: helper click --at x,y [--double] [--right]\n", stderr); exit(2)
     }
-    if mode == "click" { requireInput() }
+    if mode == "click" { requireInput(); _ = expectedFocus(args) }
     let position = CGPoint(x: point[0], y: point[1])
     let right = flag("--right", in: args)
     let double = flag("--double", in: args)
@@ -260,6 +354,7 @@ if mode == "click" || mode == "plan-click" {
                             "x": event.location.x, "y": event.location.y, "flags": event.flags.rawValue])
         }
         if mode == "click" {
+            checkFocus(args, point: position)
             down.post(tap: .cghidEventTap)
             up.post(tap: .cghidEventTap)
             if double && count == 1 { usleep(80_000) }
@@ -281,6 +376,8 @@ if mode == "scroll" {
     guard let scroll = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 2,
                                wheel1: wheel1, wheel2: wheel2, wheel3: 0) else { fail("scroll-event-unavailable") }
     scroll.flags = []
+    guard let point = CGEvent(source: nil)?.location else { fail("cursor-unavailable") }
+    checkFocus(args, point: point)
     scroll.post(tap: .cghidEventTap)
     emit(["status": "ok", "delta": ["x": deltas[0], "y": deltas[1]]])
 }
@@ -295,6 +392,7 @@ if mode == "key" {
     if flag("--alt", in: args) { flags.insert(.maskAlternate) }
     if flag("--ctrl", in: args) { flags.insert(.maskControl) }
     if flag("--shift", in: args) { flags.insert(.maskShift) }
+    checkFocus(args)
     postKey(CGKeyCode(keycode), flags: flags)
     emit(["status": "ok", "keycode": Int(keycode),
           "flags": ["cmd": flag("--cmd", in: args), "alt": flag("--alt", in: args),
@@ -308,12 +406,14 @@ if mode == "type" {
     }
     requireInput()
     guard let (down, up) = makeTextEvents(text) else { fail("keyboard-event-unavailable") }
+    checkFocus(args, typing: true)
     down.post(tap: .cghidEventTap)
     up.post(tap: .cghidEventTap)
     emit(["status": "ok", "characters": text.count])
 }
 
 if mode == "activate" {
+    requireInput(); requireScreen()
     if let pid = value("--pid", in: args).flatMap(Int32.init) {
         guard let app = NSRunningApplication(processIdentifier: pid) else {
             fail("process-not-found", extra: ["pid": Int(pid)])
@@ -332,6 +432,7 @@ if mode == "activate" {
 }
 
 if mode == "launch" {
+    requireInput(); requireScreen()
     guard let bundleID = value("--bundle-id", in: args) else {
         fputs("Usage: helper launch --bundle-id <id>\n", stderr); exit(2)
     }
@@ -351,5 +452,5 @@ if mode == "launch" {
     NSApplication.shared.run()
 }
 
-fputs("Unknown mode. Available: version permissions displays windows screenshot click scroll key type activate launch\n", stderr)
+fputs("Unknown mode. Available: version permissions displays windows focus screenshot click scroll key type activate launch plan-click plan-focus\n", stderr)
 exit(2)

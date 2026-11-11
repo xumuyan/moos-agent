@@ -168,6 +168,16 @@ test('desktop queue state surfaces only while queued or running (M06 P06.5)', as
   store.appendEvent(task.id, 'desktop_action', { phase: 'done', owner: 'conversation:other', label: '截取屏幕' });
   assert.equal(reader.read('desktop-session', 3)?.desktop, undefined, 'finished phases stop rendering');
   store.appendEvent(task.id, 'tool_start', { toolCallId: 'dt1', toolName: 'desktop_screenshot', args: { scope: 'display' } });
+  for (const toolName of ['desktop_begin', 'desktop_end']) {
+    store.appendEvent(task.id, 'tool_start', { toolCallId: toolName, toolName,
+      args: { transactionId: 'private-lease', observationId: 'private-observation' } });
+    store.appendEvent(task.id, 'tool_end', { toolCallId: toolName, toolName, isError: false,
+      result: { details: { focus: { role: 'private-focus' } }, content: ['private-output'] } });
+  }
+  const summary = reader.read('desktop-session', 3);
+  assert.ok(summary.actions.some(a => a.label === '开始桌面事务'));
+  assert.ok(summary.actions.some(a => a.label === '验证并结束桌面事务'));
+  assert.doesNotMatch(JSON.stringify(summary), /private-/);
   store.appendEvent(task.id, 'desktop_action', { phase: 'queued', label: 'stale' });
   for (const status of ['succeeded', 'failed', 'cancelled', 'interrupted']) {
     store.updateTask(task.id, { status });

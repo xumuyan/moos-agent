@@ -74,7 +74,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
   const timer = setTimeout(() => { timedOut = true; abort(); }, duration);
   const aborted = () => new TaskFailure(timedOut ? 'timeout' : 'cancelled');
   const routes = new Map();
-  let session; let unsubscribe;
+  let session; let unsubscribe; let desktopTools;
   try {
     if (controller.signal.aborted) throw aborted();
     await privateDir(dataDir); await privateDir(root);
@@ -131,9 +131,10 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         ...(imageGen !== undefined ? { config: imageGen } : {}) });
       // M06 桌面工具：helper 未随包提供（desktop.helperPath 缺失/文件不存在）时返回 []，模型看不到；
       // 全部动作经全局桌面独占队列跨项目串行（P06.1/P06.3）。
-      const desktopTools = desktop?.helperPath
+      await desktopTools?.dispose?.();
+      desktopTools = desktop?.helperPath
         ? createDesktopTools({ helperPath: desktop.helperPath, dataDir, ownerId: `conversation:${conversation?.id ?? task?.id ?? 'anon'}`,
-          getMode: permissions ? () => permissions.getMode() : undefined, emit })
+          getMode: permissions ? () => permissions.getMode() : undefined, emit, taskSignal: controller.signal })
         : [];
       const extraTools = [image, ...desktopTools].filter(Boolean);
       const customTools = extraTools.length ? [...(base ?? []), ...extraTools] : base;
@@ -245,8 +246,13 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     } finally { controller.signal.removeEventListener('abort', onAbort); }
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', abort);
-    unsubscribe?.(); session?.dispose();
-    await Promise.all([...routes.values()].map(entry => entry.proxy.close()));
-    busy.delete(root); busy.delete(cwd);
+    try { unsubscribe?.(); session?.dispose(); }
+    finally {
+      try { await desktopTools?.dispose?.(); }
+      finally {
+        try { await Promise.all([...routes.values()].map(entry => entry.proxy.close())); }
+        finally { busy.delete(root); busy.delete(cwd); }
+      }
+    }
   }
 }

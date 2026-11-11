@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-11 17:14:28 +08:00｜P06.3a 有界桌面事务与焦点守卫（E122，候选未安装）
+
+- 修改或新增内容：新增 desktop-transaction.mjs，任务本地随机事务/观察ID，跨模型调用全程持有共享队列，20秒排队/120秒执行（含模型等待）/3秒取消宽限；旧观察单次使用且不可重放。desktop_begin/end 将工具扩为十一项，输入必须事务内观察，结果需重新截图观察后才能 verify 结束，结果字段明确不验证业务目标；异常、取消、超时、模型遗漏结束调用和 SDK 任务收尾释放。Swift helper v2 新增不含标题/URL/值的焦点快照及原生投递前检查（进程/窗口/AX角色、路径及矩形），坐标检查范围和遮挡，输入限可编辑角色，失焦不自动抢回；应用切换也需事务和两项权限。补打包、UI安全标签、SDK清理，版本0.1.43；新增事务/两真实SDK会话并发/焦点拒绝/真实子进程收尾/包内收尾/文档测试。
+- 遇到的难题：只有工具启动上下文，两项桌面权限均未授权，不能验证原生AX映射、遮挡、真实焦点切换或浏览器输入。首轮复核发现“截最终图”仍不能确认模型已观察结果，click可选截图需纳入焦点核对，SDK finally应确保异常时也清理；因此首包build-NMbTHQ不作为最终交付。曾读取不存在的sdk-runtime.test.mjs/sdk.test.mjs失败，不作为测试结果。当前所有已执行测试无失败，不将未执行实机项说成通过。
+- 处理方式：先以合成helper和本地SSE模型驱动两个真实PI SDK会话，A观察后等待模型时B排队；同锁完成快捷键/输入/再次观察/确认，SDK结束后检查无锁，测试真实helper替身子进程取消退出后才能交接。原生只执行focus权限拒绝和不投递plan-focus同一谓词比较，不更改系统权限或用户桌面；结果确认需新的observationId，businessGoalVerified固定false，明确检查到投递并非操作系统原子操作。保持P06.3a/P06.5a/P06.6及M06未勾选，保留E121历史。复核修订后重新构建build-QBaZWa并全量重跑。
+- 验证结果：对应9f725e221c79d73d4124b8eaf67eabb161503e7e基础上的本次提交前工作区；npm run build:app→build-QBaZWa，bash artifacts/m06-transaction/validate.sh逐项保存真实exit0：npm test206/206、npm run test:electron104/104无跳过、CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1 npm run test:desktop-native11/11、PI桥5/5、皮肤4/4。隔离GUI recovery-TB9EF5核对壳0.1.43、品牌/图标、真实PI本地12文件任务折叠/展开/再折叠，正常app.quit code0无信号/无TERM，截图已回读；不代表桌面事务UI/浏览器验收。python3 artifacts/m06-transaction/verify-package.py实际严格验签、fixture=false、包内queue/tools/transaction/SDK/Host/pi-turn及插件版本与源哈希一致；真helper focus blocked exit3；四组plan-focus不投递且匹配/变化拒绝符合预期。包内SDK+本地模型实际执行permissions/displays/begin，4请求/11桌面工具，任务finally解锁；包内Node集成不等于正式GUI权限归属。Python文档95/95通过；日志及报告 artifacts/m06-transaction/final，脱敏证据docs/evidence/desktop/m06-desktop-transactions.json。
+- 遗留问题：不退出/重启/替换正式/Applications/沐码.app，只读Info仍0.1.41；不改真实用户数据、配置、凭据。P06.3a代码/隔离验证通过但实机验收未完成，P06.5a受限聊天截图桥未做；真实浏览器/AX兼容/同几何位置元素替换识别/遮挡/双屏/多项目桌面并发/取消须另获部署授权与用户系统权限。焦点检查保守拒绝歧义、弹层/窗口尺寸变化；双击首次改变焦点可能停止第二次，不宣称绝不误输或整阶段可用。最终候选逻辑616321553字节（不计符号链接）、落盘691588KiB；分发压缩包和首次下载量未测，未执行正式首次启动。初轮core205/Electron104与GUI结果保留initial/，不冒充最终包结果。
+- 对应 Git 提交：本次唯一说明 `feat(P06.3a): add bounded desktop transactions and focus guards`；查询 `git log --all --oneline --grep='feat(P06.3a): add bounded desktop transactions and focus guards'`。本条写入时未提交/未推送，随后执行git push并核对远程main与本地HEAD，不预称部署成功。
+
+
 ## 2026-11-11 15:06:57 +08:00｜M06 加固与 0.1.42 隔离候选验收（E121，未安装）
 
 - 修改或新增内容：修复 P06.1–P06.5 队列取消竞态/迟到成功/超时清理、helper 子进程 TERM→1秒后KILL并等待 close、排队/运行终态事件及任务结束陈旧状态；Host 从显式包内 runtime 定位 helper，不再误从用户插件目录推导；Quartz 坐标不重复翻转 Y，支持负坐标，双击两组 down/up、横滚双轴及参数校验；新增只读 desktop_displays 和无投递 plan-click。版本改 0.1.42。新增包内真实 PI SDK→本地模拟模型→真实 helper 只读集成测试；PLAN 补未完成 P06.3a 事务/焦点保护、P06.5a 截图桥，P06.6 不勾选。

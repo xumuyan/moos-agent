@@ -5,6 +5,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 const labels = {
   read: '读取文件', write: '写入文件', edit: '局部修改', bash: '运行命令',
   bash_escalated: '经审批运行命令', grep: '搜索内容', find: '查找文件', ls: '查看目录',
+  desktop_begin: '开始桌面事务', desktop_end: '验证并结束桌面事务',
   desktop_permissions: '查询桌面权限', desktop_screenshot: '截取屏幕', desktop_click: '点击鼠标',
   desktop_type: '键入文本', desktop_key: '按键/快捷键', desktop_scroll: '滚动',
   desktop_displays: '列出显示器', desktop_windows: '列出窗口', desktop_app: '启动/切换应用',

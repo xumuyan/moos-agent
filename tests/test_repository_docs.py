@@ -9,6 +9,56 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
+        self.assertEqual(e['id'], 'E122')
+        self.assertEqual(e['status'], 'candidate-verified-native-focus-acceptance-pending')
+        impl = e['implementation']
+        for key in ['crossCallTransaction', 'inputNeedsFreshSingleUseObservation',
+                    'sdkFinallyCleanup', 'resultObservationRequiredBeforeEnd']:
+            self.assertTrue(impl[key], key)
+        self.assertEqual((impl['waitTimeoutMs'], impl['runTimeoutMs'], impl['graceMs']), (20000, 120000, 3000))
+        self.assertEqual(impl['desktopToolCount'], 11)
+        self.assertFalse(impl['businessGoalAutomaticallyVerified'])
+        package = e['package']
+        self.assertEqual(package['version'], '0.1.43')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertTrue(package['strictDeepSignatureVerified'])
+        self.assertFalse(package['includesPiFixture'])
+        self.assertFalse(package['nativeInputOrScreenCaptureExecuted'])
+        self.assertEqual(package['blockedFocus']['exit'], 3)
+        self.assertTrue(all(not case['posted'] for case in package['nonPostingFocusPlans']))
+        for digest in [package['helperSha256'], package['helperSourceSha256'], *package['sourceMatches'].values()]:
+            self.assertRegex(digest, r'^[0-9a-f]{64}$')
+        for check in e['checks'].values():
+            self.assertEqual((check['failed'], check['exit'], check['skipped']), (0, 0, 0))
+        concurrency = e['sdkConcurrencyAcceptance']
+        for key in ['actualPiSdk', 'twoConcurrentProjects', 'aModelWaitsWhileBQueues',
+                    'observeActionVerifyDoNotInterleave', 'missingEndReleasesOnTaskFinish', 'isolatedData']:
+            self.assertTrue(concurrency[key], key)
+        self.assertFalse(concurrency['nativeBrowserInput'])
+        self.assertFalse(concurrency['onlineProviderCalled'])
+        self.assertEqual(e['packagedIntegration']['toolsExecuted'],
+                         ['desktop_permissions', 'desktop_displays', 'desktop_begin'])
+        self.assertTrue(e['packagedIntegration']['taskFinallyUnlocked'])
+        self.assertFalse(e['packagedIntegration']['installedGuiHostPermissionAttribution'])
+        self.assertFalse(e['focusAcceptance']['nativeCheckAndPostAtomic'])
+        self.assertFalse(e['focusAcceptance']['nativePermissionGrantedFocus'])
+        for key, value in e['limits'].items():
+            if key != 'notes':
+                self.assertFalse(value, key)
+        self.assertEqual(e['gui']['report']['shell'], '0.1.43')
+        self.assertEqual(e['gui']['report']['exit'], {
+            'code': 0, 'signal': None, 'usedTerm': False, 'method': 'QA SIGUSR2 → app.quit',
+        })
+        for key in ['installed', 'productionAppExitedOrReplaced', 'productionUserDataModifiedForTests', 'migration']:
+            self.assertFalse(e['deployment'][key])
+        self.assertEqual(e['deployment']['productionVersion'], '0.1.41')
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('| E122 |', plan)
+        for pending in ['P06.3a', 'P06.5a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+
     def test_m06_candidate_separates_packaged_readonly_acceptance_from_desktop_completion(self):
         evidence = json.loads((ROOT / 'docs/evidence/desktop/m06-hardening-candidate.json').read_text())
         self.assertEqual(evidence['id'], 'E121')

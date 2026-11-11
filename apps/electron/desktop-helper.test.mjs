@@ -27,14 +27,14 @@ const run = (...args) => JSON.parse(execFileSync(helper, args, { encoding: 'utf8
 
 test('desktop helper compiles and reports version and permissions', () => {
   const version = run('version');
-  assert.equal(version.version, '1');
+  assert.equal(version.version, '2');
   assert.equal(typeof version.screenCaptureGranted, 'boolean');
   assert.equal(typeof version.accessibilityGranted, 'boolean');
   const permissions = run('permissions');
   assert.equal(typeof permissions.activeDisplays, 'number');
   assert.ok(permissions.activeDisplays >= 1);
   assert.match(permissions.system, /Version/);
-  assert.equal(permissions.helperVersion, '1');
+  assert.equal(permissions.helperVersion, '2');
 });
 
 test('desktop helper enumerates displays with top-left global frames', () => {
@@ -136,4 +136,31 @@ test('native malformed capture, key and scroll arguments fail before permissions
     ['screenshot', '--out', '/tmp/not-created.png', '--region', '1,2,-1,4'],
     ['screenshot', '--out', '/tmp/not-created.png', '--display', '-1'],
   ]) assert.equal(statusOf(args), 2, args.join(' '));
+});
+
+test('native focus predicate rejects changed process, window, element path, bounds and non-editable fields without posting', () => {
+  const focus = { pid: 42, bundleId: 'com.example.fixture', windowId: 7,
+    window: { x: 0, y: 0, width: 800, height: 600 }, element: { x: 20, y: 20, width: 100, height: 30 }, role: 'AXTextField', path: [0, 2] };
+  const plan = (actual, expected = focus) => run('plan-focus', '--expect-focus', JSON.stringify(expected), '--actual-focus', JSON.stringify(actual), '--typing');
+  assert.deepEqual(plan(focus), { posted: false, accepted: true, reason: 'matched' });
+  for (const change of [{ pid: 43 }, { windowId: 8 }, { bundleId: 'other' }, { path: [1, 2] },
+    { window: { ...focus.window, x: 1 } }, { element: { ...focus.element, y: 21 } }]) {
+    assert.deepEqual(plan({ ...focus, ...change }), { posted: false, accepted: false, reason: 'focus-changed' });
+  }
+  const button = { ...focus, role: 'AXButton' };
+  assert.equal(plan(button, button).reason, 'focus-not-editable');
+  assert.equal(statusOf(['plan-focus', '--expect-focus', '{}', '--actual-focus', '{}']), 2);
+});
+
+test('focus query is read-only and denied permissions do not fabricate a focus snapshot', async () => {
+  if (!run('permissions').accessibilityGranted) {
+    try { run('focus'); assert.fail('focus must be denied'); }
+    catch (e) { assert.equal(e.status, 3); assert.equal(JSON.parse(e.stdout).permission, 'accessibility'); }
+  }
+  const source = await readFile(join(here, 'desktop-helper.swift'), 'utf8');
+  assert.match(source, /checkFocus\(args, typing: true\)/);
+  assert.match(source, /checkFocus\(args, point: position\)/);
+  assert.match(source, /checkFocus\(args, point: point\)/);
+  assert.match(source, /checkFocus\(args\)\s+postKey/);
+  assert.match(source, /target-occluded/);
 });

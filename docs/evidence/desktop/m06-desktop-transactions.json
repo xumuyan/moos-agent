@@ -1,0 +1,312 @@
+{
+  "id": "E122",
+  "task": "M06/P06.3a",
+  "title": "有界跨调用桌面事务与原生焦点守卫：0.1.43 隔离候选，实机焦点验收待完成",
+  "recordedAt": "2026-11-11T17:11:57+08:00",
+  "status": "candidate-verified-native-focus-acceptance-pending",
+  "workspace": {
+    "baseCommit": "9f725e221c79d73d4124b8eaf67eabb161503e7e",
+    "state": "本次提交前工作区；运行时代码与 build-QBaZWa 逐文件哈希一致；测试、计划和证据同一提交",
+    "commitSubject": "feat(P06.3a): add bounded desktop transactions and focus guards"
+  },
+  "environment": {
+    "arch": "arm64",
+    "os": "macOS 27.0.1 (26A434)",
+    "node": "24.15.0",
+    "compileTarget": "arm64-apple-macos14",
+    "minimumMacOSTested": false
+  },
+  "implementation": {
+    "crossCallTransaction": true,
+    "inputNeedsFreshSingleUseObservation": true,
+    "waitTimeoutMs": 20000,
+    "runTimeoutMs": 120000,
+    "graceMs": 3000,
+    "helperProtocol": "2",
+    "desktopToolCount": 11,
+    "sdkFinallyCleanup": true,
+    "resultObservationRequiredBeforeEnd": true,
+    "businessGoalAutomaticallyVerified": false,
+    "flow": [
+      "desktop_begin 获取任务本地随机 transactionId；同 Host 全局 FIFO 队列跨模型等待持锁",
+      "desktop_app 仅事务内可用，先查两项权限；已有焦点不匹配时拒绝自动抢回",
+      "desktop_windows 查询后 desktop_screenshot scope=window；只接收当前前台窗口，截图前后核对焦点，返回一次性 observationId",
+      "click/key/type/scroll 需本事务最新观察；原生 helper 投递前核对 pid/bundle/windowId/窗口及元素边界/AX role/祖先索引；类型输入限可编辑角色，坐标动作检查窗口范围和遮挡",
+      "动作后重新截图；desktop_end verify 必须使用最新未消费观察，并在同锁内再次核对/截图，之后释放；结果明确不代表业务目标成功",
+      "cancel/异常/超时/任务终态/工具组重建释放；先取消 helper、等待 close，再交接；遗漏 end 由 SDK finally 清理"
+    ]
+  },
+  "package": {
+    "recordedAt": "2026-11-11T17:10:02+08:00",
+    "build": ".generated/moos-electron/build-QBaZWa/沐码.app",
+    "version": "0.1.43",
+    "bundleId": "dev.moos.agent.electron",
+    "strictDeepSignatureVerified": true,
+    "includesPiFixture": false,
+    "helperSha256": "759658664413f7cdcc91712be1392436e58f1699cb97c2bbe565a31e72ab61c8",
+    "helperSourceSha256": "0f1e9b1a1b1a7443254eb2dd9630c6cc6b0743afe9790a2e08bd1370ce1b225a",
+    "sourceMatches": {
+      "packages/pi-runtime/desktop-transaction.mjs": "5b1c7791791536a9c9e034a77bfe56f7250230c7165b4ad2a31518a9e8490d4d",
+      "packages/pi-runtime/desktop-queue.mjs": "73ba26eb9bc963782055c4cf9d6c3ab82de23bf31663179a1f9ed356f3933388",
+      "packages/pi-runtime/desktop-tools.mjs": "4c15be9d29081e977636915d4fdd008845ef25d6f6af573825f95487ebdb0471",
+      "packages/pi-runtime/sdk-runtime.mjs": "07414b8d5f244be09cc1a79dad3c65e320abfb6817c82fafa2a80ce912223f76",
+      "apps/electron/pi-turn.mjs": "e16cf165df1a30d3bac6750c3850ba942ab069a27058662711e39df9863ae6fd",
+      "apps/electron/plugin/host.js": "499b98cdee2297a2fd7c36e049555d1b643148bfa771ff29b6c2fe3ef24b0b45",
+      "apps/electron/plugin/package.json": "c7fd49f27f6766b34ed1a2048d994b0682573a8e7066d480e793c6d1b0c236f9"
+    },
+    "permissions": {
+      "accessibilityGranted": false,
+      "activeDisplays": 2,
+      "helperVersion": "2",
+      "screenCaptureGranted": false,
+      "system": "Version 27.0.1 (Build 26A434)"
+    },
+    "blockedFocus": {
+      "mode": "focus",
+      "exit": 3,
+      "payload": {
+        "accessibilityGranted": false,
+        "permission": "accessibility",
+        "reason": "system-permission-required",
+        "screenCaptureGranted": false,
+        "status": "blocked"
+      }
+    },
+    "nonPostingFocusPlans": [
+      {
+        "changedFields": [],
+        "accepted": true,
+        "posted": false,
+        "reason": "matched"
+      },
+      {
+        "changedFields": [
+          "pid"
+        ],
+        "accepted": false,
+        "posted": false,
+        "reason": "focus-changed"
+      },
+      {
+        "changedFields": [
+          "windowId"
+        ],
+        "accepted": false,
+        "posted": false,
+        "reason": "focus-changed"
+      },
+      {
+        "changedFields": [
+          "path"
+        ],
+        "accepted": false,
+        "posted": false,
+        "reason": "focus-changed"
+      }
+    ],
+    "logicalFileBytesExcludingSymlinks": 616321553,
+    "allocatedKiB": 691588,
+    "distributionArchiveBytes": null,
+    "firstLaunchDownloadBytes": null,
+    "productionVersionReadOnly": "0.1.41",
+    "nativeInputOrScreenCaptureExecuted": false
+  },
+  "checks": {
+    "core": {
+      "command": "npm test",
+      "passed": 206,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/core.log"
+    },
+    "electron": {
+      "command": "npm run test:electron",
+      "passed": 104,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/electron.log"
+    },
+    "native": {
+      "command": "CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1 npm run test:desktop-native",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/native.log"
+    },
+    "bridge": {
+      "command": "node --test probes/dsh-electron-pi/index.test.mjs",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/bridge.log"
+    },
+    "skin": {
+      "command": "python3 -m unittest discover -s probes/dsh-electron-skin -v",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/skin.log"
+    },
+    "docs": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "passed": 95,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0,
+      "log": "artifacts/m06-transaction/final/docs.log"
+    }
+  },
+  "sdkConcurrencyAcceptance": {
+    "test": "packages/pi-runtime/desktop-sdk.test.mjs",
+    "actualPiSdk": true,
+    "model": "本地 SSE 模拟模型",
+    "helper": "独立进程合成 helper（不是原生输入）",
+    "twoConcurrentProjects": true,
+    "aModelWaitsWhileBQueues": true,
+    "observeActionVerifyDoNotInterleave": true,
+    "missingEndReleasesOnTaskFinish": true,
+    "isolatedData": true,
+    "onlineProviderCalled": false,
+    "nativeBrowserInput": false
+  },
+  "packagedIntegration": {
+    "test": "apps/electron/packaging.test.mjs",
+    "toolsAdvertised": 11,
+    "toolsExecuted": [
+      "desktop_permissions",
+      "desktop_displays",
+      "desktop_begin"
+    ],
+    "requests": 4,
+    "phases": [
+      "running",
+      "done",
+      "running",
+      "cancelled"
+    ],
+    "taskFinallyUnlocked": true,
+    "realPackagedHelper": true,
+    "installedGuiHostPermissionAttribution": false,
+    "nativeInputOrCapture": false
+  },
+  "focusAcceptance": {
+    "nativePredicateCases": [
+      "identical",
+      "changed pid",
+      "changed windowId",
+      "changed bundleId",
+      "changed element path",
+      "changed window bounds",
+      "changed element bounds",
+      "non-editable role"
+    ],
+    "syntheticFocusRejectionBeforeInput": true,
+    "oldObservationReplayRejected": true,
+    "realHelperChildClosedBeforeHandoff": true,
+    "nativePermissionGrantedFocus": false,
+    "nativeOcclusionDetectionAcceptedOnRealWindow": false,
+    "nativeCheckAndPostAtomic": false
+  },
+  "gui": {
+    "reportPath": "artifacts/m06-transaction/final/gui/recovery-TB9EF5/brand-report.json",
+    "report": {
+      "time": "2026-11-11T09:08:30.783Z",
+      "identity": {
+        "name": "MuMa",
+        "displayName": "沐码",
+        "executable": "MuMa",
+        "bundleId": "dev.moos.agent.electron",
+        "version": "0.1.43"
+      },
+      "branding": {
+        "name": "沐码",
+        "chinese": "沐码",
+        "title": "沐码",
+        "iconWidth": 32,
+        "icnsSha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+      },
+      "shell": "0.1.43",
+      "collapsed": {
+        "present": true,
+        "open": false,
+        "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+        "heading": "工作区变化 ·",
+        "hint": "已折叠，点击展开"
+      },
+      "expanded": {
+        "open": true,
+        "count": 12,
+        "paths": [
+          "many-1.txt",
+          "many-10.txt",
+          "many-11.txt",
+          "many-12.txt",
+          "many-2.txt",
+          "many-3.txt",
+          "many-4.txt",
+          "many-5.txt",
+          "many-6.txt",
+          "many-7.txt",
+          "many-8.txt",
+          "many-9.txt"
+        ],
+        "allNamed": 12,
+        "first": "many-1.txt",
+        "last": "many-9.txt",
+        "height": 300
+      },
+      "recollapsed": false,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "usedTerm": false,
+        "method": "QA SIGUSR2 → app.quit"
+      }
+    },
+    "exit": 0,
+    "screenshotReviewed": "artifacts/m06-transaction/final/gui/recovery-TB9EF5/many-collapsed.png",
+    "scope": "隔离沐码品牌/本地模型真实PI 12文件任务/折叠回归；不是桌面事务UI或真实浏览器验收"
+  },
+  "reviewAndIterations": [
+    "首轮 build-NMbTHQ：core205/Electron104及其余回归通过，结果保留 initial/。复核后补最终观察确认协议、click可选截图的前后台核对、SDK finally嵌套清理，故重建 build-QBaZWa 并全量重跑。",
+    "本轮执行的定向/全量测试均通过；无权限不能覆盖真实焦点/输入。初始摘要里若用“验证截图成功”理解为业务目标成功不成立，最终字段明确 businessGoalVerified=false。",
+    "一次读取不存在的 sdk-runtime.test.mjs/sdk.test.mjs 失败，改新增 desktop-sdk.test.mjs；没有据该读取失败宣称执行测试。"
+  ],
+  "limits": {
+    "p063aAccepted": false,
+    "m06Complete": false,
+    "chatScreenshotBridge": false,
+    "realBrowserAcceptance": false,
+    "authorizedNativeInputOrCapture": false,
+    "installedGuiHelperWiring": false,
+    "realMultiProjectDesktopAcceptance": false,
+    "notes": [
+      "跨调用队列仅在同 Host 生效，不阻止用户/其他应用操作桌面。",
+      "AX 焦点缺失、窗口映射歧义、元素路径不可读时保守拒绝；兼容性、同几何位置替换元素的识别和真实浏览器需实机验证。",
+      "检查到事件投递之间存在操作系统竞态，不承诺原子输入或绝不会误输；窗口/元素内容相同几何变化不能单靠快照确认业务身份。",
+      "双击第二次仍核对原焦点，若第一次改变焦点会停止；打开新窗口/弹层或窗口尺寸变化会保守中止，尚未优化实机兼容性。",
+      "队列取消宽限依赖执行方响应取消；native helper 1秒后KILL并等待close，任意不合作的外部执行器不获安全保证。",
+      "截图图片/路径仍只交给模型；P06.5a受限聊天桥未实现。",
+      "候选从工具启动时两权限false不等于正式GUI权限归属结论。",
+      "先推进P06.5a；另获安装授权和用户系统权限后按P06.6补真实浏览器/焦点切换/双屏/并发取消验收。"
+    ]
+  },
+  "deployment": {
+    "installed": false,
+    "productionVersion": "0.1.41",
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "migration": false
+  },
+  "artifacts": [
+    "artifacts/m06-transaction/validate.sh",
+    "artifacts/m06-transaction/verify-package.py",
+    "artifacts/m06-transaction/build-final.log",
+    "artifacts/m06-transaction/final/validation.json"
+  ]
+}

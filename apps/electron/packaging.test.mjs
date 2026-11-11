@@ -25,6 +25,7 @@ test('prepare-local bundles every local module imported by the packaged pi-runti
       `prepare-local.mjs 拷贝清单缺少 packages/pi-runtime/${name}`,
     );
   }
+  assert.ok(prepareScript.includes('packages/pi-runtime/desktop-transaction.mjs'), '桌面事务必须随包分发');
   assert.ok(prepareScript.includes('packages/pi-runtime/image-tool.mjs'), '图片工具必须随包分发');
 });
 
@@ -89,7 +90,7 @@ test('desktop helper is compiled into Resources/bin and smoke-checked at build t
   assert.ok(prepare.includes("'desktop-helper.swift'"), 'prepare-local must compile the Swift helper');
   assert.ok(prepare.includes("'bin'"), 'helper must land in Resources/bin');
   assert.ok(prepare.includes('arm64-apple-macos14'), 'helper target must match the app minimum');
-  assert.ok(prepare.includes('"version":"1"'), 'build must smoke-check the helper binary');
+  assert.ok(prepare.includes('"version":"2"'), 'build must smoke-check the helper binary');
   assert.ok(source.includes('system-permission-required'), 'permission gates must stay structured');
 });
 
@@ -126,9 +127,9 @@ test('candidate plugin resolves and executes the packaged native helper from its
   assert.equal(helperPath, join(resources, 'bin/moos-desktop-helper'));
   const { createDesktopTools } = await import(pathToFileURL(join(resources, 'pi-runtime/packages/pi-runtime/desktop-tools.mjs')).href);
   const tools = createDesktopTools({ helperPath, ownerId: 'packaged-readonly-acceptance' });
-  assert.equal(tools.length, 9);
+  assert.equal(tools.length, 11);
   const permissions = await tools.find(t => t.name === 'desktop_permissions').execute('p', {});
-  assert.equal(permissions.details.helperVersion, '1');
+  assert.equal(permissions.details.helperVersion, '2');
   const displays = await tools.find(t => t.name === 'desktop_displays').execute('d', {});
   assert.ok(displays.details.displays.length > 0);
   assert.ok(displays.details.displays.every(d => Number.isFinite(d.x) && Number.isFinite(d.y)));
@@ -141,7 +142,7 @@ test('candidate plugin resolves and executes the packaged native helper from its
   const root = await mkdtemp(join(tmpdir(), 'moos-packaged-desktop-'));
   await mkdir(join(root, 'project'));
   const requests = [], events = [];
-  const calls = ['desktop_permissions', 'desktop_displays'];
+  const calls = ['desktop_permissions', 'desktop_displays', 'desktop_begin'];
   const server = createServer(async (req, res) => {
     let raw = ''; for await (const chunk of req) raw += chunk;
     requests.push(JSON.parse(raw));
@@ -165,9 +166,11 @@ test('candidate plugin resolves and executes the packaged native helper from its
       model: 'synthetic', api: 'openai-completions', contextWindow: 32000, maxTokens: 2048 },
   });
   assert.equal(result.text, 'DESKTOP_NATIVE_READONLY_OK');
-  assert.equal(requests.length, 3);
-  assert.equal(requests[0].tools.filter(t => t.function.name.startsWith('desktop_')).length, 9);
+  assert.equal(requests.length, 4);
+  assert.equal(requests[0].tools.filter(t => t.function.name.startsWith('desktop_')).length, 11);
   assert.deepEqual(events.filter(([name]) => name === 'tool_start').map(([, e]) => e.toolName), calls);
-  assert.deepEqual(events.filter(([name]) => name === 'tool_end').map(([, e]) => e.isError), [false, false]);
-  assert.deepEqual(events.filter(([name]) => name === 'desktop_action').map(([, e]) => e.phase), ['running', 'done']);
+  assert.deepEqual(events.filter(([name]) => name === 'tool_end').map(([, e]) => e.isError), [false, false, false]);
+  assert.deepEqual(events.filter(([name]) => name === 'desktop_action').map(([, e]) => e.phase), ['running', 'done', 'running', 'cancelled']);
+  const { SHARED_QUEUE } = await import(pathToFileURL(join(resources, 'pi-runtime/packages/pi-runtime/desktop-tools.mjs')).href);
+  assert.equal(SHARED_QUEUE.status().locked, false);
 });
