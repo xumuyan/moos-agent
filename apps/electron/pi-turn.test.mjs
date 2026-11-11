@@ -168,6 +168,13 @@ test('desktop queue state surfaces only while queued or running (M06 P06.5)', as
   store.appendEvent(task.id, 'desktop_action', { phase: 'done', owner: 'conversation:other', label: '截取屏幕' });
   assert.equal(reader.read('desktop-session', 3)?.desktop, undefined, 'finished phases stop rendering');
   store.appendEvent(task.id, 'tool_start', { toolCallId: 'dt1', toolName: 'desktop_screenshot', args: { scope: 'display' } });
+  store.appendEvent(task.id, 'desktop_action', { phase: 'queued', label: 'stale' });
+  for (const status of ['succeeded', 'failed', 'cancelled', 'interrupted']) {
+    store.updateTask(task.id, { status });
+    assert.equal(reader.read('desktop-session', 3)?.desktop, undefined, status);
+  }
   const actions = reader.read('desktop-session', 3)?.actions ?? [];
   assert.ok(actions.some(action => action.label === '截取屏幕'), 'desktop tools appear in the action list');
 });
+
+// Existing desktop lifecycle test also covers stale last-event cleanup on task terminal states.

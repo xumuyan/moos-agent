@@ -1,6 +1,6 @@
 // 沐码桌面操作 helper（M06）。每条命令独立进程，stdout 仅输出 JSON。
-// 坐标协议：输入/输出的全局坐标一律为「顶左原点」逻辑点（与 NSScreen/CGWindowList 一致）；
-// 内部转换成 CGEvent 的「底左原点」坐标。键入与点击事件使用私有 CGEventSource，
+// 坐标协议：输入/输出统一使用 Quartz 全局顶左逻辑点（CGDisplayBounds/CGWindowList/CGEvent）。
+// NSScreen.frame 使用 AppKit 底左坐标，不能混用或对 Quartz 坐标再次翻转。键入与点击事件使用私有 CGEventSource，
 // down 事件携带显式修饰键标志、up 事件标志显式清空（不继承先前 Command 状态，M01/E14 结论）。
 import Foundation
 import AppKit
@@ -33,9 +33,9 @@ func value(_ name: String, in args: [String]) -> String? {
 
 func numbers(_ name: String, count: Int, in args: [String]) -> [Double]? {
     guard let raw = value(name, in: args) else { return nil }
-    let parts = raw.split(separator: ",").compactMap { Double($0) }
-    guard parts.count == count, parts.allSatisfy({ $0.isFinite }) else { return nil }
-    return parts
+    let parts = raw.split(separator: ",", omittingEmptySubsequences: false).map { Double($0) }
+    guard parts.count == count, parts.allSatisfy({ $0?.isFinite == true }) else { return nil }
+    return parts.compactMap { $0 }
 }
 
 let screenGranted = CGPreflightScreenCaptureAccess()
@@ -59,13 +59,6 @@ func requireInput() {
 
 func screenID(_ screen: NSScreen) -> CGDirectDisplayID {
     (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! NSNumber).uint32Value
-}
-
-/// 主屏在「顶左原点全局坐标系」中的总高度；用于全局顶左 → CGEvent 底左换算。
-let primaryHeight = CGDisplayBounds(CGMainDisplayID()).height
-
-func cgPoint(topLeft: CGPoint) -> CGPoint {
-    CGPoint(x: topLeft.x, y: primaryHeight - topLeft.y)
 }
 
 // 事件工厂：私有 source；down 携带显式 flags，up 显式清空。
@@ -125,8 +118,7 @@ if mode == "displays" {
         let id = screenID(screen)
         let bounds = CGDisplayBounds(id)
         // 顶左原点全局坐标中的显示器矩形。
-        let topLeftOrigin = CGRect(x: bounds.minX, y: primaryHeight - bounds.maxY,
-                                   width: bounds.width, height: bounds.height)
+        let topLeftOrigin = bounds
         return ["id": Int(id), "isPrimary": id == CGMainDisplayID(), "scale": screen.backingScaleFactor,
                 "x": topLeftOrigin.minX, "y": topLeftOrigin.minY,
                 "width": topLeftOrigin.width, "height": topLeftOrigin.height]
@@ -154,11 +146,17 @@ if mode == "windows" {
 }
 
 if mode == "screenshot" {
-    requireScreen()
     guard let output = value("--out", in: args), output.hasSuffix(".png") else {
         fputs("Usage: helper screenshot --out <path.png> [--display <id> | --window-id <id> | --region x,y,w,h --display <id>]\n", stderr)
         exit(2)
     }
+    if flag("--region", in: args) {
+        guard let region = numbers("--region", count: 4, in: args), region[2] > 0, region[3] > 0 else { exit(2) }
+    }
+    for name in ["--display", "--window-id"] where flag(name, in: args) {
+        guard let id = value(name, in: args).flatMap(UInt32.init), id > 0 else { exit(2) }
+    }
+    requireScreen()
     let captureConfig = SCStreamConfiguration()
     captureConfig.showsCursor = false
     Task { @MainActor in
@@ -183,8 +181,7 @@ if mode == "screenshot" {
             }
             let displayID = value("--display", in: args).flatMap(UInt32.init) ?? CGMainDisplayID()
             let bounds = CGDisplayBounds(displayID)
-            let topLeftOrigin = CGRect(x: bounds.minX, y: primaryHeight - bounds.maxY,
-                                       width: bounds.width, height: bounds.height)
+            let topLeftOrigin = bounds
             let shareable = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
             guard let display = shareable.displays.first(where: { $0.displayID == displayID }) else {
                 fail("display-not-found", extra: ["display": Int(displayID)])
@@ -209,7 +206,8 @@ if mode == "screenshot" {
                 }
                 try png.write(to: URL(fileURLWithPath: output))
                 emit(["status": "ok", "scope": "region", "display": Int(displayID),
-                      "region": ["x": crop.minX, "y": crop.minY, "width": crop.width, "height": crop.height],
+                      "region": ["x": crop.minX + topLeftOrigin.minX, "y": crop.minY + topLeftOrigin.minY, "width": crop.width, "height": crop.height],
+                      "scale": filter.pointPixelScale,
                       "imageWidth": image.width, "imageHeight": image.height, "output": output])
             }
             captureConfig.sourceRect = CGRect(origin: .zero, size: topLeftOrigin.size)
@@ -233,12 +231,12 @@ if mode == "screenshot" {
     NSApplication.shared.run()
 }
 
-if mode == "click" {
-    guard let point = numbers("--at", count: 2, in: args), point[0] >= 0, point[1] >= 0 else {
+if mode == "click" || mode == "plan-click" {
+    guard let point = numbers("--at", count: 2, in: args) else {
         fputs("Usage: helper click --at x,y [--double] [--right]\n", stderr); exit(2)
     }
-    requireInput()
-    let position = cgPoint(topLeft: CGPoint(x: point[0], y: point[1]))
+    if mode == "click" { requireInput() }
+    let position = CGPoint(x: point[0], y: point[1])
     let right = flag("--right", in: args)
     let double = flag("--double", in: args)
     let downType: CGEventType = right ? .rightMouseDown : .leftMouseDown
@@ -252,26 +250,35 @@ if mode == "click" {
             return event
         }
     }
-    let clickCount: Int64 = double ? 2 : 1
-    guard let down = events(downType, clickCount: clickCount),
-          let up = events(upType, clickCount: clickCount) else { fail("mouse-event-unavailable") }
-    down.post(tap: .cghidEventTap)
-    if double { usleep(80_000) }
-    up.post(tap: .cghidEventTap)
+    let counts: [Int64] = double ? [1, 2] : [1]
+    var planned: [[String: Any]] = []
+    for count in counts {
+        guard let down = events(downType, clickCount: count),
+              let up = events(upType, clickCount: count) else { fail("mouse-event-unavailable") }
+        for event in [down, up] {
+            planned.append(["type": event.type.rawValue, "clickCount": count,
+                            "x": event.location.x, "y": event.location.y, "flags": event.flags.rawValue])
+        }
+        if mode == "click" {
+            down.post(tap: .cghidEventTap)
+            up.post(tap: .cghidEventTap)
+            if double && count == 1 { usleep(80_000) }
+        }
+    }
     emit(["status": "ok", "at": ["x": point[0], "y": point[1]],
-          "cgPoint": ["x": position.x, "y": position.y],
-          "double": double, "right": right])
+          "cgPoint": ["x": position.x, "y": position.y], "events": planned,
+          "posted": mode == "click", "double": double, "right": right])
 }
 
 if mode == "scroll" {
-    guard let deltas = numbers("--delta", count: 2, in: args) else {
+    guard let deltas = numbers("--delta", count: 2, in: args), deltas.allSatisfy({ abs($0) <= 10000 }) else {
         fputs("Usage: helper scroll --delta dx,dy（dy>0 表示内容向下滚动）\n", stderr); exit(2)
     }
     requireInput()
     // dy>0（模型语义：向下滚动）→ wheel1 负值（CG：正 wheel1 内容向远离用户方向滚动）。
     let wheel1 = Int32(clamping: -Int(deltas[1].rounded()))
     let wheel2 = Int32(clamping: Int(deltas[0].rounded()))
-    guard let scroll = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 1,
+    guard let scroll = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 2,
                                wheel1: wheel1, wheel2: wheel2, wheel3: 0) else { fail("scroll-event-unavailable") }
     scroll.flags = []
     scroll.post(tap: .cghidEventTap)
@@ -279,7 +286,7 @@ if mode == "scroll" {
 }
 
 if mode == "key" {
-    guard let keycode = value("--code", in: args).flatMap(UInt32.init) else {
+    guard let keycode = value("--code", in: args).flatMap(UInt16.init), keycode <= 127 else {
         fputs("Usage: helper key --code <keycode> [--cmd] [--alt] [--ctrl] [--shift]\n", stderr); exit(2)
     }
     requireInput()

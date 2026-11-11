@@ -7,7 +7,7 @@ const labels = {
   bash_escalated: '经审批运行命令', grep: '搜索内容', find: '查找文件', ls: '查看目录',
   desktop_permissions: '查询桌面权限', desktop_screenshot: '截取屏幕', desktop_click: '点击鼠标',
   desktop_type: '键入文本', desktop_key: '按键/快捷键', desktop_scroll: '滚动',
-  desktop_windows: '列出窗口', desktop_app: '启动/切换应用',
+  desktop_displays: '列出显示器', desktop_windows: '列出窗口', desktop_app: '启动/切换应用',
 };
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 
@@ -120,7 +120,7 @@ export function createPiTurnReader(dbPath, timelinePayload) {
           json_extract(payload, '$.queueAhead') AS queueAhead
         FROM events WHERE taskId = ? AND type = 'desktop_action' ORDER BY id DESC LIMIT 1
       `).get(task.id);
-      const desktop = desktopEvent && (desktopEvent.phase === 'queued' || desktopEvent.phase === 'running')
+      const desktop = !terminal.has(task.status) && desktopEvent && (desktopEvent.phase === 'queued' || desktopEvent.phase === 'running')
         ? { phase: desktopEvent.phase, label: desktopEvent.label, queueAhead: desktopEvent.queueAhead }
         : undefined;
       const confirmed = new Map(changes?.files.map(file => [file.path, file.summary]));

@@ -2,9 +2,15 @@ import { mkdir, realpath, writeFile } from 'node:fs/promises';
 import { statSync, unwatchFile, watchFile, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { createPiTasks } from './pi-tasks.js';
 import { piModels } from './pi-models.js';
+
+// The plugin lives in the user's DSH profile, not Resources/app/plugin.
+// Derive the helper from the explicit packaged runtime root instead.
+export function desktopHelperPath(runtime, override = process.env.MOOS_DESKTOP_HELPER) {
+  return override || resolve(runtime, '../bin/moos-desktop-helper');
+}
 
 export const name = 'moos-electron-shell';
 export const inject = ['tools', 'agents', 'llm', 'sandboxPolicy', 'approval'];
@@ -95,8 +101,7 @@ export async function apply(ctx) {
       }
       return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
         // M06 桌面工具：包内 Resources/bin 的 Swift helper；开发检出不打包时文件不存在，工具自动不挂载。
-        desktop: { helperPath: process.env.MOOS_DESKTOP_HELPER
-          || resolve(dirname(fileURLToPath(import.meta.url)), '../../bin/moos-desktop-helper') },
+        desktop: { helperPath: desktopHelperPath(runtime) },
         // 设置页图片服务配置优先；未配置时 sdk-runtime 回退读 private/image-gen.json（无则不挂载工具）。
         ...(models ? { imageGen: imageGen ?? null } : {}), routing: { backup } });
     },

@@ -128,7 +128,7 @@ test('desktop queue propagates outer cancellation to a running executor and stil
   });
   await delay(10);
   controller.abort();
-  await assert.rejects(running, /cancelled mid-action/);
+  await assert.rejects(running, QueueCancelledError);
   assert.equal(queue.status().locked, false);
 });
 
@@ -161,7 +161,7 @@ test('desktop queue releaseAll aborts holder and rejects all waiters', async () 
   const waiter = queue.withLock({ owner: 'w' }, async () => 'never');
   await delay(5);
   queue.releaseAll('cleanup');
-  assert.equal(await holder, 'aborted-out');
+  await assert.rejects(holder, QueueCancelledError);
   await assert.rejects(waiter, QueueCancelledError);
   assert.equal(queue.status().locked, false);
 });
@@ -203,4 +203,62 @@ test('onQueued notifier failures never break the queue', async () => {
   assert.equal(await result, 'w-done');
   await holder;
   assert.equal(queue.status().locked, false);
+});
+
+test('cancellation before executor starts prevents any action', async () => {
+  const queue = createDesktopQueue();
+  const abort = new AbortController();
+  let invoked = false;
+  const result = queue.withLock({ owner: 'a', signal: abort.signal }, () => { invoked = true; });
+  abort.abort();
+  await assert.rejects(result, QueueCancelledError);
+  assert.equal(invoked, false);
+  assert.equal(queue.status().locked, false);
+});
+
+test('running cancellation rejects late success and bounds an uncooperative executor', async () => {
+  const queue = createDesktopQueue();
+  const abort = new AbortController();
+  const entered = deferred();
+  const result = queue.withLock({ owner: 'a', signal: abort.signal, graceMs: 10 }, async signal => {
+    entered.resolve();
+    await once(signal, 'abort');
+    return 'must-not-succeed';
+  });
+  await entered.promise;
+  abort.abort();
+  await assert.rejects(result, QueueCancelledError);
+  const hung = queue.withLock({ owner: 'hung', runTimeoutMs: 10, graceMs: 10 }, () => new Promise(() => {}));
+  await assert.rejects(Promise.race([hung, delay(300).then(() => { throw new Error('promise did not settle'); })]), QueueCancelledError);
+  assert.equal(await queue.withLock({ owner: 'next' }, async () => 'ok'), 'ok');
+});
+
+test('waiting timeout removes abort listeners and reentrant cancellation leaves no timer', async () => {
+  const { getEventListeners } = await import('node:events');
+  const queue = createDesktopQueue();
+  const gate = deferred();
+  const holder = queue.withLock({ owner: 'h' }, () => gate.promise);
+  const abort = new AbortController();
+  await assert.rejects(queue.withLock({ owner: 'w', signal: abort.signal, waitTimeoutMs: 10 }, () => {}), QueueTimeoutError);
+  assert.equal(getEventListeners(abort.signal, 'abort').length, 0);
+  const reentrant = new AbortController();
+  await assert.rejects(queue.withLock({ owner: 'r', signal: reentrant.signal,
+    onQueued: () => reentrant.abort(), waitTimeoutMs: 20 }, () => assert.fail('cancelled waiter ran')), QueueCancelledError);
+  gate.resolve();
+  await holder;
+  await delay(30);
+  assert.equal(queue.status().locked, false);
+});
+
+test('late completion from a cancelled holder cannot release its successor', async () => {
+  const queue = createDesktopQueue();
+  const oldGate = deferred(), newGate = deferred();
+  const old = queue.withLock({ owner: 'old', runTimeoutMs: 10, graceMs: 10 }, () => oldGate.promise);
+  const next = queue.withLock({ owner: 'new' }, () => newGate.promise);
+  await assert.rejects(old, QueueCancelledError);
+  assert.equal(queue.status().owner, 'new');
+  oldGate.resolve('late');
+  await delay(5);
+  assert.equal(queue.status().owner, 'new');
+  newGate.resolve(); await next;
 });

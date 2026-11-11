@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-11 15:06:57 +08:00｜M06 加固与 0.1.42 隔离候选验收（E121，未安装）
+
+- 修改或新增内容：修复 P06.1–P06.5 队列取消竞态/迟到成功/超时清理、helper 子进程 TERM→1秒后KILL并等待 close、排队/运行终态事件及任务结束陈旧状态；Host 从显式包内 runtime 定位 helper，不再误从用户插件目录推导；Quartz 坐标不重复翻转 Y，支持负坐标，双击两组 down/up、横滚双轴及参数校验；新增只读 desktop_displays 和无投递 plan-click。版本改 0.1.42。新增包内真实 PI SDK→本地模拟模型→真实 helper 只读集成测试；PLAN 补未完成 P06.3a 事务/焦点保护、P06.5a 截图桥，P06.6 不勾选。
+- 遇到的难题：初始取消竞态/监听器红测失败且一轮未清理等待状态导致超时；运行超时曾误发 cancelled；SDK 测试使用不合法 30s/60s 触发 Invalid task timeout；文档首跑 93/94，修改当前范围时删了历史 P01 边界原文。旧代码/证据把 CGEvent 当底左坐标、单次工具锁当完整事务、模型路径当聊天可见路径，均需更正。一次广域 find 超时未作完成依据。
+- 处理方式：获锁到执行再次检查取消，取消后拒绝任何迟到成功，执行宽限有界并清理监听器/定时器；事件在队列承诺结束后报告，原生进程关闭才交接；不写原始输入/错误到桌面事件。SDK 使用合法 600000ms 任务档位并由测试另限30s；保留历史 P01 文句并注明历史。增加 E121 补正而不覆盖 E116–E120 原证据。最后注释澄清跨调用事务未实现，重建为 build-2RiRgR 后全量重跑，旧 build-wlnCil 仅为前轮结果。
+- 验证结果：对应 adebbd9 上本次提交前工作区。npm run build:app 成功（build-final.log）；codesign --verify --deep --strict 通过、fixture=false，关键包内代码与源码哈希匹配。最终 npm test 195/195、npm run test:electron 102/102 无跳过（新包 DSH + 正确皮肤夹具）、CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1 npm run test:desktop-native 11/11、PI桥 5/5、皮肤 4/4、Python 文档 94/94；脚本逐项保存 exit=0。包内权限/显示器工具经真实 SDK 执行成功（本地模拟模型3请求、2成功工具、9桌面工具可见）；候选 helper 从工具启动时两权限均 false，实际 click/screenshot 均 blocked exit3、无截图文件；plan-click 构造负坐标双击事件不投递。隔离 GUI recovery-LaraTG 核对壳0.1.42/品牌、真实PI本地12文件任务及收起/展开/再收起，正常 app.quit code0 无TERM/KILL，截图已回读；不代表桌面浏览器验收。日志 artifacts/m06-hardening/final，脱敏证据 docs/evidence/desktop/m06-hardening-candidate.json。
+- 遗留问题：本轮不退出/重启/替换正式 /Applications/沐码.app（只读 Info 核实0.1.41），不改真实数据。P06.3a 跨调用观察—操作—验证事务及焦点保护、P06.5a 聊天截图/可见路径桥尚未实现；权限归属、授权后的输入/截图/双屏、两项目真实浏览器并发与线上模型需后续验收，M06 仍未完成。候选包逻辑616302926字节、落盘691564KiB；分发压缩包/首次下载量未测。历史日志15:50/16:00/16:35标题晚于本次系统时间，历史真实时刻不能核实，不据此重排或伪造时间；安装成功以独立 result.json 为准。上一条安装提交实际为 adebbd9，可用 git show adebbd9 查询，原中文 grep 不匹配英文提交说明。
+- 对应 Git 提交：本次唯一说明 `fix(M06): harden desktop cancellation and verify 0.1.42 candidate`；查询 `git log --all --oneline --grep='fix(M06): harden desktop cancellation and verify 0.1.42 candidate'`。本条写入时尚未提交/推送，随后以真实 git push 与远程 HEAD 一致性核对，不预称部署成功。
+
 ## 2026-11-11 16:35:00 +08:00｜沐码 0.1.41 安装成功（E113/E114/E115 已上线）与收尾清理
 
 - 修改或新增内容：无代码改动；E113（聊天外链打开系统浏览器）/E114（图片按张限额）/E115（复制图片修复）随 0.1.41（build-8lWx61）安装到正式 /Applications/沐码.app。三份证据 deployment.installed 改为 true 并补安装说明；文档测试三处对应断言更新；安装成功后按规则清理：卸载并删除 LaunchAgent dev.moos.update041、删除停机备份与旧包 /Applications/.moos-update-0.1.41（1.0G）。

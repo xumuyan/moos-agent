@@ -55,7 +55,7 @@ test('desktop tools expose the expected names and schemas', () => {
   const tools = setup(OK_HELPER);
   assert.deepEqual(tools.map(t => t.name), [
     'desktop_permissions', 'desktop_screenshot', 'desktop_click',
-    'desktop_type', 'desktop_key', 'desktop_scroll', 'desktop_windows', 'desktop_app',
+    'desktop_type', 'desktop_key', 'desktop_scroll', 'desktop_windows', 'desktop_app', 'desktop_displays',
   ]);
 });
 
@@ -186,7 +186,7 @@ process.exit(2);
   // 失败路径：点击坐标非法在锁外拒绝，不产生 running。
   events.length = 0;
   const click = tools.find(t => t.name === 'desktop_click');
-  await assert.rejects(click.execute('t1', { x: -5, y: 0 }, undefined), /点击坐标/);
+  await assert.rejects(click.execute('t1', { x: NaN, y: 0 }, undefined), /点击坐标/);
   assert.deepEqual(events, []);
   // emit 抛错不影响动作。
   const noisy = createDesktopTools({
@@ -194,4 +194,93 @@ process.exit(2);
     getMode: () => 'danger-full-access', emit: () => { throw new Error('emit broken'); },
   });
   await noisy.find(t => t.name === 'desktop_permissions').execute('t1', {}, undefined);
+});
+
+test('queued cancellation and timeout emit one terminal event without running', async () => {
+  for (const kind of ['cancelled', 'timeout']) {
+    const queue = createDesktopQueue();
+    let unlock;
+    const gate = new Promise(r => { unlock = r; });
+    const holding = queue.withLock({ owner: 'blocker' }, () => gate);
+    const controller = new AbortController();
+    const events = [];
+    const click = createDesktopTools({ helperPath: OK_HELPER, ownerId: 'waiter', queue,
+      queueLimits: { waitTimeoutMs: 15 }, emit: (_, event) => events.push(event) }).find(t => t.name === 'desktop_click');
+    try {
+      const pending = click.execute('id', { x: 1, y: 1 }, controller.signal);
+      if (kind === 'cancelled') controller.abort();
+      await assert.rejects(pending);
+      assert.deepEqual(events.map(e => e.phase), ['queued', kind]);
+    } finally { unlock(); await holding; }
+  }
+});
+
+test('negative global coordinates and display discovery reach the helper unchanged', async () => {
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
+const arg = key => process.argv[process.argv.indexOf(key) + 1];
+let payload;
+if (process.argv[2] === 'displays') payload = { displays: [{ id: 2, x: -1710, y: -27, width: 1710, height: 1112, scale: 2 }] };
+if (process.argv[2] === 'click') { const [x, y] = arg('--at').split(',').map(Number); payload = { status: 'ok', at: { x, y } }; }
+if (process.argv[2] === 'screenshot') { writeFileSync(arg('--out'), Buffer.from('89504e47', 'hex')); payload = { status: 'ok', scope: 'region', regionArg: arg('--region'), displayArg: arg('--display'), imageWidth: 20, imageHeight: 20 }; }
+console.log(JSON.stringify(payload));
+`);
+  const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-negative-'));
+  const tools = setup(helper, { dataDir });
+  const displays = await tools.find(t => t.name === 'desktop_displays').execute('d', {});
+  assert.equal(displays.details.displays[0].x, -1710);
+  const click = await tools.find(t => t.name === 'desktop_click').execute('c', { x: -50, y: -20 });
+  assert.deepEqual(click.details.click.at, { x: -50, y: -20 });
+  const screenshot = tools.find(t => t.name === 'desktop_screenshot');
+  const shot = await screenshot.execute('s', { scope: 'region', displayId: 2, region: { x: -50, y: -20, width: 10, height: 10 } });
+  assert.equal(shot.details.regionArg, '-50,-20,10,10');
+  assert.equal(shot.details.displayArg, '2');
+  assert.ok(shot.content[0].text.includes(shot.details.savedTo));
+  await assert.rejects(screenshot.execute('bad', { scope: 'region' }), /region/);
+  await assert.rejects(screenshot.execute('bad', { scope: 'window', windowId: -1 }), /windowId/);
+});
+
+test('running cancellation waits for the helper to exit, rejects success and frees the queue', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { setTimeout: delay } = await import('node:timers/promises');
+  const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-cancel-'));
+  const marker = join(dataDir, 'pid');
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
+writeFileSync(${JSON.stringify(marker)}, String(process.pid));
+process.on('SIGTERM', () => setTimeout(() => { console.log(JSON.stringify({ status: 'ok', at: {x:1,y:1} })); process.exit(0); }, 80));
+setInterval(() => {}, 1000);
+`);
+  const queue = createDesktopQueue();
+  const controller = new AbortController();
+  const events = [];
+  const tools = createDesktopTools({ helperPath: helper, ownerId: 'cancel-test', queue,
+    emit: (_, e) => events.push(e) });
+  const pending = tools.find(t => t.name === 'desktop_click').execute('c', { x: 1, y: 1 }, controller.signal);
+  let pid;
+  for (let n = 0; n < 100 && !pid; n++) { pid = Number(await readFile(marker, 'utf8').catch(() => '')); if (!pid) await delay(10); }
+  assert.ok(pid, 'helper actually started');
+  controller.abort();
+  const rejected = assert.rejects(pending);
+  await queue.withLock({ owner: 'next' }, async () => {
+    assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }, 'old helper exited before next desktop action');
+  });
+  await rejected;
+  assert.deepEqual(events.map(e => e.phase), ['running', 'cancelled']);
+  assert.ok(events.every(e => !('error' in e)), 'raw command errors never enter events');
+});
+
+test('execution timeout is terminal once and unrelated code is not blocked by the desktop queue', async () => {
+  const queue = createDesktopQueue();
+  const helper = await fakeHelper('#!/usr/bin/env node\nsetInterval(() => {}, 1000);\n');
+  const events = [];
+  const tools = createDesktopTools({ helperPath: helper, ownerId: 'timed', queue,
+    queueLimits: { runTimeoutMs: 50, graceMs: 1500 }, emit: (_, e) => events.push(e) });
+  const pending = tools.find(t => t.name === 'desktop_click').execute('c', { x: 1, y: 1 });
+  // No queue dependency for ordinary project work.
+  const { readFile } = await import('node:fs/promises');
+  assert.ok((await readFile(helper, 'utf8')).includes('setInterval'));
+  await assert.rejects(pending);
+  assert.deepEqual(events.map(e => e.phase), ['running', 'timeout']);
+  assert.equal(queue.status().locked, false);
 });

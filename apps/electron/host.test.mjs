@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { startHost, parseBootstrap } from './host.mjs';
-import { apply as applyShell } from './plugin/host.js';
+import { apply as applyShell, desktopHelperPath } from './plugin/host.js';
 
 const token = 'fake-local-bootstrap-token-only';
 const line = `dsh web: http://127.0.0.1:43123/?token=${token}`;
@@ -227,4 +227,10 @@ test('rejects a host that exits before announcing a usable URL', async t => {
   const host = startHost({ ...config, timeoutMs: 2000 });
   t.after(() => host.stop());
   await assert.rejects(host.ready, /启动失败/);
+});
+
+test('desktop helper is resolved from packaged runtime, never the installed plugin directory', () => {
+  assert.equal(desktopHelperPath('/tmp/candidate/沐码.app/Contents/Resources/pi-runtime', ''),
+    '/tmp/candidate/沐码.app/Contents/Resources/bin/moos-desktop-helper');
+  assert.equal(desktopHelperPath('/tmp/runtime', '/tmp/test-helper'), '/tmp/test-helper');
 });

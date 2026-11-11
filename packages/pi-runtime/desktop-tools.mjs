@@ -1,8 +1,7 @@
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Type } from 'typebox';
 import { createDesktopQueue } from './desktop-queue.mjs';
 
@@ -10,8 +9,8 @@ import { createDesktopQueue } from './desktop-queue.mjs';
  * M06 桌面操作工具组（PI 自定义工具）。
  *
  * - helper 不存在时返回 []，模型看不到任何桌面工具（与 image-tool 同策略）。
- * - 所有需要权限的动作经全局桌面独占队列（desktop-queue）持锁执行：
- *   一次「观察—操作—验证」= 一次工具调用 = 一次锁，完成后释放。
+ * - 除权限查询外，每次调用经单 Host 共享队列持锁执行，完成后释放。
+ *   点击与可选结果截图同锁；跨调用「观察—操作—验证」事务尚未实现。
  * - read-only 会话拒绝全部桌面动作（屏幕点击/输入是全局副作用，不属于只读）。
  * - 权限未授予（helper exit 3）时返回结构化中文错误与恢复指引，模型可转告用户。
  */
@@ -43,30 +42,45 @@ function permissionGuidance(permission) {
 }
 
 function runHelper(helperPath, args, { timeoutMs = 30000, signal } = {}) {
+  signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const child = execFile(helperPath, args, { timeout: timeoutMs, signal, maxBuffer: 32 * 1024 * 1024 },
-      (error, stdout) => {
-        let payload;
-        try { payload = stdout ? JSON.parse(stdout) : null; } catch { payload = null; }
-        if (payload && payload.status === 'blocked') {
-          const guidance = new Error(payload.permission ? permissionGuidance(payload.permission) : '缺少系统权限');
-          guidance.code = 'DESKTOP_PERMISSION_REQUIRED';
-          guidance.permission = payload.permission ?? 'unknown';
-          reject(guidance);
-          return;
-        }
-        if (error) {
-          if (error.killed || signal?.aborted) reject(new Error('桌面操作超时或被取消'));
-          else reject(new Error(`桌面 helper 执行失败（exit ${error.code ?? '?'}）：${(payload && payload.reason) || error.message}`));
-          return;
-        }
-        if (!payload || payload.status === 'failed') {
-          reject(new Error(`桌面 helper 返回失败：${payload?.reason ?? '未知原因'}`));
-          return;
-        }
-        resolve(payload);
-      });
-    signal?.addEventListener('abort', () => child.kill(), { once: true });
+    const child = spawn(helperPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let output = '', bytes = 0, failure, killTimer;
+    const stop = error => {
+      if (failure) return;
+      failure = error;
+      child.kill('SIGTERM');
+      killTimer = setTimeout(() => child.kill('SIGKILL'), 1000);
+    };
+    const abort = () => stop(Object.assign(new Error('桌面操作被取消'), { name: 'AbortError' }));
+    const timer = setTimeout(() => stop(Object.assign(new Error('桌面 helper 执行超时'), { name: 'TimeoutError' })), timeoutMs);
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      bytes += Buffer.byteLength(chunk);
+      if (bytes > 32 * 1024 * 1024) stop(new Error('桌面 helper 输出超限'));
+      else output += chunk.toString('utf8');
+    });
+    child.stderr.resume(); // Never expose command arguments (which may contain typed private text).
+    child.once('error', error => { failure ??= new Error(`桌面 helper 无法启动（${error.code ?? 'unknown'}）`); });
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+    // Wait for process exit and stdio close before handing the desktop to the next owner.
+    child.once('close', code => {
+      clearTimeout(timer); clearTimeout(killTimer);
+      signal?.removeEventListener('abort', abort);
+      if (failure) return reject(failure);
+      let payload;
+      try { payload = JSON.parse(output); } catch { /* handled below */ }
+      if (payload?.status === 'blocked') {
+        return reject(Object.assign(new Error(permissionGuidance(payload.permission)), {
+          code: 'DESKTOP_PERMISSION_REQUIRED', permission: payload.permission ?? 'unknown',
+        }));
+      }
+      if (code !== 0 || !payload || payload.status === 'failed') {
+        return reject(new Error(`桌面 helper 执行失败（exit ${code ?? '?'}）`));
+      }
+      resolve(payload);
+    });
   });
 }
 
@@ -81,13 +95,12 @@ function assertHelperPayload(payload) {
   return payload;
 }
 
-export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit }) {
+export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit, queue = SHARED_QUEUE, queueLimits = {} }) {
   if (!helperPath || typeof helperPath !== 'string' || !existsSync(helperPath)) return [];
   const mode = getMode ?? (() => 'danger-full-access');
   const report = (phase, extra) => {
     try { emit?.('desktop_action', { phase, owner: ownerId, ...extra }); } catch { /* 事件失败不影响动作 */ }
   };
-  const queue = SHARED_QUEUE;
   const screenshotsDir = dataDir ? join(dataDir, 'screenshots', ownerId.replace(/[^a-zA-Z0-9_-]/g, '_')) : null;
 
   async function capturePng(args, signal) {
@@ -107,22 +120,23 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
   async function guarded(label, signal, fn) {
     if (mode() === 'read-only') throw new Error('当前会话为只读权限，桌面操作会产生全局副作用，已拒绝执行');
     const options = queueOptions(ownerId, label, signal);
-    return queue.withLock({
-      ...options,
-      onQueued: (info) => report('queued', { label, queueAhead: info.queueAhead }),
-    }, async (lockSignal) => {
-      report('running', { label });
-      try {
-        const result = await fn(lockSignal);
-        report('done', { label });
-        return result;
-      } catch (error) {
-        const phase = error?.name === 'QueueTimeoutError' ? 'timeout'
-          : error?.name === 'QueueCancelledError' ? 'cancelled' : 'failed';
-        report(phase, { label, error: error.message });
-        throw error;
-      }
-    });
+    try {
+      const result = await queue.withLock({
+        ...options, ...queueLimits,
+        onQueued: (info) => report('queued', { label, queueAhead: info.queueAhead }),
+      }, async (lockSignal) => {
+        report('running', { label });
+        return fn(lockSignal);
+      });
+      report('done', { label });
+      return result;
+    } catch (error) {
+      const phase = error?.name === 'QueueTimeoutError' || error?.name === 'TimeoutError'
+        || error?.detail?.reason === 'run-timeout' ? 'timeout'
+        : signal?.aborted || ['QueueCancelledError', 'AbortError'].includes(error?.name) ? 'cancelled' : 'failed';
+      report(phase, { label }); // No raw helper output, command, input text or error body in events.
+      throw error;
+    }
   }
 
   const tools = [];
@@ -153,7 +167,7 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     description: '截取整个屏幕、指定窗口或指定区域，保存 PNG 并把图片返回给你观察。坐标为全局顶左原点逻辑点。桌面观察的第一步。',
     parameters: Type.Object({
       scope: Type.Union([Type.Literal('display'), Type.Literal('window'), Type.Literal('region')]),
-      displayId: Type.Optional(Type.Number({ description: 'scope=display/region 时的显示器 id（先用 displays 查询）' })),
+      displayId: Type.Optional(Type.Number({ description: 'scope=display/region 时的显示器 id（先用 desktop_displays 查询）' })),
       windowId: Type.Optional(Type.Number({ description: 'scope=window 时的窗口 id（先用 desktop_windows 查询）' })),
       region: Type.Optional(Type.Object({
         x: Type.Number(), y: Type.Number(), width: Type.Number(), height: Type.Number(),
@@ -161,15 +175,18 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     }),
     async execute(toolCallId, input, signal) {
       signal?.throwIfAborted();
+      if (!['display', 'window', 'region'].includes(input.scope)) throw new Error('scope 非法');
+      if (input.scope === 'region' && !input.region) throw new Error('scope=region 需要 region');
+      if (input.displayId !== undefined && (!Number.isSafeInteger(input.displayId) || input.displayId <= 0)) throw new Error('displayId 非法');
       return guarded('截取屏幕', signal, async (lockSignal) => {
         const args = [];
         if (input.scope === 'window') {
-          if (!Number.isFinite(input.windowId)) throw new Error('scope=window 需要提供 windowId');
+          if ((!Number.isSafeInteger(input.windowId) || input.windowId <= 0)) throw new Error('scope=window 需要提供 windowId');
           args.push('--window-id', String(Math.trunc(input.windowId)));
         } else {
           if (input.scope === 'region' && input.region) {
             const { x, y, width, height } = input.region;
-            if (![x, y, width, height].every(v => Number.isFinite(v) && v >= 0) || width <= 0 || height <= 0) {
+            if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) {
               throw new Error('region 需要合法的 x,y,width,height（顶左原点，宽高为正）');
             }
             args.push('--region', `${x},${y},${width},${height}`);
@@ -177,7 +194,7 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
           if (Number.isFinite(input.displayId)) args.push('--display', String(Math.trunc(input.displayId)));
         }
         const { payload, target, bytes } = await capturePng(args, lockSignal);
-        const text = `截图已保存（${payload.scope}，${payload.imageWidth}x${payload.imageHeight} 像素，显示为下方图片）。`;
+        const text = `截图已保存（${payload.scope}，${payload.imageWidth}x${payload.imageHeight} 像素）：${target}。图片已返回给模型观察，聊天缩略图尚未接入。`;
         return {
           content: [{ type: 'text', text }, imagePart(bytes)],
           details: { ...payload, savedTo: target, bytes: bytes.length },
@@ -189,7 +206,7 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
   tools.push({
     name: 'desktop_click',
     label: '点击鼠标',
-    description: '在全局顶左坐标 (x,y) 处点击（可选双击/右键）。建议 verify=screenshot 让点击后自动截屏返回，一次调用完成观察—操作—验证。',
+    description: '在全局顶左坐标 (x,y) 处点击（可选双击/右键）。建议 verify=screenshot 让点击后自动截屏返回，点击与结果截图在同一把锁内；前一次观察不在本次锁内，不保证跨调用原子性。',
     parameters: Type.Object({
       x: Type.Number(), y: Type.Number(),
       double: Type.Optional(Type.Boolean({ description: '双击' })),
@@ -198,8 +215,8 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     }),
     async execute(toolCallId, input, signal) {
       signal?.throwIfAborted();
-      if (!Number.isFinite(input.x) || !Number.isFinite(input.y) || input.x < 0 || input.y < 0) {
-        throw new Error('点击坐标必须是合法的非负数（全局顶左原点）');
+      if (!Number.isFinite(input.x) || !Number.isFinite(input.y)) {
+        throw new Error('点击坐标必须是有限数字（全局顶左原点，副屏允许负坐标）');
       }
       return guarded(`点击 (${Math.round(input.x)},${Math.round(input.y)})`, signal, async (lockSignal) => {
         const args = ['click', '--at', `${input.x},${input.y}`];
@@ -256,7 +273,7 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     async execute(toolCallId, input, signal) {
       signal?.throwIfAborted();
       const keyName = String(input.key ?? '').toLowerCase();
-      const keycode = KEY_CODES[keyName];
+      const keycode = Object.hasOwn(KEY_CODES, keyName) ? KEY_CODES[keyName] : undefined;
       if (keycode === undefined) throw new Error(`不支持的键名：${keyName}（支持 return/tab/space/delete/escape/箭头/f1-f12/字母/数字）`);
       const modifiers = Array.isArray(input.modifiers) ? input.modifiers : [];
       const args = ['key', '--code', String(keycode)];
@@ -283,7 +300,9 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     }),
     async execute(toolCallId, input, signal) {
       signal?.throwIfAborted();
-      const dy = Number.isFinite(input.dy) ? input.dy : 0;
+      if (!Number.isFinite(input.dy) || Math.abs(input.dy) > 10000
+        || input.dx !== undefined && (!Number.isFinite(input.dx) || Math.abs(input.dx) > 10000)) throw new Error('滚动量须为有限数字且不超过 10000');
+      const dy = input.dy;
       const dx = Number.isFinite(input.dx) ? input.dx : 0;
       if (dy === 0 && dx === 0) throw new Error('滚动量为零');
       return guarded(`滚动 dy=${dy}`, signal, async (lockSignal) => {
@@ -340,6 +359,17 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     },
   });
 
+  tools.push({
+    name: 'desktop_displays', label: '列出显示器',
+    description: '查询显示器 id、全局顶左逻辑坐标与缩放；左侧/上方副屏坐标可为负数。截图像素须按返回的 scale 换算到逻辑点。',
+    parameters: Type.Object({}),
+    async execute(toolCallId, input, signal) {
+      return guarded('列出显示器', signal, async lockSignal => {
+        const payload = await runHelper(helperPath, ['displays'], { signal: lockSignal });
+        return { content: [{ type: 'text', text: JSON.stringify(payload.displays) }], details: payload };
+      });
+    },
+  });
   return tools;
 }
 

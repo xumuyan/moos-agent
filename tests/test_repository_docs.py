@@ -9,6 +9,45 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RepositoryDocsTests(unittest.TestCase):
+    def test_m06_candidate_separates_packaged_readonly_acceptance_from_desktop_completion(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/m06-hardening-candidate.json').read_text())
+        self.assertEqual(evidence['id'], 'E121')
+        self.assertEqual(evidence['status'], 'candidate-verified-m06-acceptance-blocked')
+        package = evidence['package']
+        self.assertEqual(package['version'], '0.1.42')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertTrue(package['strictDeepSignatureVerified'])
+        self.assertFalse(package['includesPiFixture'])
+        self.assertFalse(package['dryRunClick']['posted'])
+        self.assertEqual([e['clickCount'] for e in package['dryRunClick']['events']], [1, 1, 2, 2])
+        self.assertEqual([p['exit'] for p in package['blocked']], [3, 3])
+        self.assertFalse(package['blocked'][1]['imageCreated'])
+        for digest in [package['helperSha256'], package['helperSourceSha256'], *package['sourceMatches'].values()]:
+            self.assertRegex(digest, r'^[0-9a-f]{64}$')
+        integration = evidence['packagedIntegration']
+        self.assertEqual(integration['toolsAdvertised'], 9)
+        self.assertEqual(integration['toolsExecuted'], ['desktop_permissions', 'desktop_displays'])
+        self.assertFalse(integration['realOnlineModel'])
+        self.assertTrue(integration['isolatedData'])
+        self.assertTrue(integration['noNativeInputOrScreenCapture'])
+        for check in evidence['checks'].values():
+            self.assertEqual((check['failed'], check['exit']), (0, 0))
+        self.assertEqual(evidence['gui']['report']['exit'], {
+            'code': 0, 'signal': None, 'usedTerm': False, 'method': 'QA SIGUSR2 → app.quit',
+        })
+        for key, value in evidence['limits'].items():
+            if key != 'next':
+                self.assertFalse(value, key)
+        self.assertFalse(evidence['deployment']['installed'])
+        self.assertFalse(evidence['deployment']['productionAppExitedOrReplaced'])
+        self.assertFalse(evidence['deployment']['productionUserDataModifiedForTests'])
+        plan = (ROOT / 'PLAN.md').read_text()
+        for pending in ['P06.3a', 'P06.5a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        self.assertIn('| E121 |', plan)
+        self.assertIn('跨调用', plan)
+        self.assertTrue(evidence['correctionsToEarlierEvidence'])
+
     def test_chinese_brand_display_keeps_electron_helper_technical_name(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/p03-chinese-display.json').read_text())
         self.assertEqual(e['evidence'], 'E109')

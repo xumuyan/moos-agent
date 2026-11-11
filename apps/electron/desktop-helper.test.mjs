@@ -117,3 +117,23 @@ test('desktop helper source stays free of probe-only scenario remnants', async (
   assert.match(source, /up\.flags = \[\]/);
   assert.match(source, /down\.flags = flags/);
 });
+
+test('Quartz click plans preserve signed global coordinates and generate real double-click pairs without posting', () => {
+  for (const [x, y] of [[10, 20], [-1700, -27], [0, -100]]) {
+    const plan = run('plan-click', '--at', `${x},${y}`, '--double');
+    assert.equal(plan.posted, false);
+    assert.deepEqual(plan.cgPoint, { x, y });
+    assert.deepEqual(plan.events.map(e => e.clickCount), [1, 1, 2, 2]);
+    assert.deepEqual(plan.events.map(e => e.type), [1, 2, 1, 2]);
+    assert.ok(plan.events.every(e => e.x === x && e.y === y && e.flags === 0));
+  }
+});
+
+test('native malformed capture, key and scroll arguments fail before permissions or input', () => {
+  for (const args of [
+    ['key', '--code', '999999'], ['scroll', '--delta', '0,1e300'],
+    ['click', '--at', '1,,2'], ['screenshot'],
+    ['screenshot', '--out', '/tmp/not-created.png', '--region', '1,2,-1,4'],
+    ['screenshot', '--out', '/tmp/not-created.png', '--display', '-1'],
+  ]) assert.equal(statusOf(args), 2, args.join(' '));
+});

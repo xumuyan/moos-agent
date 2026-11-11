@@ -113,3 +113,61 @@ test('MuMa app and sidebar icons are the approved family assets with a complete 
   }
   assert.ok(types.includes('ic10'), '1024 pixel macOS representation exists');
 });
+
+test('candidate plugin resolves and executes the packaged native helper from its actual profile location', {
+  skip: !process.env.MOOS_ELECTRON_TEST_DSH_CLI && 'Requires a current helper-bearing isolated build', timeout: 30000,
+}, async t => {
+  const { resolve } = await import('node:path');
+  const { pathToFileURL } = await import('node:url');
+  const resources = resolve(dirname(process.env.MOOS_ELECTRON_TEST_DSH_CLI), '../..');
+  const { desktopHelperPath } = await import(pathToFileURL(join(resources,
+    'profile-template/profiles/web/node_modules/moos-electron-shell/host.js')).href);
+  const helperPath = desktopHelperPath(join(resources, 'pi-runtime'), '');
+  assert.equal(helperPath, join(resources, 'bin/moos-desktop-helper'));
+  const { createDesktopTools } = await import(pathToFileURL(join(resources, 'pi-runtime/packages/pi-runtime/desktop-tools.mjs')).href);
+  const tools = createDesktopTools({ helperPath, ownerId: 'packaged-readonly-acceptance' });
+  assert.equal(tools.length, 9);
+  const permissions = await tools.find(t => t.name === 'desktop_permissions').execute('p', {});
+  assert.equal(permissions.details.helperVersion, '1');
+  const displays = await tools.find(t => t.name === 'desktop_displays').execute('d', {});
+  assert.ok(displays.details.displays.length > 0);
+  assert.ok(displays.details.displays.every(d => Number.isFinite(d.x) && Number.isFinite(d.y)));
+
+  // Actual packaged PI SDK -> local model -> custom tool -> real native helper,
+  // with synthetic credentials/isolated sessions and only read-only native modes.
+  const { createServer } = await import('node:http');
+  const { mkdtemp, mkdir, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const root = await mkdtemp(join(tmpdir(), 'moos-packaged-desktop-'));
+  await mkdir(join(root, 'project'));
+  const requests = [], events = [];
+  const calls = ['desktop_permissions', 'desktop_displays'];
+  const server = createServer(async (req, res) => {
+    let raw = ''; for await (const chunk of req) raw += chunk;
+    requests.push(JSON.parse(raw));
+    const name = calls[requests.length - 1];
+    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    const delta = name ? { tool_calls: [{ index: 0, id: `call_${requests.length}`, type: 'function',
+      function: { name, arguments: '{}' } }] } : { content: 'DESKTOP_NATIVE_READONLY_OK' };
+    for (const [data, finish] of [[delta, null], [{}, name ? 'tool_calls' : 'stop']]) {
+      res.write('data: ' + JSON.stringify({ id: 'chatcmpl-native', object: 'chat.completion.chunk',
+        choices: [{ index: 0, delta: data, finish_reason: finish }] }) + '\n\n');
+    }
+    res.end('data: [DONE]\n\n');
+  });
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  t.after(async () => { server.closeAllConnections(); server.close(); await rm(root, { recursive: true, force: true }); });
+  const { runPiSdk } = await import(pathToFileURL(join(resources, 'pi-runtime/packages/pi-runtime/sdk-runtime.mjs')).href);
+  const result = await runPiSdk({ task: { text: 'Query desktop permissions and displays only.', timeoutMs: 600000 },
+    project: { path: join(root, 'project') }, conversation: { id: 'packaged-desktop' }, dataDir: join(root, 'sessions'),
+    apiKey: 'synthetic-local-only', imageGen: null, desktop: { helperPath }, emit: (name, value) => events.push([name, value]),
+    provider: { id: 'native-local-test', name: 'Local acceptance', baseUrl: `http://127.0.0.1:${server.address().port}/v1`,
+      model: 'synthetic', api: 'openai-completions', contextWindow: 32000, maxTokens: 2048 },
+  });
+  assert.equal(result.text, 'DESKTOP_NATIVE_READONLY_OK');
+  assert.equal(requests.length, 3);
+  assert.equal(requests[0].tools.filter(t => t.function.name.startsWith('desktop_')).length, 9);
+  assert.deepEqual(events.filter(([name]) => name === 'tool_start').map(([, e]) => e.toolName), calls);
+  assert.deepEqual(events.filter(([name]) => name === 'tool_end').map(([, e]) => e.isError), [false, false]);
+  assert.deepEqual(events.filter(([name]) => name === 'desktop_action').map(([, e]) => e.phase), ['running', 'done']);
+});

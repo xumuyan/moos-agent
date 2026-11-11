@@ -1,0 +1,333 @@
+{
+  "id": "E121",
+  "task": "M06/P06.1-P06.6",
+  "title": "桌面操作加固与 0.1.42 隔离候选验证（未安装、整阶段未验收）",
+  "recordedAt": "2026-11-11T15:04:14+08:00",
+  "status": "candidate-verified-m06-acceptance-blocked",
+  "workspace": {
+    "baseCommit": "adebbd91ecf79bf2d30d0aa73b3c0572e77a2f4c",
+    "state": "本次提交前工作区；运行时代码与 build-2RiRgR 字节匹配，测试/计划/证据随同一提交",
+    "commitSubject": "fix(M06): harden desktop cancellation and verify 0.1.42 candidate"
+  },
+  "environment": {
+    "arch": "arm64",
+    "os": "macOS 27.0.1 (26A434)",
+    "node": "24.15.0",
+    "compileTarget": "arm64-apple-macos14",
+    "minimumMacOSTested": false
+  },
+  "changes": [
+    "Host 插件位于用户 DSH profile；helper 改由显式 Resources/pi-runtime 推导 ../bin，保留测试覆盖路径。",
+    "队列获锁到执行间取消不执行动作；取消/超时拒绝迟到成功；宽限后调用结束；清理监听器/定时器；旧 holder 迟到不释放新 holder。",
+    "helper 进程由 spawn 管理，取消先 TERM、1s 后 KILL，等待 close 再结束；事件不包含原始命令/键入文本/错误正文。",
+    "排队取消、等待超时、运行超时均发终态；任务进入终态隐藏陈旧 queued/running UI。",
+    "统一 Quartz 顶左逻辑坐标，不重复翻转 Y，允许负坐标；双击两组 down/up；横滚 wheelCount=2；数字参数校验；plan-click 只创建事件不投递。",
+    "增加 desktop_displays，第九个工具；截图工具文本明确模型可见路径及聊天缩略图未实现。"
+  ],
+  "package": {
+    "recordedAt": "2026-11-11T15:01:38+08:00",
+    "build": ".generated/moos-electron/build-2RiRgR/沐码.app",
+    "version": "0.1.42",
+    "bundleId": "dev.moos.agent.electron",
+    "strictDeepSignatureVerified": true,
+    "includesPiFixture": false,
+    "helperSha256": "b562aaa929672a9877fbfdc7dddff7c2bdc7db0c2efb5e247258e0aa74b7090b",
+    "helperSourceSha256": "7c7bcd516df363b804e0ffa6c165f3f954e253c36fc44b9c2d57a5b2bf080de6",
+    "sourceMatches": {
+      "packages/pi-runtime/desktop-queue.mjs": "73ba26eb9bc963782055c4cf9d6c3ab82de23bf31663179a1f9ed356f3933388",
+      "packages/pi-runtime/desktop-tools.mjs": "75d4b39b31e3628f700916d17d1cc3d4a47ee53da072fcd5590d6cb008d43bd8",
+      "apps/electron/plugin/host.js": "499b98cdee2297a2fd7c36e049555d1b643148bfa771ff29b6c2fe3ef24b0b45",
+      "apps/electron/plugin/package.json": "0b63130f718e9456f950ef4f856b8eef40ec39e7b0e0138d941bea581438e92c",
+      "apps/electron/pi-turn.mjs": "8352ca1e9851a054fa9910ad1cd9b39b5fd5200acb1fc87946a4cfd53e0e60ba"
+    },
+    "permissions": {
+      "accessibilityGranted": false,
+      "activeDisplays": 2,
+      "helperVersion": "1",
+      "screenCaptureGranted": false,
+      "system": "Version 27.0.1 (Build 26A434)"
+    },
+    "displays": [
+      {
+        "height": 1080,
+        "id": 3,
+        "isPrimary": true,
+        "scale": 1,
+        "width": 1920,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "height": 1107,
+        "id": 1,
+        "isPrimary": false,
+        "scale": 2,
+        "width": 1710,
+        "x": -1710,
+        "y": 0
+      }
+    ],
+    "dryRunClick": {
+      "posted": false,
+      "events": [
+        {
+          "clickCount": 1,
+          "flags": 0,
+          "type": 1,
+          "x": -1700,
+          "y": -27
+        },
+        {
+          "clickCount": 1,
+          "flags": 0,
+          "type": 2,
+          "x": -1700,
+          "y": -27
+        },
+        {
+          "clickCount": 2,
+          "flags": 0,
+          "type": 1,
+          "x": -1700,
+          "y": -27
+        },
+        {
+          "clickCount": 2,
+          "flags": 0,
+          "type": 2,
+          "x": -1700,
+          "y": -27
+        }
+      ]
+    },
+    "blocked": [
+      {
+        "mode": "click",
+        "exit": 3,
+        "permission": "accessibility"
+      },
+      {
+        "mode": "screenshot",
+        "exit": 3,
+        "permission": "screen-capture",
+        "imageCreated": false
+      }
+    ],
+    "productionVersion": "0.1.41",
+    "packageLogicalFileBytes": 616302926,
+    "packageDiskAllocatedKiB": 691564,
+    "distributionArchiveMeasured": false,
+    "firstLaunchRuntimeDownloadMeasured": false
+  },
+  "packagedIntegration": {
+    "entry": "apps/electron/packaging.test.mjs",
+    "chain": "包内 profile-template 插件路径解析器 → 包内 PI SDK → 本地模拟模型 → customTools → 真实随包 Swift helper",
+    "toolsAdvertised": 9,
+    "toolsExecuted": [
+      "desktop_permissions",
+      "desktop_displays"
+    ],
+    "successfulToolEnds": 2,
+    "modelRequests": 3,
+    "events": [
+      "running",
+      "done"
+    ],
+    "realOnlineModel": false,
+    "isolatedData": true,
+    "noNativeInputOrScreenCapture": true,
+    "note": "通过 Node 导入包内插件/SDK，不冒充正式 GUI Host 权限归属验收；无真实模型凭据。"
+  },
+  "checks": {
+    "core": {
+      "command": "npm test",
+      "passed": 195,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "electron": {
+      "command": "npm run test:electron",
+      "passed": 102,
+      "failed": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "native": {
+      "command": "CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1 npm run test:desktop-native",
+      "passed": 11,
+      "failed": 0,
+      "exit": 0
+    },
+    "bridge": {
+      "command": "node --test probes/dsh-electron-pi/index.test.mjs",
+      "passed": 5,
+      "failed": 0,
+      "exit": 0
+    },
+    "skin": {
+      "command": "python3 -m unittest discover -s probes/dsh-electron-skin -v",
+      "passed": 4,
+      "failed": 0,
+      "exit": 0
+    },
+    "docs": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "passed": 94,
+      "failed": 0,
+      "exit": 0
+    }
+  },
+  "gui": {
+    "command": "node scripts/verify-electron-brand.mjs '.generated/moos-electron/build-2RiRgR/沐码.app' artifacts/m06-hardening/final/gui",
+    "isolatedData": true,
+    "report": {
+      "time": "2026-11-11T07:00:51.274Z",
+      "identity": {
+        "name": "MuMa",
+        "displayName": "沐码",
+        "executable": "MuMa",
+        "bundleId": "dev.moos.agent.electron",
+        "version": "0.1.42"
+      },
+      "branding": {
+        "name": "沐码",
+        "chinese": "沐码",
+        "title": "沐码",
+        "iconWidth": 32,
+        "icnsSha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+      },
+      "shell": "0.1.42",
+      "collapsed": {
+        "present": true,
+        "open": false,
+        "summaryText": "工作区变化 · 12 个文件已折叠，点击展开",
+        "heading": "工作区变化 ·",
+        "hint": "已折叠，点击展开"
+      },
+      "expanded": {
+        "open": true,
+        "count": 12,
+        "paths": [
+          "many-1.txt",
+          "many-10.txt",
+          "many-11.txt",
+          "many-12.txt",
+          "many-2.txt",
+          "many-3.txt",
+          "many-4.txt",
+          "many-5.txt",
+          "many-6.txt",
+          "many-7.txt",
+          "many-8.txt",
+          "many-9.txt"
+        ],
+        "allNamed": 12,
+        "first": "many-1.txt",
+        "last": "many-9.txt",
+        "height": 300
+      },
+      "recollapsed": false,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "usedTerm": false,
+        "method": "QA SIGUSR2 → app.quit"
+      }
+    },
+    "exit": 0,
+    "scope": "隔离副本、本地 fixture、PI 12 文件任务、品牌/折叠/展开/再收起、QA app.quit；非 M06 桌面浏览器验收",
+    "artifacts": [
+      {
+        "path": "artifacts/m06-hardening/final/gui/recovery-LaraTG/brand-report.json",
+        "sha256": "60d9d2b718f7828f250b66f3425e7cea26c7a74b5bb333f5e1e33f1fbece5ce0"
+      },
+      {
+        "path": "artifacts/m06-hardening/final/gui/recovery-LaraTG/many-collapsed.png",
+        "sha256": "b5c72d8a3ad52eea52f3b867e5ad0cdc3b2b195af9713aa4444db04898fe9cca"
+      },
+      {
+        "path": "artifacts/m06-hardening/final/gui/recovery-LaraTG/many-expanded.png",
+        "sha256": "760c8ea868a2b553dda555271d98ad3e7a2a9eefed1791036d93868270311851"
+      }
+    ]
+  },
+  "validationArtifacts": [
+    {
+      "path": "artifacts/m06-hardening/final/core.log",
+      "sha256": "9a6e5857e6a65c2cfc3a184e5f9fbbc6c32c30a298b6fe39bcf5f38b14a847e1"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/electron.log",
+      "sha256": "858d82afebf46aee3c626927fef41d2feef3ec8bd9bbbe21b71fec6df159f252"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/native.log",
+      "sha256": "64f1969b145a0a332f1bbb64b67084e53813745ad837de6f4b83f52d12d5f1cb"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/bridge.log",
+      "sha256": "166939c4ba107fb3b2a3e7f0c99019a873b6917b3a50e352fa486f01323af861"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/skin.log",
+      "sha256": "d969f01ee7220e6c93ee72bc550bbc6fb8ed197745d675477facf02f6f824d7f"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/gui.log",
+      "sha256": "f6cfd2078848c963ced214cc8a9f1f60d5c66917546aa6d6c1b4aa878d3165a8"
+    },
+    {
+      "path": "artifacts/m06-hardening/final/package-acceptance.json",
+      "sha256": "fb445aab9f1323516fa5df176c7e5512cfe79992a9fe7499a44895fa6edda3ce"
+    },
+    {
+      "path": "artifacts/m06-hardening/build-final.log",
+      "sha256": "6bdf40dfd71c5168f1c64c37757f55424c60b2d67fae6e9a673f1235a58547d8"
+    }
+  ],
+  "failuresAndCorrections": [
+    "初始定向红测取消竞态与监听器清理失败，运行因挂起状态超时；保留 red.log。最终队列/工具 32/32。",
+    "运行超时曾被工具事件误分类 cancelled，修正按队列 detail.reason 判定 timeout 后通过。",
+    "包内 SDK 集成测试最初两轮误传 30s/60s，task-policy 拒绝 Invalid task timeout；改为合法 600000ms，测试自身限时30s，未修改产品上限。",
+    "最终仅补正确互斥范围注释后重建 build-2RiRgR；初始 build-wlnCil 不是最终候选。",
+    "文档首跑 93/94，历史 P01 首轮边界原文被删导致断言失败；恢复并显式标注历史，保留原验收约束后 94/94。"
+  ],
+  "correctionsToEarlierEvidence": [
+    "E117 的 CGEvent 底左转换与副屏 y=-27 为旧实现错误输出，不是已验证坐标；当前 Quartz 副屏 x=-1710,y=0。",
+    "E118/E120 所谓完整观察—操作—验证锁与聊天保存路径展示缺乏对应实现，不能据单步锁或 details.savedTo 宣称已完成。历史 JSON 保留，本条补正。",
+    "此前日志 15:50/16:00/16:35 等手填标题晚于本次系统实际记录时间，无法核实其历史操作时刻；不据标题推断时序。0.1.41 安装以 result.json 成功时间为准。"
+  ],
+  "limits": {
+    "observationActionVerificationTransactionImplemented": false,
+    "focusProtectionAccepted": false,
+    "chatScreenshotBridgeImplemented": false,
+    "browserAcceptancePassed": false,
+    "permissionGrantedNativeActionsTested": false,
+    "installedGuiHelperWiringVerified": false,
+    "multiProjectRealDesktopAcceptancePassed": false,
+    "m06Complete": false,
+    "next": [
+      "P06.3a 完整跨调用事务及焦点保护",
+      "P06.5a 受限截图 UI 桥接",
+      "新构建/回归/用户明确安装授权与系统权限后 P06.6 实机验收"
+    ]
+  },
+  "deployment": {
+    "installed": false,
+    "installedVersionObserved": "0.1.41",
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "migration": false,
+    "note": "本轮仅隔离构建/测试；不安装、不退出/重启正式应用，未读取真实模型凭据。"
+  },
+  "testEnvironment": {
+    "recipe": "artifacts/m06-hardening/validate.sh",
+    "home": "/Users/xuguopeng",
+    "tmpdir": "/private/tmp",
+    "cleared": "MOOS_ELECTRON_* / DSH_* / ELECTRON_RUN_AS_NODE / NODE_OPTIONS / NODE_PATH",
+    "dshFixture": ".generated/moos-electron/build-2RiRgR/沐码.app/Contents/Resources/host-runtime/bin/dsh",
+    "skinFixtures": "只读复用既有皮肤中心与审核皮肤文件路径；测试安装/写入均在独立临时数据目录",
+    "logs": "artifacts/m06-hardening/final（脚本逐项保存真实退出码，未用 tail 管道代替结果）"
+  }
+}
