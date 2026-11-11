@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-11 13:05:00 +08:00｜M06 P06.2 通用桌面 helper 完成（electron 97/97）
+
+- 修改或新增内容：新增 `apps/electron/desktop-helper.swift`（M06 桌面操作 helper，泛化 M01 native.swift：version/permissions/displays/windows/screenshot/click/scroll/key/type/activate/launch；顶左原点全局坐标协议；私有 CGEventSource 显式修饰键；SCContentFilter/SCScreenshotManager；权限拦截结构化 JSON exit 3；父进程看门狗）与 `desktop-helper.test.mjs`（6 项：编译冒烟、只读命令、blocked 路径、参数校验、源码规范防探针残留）；prepare-local.mjs 编译 helper 到 Resources/bin 并冒烟校验；packaging.test.mjs 增防退化断言。PLAN.md P06.2 勾选（证据 E117）。
+- 遇到的难题：① swiftc 编译三处错误（SCDisplay 须从 SCShareableContent 取、CGEvent clickCount 用 setIntegerValueField(.mouseEventClickState)、macOS 14 起 activate(options:) 弃用改 activate()）逐一修正；② 权限 gate 原在参数校验之前，空参数误返回 blocked 而非 usage exit 2，已调整为参数校验前置；③ electron 全量首跑 8 fail 属测试环境路径笔误（PWD 在 apps/electron 而非仓库根），修正 build-8lWx61 包内 dsh、用户数据 skin-center 插件与 maid-atelier 审核皮肤路径后 97/97 0 skipped。
+- 处理方式：编译器错误逐条修；测试断言改用 error.status 精确断退出码（node 24 错误消息不含 exit code 字样）。
+- 验证结果：helper 直跑 version/permissions/displays/windows 正常（2 显示器：主屏 1920×1080 scale1、左侧副屏 -1710/-27 scale2；13 个在屏窗口，无录屏权限时 title 如实为空）；click/type 无权限 blocked exit 3 结构化正确；helper 测试 6/6；electron 全量 97/97 0 skipped；docs 93/93（pipefail）。
+- 遗留问题：真实点击/输入/截屏需正式沐码获得录屏与辅助功能权限后实机验收（P06.6，安装 0.1.41 后在系统设置添加）；pi-runtime 工具接线（P06.3）进行中。
+- 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.2"` 查询。
+
 ## 2026-11-11 12:30:00 +08:00｜M06 开工：P06.1 全局桌面独占队列模块完成（核心 174/174）
 
 - 修改或新增内容：用户拍板开始 M06 桌面操作开发。新增 `packages/pi-runtime/desktop-queue.mjs`（全局桌面独占队列：单 Host 进程内跨项目共享，独占 FIFO、等待超时携带 holder 信息、排队取消、执行超时 AbortSignal+宽限后强制释放、超时后结果不可信一律拒绝、异常释放、status() 队列展示）与 11 项单测 `desktop-queue.test.mjs`。PLAN.md M06 章节新增 P06.1–P06.6 子任务分解（对齐 M06 五个 checkbox），P06.1 勾选。

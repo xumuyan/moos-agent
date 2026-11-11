@@ -97,6 +97,17 @@ for (const file of ['main.mjs', 'host.mjs', 'link-handler.mjs', 'pi-usage.mjs', 
 await cp(join(source, 'plugin/pi-models.js'), join(appSource, 'pi-models.js'));
 await mkdir(join(appSource, 'plugin'));
 await cp(join(source, 'plugin/pi-workspace-changes.js'), join(appSource, 'plugin/pi-workspace-changes.js'));
+// M06 桌面操作 helper：Swift 源随仓库，构建时编译为 Resources/bin 下的独立可执行文件。
+{
+  const helperBin = join(resources, 'bin');
+  await mkdir(helperBin);
+  const helperSource = join(source, 'desktop-helper.swift');
+  execFileSync('/usr/bin/swiftc', ['-O', '-target', 'arm64-apple-macos14',
+    '-o', join(helperBin, 'moos-desktop-helper'), helperSource], { stdio: 'inherit' });
+  await chmod(join(helperBin, 'moos-desktop-helper'), 0o755);
+  const version = execFileSync(join(helperBin, 'moos-desktop-helper'), ['version'], { encoding: 'utf8' });
+  if (!version.includes('"version":"1"')) throw new Error('desktop helper smoke check failed');
+}
 const includesPiFixture = process.env.MOOS_ELECTRON_INCLUDE_PI_FIXTURE === '1';
 await writeFile(join(resources, 'moos-runtime.json'), JSON.stringify({ dshVersion, includesPiFixture }));
 await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.yml'));

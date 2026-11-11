@@ -83,6 +83,16 @@ test('every local module imported by main.mjs is listed in the packaging manifes
   }
 });
 
+test('desktop helper is compiled into Resources/bin and smoke-checked at build time', async () => {
+  const prepare = await readFile(join(here, 'prepare-local.mjs'), 'utf8');
+  const source = await readFile(join(here, 'desktop-helper.swift'), 'utf8');
+  assert.ok(prepare.includes("'desktop-helper.swift'"), 'prepare-local must compile the Swift helper');
+  assert.ok(prepare.includes("'bin'"), 'helper must land in Resources/bin');
+  assert.ok(prepare.includes('arm64-apple-macos14'), 'helper target must match the app minimum');
+  assert.ok(prepare.includes('"version":"1"'), 'build must smoke-check the helper binary');
+  assert.ok(source.includes('system-permission-required'), 'permission gates must stay structured');
+});
+
 test('MuMa app and sidebar icons are the approved family assets with a complete ICNS container', async () => {
   const { createHash } = await import('node:crypto');
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');

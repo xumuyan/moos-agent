@@ -1,0 +1,42 @@
+{
+  "id": "E117",
+  "task": "M06/P06.2",
+  "title": "通用桌面操作 helper（Swift）与构建集成",
+  "date": "2026-11-11",
+  "status": "helper-complete-real-input-pending-permissions",
+  "scope": {
+    "files": [
+      "apps/electron/desktop-helper.swift",
+      "apps/electron/desktop-helper.test.mjs",
+      "apps/electron/prepare-local.mjs",
+      "apps/electron/packaging.test.mjs"
+    ],
+    "modes": ["version", "permissions", "displays", "windows", "screenshot", "click", "scroll", "key", "type", "activate", "launch"],
+    "design": [
+      "one process per command; stdout is strict JSON; parent-exit watchdog prevents orphans",
+      "global top-left logical coordinates on the wire; CGEvent bottom-left conversion inside",
+      "private CGEventSource; down events carry explicit modifier flags, up events explicitly empty (M01/E14)",
+      "screen capture via SCContentFilter/SCScreenshotManager with pointPixelScale (M01/E18)",
+      "permission gates emit structured system-permission-required JSON and exit 3; usage errors exit 2"
+    ]
+  },
+  "actual": {
+    "commands": [
+      "swiftc -O -target arm64-apple-macos14 (direct + via node --test compile step)",
+      "node --test apps/electron/desktop-helper.test.mjs apps/electron/packaging.test.mjs",
+      "npm --prefix apps/electron test (full electron suite, packaged dsh env)"
+    ],
+    "results": {
+      "helperTests": "6/6 pass (compile/version/displays/windows/blocked paths/argument validation/source rules)",
+      "packagingAssertions": "included in suite",
+      "electronSuite": "97/97 pass, 0 skipped (90 prior + 7 new)",
+      "liveReadOnlyChecks": "permissions reports 2 displays (primary 1920x1080 scale1, secondary -1710x-27 scale2); windows lists 13 on-screen windows with empty titles under no screen-capture permission; click/type blocked exit 3 structured"
+    },
+    "environment": "arm64 macOS 27.0.1, node v24.15.0; electron suite used build-8lWx61 packaged dsh CLI, user-data skin-center 0.4.x plugin dir and reviewed maid-atelier skin dir",
+    "executedAt": "2026-11-11T13:00+08:00"
+  },
+  "notYetDone": [
+    "real click/type/scroll/screenshot with granted permissions (requires formal MuMa app granted Screen Recording & Accessibility; P06.6 GUI acceptance)",
+    "pi-runtime tool wiring (P06.3)"
+  ]
+}
