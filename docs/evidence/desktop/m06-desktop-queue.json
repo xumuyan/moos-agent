@@ -1,0 +1,39 @@
+{
+  "id": "E116",
+  "task": "M06/P06.1",
+  "title": "全局桌面独占队列模块 desktop-queue.mjs",
+  "date": "2026-11-11",
+  "status": "module-complete-not-wired",
+  "scope": {
+    "files": [
+      "packages/pi-runtime/desktop-queue.mjs",
+      "packages/pi-runtime/desktop-queue.test.mjs"
+    ],
+    "semantics": [
+      "exclusive FIFO across projects within the single Host process",
+      "queued-wait timeout (QueueTimeoutError carries holder owner)",
+      "AbortSignal cancellation removes queued waiter only",
+      "run timeout aborts executor and force-releases after grace period",
+      "results returned after run timeout are rejected as untrustworthy",
+      "errors/cancellation always release the lock before propagating",
+      "status() exposes holder owner/label and waiting list"
+    ]
+  },
+  "actual": {
+    "commands": [
+      "node --test packages/pi-runtime/desktop-queue.test.mjs",
+      "npm test (core)"
+    ],
+    "results": {
+      "desktopQueueTests": "11/11 pass, 0 skipped",
+      "coreSuite": "174/174 pass, 0 skipped (163 prior + 11 new)"
+    },
+    "environment": "arm64 macOS, node v24.15.0, HOME=/Users/xuguopeng, no MOOS_ELECTRON_* / DSH_* / ELECTRON_RUN_AS_NODE / NODE_* residues",
+    "executedAt": "2026-11-11T12:30+08:00"
+  },
+  "notYetDone": [
+    "tool wiring into pi-runtime customTools (P06.3)",
+    "queue UI display (P06.5)",
+    "M06 queue checkbox remains unchecked until both land"
+  ]
+}

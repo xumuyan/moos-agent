@@ -5,7 +5,7 @@
 - 修改或新增内容：用户拍板开始 M06 桌面操作开发。新增 `packages/pi-runtime/desktop-queue.mjs`（全局桌面独占队列：单 Host 进程内跨项目共享，独占 FIFO、等待超时携带 holder 信息、排队取消、执行超时 AbortSignal+宽限后强制释放、超时后结果不可信一律拒绝、异常释放、status() 队列展示）与 11 项单测 `desktop-queue.test.mjs`。PLAN.md M06 章节新增 P06.1–P06.6 子任务分解（对齐 M06 五个 checkbox），P06.1 勾选。
 - 遇到的难题：首版实现里执行超时后若执行方响应 abort 正常返回，会把迟到结果当成功；修正为超时触发后一律抛 QueueCancelledError（锁可能已易主，结果不可信）。
 - 处理方式：确认 pi-tasks.js/sdk-runtime 同进程承载全部项目会话，故进程内队列即可跨项目互斥；工具接线（P06.3）与 UI 排队展示（P06.5）完成前不勾 M06 队列 checkbox。
-- 验证结果：desktop-queue 单测 11/11；core 全量 174/174（原 163 + 新 11），0 skipped；docs 检查通过。
+- 验证结果：desktop-queue 单测 11/11；core 全量 174/174（原 163 + 新 11），0 skipped；证据登记 E116（docs/evidence/desktop/m06-desktop-queue.json）。12:30 首次提交时 docs 检查因 `tail` 吞掉管道退出码而漏拦（P06.1 行缺「证据：」与 E 编号），本条目随补提交修复并复核 93/93 通过。
 - 遗留问题：0.1.41 安装等待进程仍在 waiting-for-idle；P06.2 Swift helper 泛化进行中；实机权限（正式沐码的录屏/辅助功能授权）待安装后在系统设置添加。
 - 对应 Git 提交：见本次提交，可用 `git log --oneline --grep="P06.1"` 查询。
 
