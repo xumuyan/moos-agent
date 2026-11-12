@@ -309,7 +309,7 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
   tools.push({
     name: 'desktop_type',
     label: '键入文本',
-    description: '在桌面事务内向最新观察确认的可编辑焦点键入文本。回车必须显式传 pressReturn=true 才会按下，避免意外提交表单或消息。',
+    description: '在桌面事务内向最新观察确认的可编辑焦点键入文本。回车必须显式传 pressReturn=true 才会按下，避免意外提交表单或消息。成功仅表示事件已派发，必须重新截图核对文字；不自动重试。',
     parameters: Type.Object({
       transactionId: Type.String(), observationId: Type.String(),
       text: Type.String({ description: `要键入的文本（<=${MAX_TYPE_LENGTH} 字符）` }),
@@ -324,8 +324,8 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
       return guarded(`键入 ${text.length} 字符`, signal, async (lockSignal, focus) => {
         const payload = await runHelper(helperPath, ['type', '--text', text, ...focusArgs(focus)], { timeoutMs: 15000, signal: lockSignal });
         if (input.pressReturn) await runHelper(helperPath, ['key', '--code', '36', ...focusArgs(focus)], { timeoutMs: 10000, signal: lockSignal });
-        return { content: [{ type: 'text', text: `已键入 ${payload.characters} 字符${input.pressReturn ? '并按回车' : ''}。` }],
-          details: payload };
+        return { content: [{ type: 'text', text: `已派发 ${payload.characters} 字符的键入事件${input.pressReturn ? '及一次回车事件' : '（未按回车）'}；尚未确认目标控件收到文字。请重新截图核对，不要自动重试。` }],
+          details: { ...payload, inputDelivery: 'posted-unverified', businessGoalVerified: false } };
       }, input, true);
     },
   });

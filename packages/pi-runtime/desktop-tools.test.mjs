@@ -124,10 +124,19 @@ test('desktop tools enforce queue exclusivity and reject read-only sessions', as
 test('desktop_type requires explicit return and validates text length', async () => {
   const tools = setup(OK_HELPER);
   const type = tools.find(t => t.name === 'desktop_type');
-  const result = await type.execute('t1', { text: '你好', ...await observed(tools) });
+  const ids = await observed(tools);
+  const result = await type.execute('t1', { text: '你好', ...ids });
+  const returned = await type.execute('t2', { text: '你好', pressReturn: true, ...await observed(tools, ids.transactionId) });
+  assert.match(returned.content[0].text, /及一次回车事件/);
+  assert.doesNotMatch(returned.content[0].text, /未按回车/);
+  assert.equal(returned.details.businessGoalVerified, false);
   await tools.dispose();
-  assert.match(result.content[0].text, /已键入 3 字符/); // helper 返回 characters:3
-  assert.match(result.content[0].text, /未按回车|。/);
+  assert.match(result.content[0].text, /已派发 3 字符/); // helper reports the submitted count, not semantic receipt
+  assert.match(result.content[0].text, /未按回车/);
+  assert.match(result.content[0].text, /尚未确认目标控件收到文字/);
+  assert.match(result.content[0].text, /重新截图核对，不要自动重试/);
+  assert.equal(result.details.inputDelivery, 'posted-unverified');
+  assert.equal(result.details.businessGoalVerified, false);
   await assert.rejects(type.execute('t1', { text: '' }, undefined), /text 需要为/);
   await assert.rejects(type.execute('t1', { text: 'a'.repeat(4001) }, undefined), /text 需要为/);
 });

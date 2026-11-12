@@ -1911,3 +1911,36 @@ class DockSurfaceCandidateTests(unittest.TestCase):
             self.assertIn('- [ ] ' + pending, plan)
         self.assertIn('| E128 |', plan)
         self.assertIn('m06-dock-surface.json', plan)
+
+
+class UnicodeLifetimeCandidateTests(unittest.TestCase):
+    """E129 keeps observed subset success distinct from posting and deployment."""
+
+    def test_lifetime_candidate_preserves_baseline_failure_and_acceptance_limits(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-unicode-lifetime.json').read_text())
+        self.assertEqual(e['id'], 'E129')
+        self.assertEqual(e['status'], 'candidate-subset-verified-native-acceptance-incomplete')
+        impl = e['implementation']
+        self.assertEqual(impl['postEventLifetimeSeconds'], 0.25)
+        for key in ['deliveryAcknowledgement', 'automaticRetry', 'focusGuardRelaxed', 'clipboardOrAXValueWrite']:
+            self.assertFalse(impl[key], key)
+        a = e['acceptance']
+        self.assertTrue(a['baseline']['visibleFieldEmpty'])
+        self.assertFalse(a['baseline']['nativeSuccess'])
+        self.assertEqual(a['delayedExperimental']['successfulMuSuRuns'], 2)
+        self.assertTrue(a['sourceCandidate']['semanticTypingPassed'])
+        self.assertTrue(a['sourceCandidate']['fieldCleared'])
+        self.assertFalse(a['sourceCandidate']['toolBusinessGoalVerified'])
+        self.assertTrue(a['swiftUIControl']['normalExitConfirmed'])
+        self.assertFalse(a['packagedHelper']['nativeTypingPassed'])
+        self.assertEqual(e['validation']['docs'], {'passed': 105, 'failed': 0})
+        for key in ['installed', 'productionAppExitedOrReplaced', 'productionUserDataModifiedForTests']:
+            self.assertFalse(e['deployment'][key], key)
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'docs/evidence/desktop/m06-unicode-lifetime' / name).read_bytes()).hexdigest(), expected)
+            self.assertEqual(e['sourceScreenshots'][name]['cropTopLeftPixels'], [860, 395, 260, 60])
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('| E129 |', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        self.assertIn('m06-unicode-lifetime.json', plan)

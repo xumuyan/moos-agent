@@ -1,0 +1,173 @@
+{
+  "id": "E129",
+  "task": "P06.3a/P06.6",
+  "recordedAt": "2026-11-12T15:48:08+08:00",
+  "status": "candidate-subset-verified-native-acceptance-incomplete",
+  "workspace": {
+    "baseCommit": "e35cccd86198b385b68ca26d339c166431662bfc",
+    "commitSubject": "fix(P06.3a): retain Unicode posting helper briefly and report unverified delivery"
+  },
+  "implementation": {
+    "postEventLifetimeSeconds": 0.25,
+    "unicodeTypeOnly": true,
+    "deliveryAcknowledgement": false,
+    "automaticRetry": false,
+    "focusGuardRelaxed": false,
+    "clipboardOrAXValueWrite": false
+  },
+  "acceptance": {
+    "environment": "macOS27.0.1 arm64, Node24.15.0, two displays; both permissions granted; no paid model/no key/no official site",
+    "baseline": {
+      "helper": "original optimized E128 temporary helper",
+      "reportedCharacters": 13,
+      "callerWaitSeconds": 1,
+      "visibleFieldEmpty": true,
+      "nativeSuccess": false
+    },
+    "delayedExperimental": {
+      "successfulMuSuRuns": 2,
+      "visibleTexts": [
+        "MUSU_CONTROL_TEST",
+        "DELAY_TEST"
+      ],
+      "clearedWithFreshObservations": true
+    },
+    "sourceCandidate": {
+      "helper": "swiftc -O -target arm64-apple-macos14 from working-tree source",
+      "transaction": "d66baaf1-80b0-4f4d-9f47-143c477d85cd",
+      "visibleText": "本地验收🙂XYZ",
+      "reportedCharacters": 8,
+      "semanticTypingPassed": true,
+      "fieldCleared": true,
+      "screenshotsManuallyRead": true,
+      "resultObservationConfirmed": true,
+      "toolBusinessGoalVerified": false
+    },
+    "swiftUIControl": {
+      "isolatedNoNetworkNoPersistence": true,
+      "originalHelperTypingPassed": true,
+      "specificInputMethodNotEstablished": true,
+      "normalExitConfirmed": true
+    },
+    "packagedHelper": {
+      "build": ".generated/moos-electron/build-S6M0Ju/沐码.app",
+      "strictSignaturePassed": true,
+      "desktopToolsSourceMatched": true,
+      "nativeTypingPassed": false,
+      "status": "not-accepted: first transaction expired before type; next capture rejected because another app was frontmost; final transaction cancelled without reclaim or replay"
+    },
+    "refusals": [
+      "activate focus change stopped transaction",
+      "expired input and screenshot rejected; no replay",
+      "wrong-frontmost-window screenshot refused; no automatic focus reclaim"
+    ]
+  },
+  "validation": {
+    "focused": {
+      "passed": 33,
+      "failed": 0
+    },
+    "core": {
+      "passed": 215,
+      "failed": 0
+    },
+    "electron": {
+      "passed": 113,
+      "failed": 0,
+      "skipped": 0
+    },
+    "native": {
+      "passed": 11,
+      "failed": 0
+    },
+    "bridge": {
+      "passed": 5,
+      "failed": 0
+    },
+    "skin": {
+      "passed": 4,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 105,
+      "failed": 0
+    },
+    "finalBuild": {
+      "path": ".generated/moos-electron/build-dE6zME/沐码.app",
+      "strictSignaturePassed": true,
+      "desktopToolsSourceMatched": true,
+      "modelFixtureBundled": false,
+      "nativeTypingAccepted": false,
+      "corePassed": 215,
+      "electronPassed": 113,
+      "electronSkipped": 0
+    },
+    "historicalFailures": [
+      "Initial source regex matched comment word while; narrowed to code line and passed.",
+      "Background Electron run produced no exit file and only five test lines; not accepted. Foreground final run113/113 passed.",
+      "Added pressReturn test accidentally began a second transaction while first held the lock, producing timeout and follow-on failures before shell timeout; corrected to a fresh observation within same transaction; focused33/33 passed."
+    ]
+  },
+  "limits": [
+    "250ms is an empirically useful bounded process lifetime, not a proven root cause, system delivery ACK or all-app guarantee. Caller sleep alone did not fix baseline.",
+    "Field-click focus changes remain unexplained; exact process/window/element binding and narrow Dock live-hit checks unchanged.",
+    "No native packaged-helper input acceptance; isolated build/source match and signature do not substitute for it.",
+    "Other overlays, secondary-display input, concurrent/cancelled native actions and formal chat screenshot bridge remain incomplete.",
+    "No macOS14 or Intel runtime acceptance; P06.3a/P06.6 remain unchecked.",
+    "Formal Moos not exited, restarted or replaced; MuSu code and persisted tasks not changed."
+  ],
+  "deployment": {
+    "installed": false,
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "authorizationRequired": true
+  },
+  "evidenceSha256": {
+    "baseline-empty.png": "a8ebe2c09ba188e8c5a469329e06bc7e61b91c4a74ec232571ba4322fe4229e5",
+    "delay-ascii.png": "52c671dd9e1354fb0836cd3bd8fa9c814f454da90ac622f6f9842f5220f2da4a",
+    "source-unicode.png": "abe1cea5e3cec81d82680dd1c380b47008d10ca34c127e3a94ebca230866f1be",
+    "source-cleared.png": "7e2ad990e5eb961210f0eb8af039ba9529f44b137368b852f629bfafab458d53"
+  },
+  "sourceScreenshots": {
+    "baseline-empty.png": {
+      "file": "20261112072354-76199824f5c5.png",
+      "sha256": "b4bcd9862dae8a1f8cb277a0a10680637759f2345d52e4216a61776d675f97e4",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "delay-ascii.png": {
+      "file": "20261112073023-83345cedcc5b.png",
+      "sha256": "badbf5a986158b518b630f419deed557a2ace75229f7b57e41fffce4753b1a88",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "source-unicode.png": {
+      "file": "20261112073346-c6844712bfd0.png",
+      "sha256": "22416631c177a5fdaca79fcde68b9bb608f06698f5b095cd12464ad00bdb5dff",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "source-cleared.png": {
+      "file": "20261112073440-b6d30b78cdec.png",
+      "sha256": "9baf9bd3e82c349d78d88f5d757eb364d83223bc1b29a59d665d1b9626b8b1b8",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    }
+  }
+}

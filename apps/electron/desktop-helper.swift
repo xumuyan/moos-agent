@@ -457,7 +457,13 @@ if mode == "type" {
     checkFocus(args, typing: true)
     down.post(tap: .cghidEventTap)
     up.post(tap: .cghidEventTap)
-    emit(["status": "ok", "characters": text.count])
+    // CGEvent.post is asynchronous. Local MuSu trials showed empty fields after
+    // immediate exit and visible text with a 250ms process lifetime. Keep the
+    // posting process alive for this bounded interval; this is NOT a delivery ACK,
+    // no retry/focus reclaim is allowed, and the caller must freshly observe.
+    Thread.sleep(forTimeInterval: 0.25)
+    emit(["status": "ok", "characters": text.count, "posted": true,
+          "businessGoalVerified": false])
 }
 
 if mode == "activate" {

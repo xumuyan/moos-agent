@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-12 15:49:55 +08:00｜P06.3a Unicode派发进程存活候选（E129，未安装）
+
+- 修改或新增内容：仅Unicode type在成对CGEvent派发后保留helper进程250ms，再输出posted=true/businessGoalVerified=false；desktop_type提示事件派发未验证、需新截图、不自动重试，保留单独回车授权。更新相关测试、局部脱敏截图哈希、E129及PLAN。焦点/一次性观察/事务/遮挡检查不放宽，无剪贴板或AX值写入。
+- 遇到的难题：原helper回报字符数但沐宿搜索框仍空；调用端额外等1秒无效。独立SwiftUI原helper输入可见，不能泛称SwiftUI不兼容或权限失败。临时250ms版两次输入可见，仅支持进程寿命时序假设；固定等待不是系统送达ACK。首次新增源码断言误匹配注释中的while，已限制为代码行后通过；首轮后台Electron命令无exit文件/仅前5项输出，不记成功；后续前台完整重跑113/113。打包版第一次事务因续作超时拒绝，下一次截图因另一个测试应用前台拒绝，最终新事务仅只读窗口查询后取消；不抢回或重放。
+- 处理方式：实际编译源码候选，按新观察派发“本地验收🙂XYZ”，截图核实完整文字；每次新截图后cmd+a/delete清空，最终观察/end/dispose。保留原版失败及临时版ASCII成功证据；只提交搜索框局部裁剪，不带任务卡片。临时SwiftUI窗口正常terminate返回后，独立检查PID不存在才记退出；所有本轮runner dispose，正式沐码未退出/替换。
+- 验证结果：专项33/33、core215/215、Electron113/113无跳过、native release offline11/11、PI桥5/5、skin4/4。npm run build:app生成build-S6M0Ju，严格签名与desktop-tools源码匹配通过。源码候选实际输入及清空人工截图通过，tool businessGoalVerified仍为false。最终回车断言初次错误开始第二事务造成测试超时及后续等待失败，外层60秒结束，无成功结论；改为同一事务内新观察后专项33/33。最终源码重新build-dE6zME，严格签名/源码匹配/无模型fixture通过；最终包DSH再次完整Electron113/113无跳过、core215/215；打包helper原生输入仍未验收。最终文档门禁105/105、git diff --check通过。所有证据对应e35cccd基础的本次提交前工作区，候选仍0.1.47，非发布安装。
+- 遗留问题：250ms时序缓解不是可靠送达保证，输入框点击焦点变化未定位；打包helper真实输入、真实覆盖物/副屏/并发取消/正式聊天截图桥未验收，P06.3a/P06.6不勾选。无Key读取、付费GLM、官网或订单；MuSu源码/持久化任务未改，瞬态搜索已清空。正式安装必须另获明确授权并按E84保护数据流程。
+- 对应 Git 提交：唯一说明 `fix(P06.3a): retain Unicode posting helper briefly and report unverified delivery`；查询 `git log --all --oneline --grep='retain Unicode posting helper briefly'`；验证后提交推送并核对远程。
+
+
 ## 2026-11-12 15:06:08 +08:00｜P06.3a Dock管理表面误遮挡候选修复（E128，未安装）
 
 - 修改或新增内容：helper仅为精确系统Dock身份/可执行路径、layer20、实际显示器全边界启用实时AX命中同一绑定焦点窗口检查；不跳过任意Dock或覆盖物。拒绝原因保留六项白名单中文说明，不泄露原始helper载荷。增加分类/源码约束与原因测试、脱敏独立窗口证据、PLAN及文档契约。

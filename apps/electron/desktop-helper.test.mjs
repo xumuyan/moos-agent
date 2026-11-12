@@ -183,3 +183,17 @@ test('Dock full-display surface is only a live AX hit-test candidate; no blanket
   assert.match(source, /CFEqual\(hitWindow, window\)/);
   assert.match(source, /Int\(pid\) == actual\["pid"\]/);
 });
+
+// Source ordering is a regression guard, not native delivery acceptance.
+test('Unicode dispatch retains a bounded helper lifetime after paired posts without claiming receipt', async () => {
+  const source = await readFile(join(here, 'desktop-helper.swift'), 'utf8');
+  const typing = source.slice(source.indexOf('if mode == "type" {'), source.indexOf('if mode == "activate" {'));
+  assert.match(typing, /checkFocus\(args, typing: true\)\s+down\.post\(tap: \.cghidEventTap\)\s+up\.post\(tap: \.cghidEventTap\)/);
+  assert.match(typing, /Thread\.sleep\(forTimeInterval: 0\.25\)\s+emit/);
+  assert.ok(typing.indexOf('Thread.sleep') > typing.indexOf('up.post'));
+  assert.match(typing, /"posted": true/);
+  assert.match(typing, /"businessGoalVerified": false/);
+  assert.equal((typing.match(/down\.post/g) ?? []).length, 1);
+  assert.equal((typing.match(/up\.post/g) ?? []).length, 1);
+  assert.doesNotMatch(typing, /^\s*(?:while |.*activate\(|.*AXUIElementSetAttributeValue|.*NSPasteboard)/m);
+});
