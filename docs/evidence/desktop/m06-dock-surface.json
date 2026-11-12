@@ -1,0 +1,123 @@
+{
+  "id": "E128",
+  "task": "P06.3a/P06.6",
+  "recordedAt": "2026-11-12T15:06:08+08:00",
+  "status": "candidate-subset-verified-native-acceptance-incomplete",
+  "workspace": {
+    "baseCommit": "b61e4e92b3aaaefde5277901cb854b5af5837e25",
+    "commitSubject": "fix(P06.3a): validate Dock display surfaces with live AX window hits",
+    "state": "本次提交前工作区；代码/测试/计划/日志同一提交"
+  },
+  "environment": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64",
+    "node": "24.15.0",
+    "displays": 2,
+    "screenCaptureGranted": true,
+    "accessibilityGranted": true
+  },
+  "implementation": {
+    "dockBundle": "com.apple.dock",
+    "dockExecutable": "/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock",
+    "layer": 20,
+    "exactDisplayBoundsRequired": true,
+    "liveAXHitExactFocusedWindowRequired": true,
+    "arbitraryOverlayBypass": false,
+    "automaticFocusReclaimOrReplay": false,
+    "boundedRefusalReasons": true
+  },
+  "diagnosis": [
+    "正式旧helper截图成功后点击拒绝；同一焦点plan-focus接受，不是相等比较本身已证明出错。",
+    "点包含的最上层Quartz窗口为系统Dock layer20全显示器管理表面；旧实现一律判target-occluded。",
+    "当前两项权限均已授予，不再要求重复切换权限。"
+  ],
+  "acceptance": {
+    "runner": "临时helper + 源码createDesktopTools；独立0700临时目录，真实事务/单次观察/新截图/结束释放，无付费模型",
+    "fixture": {
+      "noNetwork": true,
+      "noPersistence": true,
+      "visibleInput": "MUSU_CONTROL_TEST",
+      "clickCountBefore": 0,
+      "clickCountAfter": 1,
+      "screenshotsManuallyRead": true,
+      "resultObservationConfirmed": true,
+      "toolBusinessGoalVerified": false,
+      "normalExitConfirmed": true
+    },
+    "musu": {
+      "twoClicksPostedWithScreenshots": true,
+      "textFieldClickReturnedFocusChange": true,
+      "textDispatchReportedSuccessButVisibleFieldEmpty": true,
+      "semanticTypingPassed": false,
+      "note": "出错点击可能已投递，不自动重放。后续新事务输入虽返回成功，截图仍空搜索框，不能判搜索成功。"
+    },
+    "remainingFocusError": "点击输入框后JS changedFocus；同窗口新AXTextField可读，具体产生点/时序未定位。不弱化输入前焦点守卫。",
+    "laterFixtureCaptureRefused": "focus-unavailable；按协议停止，无自动抢回。",
+    "expiredLeaseRefused": true,
+    "runnersDisposed": true
+  },
+  "package": {
+    "build": ".generated/moos-electron/build-tHD6rO/沐码.app",
+    "version": "0.1.47 (未改版本；仅隔离候选)",
+    "strictDeepSignatureVerified": true,
+    "includesPiFixture": false,
+    "desktopToolsMatchesSource": true,
+    "helperSourceSha256": "36a2700fd330a2ac2a1a6331c57f6442c77f21c9ab3d2b493eeb3cb69e7645ac",
+    "candidateHelperSha256": "5151567bf70bc84d9c024eaa8ef1b68fca4d0739b05e146f4f2b449fdb175be4",
+    "packagedHelperSha256": "c0470245cd497f3ea1c0e2946b44fc0c3cfa76cc30cbc323495db23c7749e911",
+    "note": "临时helper以-O编译，与正式脚本参数不同，hash不等；不宣称包内原生输入已验收。"
+  },
+  "checks": {
+    "focused": {
+      "passed": 32,
+      "failed": 0
+    },
+    "core": {
+      "passed": 215,
+      "failed": 0,
+      "skipped": 0
+    },
+    "electron": {
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0,
+      "note": "当前隔离包DSH及reviewed skin只读路径齐全；此前103+9skip、111+1skip并非全部通过。"
+    },
+    "native": {
+      "passed": 11,
+      "failed": 0
+    },
+    "bridge": {
+      "passed": 5,
+      "failed": 0
+    },
+    "skin": {
+      "passed": 4,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 104,
+      "failed": 0,
+      "command": "npm run test:docs"
+    }
+  },
+  "evidenceSha256": {
+    "before.png": "041fe6ab54d38cf82048921896d8e8672bcbba59076ee7642978cd5466fdd3df",
+    "after-type.png": "5df46ab71fc316653be48d7950d1046adc4957f7d9b510ec018c7ddefa47de58",
+    "fixture.swift": "5851aa85bef97079c06e2c62b3394a4f49e68bb5fbb93ecd3e96ef25bd56afa3",
+    "after-click.png": "841b759b8c9d1646876d38863d967368bc07977933d1cca1b03d85da0e8e3823"
+  },
+  "limits": [
+    "真实覆盖物/同PID其他窗口现场拒绝仅分类/源码约束测试，未做全套实机覆盖。",
+    "副屏输入/多项目并发/取消/正式聊天截图桥未重新实机验收。",
+    "未完成沐宿本地一步预览/停止/关闭验收；无真实Key读取、付费发送、官网或下单。",
+    "投递与校验非OS原子操作，不能保证绝无误输入。",
+    "MuSu仓库无代码改动；搜索仅内存UI，截图未显示测试字串。"
+  ],
+  "deployment": {
+    "installed": false,
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "authorizationRequired": true
+  }
+}

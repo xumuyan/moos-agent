@@ -446,3 +446,16 @@ test('final verification requires a fresh post-action observation and does not a
   assert.equal(result.details.resultObservationConfirmed, true);
   assert.equal(result.details.businessGoalVerified, false);
 });
+
+test('native focus refusals preserve bounded reason without leaking helper payload', async () => {
+  for (const reason of ['target-occluded', 'focus-unavailable', 'focus-changed', 'point-outside-target', 'focus-not-editable', 'focus-required']) {
+    const helper = await fakeHelper(`#!/usr/bin/env node
+process.stdout.write(JSON.stringify({status:'failed',reason:${JSON.stringify(reason)},privateText:'never expose me'}));process.exit(5);`);
+    const tools = setup(helper);
+    const transactionId = (await tools.find(t => t.name === 'desktop_begin').execute('begin', {})).details.transactionId;
+    await assert.rejects(tools.find(t => t.name === 'desktop_screenshot').execute('shot', { transactionId, scope: 'window', windowId: 7 }), e => {
+      assert.equal(e.reason, reason); assert.match(e.message, new RegExp(reason)); assert.ok(!e.message.includes('never expose me')); return true;
+    });
+    await tools.dispose();
+  }
+});

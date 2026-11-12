@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 15:06:08 +08:00｜P06.3a Dock管理表面误遮挡候选修复（E128，未安装）
+
+- 修改或新增内容：helper仅为精确系统Dock身份/可执行路径、layer20、实际显示器全边界启用实时AX命中同一绑定焦点窗口检查；不跳过任意Dock或覆盖物。拒绝原因保留六项白名单中文说明，不泄露原始helper载荷。增加分类/源码约束与原因测试、脱敏独立窗口证据、PLAN及文档契约。
+- 遇到的难题：旧helper截图成功点击失败，同一焦点plan-focus接受；Quartz点命中Dock全屏管理表面。候选沐宿两次点击派发，但点输入框后JS焦点变化，后续type返回成功而截图为空，不能称全面修复。初始node/cargo不在PATH；文档脚本首次stdin编码报错，未写入文件。一次测试事务超120秒拒绝；主工具另一次排队超时。
+- 处理方式：限定Dock条件并要求live AX同窗口，保留前置焦点和一次性观察/120秒/异常释放，不抢回/重放模糊结果；用无网无持久化独立AppKit窗口实测，不替换正式沐码。显式Node24与cargo路径；编码脚本改为UTF-8文件。独立测试窗口正常terminate后确认进程退出；全部候选runner dispose。
+- 验证结果：专项32/32、core215/215；Electron最初103通过9跳过，带当前隔离DSH后111通过1跳过，补齐只读reviewed skin环境最终112/112无跳过。native初次cargo找不到，修正PATH后11/11；PI桥5/5、skin4/4。npm run build:app生成build-tHD6rO，codesign deep strict和desktop-tools源匹配通过，无模型fixture。临时helper独立窗口截图核实MUSU_CONTROL_TEST与按钮计数0→1；新截图/end核对协议完成但tool businessGoalVerified=false，不替代人工语义。证据对应b61e4e9基础本次提交前工作区；文档检查新增契约后104/104通过（npm run test:docs）；diff --check通过。
+- 遗留问题：沐宿点击输入框焦点变化/空搜索输入仍未定位；真实覆盖物、双屏、多项目/取消、正式聊天截图桥与沐宿本地一步流程未完成实机验收，P06.3a/P06.6不勾选。未读Key/付费发送/官网/订单；MuSu仓库未改。正式沐码0.1.47未退出/替换，必须另获明确安装授权；候选保留原版本号非发布包，不宣称已安装可用。
+- 对应 Git 提交：唯一说明 `fix(P06.3a): validate Dock display surfaces with live AX window hits`；查询 `git log --all --oneline --grep='validate Dock display surfaces'`；验证后提交推送并核对远程。
+
 ## 2026-11-12 13:27:00 +08:00｜05639f8b 两次「你好」失败只读诊断收尾（用户已新开对话）
 
 - 修改或新增内容：无代码改动，纯只读诊断。用户报告救援后 12:04/12:09 两次「你好」（214ae0cd、c06e24a9 重试）仍 failed errorCode=context_limit。排查结论：①磁盘会话救援生效——生产 PI SessionManager.open + getBranch 打开该 JSONL 正常，投影约 36k tokens、无孤儿 toolResult；②本地隔离复现成功——复制真实会话 JSONL 到临时目录、用生产同版本代码（仓库/生产包逐字节一致、PI 1.5.0 同版）+ 真实 glm-5.3-flash 上游（open.bigmodel.cn，openai-responses）完整跑「你好」成功，模型回复能正确引用会话历史（Fish 合成与 UI 方案上下文）；③智谱官方 models 端点显示 glm-5.3-flash context_window=1048576（effective 95%），providers.json 配置 128000 偏小只会造成过度压缩，不构成上游拒绝理由；④12:09 为 retry 路径（events task_retry→214ae0cd），其 models.json（12:08）确认 glm-5.3-flash，12:04 任务模型无记录可回溯（事件无 model 字段、usage_records 空表、models.json 仅留最后一次）；⑤原始错误不可得：host.mjs spawn stdio stderr 为 'ignore'，events 只存分类后文案，无法确认上游真实报错。

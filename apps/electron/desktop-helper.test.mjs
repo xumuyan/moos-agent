@@ -164,3 +164,22 @@ test('focus query is read-only and denied permissions do not fabricate a focus s
   assert.match(source, /checkFocus\(args\)\s+postKey/);
   assert.match(source, /target-occluded/);
 });
+
+test('Dock full-display surface is only a live AX hit-test candidate; no blanket Dock/overlay bypass', async () => {
+  const classify = (changes = {}) => {
+    const input = { '--owner-bundle': 'com.apple.dock', '--owner-executable': '/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock',
+      '--layer': '20', '--bounds': '0,0,1920,1080', '--display-bounds': '0,0,1920,1080', ...changes };
+    return run('plan-occlusion', ...Object.entries(input).flat());
+  };
+  assert.deepEqual(classify(), { posted: false, requiresLiveAXWindowHit: true, accepted: false });
+  for (const change of [{ '--owner-bundle': 'other' }, { '--owner-executable': '/tmp/Dock' },
+    { '--layer': '0' }, { '--layer': '25' }, { '--bounds': '0,1000,1920,80' }, { '--bounds': '0,0,1919,1080' }]) {
+    assert.equal(classify(change).requiresLiveAXWindowHit, false);
+  }
+  assert.equal(classify({ '--bounds': '-1800,0,1800,1200', '--display-bounds': '-1800,0,1800,1200' }).requiresLiveAXWindowHit, true);
+  const source = await readFile(join(here, 'desktop-helper.swift'), 'utf8');
+  assert.match(source, /pointHitsFocusedWindow\(point, actual: actual\)/);
+  assert.match(source, /AXUIElementCopyElementAtPosition/);
+  assert.match(source, /CFEqual\(hitWindow, window\)/);
+  assert.match(source, /Int\(pid\) == actual\["pid"\]/);
+});

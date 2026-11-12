@@ -1877,3 +1877,37 @@ class ProjectQueueTests(unittest.TestCase):
         self.assertIn("排队中 · 本项目前方 2 个任务", (ROOT / 'apps/electron/client.test.mjs').read_text())
         self.assertIn('queue positions never cross projects', (ROOT / 'apps/electron/pi-turn.test.mjs').read_text())
         self.assertIn('fifth waits for a free slot', (ROOT / 'services/agent/scheduler.test.mjs').read_text())
+
+
+class DockSurfaceCandidateTests(unittest.TestCase):
+    """E128: narrowly verified candidate is not full native acceptance or deployment."""
+
+    def test_dock_candidate_records_semantics_and_unresolved_musu_input(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-dock-surface.json').read_text())
+        self.assertEqual(e['id'], 'E128')
+        self.assertEqual(e['status'], 'candidate-subset-verified-native-acceptance-incomplete')
+        impl = e['implementation']
+        self.assertEqual(impl['dockBundle'], 'com.apple.dock')
+        self.assertEqual(impl['layer'], 20)
+        for key in ['exactDisplayBoundsRequired', 'liveAXHitExactFocusedWindowRequired', 'boundedRefusalReasons']:
+            self.assertTrue(impl[key], key)
+        self.assertFalse(impl['arbitraryOverlayBypass'])
+        self.assertFalse(impl['automaticFocusReclaimOrReplay'])
+        fixture = e['acceptance']['fixture']
+        self.assertEqual(fixture['visibleInput'], 'MUSU_CONTROL_TEST')
+        self.assertEqual((fixture['clickCountBefore'], fixture['clickCountAfter']), (0, 1))
+        self.assertTrue(fixture['screenshotsManuallyRead'])
+        self.assertFalse(fixture['toolBusinessGoalVerified'])
+        self.assertFalse(e['acceptance']['musu']['semanticTypingPassed'])
+        self.assertTrue(e['acceptance']['musu']['textDispatchReportedSuccessButVisibleFieldEmpty'])
+        self.assertTrue(e['acceptance']['musu']['textFieldClickReturnedFocusChange'])
+        for key in ['installed', 'productionAppExitedOrReplaced', 'productionUserDataModifiedForTests']:
+            self.assertFalse(e['deployment'][key], key)
+        self.assertTrue(e['deployment']['authorizationRequired'])
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'docs/evidence/desktop/m06-dock-surface' / name).read_bytes()).hexdigest(), expected)
+        plan = (ROOT / 'PLAN.md').read_text()
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        self.assertIn('| E128 |', plan)
+        self.assertIn('m06-dock-surface.json', plan)

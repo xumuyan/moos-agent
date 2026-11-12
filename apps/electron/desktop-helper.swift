@@ -127,6 +127,32 @@ func focusRejection(_ expected: [String: Any], _ actual: [String: Any], typing: 
     }
     return nil
 }
+// Dock can publish an opaque, full-display layer-20 bookkeeping surface even
+// when AX hit-testing resolves to the foreground application underneath it.
+// Only this exact system-owned surface is eligible for an AX-confirmed exception.
+func isDockDisplaySurface(bundle: String?, executable: String?, layer: Int, bounds: CGRect,
+                          displays: [CGRect]) -> Bool {
+    bundle == "com.apple.dock" && executable == "/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock" &&
+        layer == 20 && displays.contains(bounds)
+}
+func pointHitsFocusedWindow(_ point: CGPoint, actual: [String: Any]) -> Bool {
+    let system = AXUIElementCreateSystemWide()
+    AXUIElementSetMessagingTimeout(system, 1)
+    var hit: AXUIElement?
+    guard AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success,
+          let hit = hit else { return false }
+    var pid: pid_t = 0
+    guard AXUIElementGetPid(hit, &pid) == .success, Int(pid) == actual["pid"] as? Int else { return false }
+    let app = AXUIElementCreateApplication(pid)
+    AXUIElementSetMessagingTimeout(app, 1)
+    guard let rawWindow = axValue(app, kAXFocusedWindowAttribute), CFGetTypeID(rawWindow) == AXUIElementGetTypeID(),
+          let bounds = axRect(rawWindow as! AXUIElement),
+          NSDictionary(dictionary: rectObject(bounds)).isEqual(to: actual["window"] as? [String: Double] ?? [:]) else { return false }
+    let window = rawWindow as! AXUIElement
+    if CFEqual(hit, window) { return true }
+    guard let hitWindow = axValue(hit, kAXWindowAttribute), CFGetTypeID(hitWindow) == AXUIElementGetTypeID() else { return false }
+    return CFEqual(hitWindow, window)
+}
 func checkFocus(_ args: [String], point: CGPoint? = nil, typing: Bool = false) {
     let expected = expectedFocus(args)
     let actual = focusSnapshot()
@@ -141,7 +167,18 @@ func checkFocus(_ args: [String], point: CGPoint? = nil, typing: Bool = false) {
                   let b = entry[kCGWindowBounds as String] as? [String: CGFloat] else { return false }
             return CGRect(x: b["X"] ?? 0, y: b["Y"] ?? 0, width: b["Width"] ?? 0, height: b["Height"] ?? 0).contains(point)
         }
-        guard hit?[kCGWindowNumber as String] as? Int == actual["windowId"] as? Int else { fail("target-occluded", code: 5) }
+        if hit?[kCGWindowNumber as String] as? Int != actual["windowId"] as? Int {
+            guard let hit = hit, let pid = hit[kCGWindowOwnerPID as String] as? Int32,
+                  let app = NSRunningApplication(processIdentifier: pid),
+                  let b = hit[kCGWindowBounds as String] as? [String: CGFloat],
+                  isDockDisplaySurface(bundle: app.bundleIdentifier, executable: app.executableURL?.path,
+                    layer: hit[kCGWindowLayer as String] as? Int ?? -1,
+                    bounds: CGRect(x: b["X"] ?? 0, y: b["Y"] ?? 0, width: b["Width"] ?? 0, height: b["Height"] ?? 0),
+                    displays: NSScreen.screens.map { CGDisplayBounds(screenID($0)) }),
+                  pointHitsFocusedWindow(point, actual: actual) else { fail("target-occluded", code: 5) }
+            // Never skip another window below the system surface. AX must resolve
+            // this point to the exact focused window, not merely the same PID.
+        }
     }
 }
 
@@ -204,6 +241,17 @@ if mode == "plan-focus" {
           let actual = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { exit(2) }
     let reason = focusRejection(expected, actual, typing: flag("--typing", in: args))
     emit(["posted": false, "accepted": reason == nil, "reason": reason ?? "matched"])
+}
+// Pure, non-posting classification; live AX/window checks cannot be supplied by callers.
+if mode == "plan-occlusion" {
+    guard let bounds = numbers("--bounds", count: 4, in: args),
+          let display = numbers("--display-bounds", count: 4, in: args),
+          let layer = value("--layer", in: args).flatMap(Int.init) else { exit(2) }
+    let candidate = isDockDisplaySurface(bundle: value("--owner-bundle", in: args),
+        executable: value("--owner-executable", in: args), layer: layer,
+        bounds: CGRect(x: bounds[0], y: bounds[1], width: bounds[2], height: bounds[3]),
+        displays: [CGRect(x: display[0], y: display[1], width: display[2], height: display[3])])
+    emit(["posted": false, "requiresLiveAXWindowHit": candidate, "accepted": false])
 }
 if mode == "focus" { emit(["status": "ok", "focus": focusSnapshot()]) }
 

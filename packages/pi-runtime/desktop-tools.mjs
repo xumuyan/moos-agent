@@ -80,7 +80,17 @@ function runHelper(helperPath, args, { timeoutMs = 30000, signal } = {}) {
         }));
       }
       if (['focus-unavailable', 'focus-required', 'focus-changed', 'focus-not-editable', 'point-outside-target', 'target-occluded'].includes(payload?.reason)) {
-        return reject(Object.assign(new Error('目标窗口或输入焦点无法确认/已经变化，已停止桌面事务。请重新观察目标，不要自动抢回焦点继续输入。'), { code: 'DESKTOP_FOCUS_CHANGED' }));
+        const reasons = {
+          'focus-unavailable': '无法读取或唯一绑定前台窗口的辅助功能焦点',
+          'focus-required': '缺少有效的截图焦点绑定',
+          'focus-changed': '前台应用、窗口或输入焦点与截图不一致',
+          'focus-not-editable': '当前焦点不是允许键入的文本控件',
+          'point-outside-target': '操作坐标超出目标窗口',
+          'target-occluded': '点击位置被其他窗口遮挡，或无法确认命中目标窗口',
+        };
+        return reject(Object.assign(new Error(`${reasons[payload.reason]}（${payload.reason}）；已停止桌面事务。请重新观察目标，不要自动抢回焦点继续输入。`), {
+          code: 'DESKTOP_FOCUS_CHANGED', reason: payload.reason,
+        }));
       }
       if (code !== 0 || !payload || payload.status === 'failed') {
         return reject(new Error(`桌面 helper 执行失败（exit ${code ?? '?'}）`));
