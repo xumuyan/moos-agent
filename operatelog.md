@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 13:27:00 +08:00｜05639f8b 两次「你好」失败只读诊断收尾（用户已新开对话）
+
+- 修改或新增内容：无代码改动，纯只读诊断。用户报告救援后 12:04/12:09 两次「你好」（214ae0cd、c06e24a9 重试）仍 failed errorCode=context_limit。排查结论：①磁盘会话救援生效——生产 PI SessionManager.open + getBranch 打开该 JSONL 正常，投影约 36k tokens、无孤儿 toolResult；②本地隔离复现成功——复制真实会话 JSONL 到临时目录、用生产同版本代码（仓库/生产包逐字节一致、PI 1.5.0 同版）+ 真实 glm-5.3-flash 上游（open.bigmodel.cn，openai-responses）完整跑「你好」成功，模型回复能正确引用会话历史（Fish 合成与 UI 方案上下文）；③智谱官方 models 端点显示 glm-5.3-flash context_window=1048576（effective 95%），providers.json 配置 128000 偏小只会造成过度压缩，不构成上游拒绝理由；④12:09 为 retry 路径（events task_retry→214ae0cd），其 models.json（12:08）确认 glm-5.3-flash，12:04 任务模型无记录可回溯（事件无 model 字段、usage_records 空表、models.json 仅留最后一次）；⑤原始错误不可得：host.mjs spawn stdio stderr 为 'ignore'，events 只存分类后文案，无法确认上游真实报错。
+- 遇到的难题：本地与生产代码/数据/上游全部一致但生产失败本地成功，静态分析已穷尽；原始错误被丢弃是根因确认的最大障碍。
+- 处理方式：向用户说明结论并建议直接发新消息而非重试；用户选择新开对话收尾（旧会话 05639f8b 历史完整保留，救援备份 ~/.moos-rescue/05639f8b-20261112-full.jsonl 仍在，可随时回看或继续）。临时复现脚本与隔离目录已清理，未写入生产会话。
+- 验证结果：诊断过程全部只读（DatabaseSync readOnly、生产 PI 只读打开、隔离临时目录、curl 官方 models 端点零费用）；本地复现 SUCCESS 证据在本轮终端输出（glm-5.3-flash 回复含会话历史引用）；本条提交前运行 python3 -m unittest discover -s tests 通过。
+- 遗留问题：0.1.48 计划两项——apps/electron/plugin/pi-route.js:22 前端 context_limit 文案映射仍显示 0.1.47 前的旧文案（E127 只改了服务端 errors.mjs）；任务失败时把上游原始报错脱敏写入事件/日志，避免同类问题无法定位。聊天历史分页渲染待用户确认排期；P03.14 微信素材、P06.6 实机权限、/Applications 历史更新目录清理决定仍待用户。
+- 对应 Git 提交：本条唯一说明 `docs(P03.13.18): record read-only triage of hello-failures after session rescue`；查询 `git log --all --oneline --grep='record read-only triage of hello-failures'`。
+
 ## 2026-11-12 11:47:54 +08:00｜0.1.47 安装核对通过（E84 独立进程，备份已清理）
 
 - 修改或新增内容：无代码改动；更新 PLAN.md 四处安装状态（历史段落、P03.13.17/P03.13.18 任务行、E126/E127 证据表行）与本条日志。核对独立更新进程产物 /Applications/.moos-update-0.1.47/result.json：state=success，六项验证 gate（core/electron/native/docs 本轮 + E126 bridge/skin）全 0；tasksAtStart=1（等待发起对话任务自然结束后才退出，未停止任何任务）；停机完整备份 6798 文件逐哈希核对、备份权限 0700/0600；providers.json 与 private/credentials.json 原字节一致、6 个模型配置可读；messages 663/conversations 7/tasks 346 前后一致（SQLite 原有行全部保留）；聊天文件/PI 历史/皮肤/工作区/用户插件依赖保留；本轮标记 contextLimitMessageInInstalled、preCompactGateInInstalled 与 E126 三态排队、E125 超时及全部历史回归标记为真；installedMainProcesses=1、hostRunning=true。
