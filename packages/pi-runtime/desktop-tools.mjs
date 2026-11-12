@@ -7,6 +7,7 @@ import { Type } from 'typebox';
 import { createDesktopQueue } from './desktop-queue.mjs';
 import { createDesktopTransaction } from './desktop-transaction.mjs';
 import { isDeepStrictEqual } from 'node:util';
+import { settleClickFocus } from './desktop-focus-settle.mjs';
 
 /**
  * M06 桌面操作工具组（PI 自定义工具）。
@@ -122,8 +123,8 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
   const focusArgs = focus => ['--expect-focus', JSON.stringify(focus)];
   let lastFocus;
   const changedFocus = () => Object.assign(new Error('目标窗口或焦点已经变化，已停止桌面事务；请重新观察，不要自动抢回焦点'), { code: 'DESKTOP_FOCUS_CHANGED' });
-  const readFocus = async signal => {
-    const focus = (await runHelper(helperPath, ['focus'], { signal })).focus;
+  const readFocus = async (signal, timeoutMs) => {
+    const focus = (await runHelper(helperPath, ['focus'], { signal, timeoutMs })).focus;
     if (!focus || !Number.isInteger(focus.pid) || !Number.isInteger(focus.windowId)) throw changedFocus();
     return focus;
   };
@@ -293,8 +294,8 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
         const payload = await runHelper(helperPath, [...args, ...focusArgs(focus)], { timeoutMs: 15000, signal: lockSignal });
         let shot;
         if (input.verify === 'screenshot') {
-          await new Promise(resolve => setTimeout(resolve, 600));
-          await refreshAfterInput(lockSignal, focus);
+          // Read-only settling after ONE posted click; never replay or reclaim.
+          lastFocus = await settleClickFocus({ expected: focus, read: readFocus, signal: lockSignal, changed: changedFocus });
           shot = await capturePng([], lockSignal, true);
         }
         const content = [{ type: 'text', text: shot

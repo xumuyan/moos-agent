@@ -2038,3 +2038,51 @@ class PostClickGeometryEvidenceTests(unittest.TestCase):
         self.assertIn('lastFocus && !isDeepStrictEqual(lastFocus, focus)', runtime)
         regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
         self.assertIn('post-click AX element geometry drift between refresh and capture stops without replay', regression)
+
+
+class ClickSettleEvidenceTests(unittest.TestCase):
+    def test_bounded_observation_does_not_authorize_input_or_claim_complete_delivery(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-click-settle.json').read_text())
+        self.assertEqual(e['id'], 'E132')
+        self.assertEqual(e['status'], 'bounded-click-observation-packaged-subset-verified-not-deployed')
+        design = e['design']
+        for name, value in [('maxReads', 6), ('deadlineMs', 2000), ('identicalSnapshots', 3), ('intervalMs', 100)]:
+            self.assertEqual(design[name], value)
+        for name in ['observationOnly', 'strictCaptureRetained', 'inputPreflightUnchanged']:
+            self.assertTrue(design[name])
+        for name in ['pathProvesIdentity', 'automaticReplay', 'automaticFocusReclaim']:
+            self.assertFalse(design[name])
+        a = e['acceptance']
+        self.assertEqual(a['initialRole'], 'AXWindow')
+        self.assertEqual(a['nativeClickPosts'], 1)
+        self.assertEqual(a['settleReads'], 4)
+        self.assertEqual(a['geometrySequence'], [[218, 18], [240, 42], [240, 42], [240, 42]])
+        for name in ['newObservationAfterClick', 'manualEmptyFocused', 'resultObservationConfirmed', 'earlierSidebarPostedButNotSwitched', 'allRunnersDisposed']:
+            self.assertTrue(a[name])
+        self.assertFalse(a['businessGoalVerified'])
+        self.assertFalse(a['textTyped'])
+        d = ROOT / 'docs/evidence/desktop/m06-click-settle'
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((d / name).read_bytes()).hexdigest(), expected)
+        seq = json.loads((d / 'focus-sequence.json').read_text())
+        self.assertEqual([row['mode'] for row in seq], ['click'] + ['focus'] * 5 + ['screenshot', 'focus'])
+        self.assertEqual([seq[i]['focus']['element']['width'] for i in range(1, 5)], [218, 240, 240, 240])
+        for i in [3, 4, 5, 7]:
+            self.assertEqual(seq[i]['focus'], seq[2]['focus'])
+        for name, sha in e['package']['runtimeSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'packages/pi-runtime' / name).read_bytes()).hexdigest(), sha)
+        self.assertEqual(e['validation']['core'], 227)
+        self.assertEqual(e['validation']['docs'], 108)
+        self.assertTrue(all(value is False for value in e['deployment'].values()))
+        self.assertTrue(e['failedOrIncomplete'])
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('| E132 |', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        runtime = (ROOT / 'packages/pi-runtime/desktop-tools.mjs').read_text()
+        self.assertIn('lastFocus && !isDeepStrictEqual(lastFocus, focus)', runtime)
+        self.assertIn('focusArgs(focus)', runtime)
+        self.assertIn('settleClickFocus({ expected: focus', runtime)
+        regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
+        self.assertIn('cancelling click settling closes its focus child before another owner runs', regression)
+        self.assertIn('drift during capture', regression)

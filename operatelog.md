@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 17:16:03 +08:00｜P06.3a 点击后有界只读稳定观察（E132，候选未安装）
+
+- 修改或新增内容：新增desktop-focus-settle模块/8项单元测试，点击结果观察不再盲等600ms而是100ms间隔、最多6读/2000ms（另有helper有界退出）、完整快照连续3次一致；仅调整结果观察，无输入授权。app/window/bounds及首候选后role/path变化、取消/超时即停；截图前后严格比较仍保留，不以path证明AX对象身份。增加震荡/截图内变化/旧观察拒绝/真实子进程取消后才交锁集成回归、打包清单与防漏断言；同步E132证据/PLAN/文档测试。
+- 遇到的难题：专项首轮外层30秒超时不算完整通过；首包build-wvL8IH漏复制新模块，Electron实际打包导入ERR_MODULE_NOT_FOUND；native链外层60秒超时无exit，不能计通过。实机先后前台截图不符/显式激活焦点变化停止；一次侧栏posted但页面没切换，仍存在投递语义失败。
+- 处理方式：补打包清单/测试后重建build-NtlJnq，strict codesign、两模块包内源cmp及fixture缺失确认；真实调用包内工具/helper，临时透明wrapper仅记录mode/exit/focus不改事件。各停止runner dispose；独立新事务新截图后一次切页、确认未聚焦，再一次搜索框点击；记录内层→外层连续3次，严格capture成功。新截图与end截图手工核对空/聚焦，未键入；全部runner dispose。无事件自动重放/抢回、无剪贴板/AX写值，无沐宿改动/任务持久化/Key/付费/官网。
+- 验证结果：本次3425b13基线提交前工作区，npm test最终227/227；专项45/45；最终包DSH的npm run test:electron113/113无跳过；native offline11/11、PI桥5/5、皮肤4/4（独立前台重跑完成才计通过）；build exit0、签名/源匹配exit0。E132包内原生观察子集人工通过，businessGoalVerified=false；侧栏未切换保留负证据。不把合成helper取消/遮挡测试当实机全覆盖。文档108/108及diff检查在最终提交前核对，日志/tmp/musu-050-*-final*，证据docs/evidence/desktop/m06-click-settle.json。
+- 遗留问题：AX对象身份及几何切换原因、首点击/侧栏派发未送达、前置Tab拒绝未解释；真实遮挡/副屏/并发取消/正式聊天截图桥仍待验收，P06.3a/P06.6不勾选。正式沐码不退出/重启/替换，MuSu045源码/安装/任务不变；安装仍须用户明确授权并按E84。
+- 对应 Git 提交：唯一说明 `fix(P06.3a): settle click-result observations without replaying input`；查询 `git log --all --oneline --grep='settle click-result observations'`；门禁完成后提交推送并以远程HEAD核对，本条不预称部署。
+
 ## 2026-11-12 16:43:56 +08:00｜P06.3a 未聚焦点击AX几何漂移定位（E131，未修复/未安装）
 
 - 修改或新增内容：只增加测试及E131元数据/搜索框局部证据、文档契约与PLAN；运行时代码不改。临时诊断源码仅在拒绝时附已有actual focus元数据，未改变守卫/时序/事件，证据明确区别打包helper与诊断源码。

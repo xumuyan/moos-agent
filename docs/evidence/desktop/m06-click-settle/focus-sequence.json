@@ -1,0 +1,205 @@
+[
+  {
+    "time": 1794474358.646507,
+    "mode": "click",
+    "exit": 0,
+    "expectedFocus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "path": [],
+      "pid": 61235,
+      "role": "AXWindow",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474358.80417,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 18,
+        "width": 218,
+        "x": 1594,
+        "y": 585
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474358.98881,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474359.177556,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474359.371455,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474359.4701812,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794474359.7017658,
+    "mode": "screenshot",
+    "exit": 0
+  },
+  {
+    "time": 1794474359.82797,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  }
+]

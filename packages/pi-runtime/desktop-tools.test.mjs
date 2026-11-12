@@ -445,7 +445,8 @@ process.exit(2);
 });
 
 test('post-click AX element geometry drift between refresh and capture stops without replay even in the same window', async () => {
-  // E131 reproduces the focus-read sequence, not native AX identity or delivery.
+  // E131 strict-stop history stays in evidence; E132 bounds oscillation before capture.
+  // Fake helper only, not native AX identity or delivery.
   const dir = await mkdtemp(join(tmpdir(), 'moos-post-click-ax-drift-'));
   const state = join(dir, 'state.json');
   const inner = { ...FOCUS, element: { ...FOCUS.element, width: 218, height: 18, x: 1594, y: 585 } };
@@ -456,7 +457,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 const mode=process.argv[2], arg=k=>process.argv[process.argv.indexOf(k)+1];
 const state=JSON.parse(readFileSync(${JSON.stringify(state)},'utf8'));
 const out=v=>{writeFileSync(${JSON.stringify(state)},JSON.stringify(state));console.log(JSON.stringify(v));process.exit(0);};
-if(mode==='focus') { if(!state.clicked) out({focus:${JSON.stringify(FOCUS)}}); state.reads++;out({focus:state.reads===1?${JSON.stringify(inner)}:${JSON.stringify(outer)}}); }
+if(mode==='focus') { if(!state.clicked) out({focus:${JSON.stringify(FOCUS)}}); state.reads++;out({focus:state.reads%2===1?${JSON.stringify(inner)}:${JSON.stringify(outer)}}); }
 if(mode==='click') {state.clicked=true;state.posts++;out({status:'ok',posted:true,at:{x:10,y:20}});}
 if(mode==='screenshot') {state.screenshots++;writeFileSync(arg('--out'),Buffer.from('89504e47','hex'));out({scope:'window',imageWidth:1,imageHeight:1});}
 process.exit(2);
@@ -469,18 +470,93 @@ process.exit(2);
     await assert.rejects(click.execute('drift', { ...ids, x: 10, y: 20, verify: 'screenshot' }), { code: 'DESKTOP_FOCUS_CHANGED' });
     const { readFile } = await import('node:fs/promises');
     const stopped = JSON.parse(await readFile(state, 'utf8'));
-    assert.deepEqual(stopped, { clicked: true, reads: 2, posts: 1, screenshots: 1 });
+    assert.deepEqual(stopped, { clicked: true, reads: 6, posts: 1, screenshots: 1 });
     assert.equal(queue.status().locked, false);
     await assert.rejects(click.execute('no-replay', { ...ids, x: 10, y: 20, verify: 'screenshot' }), /事务/);
     assert.equal(JSON.parse(await readFile(state, 'utf8')).posts, 1);
-    // An independent new transaction may observe stable geometry; this must not
-    // revive the consumed observation or replay a possibly delivered click.
-    const fresh = await observed(tools);
-    assert.notEqual(fresh.transactionId, ids.transactionId);
-    assert.notEqual(fresh.observationId, ids.observationId);
-    assert.equal(JSON.parse(await readFile(state, 'utf8')).posts, 1);
-    await tools.find(t => t.name === 'desktop_end').execute('cancel', { transactionId: fresh.transactionId, action: 'cancel' });
+  } finally { await tools.dispose(); }
+});
+
+test('settled click geometry still needs a fresh observation and rejects drift during capture', async () => {
+  for (const midCaptureDrift of [false, true]) {
+    const dir = await mkdtemp(join(tmpdir(), 'moos-click-settle-'));
+    const state = join(dir, 'state.json');
+    const inner = { ...FOCUS, element: { ...FOCUS.element, width: 218, height: 18 } };
+    const outer = { ...inner, element: { ...FOCUS.element, width: 240, height: 42 } };
+    await writeFile(state, JSON.stringify({ posts: 0, reads: 0, screenshots: 0 }));
+    const helper = await fakeHelper(`#!/usr/bin/env node
+import {readFileSync,writeFileSync} from 'node:fs';
+const mode=process.argv[2], arg=k=>process.argv[process.argv.indexOf(k)+1];
+const state=JSON.parse(readFileSync(${JSON.stringify(state)},'utf8'));
+const out=v=>{writeFileSync(${JSON.stringify(state)},JSON.stringify(state));console.log(JSON.stringify(v));process.exit(0);};
+if(mode==='focus') {
+ if(!state.posts) out({focus:${JSON.stringify(FOCUS)}});
+ state.reads++;
+ out({focus:state.reads===1||(${midCaptureDrift}&&state.screenshots>1)?${JSON.stringify(inner)}:${JSON.stringify(outer)}});
+}
+if(mode==='click') {state.posts++;out({status:'ok',posted:true,at:{x:10,y:20}});}
+if(mode==='screenshot') {state.screenshots++;writeFileSync(arg('--out'),Buffer.from('89504e47','hex'));out({scope:'window',imageWidth:1,imageHeight:1});}
+process.exit(2);
+`);
+    const queue = createDesktopQueue();
+    const events = [];
+    const tools = createDesktopTools({ helperPath: helper, dataDir: dir, ownerId: 'settle', queue, emit: (name, event) => events.push({ name, event }) });
+    try {
+      const ids = await observed(tools);
+      const click = tools.find(t => t.name === 'desktop_click');
+      const pending = click.execute('settled', { ...ids, x: 10, y: 20, verify: 'screenshot' });
+      if (midCaptureDrift) {
+        await assert.rejects(pending, { code: 'DESKTOP_FOCUS_CHANGED' });
+        assert.equal(queue.status().locked, false);
+        assert.equal(events.filter(e => e.name === 'desktop_screenshot').length, 1, 'rejected capture is not published');
+      } else {
+        const result = await pending;
+        assert.equal(result.details.click.posted, true);
+        assert.equal(result.details.observationId, undefined, 'click auto-capture does not grant input authority');
+        const fresh = await observed(tools, ids.transactionId);
+        assert.notEqual(fresh.observationId, ids.observationId);
+        // The only accepted next step was a new screenshot, not automatic typing.
+        await tools.find(t => t.name === 'desktop_end').execute('end', { ...fresh, action: 'verify' });
+      }
+      const { readFile } = await import('node:fs/promises');
+      const snapshot = JSON.parse(await readFile(state, 'utf8'));
+      assert.equal(snapshot.posts, 1);
+      await assert.rejects(click.execute('no-replay', { ...ids, x: 10, y: 20 }), /事务/);
+      assert.equal(JSON.parse(await readFile(state, 'utf8')).posts, 1);
+    } finally { await tools.dispose(); }
+  }
+});
+
+test('cancelling click settling closes its focus child before another owner runs and never reposts', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { setTimeout: delay } = await import('node:timers/promises');
+  const dir = await mkdtemp(join(tmpdir(), 'moos-settle-cancel-'));
+  const clicked = join(dir, 'clicked'), marker = join(dir, 'focus-child');
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import {existsSync,writeFileSync} from 'node:fs';
+const mode=process.argv[2], out=v=>{console.log(JSON.stringify(v));process.exit(0);};
+if(mode==='focus') {
+ if(!existsSync(${JSON.stringify(clicked)})) out({focus:${JSON.stringify(FOCUS)}});
+ process.on('SIGTERM',()=>setTimeout(()=>process.exit(0),80));
+ writeFileSync(${JSON.stringify(marker)},String(process.pid));setInterval(()=>{},1000);
+} else if(mode==='screenshot') {writeFileSync(process.argv[process.argv.indexOf('--out')+1],Buffer.from('89504e47','hex'));out({scope:'window',imageWidth:1,imageHeight:1});}
+else if(mode==='click') {writeFileSync(${JSON.stringify(clicked)},'one-post');out({status:'ok',posted:true,at:{x:10,y:20}});}
+else process.exit(2);
+`);
+  const task = new AbortController(), queue = createDesktopQueue();
+  const tools = createDesktopTools({ helperPath: helper, dataDir: dir, ownerId: 'settle-cancel', queue, taskSignal: task.signal });
+  try {
+    const ids = await observed(tools);
+    const pending = tools.find(t => t.name === 'desktop_click').execute('click', { ...ids, x: 10, y: 20, verify: 'screenshot' });
+    const rejected = assert.rejects(pending, { name: 'AbortError' });
+    let pid;
+    for (let n = 0; n < 150 && !pid; n++) { pid = Number(await readFile(marker, 'utf8').catch(() => '')); if (!pid) await delay(10); }
+    assert.ok(pid, 'focus child started only after the click');
+    const next = queue.withLock({ owner: 'next' }, async () => assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }));
+    task.abort(); await rejected; await next;
+    assert.equal(await readFile(clicked, 'utf8'), 'one-post');
     assert.equal(queue.status().locked, false);
+    await assert.rejects(tools.find(t => t.name === 'desktop_click').execute('no-replay', { ...ids, x: 10, y: 20 }), /事务/);
   } finally { await tools.dispose(); }
 });
 

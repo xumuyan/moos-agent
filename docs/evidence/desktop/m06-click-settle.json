@@ -1,0 +1,140 @@
+{
+  "id": "E132",
+  "task": "P06.3a/P06.6",
+  "status": "bounded-click-observation-packaged-subset-verified-not-deployed",
+  "baseline": "3425b1359edc3eef6975a63137c975e1f42ec7e4",
+  "environment": {
+    "system": "macOS 27.0.1 arm64",
+    "target": "MuSu045 unchanged",
+    "permissionsGranted": true,
+    "displays": 2
+  },
+  "design": {
+    "maxReads": 6,
+    "deadlineMs": 2000,
+    "identicalSnapshots": 3,
+    "intervalMs": 100,
+    "observationOnly": true,
+    "strictCaptureRetained": true,
+    "inputPreflightUnchanged": true,
+    "pathProvesIdentity": false,
+    "automaticReplay": false,
+    "automaticFocusReclaim": false
+  },
+  "package": {
+    "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-NtlJnq/沐码.app",
+    "version": "0.1.47",
+    "strictSignatureExit": 0,
+    "sourceMatch": true,
+    "fixtureAbsent": true,
+    "runtimeSha256": {
+      "desktop-tools.mjs": "cbdbf732b5ff798c4558b564797567f2a5da9cc568a6e6c9da8a295258c0257d",
+      "desktop-focus-settle.mjs": "faf057eaebc961547df69e05351e4eabc2e9db9955c9344af5b283379d3d6cde"
+    },
+    "helperSha256": "19eae0708ab454de56a36609fc65d7e93c6302adab502c5ef6387e52420fa7bb",
+    "wrapperSha256": "be68ebb9abb27be6f227933cd1e808d54a001cef865fb45d8f7716741de2e6b4"
+  },
+  "acceptance": {
+    "transactionId": "2ab8fc04-ca65-4c21-897a-23fd531a68f3",
+    "initialRole": "AXWindow",
+    "nativeClickPosts": 1,
+    "settleReads": 4,
+    "geometrySequence": [
+      [
+        218,
+        18
+      ],
+      [
+        240,
+        42
+      ],
+      [
+        240,
+        42
+      ],
+      [
+        240,
+        42
+      ]
+    ],
+    "newObservationAfterClick": true,
+    "manualEmptyFocused": true,
+    "resultObservationConfirmed": true,
+    "businessGoalVerified": false,
+    "textTyped": false,
+    "earlierSidebarPostedButNotSwitched": true,
+    "allRunnersDisposed": true
+  },
+  "validation": {
+    "focused": 45,
+    "core": 227,
+    "electron": 113,
+    "electronSkipped": 0,
+    "native": 11,
+    "bridge": 5,
+    "skin": 4,
+    "docs": 108,
+    "buildExit": 0
+  },
+  "failedOrIncomplete": [
+    "initial focused outer30s timed out; not a full pass",
+    "initial package build-wvL8IH omitted settle module; Electron ERR_MODULE_NOT_FOUND; fixed copy list and regression, rebuilt",
+    "native/bridge/skin chain outer60s timed out with no exit results; independent final foreground reruns passed",
+    "wrong-frontmost screenshot and activation focus-change stopped separate leases",
+    "earlier sidebar click posted but screenshot stayed on browser; no automatic replay"
+  ],
+  "remaining": [
+    "AX object identity and reason for inner/outer switching unproven",
+    "posted click without semantic delivery unresolved",
+    "earlier packaged Tab pre-input refusal unexplained",
+    "real overlays, secondary display, concurrency/cancellation and formal chat screenshot bridge acceptance pending"
+  ],
+  "deployment": {
+    "formalAppReplaced": false,
+    "formalAppRestarted": false,
+    "musuSourceChanged": false,
+    "persistentTasksChanged": false,
+    "credentialsRead": false,
+    "paidRequest": false,
+    "officialSiteAccessed": false
+  },
+  "sourceScreenshots": {
+    "before.png": {
+      "sourceFile": "20261112090542-6d03ac99fcd3.png",
+      "sourceSha256": "f5ed2e4d55fd3c0f45fb12d0d061ea1ba0904936a16d5b86c05c245a53381be6",
+      "crop": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "focused.png": {
+      "sourceFile": "20261112090600-92a5be260894.png",
+      "sourceSha256": "ba4a8c9d6b4eaddb6efa6ebacaf9a34bd5276f4ba89bb25adeec97389255e842",
+      "crop": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "final.png": {
+      "sourceFile": "20261112090615-35599061161d.png",
+      "sourceSha256": "6aa149d6a19d6e1808c2c5d345425d02d3b0d66da4a1b588dbee0ee6e838b376",
+      "crop": [
+        860,
+        395,
+        260,
+        60
+      ]
+    }
+  },
+  "evidenceSha256": {
+    "final.png": "45c1c38af0ed1d49eb8f6e237cd3d999b9ef920edd6230ee92315a4d0e9d7d60",
+    "before.png": "97c4b7cf17d6bb97f123bfb3fd8c10dea0fc99edd69b20cbfcb68abe0cfe81e4",
+    "focused.png": "2d53836bf654b54d0abaea330be55a7cfd322df335164f95bfc9c59c57a48cc5",
+    "README.md": "5f8bca33350165fec92b7b6bf7a8fbf71add7bc6fc999f7a8ecda221668b491b",
+    "focus-sequence.json": "d83bb2bf808f006609da1f3214197bad0d69f4dec0b6375260b03ed17178f779"
+  }
+}
