@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 09:44:27 +08:00｜0.1.45 更新备份清理（用户授权）
+
+- 修改或新增内容：用户回复「删除旧包」构成清理授权（安装核对已于上轮通过：result.json state=success、数据保留全绿、生产 0.1.45 正常运行）。删除 /Applications/.moos-update-0.1.45/previous/沐码.app（675MB，0.1.41 回退包）与 /Applications/.moos-update-0.1.45/data-before-install（504MB，停机数据备份），合计约 1.18GB。保留审计文件：result.json、update.log、update.mjs、update.command（更新目录其余为脚本与结果记录）。
+- 遇到的难题：无。删除前再次确认生产版本 0.1.45 与 result.json state=success；另注意到 /Applications 下仍有历史更新目录 .moos-update-0.1.31/.32/.33/.34/.38/.39（早年各轮遗留），未经授权不动，仅在日志中如实登记待用户决定。
+- 处理方式：rm -rf 限定两个精确路径；删除后核对该目录仅剩四个审计文件、生产 Info.plist 仍 0.1.45、主进程 1 个运行中。
+- 验证结果：ls 确认 previous/ 与 data-before-install 已不存在；生产版本与进程数复核正常。
+- 遗留问题：历史更新目录（0.1.31–0.1.39 各轮）是否清理待用户决定；0.1.45 日常使用反馈、P03.14 微信插件素材、P06.6 实机权限验收仍待用户。
+- 对应 Git 提交：本次唯一说明 `chore(P03.13.16): clean up 0.1.45 update backup on user approval`；查询 `git log --all --oneline --grep='chore(P03.13.16): clean up 0.1.45 update backup on user approval'`。本条写入时未提交/未推送；随后创建提交、推送并核对远程 HEAD 一致。
+
 ## 2026-11-12 08:44:22 +08:00｜0.1.45 安装核对通过（E84 结果核对；备份待 GUI 确认后清理；更正前条时间戳错误）
 
 - 修改或新增内容：核对 /Applications/.moos-update-0.1.45/result.json：state=success（2026-11-12 07:40:51 +08:00），21 项核对标记全部为真——七项验证 gate 全 0；候选包 14 个关键文件与已验证构建字节一致；停机备份 6546 文件逐哈希核对、目录 0700/credentials 0600；providers/credentials 原字节一致、6 个模型配置可读；messages 635/conversations 7/tasks 330 前后一致；会话/PI 历史/皮肤/工作区/插件依赖保留；live client 与包内一致、单实例、Host 活跃；本轮标记 timeoutEnforcementInInstalled/queuedCardInLiveClient/queueAheadReadModelInInstalled 与全部历史回归标记为真。对话内只读独立复核：安装版 CFBundleShortVersionString=0.1.45、codesign --deep --strict 通过、主进程恰 1 个、Host 进程路径属 /Applications/沐码.app。更新 docs/evidence/desktop/p03-task-timeout-queue.json（新增 deployment 块）、PLAN.md（P03.13.16 行补安装核对结论与数据保留证据）、tests/test_repository_docs.py（TaskTimeoutQueueTests 补 14 项安装断言）。
