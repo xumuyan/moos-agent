@@ -43,9 +43,23 @@ function resourceLoader(instructions) {
 }
 
 export function sdkSettings(duration) {
+  // P03.13.18：压缩预留从默认 16384 提高到 32768。默认阈值（窗口-16k）下长任务一轮内就能把上下文
+  // 推过窗口边缘，压缩的总结请求自身也会超限，形成死锁（生产 codex-weixin-notifier 会话连续三个任务失败）。
+  // 提前在约 76% 处压缩，总结请求保有 ~29k 余量；keepRecentTokens 保持默认保留近期原文。
   return SettingsManager.inMemory({ httpIdleTimeoutMs: taskTimeout(duration),
-    compaction: { enabled: true }, retry: { enabled: false, provider: { timeoutMs: taskTimeout(duration) } } });
+    compaction: { enabled: true, reserveTokens: 32768, keepRecentTokens: 20000 },
+    retry: { enabled: false, provider: { timeoutMs: taskTimeout(duration) } } });
 }
+
+/** Sum of the last assistant usage fields PI reports for a turn (input + cache + output). */
+export function contextTokensUsed(usage) {
+  if (!usage || typeof usage !== 'object') return 0;
+  const field = value => (Number.isSafeInteger(value) && value > 0 ? value : 0);
+  return field(usage.input) + field(usage.cacheRead) + field(usage.cacheWrite) + field(usage.output);
+}
+
+/** Compaction head-room kept for the summarize request itself when pre-compacting (P03.13.18). */
+export const PRE_COMPACT_MARGIN_TOKENS = 40960;
 
 function validate({ task, project, conversation, dataDir, apiKey }) {
   if (!conversation || typeof conversation.id !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(conversation.id)) throw new Error('Invalid conversation id');
@@ -214,6 +228,23 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         await createSession();
         if (controller.signal.aborted) throw aborted();
         last = undefined; lastFailure = undefined;
+        // P03.13.18 上下文满载自救：阈值压缩依赖的投影估算可能滞后于真实用量（长会话缓存命中场景），
+        // 提交前用上一轮真实 usage 预检；超过窗口-40k 时先手动压缩，让总结请求保有足够余量。
+        // 「无可压缩历史/已压缩过」不是失败，直接继续任务由 PI 溢出恢复兑底；压缩请求本身失败
+        // （上下文已满到总结请求也超限）时按上下文超限终止，不再把死锁包装成 internal。
+        const previousUsage = session.messages.findLast(item => item.role === 'assistant')?.usage;
+        const contextWindow = active.model?.contextWindow ?? 0;
+        if (contextWindow > PRE_COMPACT_MARGIN_TOKENS
+          && contextTokensUsed(previousUsage) > contextWindow - PRE_COMPACT_MARGIN_TOKENS) {
+          try {
+            await session.compact();
+          } catch (error) {
+            const reason = String(error?.message ?? '');
+            if (!reason.includes('Nothing to compact') && !reason.includes('Already compacted')) {
+              throw new TaskFailure('context_limit');
+            }
+          }
+        }
         let prompt = message;
         if (retry) {
           const previous = session.messages.findLast(item => item.role === 'user')?.content;

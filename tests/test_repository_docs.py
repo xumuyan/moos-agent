@@ -784,7 +784,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 18)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 19)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))
@@ -1773,6 +1773,50 @@ class TaskTimeoutQueueTests(unittest.TestCase):
         self.assertIn('succeeded', deployment['interruptedTaskTerminalState'])
         self.assertTrue(deployment['backupCleanup'].startswith('pending-gui-confirmation'))
 
+
+
+class ContextCompactionTests(unittest.TestCase):
+    """E127：上下文满载自救（P03.13.18）。"""
+
+    def test_context_compaction_evidence_is_complete_and_plan_referenced(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-context-compaction.json').read_text())
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertEqual(evidence['id'], 'E127')
+        self.assertIn('| E127 |', plan)
+        self.assertIn('证据 E127。', plan)
+        self.assertIn('P03.13.18', evidence['source']['task'])
+        impl = evidence['source']['implementation']
+        self.assertTrue(any('reserveTokens 16384→32768' in item for item in impl))
+        self.assertTrue(any('PRE_COMPACT_MARGIN_TOKENS' in item for item in impl))
+        package = evidence['package']
+        self.assertEqual(package['version'], '0.1.47')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertEqual(package['build'], 'build-9jwHgP')
+        self.assertTrue(package['codesignStrict'])
+        self.assertFalse(package['includesPiFixture'])
+        unit = evidence['unit']
+        self.assertEqual(unit['core'], '214/214 (npm test)')
+        self.assertEqual(unit['native'], '11/11 (cargo test --release)')
+        self.assertEqual(unit['docs'], '103/103 (python3 -m unittest discover -s tests)')
+        self.assertIn('0 fail', unit['electron'])
+        self.assertTrue(evidence['gui']['skipped'])
+        self.assertIn('125k', evidence['gui']['reason'])
+        limits = evidence['limits']
+        self.assertTrue(any('0.1.47' in item and '授权' in item for item in limits))
+        self.assertTrue(any('E126' in item for item in limits))
+
+    def test_source_precompacts_before_prompt_and_classifies_recovery_failure(self):
+        errors = (ROOT / 'services/agent/errors.mjs').read_text()
+        self.assertIn('上下文已满且自动压缩未能完成', errors)
+        self.assertIn('compact(?:ion)?[- ]?and[- ]?retry recovery failed', errors)
+        self.assertIn('truncated response recovery failed', errors)
+        self.assertIn('上下文.{0,12}(超限|溢出|已满|过长)', errors)
+        runtime = (ROOT / 'packages/pi-runtime/sdk-runtime.mjs').read_text()
+        self.assertIn('reserveTokens: 32768', runtime)
+        self.assertIn('PRE_COMPACT_MARGIN_TOKENS', runtime)
+        self.assertIn("findLast(item => item.role === 'assistant')?.usage", runtime)
+        self.assertIn("reason.includes('Nothing to compact')", runtime)
+        self.assertIn("throw new TaskFailure('context_limit')", runtime)
 
 
 if __name__ == '__main__':

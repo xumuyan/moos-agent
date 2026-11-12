@@ -4,7 +4,7 @@ const messages = Object.freeze({
   rate_limit: '模型服务限流，请稍后重试。',
   network: '模型服务网络连接失败，请检查地址和网络。',
   model_capability: '当前模型或端点不支持此任务所需能力。',
-  context_limit: '任务上下文超过模型限制，请缩短内容或新建会话。',
+  context_limit: '上下文已满且自动压缩未能完成，请新建对话继续（历史保留不会丢失）。',
   tool_error: '本地工具执行失败，请查看任务轨迹。',
   permission: '系统或项目权限不足，请按提示授权后重试。',
   cancelled: '任务已由用户停止。',
@@ -44,7 +44,8 @@ export function classifyTaskError(error) {
   if (/insufficient[_ -]?quota|quota exceeded|余额|额度/.test(text)) code = 'quota';
   else if (/\b401\b|\b403\b|invalid[_ -]?(api[_ -]?)?key|unauthori[sz]ed|authentication|authorization|bearer/.test(text)) code = 'auth';
   else if (/\b429\b|rate[_ -]?limit|too many requests/.test(text)) code = 'rate_limit';
-  else if (/context.{0,24}(limit|length|window)|maximum context|too many tokens/.test(text)) code = 'context_limit';
+  else if (/context.{0,24}(limit|length|window)|maximum context|too many tokens|context[- ]?overflow|compact(?:ion)?[- ]?and[- ]?retry recovery failed|truncated response recovery failed/.test(text)
+    || /上下文.{0,12}(超限|溢出|已满|过长)/.test(text)) code = 'context_limit';
   else if (/unsupported|not support|capabilit|model not found|endpoint/.test(text)) code = 'model_capability';
   else if (/permission|not permitted|access denied|operation not allowed/.test(text)) code = 'permission';
   else if (/tool.{0,24}(fail|error)|command failed|exit code/.test(text)) code = 'tool_error';

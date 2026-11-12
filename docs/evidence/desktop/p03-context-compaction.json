@@ -1,0 +1,58 @@
+{
+  "id": "E127",
+  "dateBeijing": "2026-11-12",
+  "machine": "Mac mini (arm64), macOS 27.0.1",
+  "source": {
+    "task": "P03.13.18 上下文满载自救：生产 codex-weixin-notifier 会话（05639f8b，125847/128000 tokens，98.3% 满载）连续三个任务以 internal 失败；根因为自动压缩的总结请求自身超限，PI 溢出恢复失败文案未被错误分类器识别，掉进 internal 兜底且无自救路径。",
+    "implementation": [
+      "services/agent/errors.mjs：context_limit 消息改为『上下文已满且自动压缩未能完成，请新建对话继续（历史保留不会丢失）。』；正则扩展识别 Context/Truncated overflow recovery failed、context overflow、上下文已满/超限/溢出/过长（生产英文恢复文案落在分类 ladder，不再兜底 internal）。",
+      "packages/pi-runtime/sdk-runtime.mjs：compaction reserveTokens 16384→32768（约 76% 窗口处提前压缩，总结请求保有约 29k 余量）；新增导出 contextTokensUsed（input+cacheRead+cacheWrite+output 求和，容错非正数）与 PRE_COMPACT_MARGIN_TOKENS=40960；每次提交前用上一轮真实 usage 预检，超过窗口-40960 时先 session.compact() 再提交；『Nothing to compact/Already compacted』（无可压缩历史）静默放行，压缩请求本身失败时抛 TaskFailure('context_limit')。",
+      "packages/pi-runtime/context-compaction.test.mjs（新增 112 行）：三段式 SSE mock（内容 chunk → finish chunk → 独立 usage chunk）+ 三轮大文本会话，覆盖预检触发时序（task,task,compact,task）与预检压缩 500 → context_limit；errors.test.mjs 矩阵新增 4 条恢复失败文案。",
+      "版本 0.1.46→0.1.47（apps/electron/package.json 与 plugin/package.json 同步），隔离构建 build-9jwHgP。"
+    ],
+    "commits": [
+      "本次提交（见 operatelog 对应条目）"
+    ]
+  },
+  "package": {
+    "build": "build-9jwHgP",
+    "version": "0.1.47",
+    "bundleId": "dev.moos.agent.electron",
+    "codesignStrict": true,
+    "includesPiFixture": false,
+    "packagedAssertions": [
+      "Resources/pi-runtime/packages/pi-runtime/sdk-runtime.mjs 含 PRE_COMPACT_MARGIN_TOKENS（3 处）与 reserveTokens: 32768",
+      "Resources/pi-runtime/services/agent/errors.mjs 含『上下文已满且自动压缩未能完成』",
+      "Resources/app/package.json version=0.1.47；测试文件不进包"
+    ]
+  },
+  "unit": {
+    "core": "214/214 (npm test)",
+    "electron": "111 tests, 102 pass, 9 skipped, 0 fail (npm run test:electron)",
+    "native": "11/11 (cargo test --release)",
+    "docs": "103/103 (python3 -m unittest discover -s tests)",
+    "newCases": [
+      "context-compaction：usage 求和与 margin 常量、SettingsManager 读取 reserveTokens 32768；三轮会话预检时序（usage 90005 超 87040 安全线、低于 95232 阈值线，第三轮提交前先 compact 再提交）；预检压缩 500 → TaskFailure context_limit；只有一轮历史时预检压缩被本地跳过、任务照常执行。",
+      "errors：Context overflow recovery failed / Truncated response recovery failed / 上下文已满 / context overflow detected → context_limit。"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "npm test（core 214/214）",
+      "npm run test:electron（102 pass + 9 skip + 0 fail）",
+      "cargo test --release --manifest-path probes/m01/desktop/src-tauri/Cargo.toml（11/11）",
+      "python3 -m unittest discover -s tests（101/101，含 E127 新测试）",
+      "codesign --verify --strict build-9jwHgP/沐码.app 通过"
+    ],
+    "scopeNote": "本轮改动仅 services/agent/errors.mjs、packages/pi-runtime/sdk-runtime.mjs 及两份测试；PI 桥 5/5 与皮肤 4/4 沿用 E126（build-vK3FJH）基线，相关源码自该轮无改动。"
+  },
+  "gui": {
+    "skipped": true,
+    "reason": "125k+ tokens 满载会话无法在隔离 GUI 构造（需真实长会话与真实模型用量）；错误文案经既有 errorCode 渲染路径展示，本轮未新增 UI 元素。生产死锁会话的端到端复现验证需待用户授权安装 0.1.47 后在该会话新建对话进行。"
+  },
+  "limits": [
+    "预检压缩的触发条件依赖上一轮真实 usage；mock 验证覆盖三段式 SSE 与三轮会话时序，生产 GLM 中转站的实际表现以安装后复现验证为准。",
+    "正式 /Applications/沐码.app 仍为 0.1.45（含 0.1.46 候选未安装），0.1.47 安装需用户另行明确授权（E84 流程）。",
+    "bridge/skin 本轮未执行（改动面无交集，沿用 E126 基线证据）。"
+  ]
+}
