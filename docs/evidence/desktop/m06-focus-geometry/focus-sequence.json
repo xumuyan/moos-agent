@@ -1,0 +1,84 @@
+[
+  {
+    "time": 1794472681.94738,
+    "mode": "click",
+    "exit": 0,
+    "expectedFocus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "path": [],
+      "pid": 61235,
+      "role": "AXWindow",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794472683.0587678,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 18,
+        "width": 218,
+        "x": 1594,
+        "y": 585
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  },
+  {
+    "time": 1794472683.635278,
+    "mode": "focus",
+    "exit": 0,
+    "focus": {
+      "bundleId": "local.musu.desktop",
+      "element": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "path": [
+        7,
+        0,
+        9,
+        0
+      ],
+      "pid": 61235,
+      "role": "AXTextField",
+      "window": {
+        "height": 760,
+        "width": 1140,
+        "x": 711,
+        "y": 169
+      },
+      "windowId": 64926
+    }
+  }
+]

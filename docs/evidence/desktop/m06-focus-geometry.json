@@ -1,0 +1,172 @@
+{
+  "id": "E131",
+  "task": "P06.3a/P06.6",
+  "recordedAt": "2026-11-12T16:43:56+08:00",
+  "workspace": {
+    "baseCommit": "b0cfd855b16d79c987408de040330ad0195ec513",
+    "commitSubject": "test(P06.3a): reproduce post-click AX geometry drift without relaxing focus guards"
+  },
+  "status": "post-click-geometry-refusal-reproduced-not-fixed",
+  "instrumentation": {
+    "packagedHelperUsedInitially": true,
+    "diagnosticHelperUsedForReproduction": true,
+    "diagnosticSourceSha256": "24749bdc816209ac1d05c19eded48632e206562af1fb100d0a6bdfd4c27ed2ce",
+    "diagnosticBinarySha256": "3c821cbad2829e5f28f5bcb82ce207693336c9422084201800eac583e33cf10c",
+    "change": "Only adds existing actual-focus binding metadata on focusRejection; no guard/event/timing changes",
+    "runtimeSourceChanged": false,
+    "packagedAcceptanceSubstitute": false
+  },
+  "acceptance": {
+    "environment": "macOS27.0.1 arm64; Node24.15.0; 2 displays; both permissions granted",
+    "unfocusedEstablishedBy": "offline browser sidebar then task sidebar; AXWindow path [] and search without focus ring",
+    "firstClick": {
+      "transaction": "33c2539c-e01c-45e0-8e83-b3ad5032cf2a",
+      "reportedPosted": true,
+      "semanticFocusObtained": false,
+      "focusStayed": "AXWindow",
+      "resultObservationConfirmed": true,
+      "businessGoalVerified": false
+    },
+    "reproduction": {
+      "transaction": "c94d60db-0a65-4ab3-8d3e-be93dad2b9fa",
+      "clickPosted": true,
+      "clickPoint": [
+        1690,
+        594
+      ],
+      "errorCode": "DESKTOP_FOCUS_CHANGED",
+      "rejectionSite": "capturePng pre-capture lastFocus deep equality after refreshAfterInput",
+      "samePidWindowBoundsRolePath": true,
+      "firstElement": {
+        "height": 18,
+        "width": 218,
+        "x": 1594,
+        "y": 585
+      },
+      "nextElement": {
+        "height": 42,
+        "width": 240,
+        "x": 1583,
+        "y": 573
+      },
+      "postClickScreenshotReturned": false,
+      "subsequentSnapshotRejected": true,
+      "eventReplayed": false
+    },
+    "laterIndependentObservation": {
+      "transaction": "7fcb75db-8d01-4f07-95a1-f7b959e3c348",
+      "packagedHelper": true,
+      "fieldFocused": true,
+      "fieldEmpty": true,
+      "resultObservationConfirmed": true,
+      "businessGoalVerified": false
+    },
+    "textTyped": false,
+    "allRunnersDisposed": true,
+    "screenshotsManuallyRead": true
+  },
+  "negativeAttempts": [
+    "selected task-sidebar click did not unfocus; lease expired before Tab, no replay",
+    "independent snapshot focus-unavailable; no action",
+    "packaged Tab focus-changed before dispatch; actual focus unavailable, cause unknown",
+    "first diagnostic click posted without focusing; no typing",
+    "independent snapshot wrong frontmost window refused; runner disposed"
+  ],
+  "validation": {
+    "focused": {
+      "passed": 35,
+      "failed": 0
+    },
+    "core": {
+      "passed": 217,
+      "failed": 0
+    },
+    "electron": {
+      "passed": 113,
+      "failed": 0,
+      "skipped": 0
+    },
+    "native": {
+      "passed": 11,
+      "failed": 0
+    },
+    "bridge": {
+      "passed": 5,
+      "failed": 0
+    },
+    "skin": {
+      "passed": 4,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 107,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "regression": "exact post-click two-read element drift sequence stops before result capture, one post only, queue released, stale replay refused; independent new observation allowed without replay; fake helper not native AX proof",
+    "historicalFailure": "Initial native+bridge+skin chain outer30s timed out during cargo compilation, no exit file; not counted; direct independent reruns passed."
+  },
+  "evidenceSha256": {
+    "README.md": "05435e0c05359c16583abd1e9e28cf3153c267730e85f439ad4ffd7fad0fa641",
+    "before-reproduced-click.png": "97c4b7cf17d6bb97f123bfb3fd8c10dea0fc99edd69b20cbfcb68abe0cfe81e4",
+    "first-click-no-focus.png": "97c4b7cf17d6bb97f123bfb3fd8c10dea0fc99edd69b20cbfcb68abe0cfe81e4",
+    "focus-sequence.json": "00fad0c93d581bcf2b7d8e4cc8f66707445fc177ca7386ec1b7b57995df16e87",
+    "later-focused.png": "2d53836bf654b54d0abaea330be55a7cfd322df335164f95bfc9c59c57a48cc5",
+    "unfocused.png": "97c4b7cf17d6bb97f123bfb3fd8c10dea0fc99edd69b20cbfcb68abe0cfe81e4"
+  },
+  "sourceScreenshots": {
+    "unfocused.png": {
+      "filename": "20261112083618-3aa2fb5ef4ee.png",
+      "originalSha256": "f5ed2e4d55fd3c0f45fb12d0d061ea1ba0904936a16d5b86c05c245a53381be6",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "first-click-no-focus.png": {
+      "filename": "20261112083633-d7e992b064a2.png",
+      "originalSha256": "f5ed2e4d55fd3c0f45fb12d0d061ea1ba0904936a16d5b86c05c245a53381be6",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "before-reproduced-click.png": {
+      "filename": "20261112083741-f81765105f73.png",
+      "originalSha256": "f5ed2e4d55fd3c0f45fb12d0d061ea1ba0904936a16d5b86c05c245a53381be6",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "later-focused.png": {
+      "filename": "20261112083933-8d11f0ce9f98.png",
+      "originalSha256": "ba4a8c9d6b4eaddb6efa6ebacaf9a34bd5276f4ba89bb25adeec97389255e842",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    }
+  },
+  "limits": [
+    "one diagnostic-source post-click refusal site identified, not universal cause or packaged full acceptance",
+    "first click failed semantic focusing despite posted",
+    "pre-input packaged Tab rejection remains unexplained",
+    "no geometry ignoring, auto retry/focus reclaim/clipboard/AX write; guards unchanged",
+    "actual overlays, secondary-display input, concurrency/cancellation and formal chat bridge still unaccepted"
+  ],
+  "deployment": {
+    "installed": false,
+    "formalMoosExitedOrReplaced": false,
+    "muSuSourceOrPersistentTasksChanged": false,
+    "keyReadOrPaidRequestOrOfficialSite": false
+  }
+}

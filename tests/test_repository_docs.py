@@ -1989,3 +1989,52 @@ class PackagedUnicodeAcceptanceTests(unittest.TestCase):
             self.assertIn('- [ ] ' + pending, plan)
         regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
         self.assertIn('post-click editable focus may change only within the exact bound window', regression)
+
+
+class PostClickGeometryEvidenceTests(unittest.TestCase):
+    def test_one_geometry_refusal_is_not_a_runtime_fix_or_delivery_guarantee(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-focus-geometry.json').read_text())
+        self.assertEqual(e['id'], 'E131')
+        self.assertEqual(e['status'], 'post-click-geometry-refusal-reproduced-not-fixed')
+        self.assertTrue(e['instrumentation']['diagnosticHelperUsedForReproduction'])
+        self.assertFalse(e['instrumentation']['runtimeSourceChanged'])
+        self.assertFalse(e['instrumentation']['packagedAcceptanceSubstitute'])
+        a = e['acceptance']
+        self.assertFalse(a['firstClick']['semanticFocusObtained'])
+        self.assertTrue(a['firstClick']['reportedPosted'])
+        r = a['reproduction']
+        self.assertTrue(r['clickPosted'])
+        self.assertEqual(r['errorCode'], 'DESKTOP_FOCUS_CHANGED')
+        self.assertIn('pre-capture', r['rejectionSite'])
+        self.assertTrue(r['samePidWindowBoundsRolePath'])
+        self.assertEqual(r['firstElement'], {'x': 1594, 'y': 585, 'width': 218, 'height': 18})
+        self.assertEqual(r['nextElement'], {'x': 1583, 'y': 573, 'width': 240, 'height': 42})
+        self.assertFalse(r['postClickScreenshotReturned'])
+        self.assertTrue(r['subsequentSnapshotRejected'])
+        self.assertFalse(r['eventReplayed'])
+        for key in ['fieldFocused', 'fieldEmpty', 'packagedHelper', 'resultObservationConfirmed']:
+            self.assertTrue(a['laterIndependentObservation'][key])
+        self.assertFalse(a['laterIndependentObservation']['businessGoalVerified'])
+        self.assertFalse(a['textTyped'])
+        self.assertTrue(a['allRunnersDisposed'])
+        d = ROOT / 'docs/evidence/desktop/m06-focus-geometry'
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((d / name).read_bytes()).hexdigest(), expected)
+        seq = json.loads((d / 'focus-sequence.json').read_text())
+        self.assertEqual([row['mode'] for row in seq], ['click', 'focus', 'focus'])
+        self.assertEqual(seq[0]['exit'], 0)
+        for key in ['pid', 'windowId', 'window', 'path', 'role', 'bundleId']:
+            self.assertEqual(seq[1]['focus'][key], seq[2]['focus'][key])
+        self.assertNotEqual(seq[1]['focus']['element'], seq[2]['focus']['element'])
+        self.assertNotIn('value', json.dumps(seq))
+        self.assertEqual(e['validation']['core'], {'passed': 217, 'failed': 0})
+        self.assertEqual(e['validation']['docs'], {'passed': 107, 'failed': 0})
+        self.assertTrue(all(value is False for value in e['deployment'].values()))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('| E131 |', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        runtime = (ROOT / 'packages/pi-runtime/desktop-tools.mjs').read_text()
+        self.assertIn('lastFocus && !isDeepStrictEqual(lastFocus, focus)', runtime)
+        regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
+        self.assertIn('post-click AX element geometry drift between refresh and capture stops without replay', regression)

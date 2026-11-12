@@ -444,6 +444,46 @@ process.exit(2);
   }
 });
 
+test('post-click AX element geometry drift between refresh and capture stops without replay even in the same window', async () => {
+  // E131 reproduces the focus-read sequence, not native AX identity or delivery.
+  const dir = await mkdtemp(join(tmpdir(), 'moos-post-click-ax-drift-'));
+  const state = join(dir, 'state.json');
+  const inner = { ...FOCUS, element: { ...FOCUS.element, width: 218, height: 18, x: 1594, y: 585 } };
+  const outer = { ...FOCUS, element: { ...FOCUS.element, width: 240, height: 42, x: 1583, y: 573 } };
+  await writeFile(state, JSON.stringify({ clicked: false, reads: 0, posts: 0, screenshots: 0 }));
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import {readFileSync,writeFileSync} from 'node:fs';
+const mode=process.argv[2], arg=k=>process.argv[process.argv.indexOf(k)+1];
+const state=JSON.parse(readFileSync(${JSON.stringify(state)},'utf8'));
+const out=v=>{writeFileSync(${JSON.stringify(state)},JSON.stringify(state));console.log(JSON.stringify(v));process.exit(0);};
+if(mode==='focus') { if(!state.clicked) out({focus:${JSON.stringify(FOCUS)}}); state.reads++;out({focus:state.reads===1?${JSON.stringify(inner)}:${JSON.stringify(outer)}}); }
+if(mode==='click') {state.clicked=true;state.posts++;out({status:'ok',posted:true,at:{x:10,y:20}});}
+if(mode==='screenshot') {state.screenshots++;writeFileSync(arg('--out'),Buffer.from('89504e47','hex'));out({scope:'window',imageWidth:1,imageHeight:1});}
+process.exit(2);
+`);
+  const queue = createDesktopQueue();
+  const tools = createDesktopTools({ helperPath: helper, dataDir: dir, ownerId: 'ax-drift', queue });
+  try {
+    const ids = await observed(tools);
+    const click = tools.find(t => t.name === 'desktop_click');
+    await assert.rejects(click.execute('drift', { ...ids, x: 10, y: 20, verify: 'screenshot' }), { code: 'DESKTOP_FOCUS_CHANGED' });
+    const { readFile } = await import('node:fs/promises');
+    const stopped = JSON.parse(await readFile(state, 'utf8'));
+    assert.deepEqual(stopped, { clicked: true, reads: 2, posts: 1, screenshots: 1 });
+    assert.equal(queue.status().locked, false);
+    await assert.rejects(click.execute('no-replay', { ...ids, x: 10, y: 20, verify: 'screenshot' }), /事务/);
+    assert.equal(JSON.parse(await readFile(state, 'utf8')).posts, 1);
+    // An independent new transaction may observe stable geometry; this must not
+    // revive the consumed observation or replay a possibly delivered click.
+    const fresh = await observed(tools);
+    assert.notEqual(fresh.transactionId, ids.transactionId);
+    assert.notEqual(fresh.observationId, ids.observationId);
+    assert.equal(JSON.parse(await readFile(state, 'utf8')).posts, 1);
+    await tools.find(t => t.name === 'desktop_end').execute('cancel', { transactionId: fresh.transactionId, action: 'cancel' });
+    assert.equal(queue.status().locked, false);
+  } finally { await tools.dispose(); }
+});
+
 test('transaction rejects unobserved/stale input and malformed arguments release the lease', async () => {
   const queue = createDesktopQueue();
   const tools = createDesktopTools({ helperPath: OK_HELPER, dataDir: tmpdir(), ownerId: 'a', queue });
