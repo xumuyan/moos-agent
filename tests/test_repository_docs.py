@@ -1751,7 +1751,27 @@ class TaskTimeoutQueueTests(unittest.TestCase):
             self.assertRegex(value, r'^[0-9a-f]{64}$', field)
         limits = evidence['limits']
         self.assertTrue(limits['timeoutNotExercisedInGui'])
-        self.assertTrue(limits['installedNotUpdated'])
+        self.assertTrue(limits['installedNotUpdated'])  # 指撰写证据时（安装前）的状态
+        deployment = evidence['deployment']
+        self.assertTrue(deployment['authorized'].startswith('用户在 E125 交付后'))
+        self.assertEqual(deployment['state'], 'success')
+        self.assertEqual(deployment['successAtUtc'], '2026-11-11T23:40:51.687Z')
+        self.assertEqual(deployment['successAtBeijing'], '2026-11-12 07:40:51 +08:00')
+        self.assertEqual(deployment['installedVersion'], '0.1.45')
+        self.assertEqual(deployment['originalShell'], '0.1.41')
+        self.assertEqual(deployment['stoppedBackup']['filesVerified'], 6546)
+        self.assertTrue(deployment['stoppedBackup']['backupVerified'])
+        preserve = deployment['dataPreservation']
+        self.assertEqual(preserve['beforeCounts'], preserve['afterCounts'])
+        self.assertTrue(preserve['apiAndCredentialsIdentical'] and preserve['originalDatabaseRowsRetained'])
+        installed = deployment['installedChecks']
+        self.assertTrue(installed['loadedClientMatches'] and installed['hostRunning'])
+        self.assertEqual(installed['installedMainProcesses'], 1)
+        self.assertTrue(installed['timeoutEnforcementInInstalled'])
+        self.assertTrue(installed['queuedCardInLiveClient'])
+        self.assertTrue(installed['queueAheadReadModelInInstalled'])
+        self.assertIn('succeeded', deployment['interruptedTaskTerminalState'])
+        self.assertTrue(deployment['backupCleanup'].startswith('pending-gui-confirmation'))
 
 
 

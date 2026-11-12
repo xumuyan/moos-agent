@@ -58,13 +58,35 @@
   },
   "validation": {
     "script": "artifacts/task-timeout-queue/validate.sh build-RYzEWU",
-    "core": { "pass": 210, "failed": 0, "skipped": 0 },
-    "electron": { "pass": 110, "failed": 0, "skipped": 0 },
-    "native": { "pass": 11, "failed": 0 },
-    "bridge": { "pass": 5, "failed": 0 },
-    "skin": { "pass": 4, "failed": 0 },
-    "gui": { "exit": 0 },
-    "docs": { "exit": 0, "note": "全量验收先于文档更新运行（98/98），文档与契约测试更新后单独重跑 docs 步骤通过（99/99），validation.json 七项退出码不变保持全 0" },
+    "core": {
+      "pass": 210,
+      "failed": 0,
+      "skipped": 0
+    },
+    "electron": {
+      "pass": 110,
+      "failed": 0,
+      "skipped": 0
+    },
+    "native": {
+      "pass": 11,
+      "failed": 0
+    },
+    "bridge": {
+      "pass": 5,
+      "failed": 0
+    },
+    "skin": {
+      "pass": 4,
+      "failed": 0
+    },
+    "gui": {
+      "exit": 0
+    },
+    "docs": {
+      "exit": 0,
+      "note": "全量验收先于文档更新运行（98/98），文档与契约测试更新后单独重跑 docs 步骤通过（99/99），validation.json 七项退出码不变保持全 0"
+    },
     "validationJsonAllZero": true
   },
   "gui": {
@@ -80,7 +102,11 @@
     "allTasksSucceededAfterDrain": true,
     "lifecycleQueuedRunningSucceededForAll": true,
     "noTasksAddedAfterQuit": true,
-    "gracefulExit": { "code": 0, "signal": null, "method": "Page.close" },
+    "gracefulExit": {
+      "code": 0,
+      "signal": null,
+      "method": "Page.close"
+    },
     "hashesSha256": {
       "report.json": "d6ad3ad07066d760c5986cb891e7022686ec3da3ac4340e1fcbeb8c6d1e32697",
       "queue-view.png": "d8cd8d4be14c45fccafb69d2ced24e86afafc3185341256dbdf98fa8b9e6e533",
@@ -93,5 +119,62 @@
     "queuePositionIsGlobalFifo": "位次按创建顺序近似调度队列，未细分同项目路径锁与全局并发槽的差异",
     "installedNotUpdated": "正式 /Applications/沐码.app 仍为 0.1.41，本证据全部来自隔离候选包；安装待用户另行授权",
     "timeoutTaskInteractionWithQueueUnchanged": "超时取消与其他任务的停止隔离沿用既有取消路径，未新增跨项目影响面"
+  },
+  "deployment": {
+    "authorized": "用户在 E125 交付后明确回复「更新吧」（2026-11-12 早晨），构成安装授权",
+    "flow": "E84 已验证流程；一次性脚本 artifacts/installed-update-0.1.45/update.mjs（独立 Terminal nohup 进程 pid 64134 ppid=1，祖先链不含沐码）",
+    "resultFile": "/Applications/.moos-update-0.1.45/result.json",
+    "state": "success",
+    "successAtUtc": "2026-11-11T23:40:51.687Z",
+    "successAtBeijing": "2026-11-12 07:40:51 +08:00",
+    "installedVersion": "0.1.45",
+    "originalShell": "0.1.41",
+    "stagedBundle": "675MB，codesign --deep --strict 通过，includesPiFixture=false",
+    "validationGate": {
+      "core": 0,
+      "electron": 0,
+      "native": 0,
+      "bridge": 0,
+      "skin": 0,
+      "gui": 0,
+      "docs": 0
+    },
+    "stoppedBackup": {
+      "filesVerified": 6546,
+      "permissionsVerified": true,
+      "backupVerified": true
+    },
+    "dataPreservation": {
+      "beforeCounts": {
+        "messages": 635,
+        "conversations": 7,
+        "tasks": 330
+      },
+      "afterCounts": {
+        "messages": 635,
+        "conversations": 7,
+        "tasks": 330
+      },
+      "apiAndCredentialsIdentical": true,
+      "readableSavedModels": 6,
+      "chatFilesRetained": true,
+      "piHistoryFilesRetained": true,
+      "skinsRetained": true,
+      "workspaceRetained": true,
+      "originalDatabaseRowsRetained": true,
+      "userPluginDependenciesRetained": true
+    },
+    "installedChecks": {
+      "loadedClientMatches": true,
+      "hostRunning": true,
+      "installedMainProcesses": 1,
+      "timeoutEnforcementInInstalled": true,
+      "queuedCardInLiveClient": true,
+      "queueAheadReadModelInInstalled": true,
+      "historicalRegressionMarkers": "linkFix/perImageLimit/copyImage/icon/sidebar/attachmentLimits/imageTool/executionPolicy/tableFix 全部为真（见 result.json）"
+    },
+    "interruptedTaskTerminalState": "上一对话任务 b177eb38 在退出前正常完成（succeeded，非取消），无静默失败",
+    "independentPostCheck": "对话内只读复核：/Applications/沐码.app CFBundleShortVersionString=0.1.45、codesign strict 通过、主进程 1 个、Host 进程路径属安装包",
+    "backupCleanup": "pending-gui-confirmation：停机备份与旧包暂保留，待用户在界面确认历史聊天可见后按规则清理"
   }
 }
