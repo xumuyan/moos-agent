@@ -1,0 +1,14 @@
+{
+  "task": "P03.13.20",
+  "evidence": "E135",
+  "timeBeijing": "2026-11-12 21:49:00 +08:00",
+  "state": "verified-in-isolation",
+  "change": "预压缩失败不再一律误报 context_limit。sdk-runtime.mjs 提交前预压缩的 catch 由硬编码 TaskFailure('context_limit') 改为先 classifyTaskError 分类：仅 context 类（真超限死锁，总结请求也超限）终止；其余（限流/超时/网络/internal）console.error 记录分类码与原始消息后继续提交，由 PI 溢出恢复兜底（窗口余量 40960）。pi-route.js context_limit turn 文案同步改为『上下文超出模型窗口，且自动压缩未能完成；可新建会话继续（历史保留），或改用更大窗口的模型。』",
+  "trigger": "生产徐-moss-hotal 会话 b94f034a 13:26/13:28 两轮 errorCode=context_limit，底部状态条显示 89,453/128,000（余量 38k）——用户质疑『距离上下文还多着呢』。只读诊断：会话 jsonl 末条 assistant usage {input:301, cacheRead:89152, output:823} 合计 90,276，超过 P03.13.18 预检线 87,040（128000-40960），触发提交前 session.compact()，压缩请求失败被 P03.13.18 catch 硬编码包装为 context_limit，真实原因未落盘（错误对象被丢弃，tasks/events 均只含包装后文案）。glm-5.3-flash providers.json contextWindow=128000 配置无误。",
+  "verification": {
+    "tests": "context-compaction.test.mjs 拆为两条 mock 上游场景：① 压缩请求 500（classify→internal 瞬态失败）→ 任务继续完成且 compactAttempts==1（原行为误报 context_limit，已由新断言锁定）；② 压缩请求 400 + 'maximum context length is 128000 tokens' 文本 → 仍以 TaskFailure('context_limit') 终止。实测 500 场景宿主日志输出 '[moos-pi] pre-compaction failed, continuing with existing context: internal Summarization failed: 500 ...'，证明原始原因已透出。全量 npm test 228/228、npm run test:electron 113 项（104 通过+9 跳过+0 失败）、python 文档检查 104/104。",
+    "limits": "生产那两次失败的真实压缩错误已不可考（旧版未落盘），本修复保证今后同类失败可分类、可透出且不再误杀任务。修复未安装：正式版仍为 0.1.47，徐-moss-hotal 会话若再次遇到压缩失败，0.1.47 仍会误报；需用户授权安装 0.1.48 后在生产会话复现验证（继续上次 PI 任务即可，历史保留）。"
+  },
+  "build": "随 0.1.48 候选重新打包（含 P03.13.19 ui-permission 移除）；build-m69uNn 不含本修复，已过时。",
+  "envNote": "macOS 27.0.1 arm64；隔离 mock SSE 上游，未触真实模型服务，未动生产数据（仅只读 sqlite/jsonl 查询）。"
+}

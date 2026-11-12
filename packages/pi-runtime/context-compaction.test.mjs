@@ -77,18 +77,19 @@ test('pre-compaction runs before the prompt when the last real usage crosses the
   assert.deepEqual(sequence, ['task', 'task', 'compact', 'task'],
     'the third task must pre-compact before its prompt because the last usage crossed the safety line');
 });
-
-// 复刻生产死锁的预检分支：前两轮大文本建立可压缩历史，第三个任务提交前预检发现上一轮
-// 真实 usage 超安全线，此时压缩请求被 500 拒绝（生产中上下文满到总结请求自身也超限）——
-// 预检必须以明确的 context_limit 终止，而不是继续提交一个注定超限的任务再兜底 internal。
-// SDK 自身「Context overflow recovery failed...」文案的识别由 errors.test.mjs 矩阵覆盖。
-test('pre-compaction failure surfaces as context_limit instead of internal', { timeout: 60000 }, async t => {
+// 复刻生产形态的预检分支：前两轮大文本建立可压缩历史，第三个任务提交前预检发现上一轮
+// 真实 usage 超安全线。
+// P03.13.20：压缩请求自身失败（500 限流/超时类）不再终止任务——记录原因后继续提交，
+// 窗口尚有 40k 预留余量，由 PI 溢出恢复兜底（生产徐-moss-hotal 会话 90,276/128,000 余量
+// 38k 却被误报「上下文过长」的教训）；只有错误文本可归为 context 类（真超限死锁）才终止。
+test('a transient pre-compaction failure no longer kills the task (P03.13.20)', { timeout: 60000 }, async t => {
   const root = await mkdtemp(join(tmpdir(), 'moos-context-fail-'));
   await mkdir(join(root, 'shared'));
+  let compactAttempts = 0;
   const server = createServer(async (req, res) => {
     try {
       let raw = ''; for await (const chunk of req) raw += chunk;
-      if (raw.includes(SUMMARIZE_MARKER)) { res.writeHead(500); res.end(); return; }
+      if (raw.includes(SUMMARIZE_MARKER)) { compactAttempts += 1; res.writeHead(500); res.end(); return; }
       writeSse(res, { content: 'DONE', usage: { prompt_tokens: 90000, completion_tokens: 5 } });
     } catch { res.writeHead(500); res.end(); }
   });
@@ -105,8 +106,42 @@ test('pre-compaction failure surfaces as context_limit instead of internal', { t
   // 第二个任务预检时只有一轮历史，压缩被本地跳过（无可压缩内容），任务照常执行。
   const second = await run(bigTask);
   assert.equal(second.text, 'DONE');
-  // 第三个任务预检有完整两轮历史，压缩请求发出且被 500 拒绝：必须以 context_limit 终止。
+  // 第三个任务预检有完整两轮历史，压缩请求发出且被 500 拒绝：任务继续完成，不再误报。
+  const third = await run('Third synthetic task.');
+  assert.equal(third.text, 'DONE');
+  assert.equal(compactAttempts, 1, 'the pre-compaction request must have been attempted exactly once');
+});
+
+// 真死锁（总结请求也超限）仍必须以明确的 context_limit 终止，而不是继续提交注定超限的任务。
+// mock 上游对压缩请求返回可分类的 context 超限错误文本；PI 溢出恢复文案「Context overflow
+// recovery failed...」的识别由 errors.test.mjs 矩阵覆盖。
+test('a context-classified pre-compaction failure still ends the task as context_limit', { timeout: 60000 }, async t => {
+  const root = await mkdtemp(join(tmpdir(), 'moos-context-deadlock-'));
+  await mkdir(join(root, 'shared'));
+  const server = createServer(async (req, res) => {
+    try {
+      let raw = ''; for await (const chunk of req) raw += chunk;
+      if (raw.includes(SUMMARIZE_MARKER)) {
+        res.writeHead(400, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: { message: "This model's maximum context length is 128000 tokens, however you requested 130000 tokens", type: 'invalid_request_error' } }));
+        return;
+      }
+      writeSse(res, { content: 'DONE', usage: { prompt_tokens: 90000, completion_tokens: 5 } });
+    } catch { res.writeHead(500); res.end(); }
+  });
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  t.after(async () => { server.closeAllConnections(); server.close(); await rm(root, { recursive: true, force: true }); });
+  const bigTask = 'synthetic history body '.repeat(4200);
+  const run = text => runPiSdk({ task: { text, timeoutMs: 600000 },
+    project: { path: join(root, 'shared') }, conversation: { id: 'shared' }, dataDir: join(root, 'sessions'),
+    apiKey: 'synthetic-local-only', imageGen: null,
+    provider: { id: 'fixture', name: 'Local fixture', model: 'fixture-model', api: 'openai-completions', imageInput: true,
+      baseUrl: `http://127.0.0.1:${server.address().port}/v1`, contextWindow: CONTEXT_WINDOW, maxTokens: 2048 } });
+  const first = await run(bigTask);
+  assert.equal(first.text, 'DONE');
+  const second = await run(bigTask);
+  assert.equal(second.text, 'DONE');
   await assert.rejects(() => run('Third synthetic task.'),
     error => error.code === 'context_limit',
-    'a failing pre-compaction must end the task as context_limit, not internal');
+    'a context-classified pre-compaction failure must end the task as context_limit');
 });

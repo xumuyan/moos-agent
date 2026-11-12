@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 21:52:00 +08:00｜P03.13.20 预压缩失败不再误报上下文过长（E135，未安装）
+
+- 修改或新增内容：用户报告徐-moss-hotal 会话状态条显示上下文 89,453/128,000（余量 38k）仍连续两轮「上下文过长」失败。只读诊断（生产 sqlite/jsonl 仅查询）：上一轮真实 usage 90,276 超过 P03.13.18 预检线 87,040 触发提交前 session.compact()，压缩请求自身失败，而 P03.13.18 的 catch 把任何压缩失败硬编码 TaskFailure('context_limit')，绕过 classifyTaskError 文本分类——限流/超时/网络类失败全被包装成「上下文过长」，真实原因未落盘。修正 sdk-runtime.mjs：catch 先分类，仅 context 类真死锁终止，其余记录分类码+原始消息后继续提交（余量 40k 由 PI 溢出恢复兜底）；pi-route.js context_limit turn 文案改为「上下文超出模型窗口，且自动压缩未能完成；可新建会话继续（历史保留），或改用更大窗口的模型」。新增证据 docs/evidence/desktop/p03-precompact-misreport.json（E135），PLAN P03.13.20 条目与证据表，tests 任务号连续性 range 上界 19→20。
+- 遇到的难题：生产两次失败的真实压缩错误已不可考（0.1.47 未落盘错误对象，只有包装后文案）；PLAN 条目插入顺序一度把 20 放在 19 前导致文档检查失败，调整后通过。
+- 处理方式：修复行为用两条 mock 上游测试锁定——压缩请求 500（classify→internal 瞬态失败）任务继续完成且 compactAttempts==1；400+maximum context length 文本仍以 context_limit 终止。500 场景实测宿主日志输出「[moos-pi] pre-compaction failed, continuing with existing context: internal Summarization failed: 500 ...」，原始原因已透出。
+- 验证结果：npm test 228/228；npm run test:electron 113 项（104 通过+9 跳过+0 失败）；python3 -m unittest discover -s tests 104/104 OK。修复未安装：正式版仍 0.1.47，生产会话若再遇压缩失败仍会误报；随 0.1.48 候选重新打包（含 P03.13.19），build-m69uNn 不含本修复已过时。
+- 遗留问题：0.1.48 安装待用户明确授权；安装后在徐-moss-hotal 会话点继续上次任务做生产复现验证。
+- 对应 Git 提交：见 `git log --oneline --grep='pre-compaction'`。
+
 ## 2026-11-12 21:45:00 +08:00｜P03.13.19 后续：输入框 + 按钮逐项诊断（E134 补充，未安装）
 
 - 修改或新增内容：用户追问输入框左下角 + 按钮（aria 添加文件或调用指令）是否也无作用。只读隔离诊断：新增探针 artifacts/plus-button-probe/probe-plus.mjs 与 probe-plus-menu.mjs，用 CDP Page.setInterceptFileChooserDialog 拦截文件选择器、Input.dispatchMouseEvent 真实坐标点击逐项验证；evidence p03-permission-menu-removal.json 追加 plusMenuFollowUp 字段，PLAN E134 行补记。不改产品代码。

@@ -230,8 +230,12 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         last = undefined; lastFailure = undefined;
         // P03.13.18 上下文满载自救：阈值压缩依赖的投影估算可能滞后于真实用量（长会话缓存命中场景），
         // 提交前用上一轮真实 usage 预检；超过窗口-40k 时先手动压缩，让总结请求保有足够余量。
-        // 「无可压缩历史/已压缩过」不是失败，直接继续任务由 PI 溢出恢复兑底；压缩请求本身失败
-        // （上下文已满到总结请求也超限）时按上下文超限终止，不再把死锁包装成 internal。
+        // P03.13.20 修正：压缩请求自身的失败不再一律当上下文超限——生产徐-moss-hotal 会话在
+        // 90,276/128,000（余量 38k）时压缩请求失败，任务被误报「上下文过长」；真实原因（限流/超时/
+        // 网络）被硬编码包装吞掉。现在按 classifyTaskError 分类：只有分类仍为 context_limit（真超限，
+        // 总结请求也超限的死锁）才终止；其余失败记录原因后继续提交——窗口尚有 40k 预留余量，
+        // 由 PI 溢出恢复（compact-and-retry）兑底。
+        // 「无可压缩历史/已压缩过」不是失败，直接继续任务由 PI 溢出恢复兑底。
         const previousUsage = session.messages.findLast(item => item.role === 'assistant')?.usage;
         const contextWindow = active.model?.contextWindow ?? 0;
         if (contextWindow > PRE_COMPACT_MARGIN_TOKENS
@@ -241,7 +245,9 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
           } catch (error) {
             const reason = String(error?.message ?? '');
             if (!reason.includes('Nothing to compact') && !reason.includes('Already compacted')) {
-              throw new TaskFailure('context_limit');
+              if (classifyTaskError(error).code === 'context_limit') throw new TaskFailure('context_limit');
+              console.error('[moos-pi] pre-compaction failed, continuing with existing context:',
+                classifyTaskError(error).code, reason.slice(0, 300));
             }
           }
         }

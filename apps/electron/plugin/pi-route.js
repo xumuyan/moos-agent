@@ -19,7 +19,7 @@ const metadata = { provider: route, id: model, name: '沐码 PI · 本地调度�
   contextWindow: 128000, inputModalities: ['text'] };
 const errors = {
   model_capability: { code: 'INVALID_REQUEST', message: '所选模型没有通过本次图片输入请求' },
-  context_limit: { code: 'CONTEXT_LIMIT', message: '上下文过长。请核对模型服务的实际窗口；也可缩短附件或新建会话。' },
+  context_limit: { code: 'CONTEXT_LIMIT', message: '上下文超出模型窗口，且自动压缩未能完成；可新建会话继续（历史保留），或改用更大窗口的模型。' },
   auth: { code: 'AUTHENTICATION', message: '模型服务认证失败' },
   rate_limit: { code: 'RATE_LIMIT', message: '模型服务请求限流' },
   quota: { code: 'QUOTA', message: '模型服务额度不足' },
