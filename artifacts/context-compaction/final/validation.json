@@ -1,0 +1,14 @@
+{
+  "evidence": "E127",
+  "dateBeijing": "2026-11-12",
+  "candidate": "build-9jwHgP",
+  "targetVersion": "0.1.47",
+  "commands": {
+    "core": "npm test → 214/214 (node v24.15.0)",
+    "electron": "npm run test:electron → 111 tests, 102 pass, 9 skipped, 0 fail",
+    "native": "cargo test --release --manifest-path probes/m01/desktop/src-tauri/Cargo.toml → 11/11",
+    "docs": "python3 -m unittest discover -s tests → 103/103 (run before commit)",
+    "codesign": "codesign --verify --strict build-9jwHgP/沐码.app → OK"
+  },
+  "scopeNote": "bridge/skin 本轮未执行（改动面无交集），安装 gate 沿用 E126 artifacts/project-queue/final 真实产物；GUI 不构造（125k 满载需真实长会话，见 docs/evidence/desktop/p03-context-compaction.json）。"
+}
