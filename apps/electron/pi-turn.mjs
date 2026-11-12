@@ -77,10 +77,15 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
         `).get(ref.taskId, ref.projectId, 'dsh-message:' + ref.messageId);
       }
       if (!task) return null;
-      // 排队位次：仅排队中的任务统计全局队列里排在它前面的任务数（按创建顺序近似调度队列）。
-      const queueAhead = task.status === 'queued'
-        ? db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status = 'queued' AND rowid < (SELECT rowid FROM tasks WHERE id = ?)").get(task.id).n
-        : undefined;
+      // 排队位次只在本项目内计算：项目间互不等待（全局并发槽由调度器分配，默认四个），
+      // 因此跨项目的排队/执行任务不计入位次；projectRunning 表示本项目是否有任务正在执行，
+      // 用于区分「等同项目上一任务完成」与「等空闲执行位」两种等待原因。
+      const queueInfo = task.status === 'queued'
+        ? {
+            queueAhead: db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status = 'queued' AND projectId = (SELECT projectId FROM tasks WHERE id = ?) AND rowid < (SELECT rowid FROM tasks WHERE id = ?)").get(task.id, task.id).n,
+            projectRunning: db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status = 'running' AND projectId = (SELECT projectId FROM tasks WHERE id = ?)").get(task.id).n > 0,
+          }
+        : { queueAhead: undefined, projectRunning: undefined };
 
       // Select only presentation inputs. Source code and tool output never
       // enter the read model or the workbench IPC response.
@@ -148,7 +153,7 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([
         ...[...files].map(([path, operations]) => [path, [...operations].join('、')]), ...confirmed,
       ]);
-      return { status: task.status, queueAhead, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
+      return { status: task.status, queueAhead: queueInfo.queueAhead, projectRunning: queueInfo.projectRunning, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
         files: [...mergedFiles].filter(([path]) => isWorkspaceChangeVisible(path)).map(([path, summary]) => ({ path, summary })) };
     },

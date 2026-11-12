@@ -366,9 +366,15 @@ window.__ModuleLoader__.load({
       const queued = data?.status === 'queued';
       // 排队中的任务没有动作/路由/截图也要展示卡片，避免用户把等待误认为卡死。
       if (!data || (!queued && !data.actions.length && !data.route && !data.desktop && !data.shots?.length)) return null;
+      // 项目独立队列：位次只在本项目内计数；无同项目任务时区分「等同项目上一任务」与「等全局执行位」。
+      const queuedSummary = (data.queueAhead ?? 0) >= 1
+        ? `排队中 · 本项目前方 ${data.queueAhead} 个任务`
+        : data.projectRunning
+          ? '排队中 · 等待本项目上一任务完成'
+          : '排队中 · 等待空闲执行位';
       return createElement('details', { 'data-moos-pi-process': '', ...(queued ? { 'data-moos-queued': 'true' } : {}) },
         createElement('summary', null, ...(queued
-          ? [`排队中 · 前方 ${data.queueAhead ?? 0} 个任务`]
+          ? [queuedSummary]
           : ['执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]])),
         data.route ? createElement('p', { 'data-moos-model-route': '' },
           data.route.previous, ' → ', data.route.current, ' · ', routeReasons[data.route.reason]) : null,

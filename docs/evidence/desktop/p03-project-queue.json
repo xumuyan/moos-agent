@@ -1,0 +1,81 @@
+{
+  "id": "E126",
+  "dateBeijing": "2026-11-12",
+  "machine": "Mac mini (arm64), macOS 27.0.1",
+  "source": {
+    "task": "P03.13.17 项目独立队列：每项目一条独立 FIFO 队列，项目间互不等待；全局并发默认 2→4；排队卡按等待原因分三态。",
+    "implementation": [
+      "services/agent/scheduler.mjs：默认 concurrency 2→4；#pump 早已按项目路径锁独立派发（同项目串行、跨项目并行），本轮仅放宽全局槽上限并补注释。",
+      "apps/electron/pi-turn.mjs：queueAhead 改为项目内计数（projectId 用 SQL 子查询取自表内，读取模型列不扩大）；新增 projectRunning（本项目是否有 running 任务），用于区分等待原因。",
+      "apps/electron/plugin/client.js：排队卡 summary 三态——本项目前方 N 个任务 / 等待本项目上一任务完成 / 等待空闲执行位。",
+      "版本 0.1.45→0.1.46，隔离构建 build-vK3FJH。"
+    ],
+    "commits": [
+      "本次提交（见 operatelog 对应条目）"
+    ]
+  },
+  "package": {
+    "build": "build-vK3FJH",
+    "version": "0.1.46",
+    "bundleId": "dev.moos.agent.electron",
+    "codesignStrict": true,
+    "includesPiFixture": false,
+    "packagedAssertions": [
+      "client.js 含三态排队文案",
+      "scheduler.mjs 含 concurrency = 4 与 errorCode timeout"
+    ]
+  },
+  "unit": {
+    "core": "211/211 (npm test)",
+    "electron": "111/111 (npm run test:electron)",
+    "native": "11/11 (CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1)",
+    "bridge": "5/5",
+    "skin": "4/4",
+    "docs": "99/99",
+    "newCases": [
+      "scheduler：默认并发四填满四个不同项目、第五个等空闲槽；同项目两会话串行峰值=3。",
+      "pi-turn：位次只计本项目（跨项目 running/queued 不影响他项目位次）；projectRunning 三态数据。",
+      "client：三种排队文案渲染断言。"
+    ]
+  },
+  "validation": {
+    "script": "bash artifacts/project-queue/validate.sh build-vK3FJH",
+    "results": {
+      "core": 0,
+      "electron": 0,
+      "native": 0,
+      "bridge": 0,
+      "skin": 0,
+      "gui": 0,
+      "docs": 0
+    },
+    "validationJsonSha256": "ee6703af6520fbf5bd602d367162882f9020e99c4a440fe280eccafb45036d93"
+  },
+  "gui": {
+    "scenario": "WRITE pre → HOLD(running) → 分支 → alpha(排队:等待本项目上一任务完成) → 回会话1再分支 → beta(排队:本项目前方 1 个任务) → 排水全部 succeeded → 正常退出",
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "method": "Page.close"
+    },
+    "assertions": {
+      "alphaQueuedSummary": "排队中 · 等待本项目上一任务完成",
+      "betaQueuedSummary": "排队中 · 本项目前方 1 个任务",
+      "holdStillRunningWhileBetaQueued": true,
+      "storeQueueAheadOfBetaAtSnapshot": 1,
+      "drainedTasksAllSucceeded": 4
+    },
+    "artifactsSha256": {
+      "report.json": "123791892ab9c90a16f622b8d10de849ebdc34f9472d017b0d294aba55140083",
+      "alpha-queued-view.png": "eb90f6bb45769fbf3745d0a54294cdc7d48f529ea15c4fa7b04bda3f7b2eef1d",
+      "queue-view.png": "36900860d35d564ce8e29fec48880aa32e6a51dea41030bb5279c8a6a75cb5b7",
+      "drained-view.png": "ae50c7ebd731dba0a863166f29fc634e7fdb77dec780f1b5b61ca89c38147c0f"
+    },
+    "recoveryDir": "artifacts/project-queue/final/gui/recovery-bkNKaL"
+  },
+  "limits": [
+    "跨项目互不等待与四槽上限由单元测试覆盖（scheduler 5 项目用例、pi-turn 跨项目用例），GUI 只构造单项目三态中的两态。",
+    "第三态「排队中 · 等待空闲执行位」需要另四个项目占满槽位，GUI 未构造，由 client.test 渲染断言覆盖。",
+    "隔离构建内验收，未安装：正式 /Applications/沐码.app 仍为 0.1.45，安装需用户另行授权。"
+  ]
+}

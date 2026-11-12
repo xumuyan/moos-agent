@@ -15,7 +15,7 @@ export class Scheduler {
   #heartbeatMs;
   #clock;
 
-  constructor({ store, run, concurrency = 2, onEvent = () => {}, heartbeatMs = 15000, clock = () => Date.now() }) {
+  constructor({ store, run, concurrency = 4, onEvent = () => {}, heartbeatMs = 15000, clock = () => Date.now() }) {
     if (!Number.isSafeInteger(concurrency) || concurrency < 1) throw new Error('Invalid concurrency');
     if (typeof run !== 'function' || typeof onEvent !== 'function') throw new Error('Invalid scheduler callback');
     if (!Number.isSafeInteger(heartbeatMs) || heartbeatMs < 1) throw new Error('Invalid heartbeat interval');
@@ -54,6 +54,8 @@ export class Scheduler {
     queueMicrotask(() => { this.#scheduled = false; this.#pump(); });
   }
   #pump() {
+    // 每个项目一条独立队列（路径锁保证同项目串行、互不等待）；全局并发槽默认 4，
+    // 供最多四个项目同时各跑一个任务，超出后新任务在本项目队首等待空闲槽。
     while (!this.#stopped && this.#active.size < this.#concurrency) {
       const index = this.#queue.findIndex(id => {
         const task = this.#store.getTask(id);

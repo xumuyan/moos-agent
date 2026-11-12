@@ -45,7 +45,7 @@ test('submit persists immediately; runner receives context and persists ordered 
   assert.deepEqual(store.listEvents(task.id), published);
 });
 
-test('canonical directory serializes conversations while other projects use bounded concurrency', async t => {
+test('canonical directory serializes conversations while other projects run in parallel (default concurrency four)', async t => {
   const starts = []; const gates = new Map(); let active = 0; let peak = 0;
   const { store, scheduler, conversations: [a, b, c] } = await fixture(t, async ({ task }) => {
     active++; peak = Math.max(peak, active); starts.push(task.id);
@@ -53,16 +53,41 @@ test('canonical directory serializes conversations while other projects use boun
   });
   const a2 = store.createConversation(a.projectId);
   const tasks = [a, a2, b, c].map(x => scheduler.submit({ conversationId: x.id, message: 'go' }));
-  await until(() => starts.length === 2);
-  assert.deepEqual(starts, [tasks[0].id, tasks[2].id]);
-  gates.get(tasks[0].id).resolve();
+  // 三个不同项目同时各跑一个任务；a2 与 a 同项目，被路径锁串行在本项目队列里。
   await until(() => starts.length === 3);
-  assert.equal(starts[2], tasks[1].id);
-  gates.get(tasks[1].id).resolve(); gates.get(tasks[2].id).resolve();
-  await until(() => starts.length === 4);
-  gates.get(tasks[3].id).resolve();
+  assert.deepEqual([...starts].sort(), [tasks[0].id, tasks[2].id, tasks[3].id].sort());
+  assert.equal(store.getTask(tasks[1].id).status, 'queued');
+  gates.get(tasks[0].id).resolve();
+  await until(() => starts.includes(tasks[1].id));
+  gates.get(tasks[1].id).resolve(); gates.get(tasks[2].id).resolve(); gates.get(tasks[3].id).resolve();
   await until(() => store.listTasks().every(x => x.status === 'succeeded'));
-  assert.equal(peak, 2);
+  assert.equal(peak, 3);
+});
+
+test('default concurrency of four fills from four distinct projects; the fifth waits for a free slot', async t => {
+  const starts = []; const gates = new Map(); let active = 0; let peak = 0;
+  const { store, scheduler, conversations: [a, b, c] } = await fixture(t, async ({ task }) => {
+    active++; peak = Math.max(peak, active); starts.push(task.id);
+    const gate = deferred(); gates.set(task.id, gate); await gate.promise; active--; return { text: 'ok' };
+  });
+  const dRoot = await mkdtemp(join(tmpdir(), 'moos-sched-proj-'));
+  t.after(async () => { await rm(dRoot, { recursive: true, force: true }); });
+  const dPath = join(dRoot, 'project-d');
+  await mkdir(dPath);
+  const d = store.createConversation((await store.addProject(dPath)).id);
+  const ePath = join(dRoot, 'project-e');
+  await mkdir(ePath);
+  const e = store.createConversation((await store.addProject(ePath)).id);
+  const ids = [a, b, c, d, e].map(x => scheduler.submit({ conversationId: x.id, message: 'go' }));
+  await until(() => starts.length === 4);
+  assert.deepEqual([...starts].sort(), ids.slice(0, 4).map(x => x.id).sort());
+  assert.equal(store.getTask(ids[4].id).status, 'queued');
+  assert.equal(peak, 4);
+  gates.get(ids[2].id).resolve();
+  await until(() => starts.includes(ids[4].id));
+  gates.get(ids[4].id).resolve();
+  for (const id of [ids[0].id, ids[1].id, ids[3].id]) gates.get(id).resolve();
+  await until(() => store.listTasks().every(x => x.status === 'succeeded'));
 });
 
 test('queued cancellation never runs; running cancellation retains slot and lock until settled and isolates other tasks', async t => {

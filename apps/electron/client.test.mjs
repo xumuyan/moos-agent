@@ -482,8 +482,28 @@ test('queued turns render a queue-position card without actions; empty running t
   const tree = harness.render({ sessionId: 'session-queued', startSeq: null, live: false });
   assert.equal(tree.element, 'details', 'queued card renders even with zero actions');
   assert.equal(tree.props['data-moos-queued'], 'true');
-  assert.match(JSON.stringify(tree), /排队中 · 前方 2 个任务/);
+  assert.match(JSON.stringify(tree), /排队中 · 本项目前方 2 个任务/);
   assert.equal(JSON.stringify(tree).includes('执行过程'), false, 'queued summary must not reuse the running label');
+
+  const waiting = await loadClient({ moosTurn: async () => ({ status: 'queued', queueAhead: 0, projectRunning: true, actions: [], shots: [] }) });
+  waiting.render({ sessionId: 'session-queued2', startSeq: null, live: false });
+  for (const effect of waiting.effects.splice(0)) effect.callback();
+  await flush();
+  waiting.render({ sessionId: 'session-queued2', startSeq: null, live: false });
+  for (const effect of waiting.effects.splice(0)) effect.callback();
+  await flush();
+  assert.match(JSON.stringify(waiting.render({ sessionId: 'session-queued2', startSeq: null, live: false })),
+    /排队中 · 等待本项目上一任务完成/);
+
+  const slotWait = await loadClient({ moosTurn: async () => ({ status: 'queued', queueAhead: 0, projectRunning: false, actions: [], shots: [] }) });
+  slotWait.render({ sessionId: 'session-queued3', startSeq: null, live: false });
+  for (const effect of slotWait.effects.splice(0)) effect.callback();
+  await flush();
+  slotWait.render({ sessionId: 'session-queued3', startSeq: null, live: false });
+  for (const effect of slotWait.effects.splice(0)) effect.callback();
+  await flush();
+  assert.match(JSON.stringify(slotWait.render({ sessionId: 'session-queued3', startSeq: null, live: false })),
+    /排队中 · 等待空闲执行位/);
 
   const running = await loadClient({ moosTurn: async () => ({ status: 'running', actions: [], shots: [] }) });
   running.render({ sessionId: 'session-running', startSeq: null, live: false });

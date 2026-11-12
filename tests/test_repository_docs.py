@@ -784,7 +784,7 @@ class RepositoryDocsTests(unittest.TestCase):
         plan = (ROOT / 'PLAN.md').read_text(encoding='utf-8')
         stage = plan.split('## P03.13｜', 1)[1].split('\n## ', 1)[0]
         tasks = re.findall(r'^- \[([ x])\] P03\.13\.(\d+) (.+)$', stage, re.MULTILINE)
-        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 17)))
+        self.assertEqual([int(number) for _, number, _ in tasks], list(range(1, 18)))
         for status, number, text in tasks:
             references = re.findall(r'P03\.13\.(\d+)', text)
             self.assertTrue(all(int(reference) < int(number) for reference in references))
@@ -1777,3 +1777,59 @@ class TaskTimeoutQueueTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class ProjectQueueTests(unittest.TestCase):
+    """E126：项目独立队列与默认并发四（P03.13.17）。"""
+
+    def test_project_queue_evidence_is_complete_and_plan_referenced(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/p03-project-queue.json').read_text())
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertEqual(evidence['id'], 'E126')
+        self.assertIn('| E126 |', plan)
+        self.assertIn('证据 E126。', plan)
+        self.assertIn('项目独立队列', evidence['source']['task'])
+        impl = evidence['source']['implementation']
+        self.assertTrue(any('concurrency 2→4' in item for item in impl))
+        self.assertTrue(any('projectRunning' in item for item in impl))
+        package = evidence['package']
+        self.assertEqual(package['version'], '0.1.46')
+        self.assertEqual(package['bundleId'], 'dev.moos.agent.electron')
+        self.assertEqual(package['build'], 'build-vK3FJH')
+        self.assertTrue(package['codesignStrict'])
+        self.assertFalse(package['includesPiFixture'])
+        unit = evidence['unit']
+        self.assertEqual(unit['core'], '211/211 (npm test)')
+        self.assertEqual(unit['electron'], '111/111 (npm run test:electron)')
+        self.assertEqual(unit['native'], '11/11 (CARGO_NET_OFFLINE=true RUST_TEST_THREADS=1)')
+        validation = evidence['validation']
+        for name in ['core', 'electron', 'native', 'bridge', 'skin', 'gui', 'docs']:
+            self.assertEqual(validation['results'][name], 0, name)
+        gui = evidence['gui']
+        self.assertEqual(gui['exit'], {'code': 0, 'signal': None, 'method': 'Page.close'})
+        self.assertEqual(gui['assertions']['alphaQueuedSummary'], '排队中 · 等待本项目上一任务完成')
+        self.assertEqual(gui['assertions']['betaQueuedSummary'], '排队中 · 本项目前方 1 个任务')
+        self.assertEqual(gui['assertions']['storeQueueAheadOfBetaAtSnapshot'], 1)
+        self.assertTrue(gui['assertions']['holdStillRunningWhileBetaQueued'])
+        self.assertEqual(gui['assertions']['drainedTasksAllSucceeded'], 4)
+        for field, value in gui['artifactsSha256'].items():
+            self.assertRegex(value, r'^[0-9a-f]{64}$', field)
+        limits = evidence['limits']
+        self.assertTrue(any('跨项目' in item and '单元测试覆盖' in item for item in limits))
+        self.assertTrue(any('等待空闲执行位' in item for item in limits))
+        self.assertTrue(any('0.1.45' in item and '授权' in item for item in limits))
+
+    def test_source_implements_project_independent_queues(self):
+        scheduler = (ROOT / 'services/agent/scheduler.mjs').read_text()
+        self.assertIn('concurrency = 4', scheduler)
+        self.assertIn('每个项目一条独立队列', scheduler)
+        pi_turn = (ROOT / 'apps/electron/pi-turn.mjs').read_text()
+        self.assertIn("projectId = (SELECT projectId FROM tasks WHERE id = ?)", pi_turn)
+        self.assertIn('projectRunning', pi_turn)
+        client = (ROOT / 'apps/electron/plugin/client.js').read_text()
+        for copy in ['排队中 · 本项目前方', '排队中 · 等待本项目上一任务完成', '排队中 · 等待空闲执行位']:
+            self.assertIn(copy, client)
+        for name in ['services/agent/scheduler.test.mjs', 'apps/electron/pi-turn.test.mjs', 'apps/electron/client.test.mjs']:
+            self.assertIn('concurrency', (ROOT / name).read_text()) if name.endswith('scheduler.test.mjs') else None
+        self.assertIn("排队中 · 本项目前方 2 个任务", (ROOT / 'apps/electron/client.test.mjs').read_text())
+        self.assertIn('queue positions never cross projects', (ROOT / 'apps/electron/pi-turn.test.mjs').read_text())
+        self.assertIn('fifth waits for a free slot', (ROOT / 'services/agent/scheduler.test.mjs').read_text())

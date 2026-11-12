@@ -1,7 +1,7 @@
 {
   "name": "moos-electron",
-  "productName": "沐码",
-  "version": "0.1.45",
+  "productName": "\u6c90\u7801",
+  "version": "0.1.46",
   "private": true,
   "type": "module",
   "main": "main.mjs",

@@ -287,11 +287,11 @@ test('queued turns report the number of tasks waiting ahead; settled turns do no
   store.setSetting('dsh-session:queue-session', conversation.id);
 
   const live = () => reader.read('queue-session', null);
-  assert.deepEqual([live().status, live().queueAhead], ['queued', 2], 'newest queued task sees two ahead');
+  assert.deepEqual([live().status, live().queueAhead, live().projectRunning], ['queued', 2, false], 'newest queued task sees two ahead within its project');
   store.updateTask(first.id, { status: 'running' });
-  assert.deepEqual([live().status, live().queueAhead], ['queued', 1], 'promotion shrinks the reported queue');
+  assert.deepEqual([live().status, live().queueAhead, live().projectRunning], ['queued', 1, true], 'promotion shrinks the reported queue and marks the project as running');
   store.updateTask(second.id, { status: 'failed', errorCode: 'timeout' });
-  assert.deepEqual([live().status, live().queueAhead], ['queued', 0], 'only queued tasks count as ahead');
+  assert.deepEqual([live().status, live().queueAhead, live().projectRunning], ['queued', 0, true], 'only queued tasks count as ahead; waiting on the running project task');
   store.updateTask(third.id, { status: 'running' });
   const running = live();
   assert.equal(running.status, 'running');
@@ -300,4 +300,41 @@ test('queued turns report the number of tasks waiting ahead; settled turns do no
   store.updateTask(third.id, { status: 'succeeded' });
   assert.equal(live(), null, 'no live queued/running task remains');
   assert.equal(reader.read('queue-session', 'retry'), null, 'succeeded last task is not a retry candidate');
+});
+
+test('queue positions never cross projects; other projects do not delay a project queue', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-pi-turn-queue-')));
+  const dbPath = join(root, 'test.sqlite');
+  const store = new Store({ dbPath });
+  const reader = createPiTurnReader(dbPath, timelinePayload);
+  t.after(async () => {
+    reader.close();
+    store.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const projectA = await store.addProject(root);
+  const otherRoot = join(root, 'other');
+  await mkdir(otherRoot);
+  const projectB = await store.addProject(otherRoot);
+  const convA = store.createConversation(projectA.id);
+  const convB = store.createConversation(projectB.id);
+  store.setSetting('dsh-session:queue-a', convA.id);
+  store.setSetting('dsh-session:queue-b', convB.id);
+  const a1 = store.createTask({ conversationId: convA.id, message: 'a first' });
+  const a2 = store.createTask({ conversationId: convA.id, message: 'a second' });
+  const b1 = store.createTask({ conversationId: convB.id, message: 'b first' });
+  const b2 = store.createTask({ conversationId: convB.id, message: 'b second' });
+  // 项目 A 一跑一排；项目 B 两任务全在排队。
+  store.updateTask(a1.id, { status: 'running' });
+  const b2Live = reader.read('queue-b', null);
+  assert.deepEqual([b2Live.status, b2Live.queueAhead, b2Live.projectRunning], ['queued', 1, false],
+    'project B counts only its own queued tasks; project A running task is invisible to B');
+  const a2Live = reader.read('queue-a', null);
+  assert.deepEqual([a2Live.status, a2Live.queueAhead, a2Live.projectRunning], ['queued', 0, true],
+    'project A queued task waits on its own running task, ignoring project B');
+  // 项目 B 的排队任务不应因项目 A 的任何任务变化而改变位次。
+  store.updateTask(a1.id, { status: 'succeeded' });
+  store.updateTask(a2.id, { status: 'running' });
+  assert.deepEqual([reader.read('queue-b', null).queueAhead], [1],
+    'project B queue position is unaffected by project A turnover');
 });

@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 10:10:24 +08:00｜P03.13.17 项目独立队列与默认并发四（E126，0.1.46 候选 build-vK3FJH）
+
+- 修改或新增内容：用户报告跨项目任务看起来合入同一条队列互相阻塞、且「排队中 · 前方 0 个任务」文案与执行中卡片并存引起误解（生产 0.1.45 只读 SQLite 诊断证实：09:04 起两个他项目长任务占满全局并发 2，后续四个项目任务排队；92686c42 排到取消仍未执行）。用户明确要求每项目一条独立队列、只等当前项目、同时最多四队列。实现：① services/agent/scheduler.mjs 默认 concurrency 2→4（#pump 本就按项目路径锁独立派发，同项目串行跨项目并行，本轮仅放宽全局槽并补注释）；② apps/electron/pi-turn.mjs queueAhead 改项目内计数（projectId 用 SQL 子查询取自表内，不扩大读取模型列）+ 新增 projectRunning；③ apps/electron/plugin/client.js 排队卡三态（本项目前方 N 个任务/等待本项目上一任务完成/等待空闲执行位）；④ 版本 0.1.45→0.1.46 构建 build-vK3FJH；⑤ 测试：scheduler 新增默认并发四填满四项目/第五个等槽与同项目串行峰值 3（改写原并发 2 断言）、pi-turn 新增跨项目位次互不影响与 projectRunning 三态、client 新增三态文案断言；⑥ 新增 artifacts/project-queue/{gui.mjs,validate.sh}（改造自 E125 工装）、docs/evidence/desktop/p03-project-queue.json；PLAN.md 新增 P03.13.17 行（证据 E126）、E125/E126 证据表行、范围段落补安装核对通过与备份清理、P03.13.16 行补备份已清理；tests/test_repository_docs.py P03.13 子项范围 1–16 扩到 1–17 并新增 ProjectQueueTests（2 方法）。
+- 避到的难题：(1) pi-turn 首版 queueAhead SQL 引用 task.projectId，但 task 查询 SELECT 只取 id/status/path，绑定 undefined 报 ERR_INVALID_ARG_TYPE（三处测试同因失败）——改为 SQL 子查询 (SELECT projectId FROM tasks WHERE id = ?) 从表内取，测试 8/8。(2) scheduler 新测试用 store.dbPath 拼路径但 Store 不暴露该属性、pi-turn 新测试 addProject 前目录不存在——分别改为独立 mkdtemp+mkdir 后重跑通过。(3) validate.sh docs 步骤在测试新增前运行（99 项），新增 2 项后重跑 docs 步骤 101/101 并更新 exit/validation.json。
+- 处理方式：并发模型确认——调度器本就项目独立派发，真正瓶颈仅全局并发上限，因此改动集中于默认值、读取模型位次归属与文案，避免重写调度逻辑引入回归风险；GUI 场景诚实标注边界：跨项目不阻塞/四槽上限由单元测试覆盖，第三态文案需要四个他项目占槽 GUI 不构造，由 client.test 覆盖。
+- 验证结果：bash artifacts/project-queue/validate.sh build-vK3FJH 七项全 0：core 211/211、electron 111/111 无跳过、native 11/11（离线单线程）、PI 桥 5/5、皮肤 4/4、GUI exit0（recovery-bkNKaL：alpha「排队中 · 等待本项目上一任务完成」、beta「排队中 · 本项目前方 1 个任务」与 SQLite 快照一致，排空后四任务 queued→running→succeeded，Page.close 正常退出）、docs 101/101（新增 2 项后重跑）；包级 codesign --deep --strict 通过、bundleId dev.moos.agent.electron、includesPiFixture=false、包内含三态文案与 concurrency=4 断言；截图 alpha-queued-view/queue-view/drained-view 已回读核对。正式安装版仍为 0.1.45，本轮不安装，升级待用户授权。
+- 遗留问题：0.1.46 安装待用户授权；P03.14 微信插件素材、P06.6 实机权限验收仍待用户；/Applications 下历史更新目录（0.1.31–0.1.39）是否清理待用户决定。
+- 对应 Git 提交：本次唯一说明 `feat(P03.13.17): project-independent task queues with default concurrency four`；查询 `git log --all --oneline --grep='feat(P03.13.17): project-independent task queues with default concurrency four'`。本条写入时未提交/未推送；随后创建提交、推送并核对远程 HEAD 一致。
+
 ## 2026-11-12 09:44:27 +08:00｜0.1.45 更新备份清理（用户授权）
 
 - 修改或新增内容：用户回复「删除旧包」构成清理授权（安装核对已于上轮通过：result.json state=success、数据保留全绿、生产 0.1.45 正常运行）。删除 /Applications/.moos-update-0.1.45/previous/沐码.app（675MB，0.1.41 回退包）与 /Applications/.moos-update-0.1.45/data-before-install（504MB，停机数据备份），合计约 1.18GB。保留审计文件：result.json、update.log、update.mjs、update.command（更新目录其余为脚本与结果记录）。
