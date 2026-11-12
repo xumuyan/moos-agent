@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 11:47:54 +08:00｜0.1.47 安装核对通过（E84 独立进程，备份已清理）
+
+- 修改或新增内容：无代码改动；更新 PLAN.md 四处安装状态（历史段落、P03.13.17/P03.13.18 任务行、E126/E127 证据表行）与本条日志。核对独立更新进程产物 /Applications/.moos-update-0.1.47/result.json：state=success，六项验证 gate（core/electron/native/docs 本轮 + E126 bridge/skin）全 0；tasksAtStart=1（等待发起对话任务自然结束后才退出，未停止任何任务）；停机完整备份 6798 文件逐哈希核对、备份权限 0700/0600；providers.json 与 private/credentials.json 原字节一致、6 个模型配置可读；messages 663/conversations 7/tasks 346 前后一致（SQLite 原有行全部保留）；聊天文件/PI 历史/皮肤/工作区/用户插件依赖保留；本轮标记 contextLimitMessageInInstalled、preCompactGateInInstalled 与 E126 三态排队、E125 超时及全部历史回归标记为真；installedMainProcesses=1、hostRunning=true。
+- 遇到的难题：无（脚本一次通过，全程无人工干预）。
+- 处理方式：脚本之外独立复核安装版 0.1.47（Info.plist 版本、codesign --deep --strict、单实例 pid 23291）；发起安装的对话任务 957b96e3 终态 succeeded（正常完成，非取消，errorCode=null）；确认新版启动后用户已正常提交两个新任务（界面与调度真实运行中）后，按交付规则清理本次停机备份 data-before-install 与旧包 previous/沐码.app，保留 result.json/update.log/update.mjs/update.command 审计文件；/Applications 历史更新目录（.moos-update-0.1.31/.32/.33/.34/.38/.39/.45）仍待用户决定，未动。
+- 验证结果：安装版 0.1.47 签名 strict 通过、单实例运行；result.json 全部断言为真；update.log 六阶段 waiting-for-idle→normal-quit-requested→backing-up-stopped-data→backup-verified→new-package-installed→success 完整；文档检查 python3 -m unittest discover -s tests 通过（本条提交前运行）。
+- 遗留问题：死锁会话 05639f8b（codex-weixin-notifier）的新建对话端到端复现验证待用户在该项目实际操作后确认（预期预检压缩生效或出现新错误文案）；P03.14 微信素材、P06.6 实机权限、历史更新目录清理决定仍待用户。
+- 对应 Git 提交：本次唯一说明 `chore(install-0.1.47): verify installed update success and clean stopped backup`；查询 `git log --all --oneline --grep='install-0.1.47'`。
+
 ## 2026-11-12 11:40:05 +08:00｜0.1.47 安装发起（用户授权，E84 流程）
 
 - 修改或新增内容：用户明确回复『安装吧』授权安装 0.1.47（P03.13.18 上下文满载自救，同时涵盖未安装的 E126/P03.13.17 项目独立队列改动），按 E84 已验证流程从生产 0.1.45 升级。新增 artifacts/installed-update-0.1.47/（update.mjs + update.command，改自已验证的 0.1.45 流程：路径/版本/基线/断言全部按本轮重新核对）与 artifacts/context-compaction/final/（本轮四项真实退出码 core/electron/native/docs=0 与 validation.json 范围说明）；暂存目录 /Applications/.moos-update-0.1.47/（ditto 自 build-9jwHgP、codesign --deep --strict 通过、Info.plist 0.1.47）。update.mjs 关键新增断言：改动文件（errors.mjs、sdk-runtime.mjs）与仓库源逐字节一致；其余 13 个承重文件与 E126 已验收包 build-vK3FJH 逐字节一致；本轮修复标记（新文案、PRE_COMPACT_MARGIN_TOKENS、reserveTokens: 32768、Nothing to compact 放行、TaskFailure('context_limit')、usage 预检）与 E126 三态排队文案、E125 超时强制及全部历史回归标记；验证 gate 读本轮 4 个 exit 文件 + E126 真实 bridge/skin exit 文件（范围说明在 validation.json），GUI 不构造（同 E127 记录）。
