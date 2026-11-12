@@ -1944,3 +1944,48 @@ class UnicodeLifetimeCandidateTests(unittest.TestCase):
         for pending in ['P06.3a', 'P06.6']:
             self.assertIn('- [ ] ' + pending, plan)
         self.assertIn('m06-unicode-lifetime.json', plan)
+
+
+class PackagedUnicodeAcceptanceTests(unittest.TestCase):
+    """E130 supplements E129 without rewriting historical refusals or deployment."""
+
+    def test_packaged_input_success_preserves_focus_and_deployment_limits(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-packaged-unicode.json').read_text())
+        self.assertEqual(e['id'], 'E130')
+        self.assertEqual(e['status'], 'packaged-subset-verified-native-acceptance-incomplete')
+        self.assertFalse(e['candidate']['runtimeSourceChanged'])
+        self.assertTrue(e['candidate']['strictSignaturePassed'])
+        self.assertTrue(e['candidate']['desktopToolsSourceMatched'])
+        a = e['acceptance']
+        self.assertEqual(a['packagedInput']['text'], '打包验收🙂ABC')
+        self.assertEqual(a['packagedInput']['reportedCharacters'], 8)
+        self.assertTrue(a['packagedInput']['semanticTypingPassed'])
+        self.assertTrue(a['packagedInput']['expiredBeforeCleanup'])
+        self.assertEqual(a['packagedInput']['inputDelivery'], 'posted-unverified')
+        self.assertNotEqual(a['packagedInput']['transaction'], a['cleanup']['transaction'])
+        for key in ['freshObservation', 'fieldCleared', 'screenshotsManuallyRead', 'resultObservationConfirmed']:
+            self.assertTrue(a['cleanup'][key], key)
+        for case in ['packagedInput', 'cleanup', 'click']:
+            self.assertFalse(a[case]['toolBusinessGoalVerified'])
+        self.assertTrue(a['click']['focusMetadataUnchanged'])
+        for key in ['earlierFocusFailureReproduced', 'earlierFocusFailureExplained']:
+            self.assertFalse(a['click'][key], key)
+        self.assertTrue(a['allRunnersDisposed'])
+        self.assertEqual(len(a['refusals']), 3)
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'docs/evidence/desktop/m06-packaged-unicode' / name).read_bytes()).hexdigest(), expected)
+        for item in e['sourceScreenshots'].values():
+            self.assertEqual(item['cropTopLeftPixels'], [860, 395, 260, 60])
+        self.assertEqual(e['validation']['core'], {'passed': 216, 'failed': 0})
+        self.assertEqual(e['validation']['electron'], {'passed': 113, 'failed': 0, 'skipped': 0})
+        self.assertEqual(e['validation']['docs'], {'passed': 106, 'failed': 0})
+        for key in ['installed', 'productionAppExitedOrReplaced', 'productionUserDataModifiedForTests']:
+            self.assertFalse(e['deployment'][key], key)
+        historical = json.loads((ROOT / 'docs/evidence/desktop/m06-unicode-lifetime.json').read_text())
+        self.assertFalse(historical['acceptance']['packagedHelper']['nativeTypingPassed'])
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('| E130 |', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
+        self.assertIn('post-click editable focus may change only within the exact bound window', regression)

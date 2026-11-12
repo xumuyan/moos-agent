@@ -402,6 +402,48 @@ process.exit(2);
   }
 });
 
+test('post-click editable focus may change only within the exact bound window and still needs a fresh observation', async () => {
+  // Protocol regression only: fake helper cannot establish native click delivery.
+  for (const change of ['element', 'windowId', 'windowBounds']) {
+    const dir = await mkdtemp(join(tmpdir(), 'moos-post-click-focus-'));
+    const state = join(dir, 'focus.json');
+    const after = { ...FOCUS, path: [1, 2], element: { ...FOCUS.element, x: 30 } };
+    if (change === 'windowId') after.windowId = 999;
+    if (change === 'windowBounds') after.window = { ...FOCUS.window, x: -1999 };
+    await writeFile(state, JSON.stringify(FOCUS));
+    const helper = await fakeHelper(`#!/usr/bin/env node
+import { readFileSync, writeFileSync } from 'node:fs';
+const mode = process.argv[2], arg = k => process.argv[process.argv.indexOf(k)+1];
+const out = v => { console.log(JSON.stringify(v)); process.exit(0); };
+if (mode === 'focus') out({focus:JSON.parse(readFileSync(${JSON.stringify(state)},'utf8'))});
+if (mode === 'screenshot') {writeFileSync(arg('--out'),Buffer.from('89504e47','hex'));out({scope:'window',imageWidth:1,imageHeight:1});}
+if (mode === 'click') {writeFileSync(${JSON.stringify(state)},${JSON.stringify(JSON.stringify(after))});out({status:'ok',at:{x:10,y:20},posted:true});}
+process.exit(2);
+`);
+    const queue = createDesktopQueue();
+    const tools = createDesktopTools({ helperPath: helper, dataDir: dir, ownerId: 'post-click', queue });
+    try {
+      const ids = await observed(tools);
+      const click = tools.find(t => t.name === 'desktop_click');
+      const pending = click.execute('click', { ...ids, x: 10, y: 20 });
+      if (change === 'element') {
+        await pending;
+        assert.equal(queue.status().locked, true);
+        const shot = await tools.find(t => t.name === 'desktop_screenshot').execute('new-observation', {
+          transactionId: ids.transactionId, scope: 'window', windowId: 7,
+        });
+        assert.deepEqual(shot.details.focus, after);
+        assert.notEqual(shot.details.observationId, ids.observationId);
+        await assert.rejects(click.execute('stale', { ...ids, x: 10, y: 20 }), /观察/);
+      } else {
+        await assert.rejects(pending, { code: 'DESKTOP_FOCUS_CHANGED' });
+        await assert.rejects(click.execute('no-replay', { ...ids, x: 10, y: 20 }), /事务/);
+      }
+      assert.equal(queue.status().locked, false);
+    } finally { await tools.dispose(); }
+  }
+});
+
 test('transaction rejects unobserved/stale input and malformed arguments release the lease', async () => {
   const queue = createDesktopQueue();
   const tools = createDesktopTools({ helperPath: OK_HELPER, dataDir: tmpdir(), ownerId: 'a', queue });

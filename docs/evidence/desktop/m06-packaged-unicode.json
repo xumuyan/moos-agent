@@ -1,0 +1,158 @@
+{
+  "id": "E130",
+  "task": "P06.3a/P06.6",
+  "recordedAt": "2026-11-12T16:21:54+08:00",
+  "workspace": {
+    "baseCommit": "76eca196f59ab18f8ba44b774ca5d4e175711d02",
+    "commitSubject": "test(P06.3a): record packaged Unicode input and exact-window focus boundaries"
+  },
+  "status": "packaged-subset-verified-native-acceptance-incomplete",
+  "candidate": {
+    "build": ".generated/moos-electron/build-dE6zME/沐码.app",
+    "helperSha256": "19eae0708ab454de56a36609fc65d7e93c6302adab502c5ef6387e52420fa7bb",
+    "strictSignaturePassed": true,
+    "desktopToolsSourceMatched": true,
+    "runtimeSourceChanged": false
+  },
+  "acceptance": {
+    "environment": "macOS27.0.1 arm64; Node24.15.0; two displays; both permissions granted",
+    "packagedInput": {
+      "transaction": "1fa23bee-2a75-4140-845b-f7589d887b7b",
+      "text": "打包验收🙂ABC",
+      "reportedCharacters": 8,
+      "semanticTypingPassed": true,
+      "screenshotsManuallyRead": true,
+      "inputDelivery": "posted-unverified",
+      "toolBusinessGoalVerified": false,
+      "expiredBeforeCleanup": true
+    },
+    "cleanup": {
+      "transaction": "16a9399e-d6e1-4ca6-bbbf-42164086e483",
+      "freshObservation": true,
+      "fieldCleared": true,
+      "screenshotsManuallyRead": true,
+      "resultObservationConfirmed": true,
+      "toolBusinessGoalVerified": false
+    },
+    "click": {
+      "transaction": "5bc5bd31-d182-460c-a5ca-c793567549b0",
+      "at": [
+        1690,
+        594
+      ],
+      "forwardedToPackagedHelper": true,
+      "posted": true,
+      "focusMetadataUnchanged": true,
+      "focusSampleCount": 10,
+      "earlierFocusFailureReproduced": false,
+      "earlierFocusFailureExplained": false,
+      "resultObservationConfirmed": true,
+      "toolBusinessGoalVerified": false
+    },
+    "refusals": [
+      "expired delete refused; next screenshot also rejected; no delivery assumed",
+      "wrong-frontmost screenshot stopped lease; subsequent cancel found ended transaction",
+      "separate activation focus mismatch stopped lease; no automatic reclaim or replay"
+    ],
+    "allRunnersDisposed": true
+  },
+  "validation": {
+    "focused": {
+      "passed": 34,
+      "failed": 0
+    },
+    "core": {
+      "passed": 216,
+      "failed": 0
+    },
+    "electron": {
+      "passed": 113,
+      "failed": 0,
+      "skipped": 0
+    },
+    "native": {
+      "passed": 11,
+      "failed": 0
+    },
+    "bridge": {
+      "passed": 5,
+      "failed": 0
+    },
+    "skin": {
+      "passed": 4,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 106,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "newRegression": "post-click editable-focus changes only within exact bound window; same PID other window/bounds rejected, stale observation rejected; fake helper, not native delivery proof",
+    "historicalFailures": [
+      "First nohup regression run lost core/Electron/native jobs after command lifetime; no exit files, not counted as completed. Direct foreground reruns passed.",
+      "Initial docs script failed with system Python missing PIL; no repository writes; reran successfully with existing Homebrew Python.",
+      "Combined background launch/signature command exceeded10s; independent strict signature/source match rerun passed."
+    ]
+  },
+  "evidenceSha256": {
+    "before.png": "167820ca277b41c38d6a365c7e2514377b39b672a1eda3ee1ea983e09b656173",
+    "typed.png": "b4079437dfaec6aa9385a378314f750736414ee5c39782c23b29ffab44612c36",
+    "cleared.png": "2d53836bf654b54d0abaea330be55a7cfd322df335164f95bfc9c59c57a48cc5",
+    "after-click.png": "59a871590d20d8c368352ebe0254a6e863bc9b723a3d6139d1d9c08f2b0889a2",
+    "README.md": "25321d145db0c660d256f9a909087a9894dfe428e1b9c937260e284c7447519e"
+  },
+  "sourceScreenshots": {
+    "before.png": {
+      "filename": "20261112080844-ad5158a12c80.png",
+      "originalSha256": "b4bcd9862dae8a1f8cb277a0a10680637759f2345d52e4216a61776d675f97e4",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "typed.png": {
+      "filename": "20261112080900-2bb1c660bf6e.png",
+      "originalSha256": "cac50dbed1ac25e196bb9877dde787e6250bb5034215de16cd3421ba70b94884",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "cleared.png": {
+      "filename": "20261112081614-1f8052fff089.png",
+      "originalSha256": "ba4a8c9d6b4eaddb6efa6ebacaf9a34bd5276f4ba89bb25adeec97389255e842",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    },
+    "after-click.png": {
+      "filename": "20261112081734-7fcd425e3ccf.png",
+      "originalSha256": "9baf9bd3e82c349d78d88f5d757eb364d83223bc1b29a59d665d1b9626b8b1b8",
+      "cropTopLeftPixels": [
+        860,
+        395,
+        260,
+        60
+      ]
+    }
+  },
+  "deployment": {
+    "installed": false,
+    "productionAppExitedOrReplaced": false,
+    "productionUserDataModifiedForTests": false,
+    "authorizationRequired": true
+  },
+  "limits": [
+    "one direct packaged Unicode run and one forwarded click are limited samples, not a delivery guarantee",
+    "focus refusal cause remains unresolved; successful click began with field already focused",
+    "real overlays, secondary-display input, cross-project concurrency/cancellation and formal screenshot chat bridge unaccepted",
+    "no key or paid model; no official site/orders; no MuSu source or persisted task changes"
+  ]
+}
