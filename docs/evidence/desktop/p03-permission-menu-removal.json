@@ -22,5 +22,20 @@
   "tests": "npm test 227/227（首跑 desktop-tools.test 1 项 AX 时序 flake 失败 DESKTOP_FOCUS_CHANGED，单文件与全量重跑均通过，如实记录）；npm run test:electron 113 项 104 通过 9 跳过 0 失败（host.test overlay 断言新增 ui-permission，跑于 build-9jwHgP 包内 dsh CLI 的 dump-config：对照 home 的 overlay 覆盖后 ui-permission disabled:true）；python3 -m unittest discover -s tests 109/109",
   "build": "0.1.48 隔离候选 build-m69uNn（npm run build:app，codesign strict 通过，包内 execution.patch.yml 含禁用条目）；未安装，正式版仍为 0.1.47",
   "envNote": "node v24.15.0；测试前清空 MOOS_ELECTRON_*/DSH_*/ELECTRON_RUN_AS_NODE/NODE_OPTIONS/NODE_PATH 并显式 HOME/PATH；host.test 需要 MOOS_ELECTRON_TEST_DSH_CLI 指向构建产物 host-runtime/bin/dsh（Resources 下 cli.mjs 无执行位）",
-  "limits": "① 承认局限：手动键入 /permission <preset> 仍会写 DSH sandbox 状态，但执行模式继续被 execution-policy.json 覆盖，不构成旁路；若未来设置卡清空覆盖，需重新决定菜单/slash 命令的暴露面。② 本验收为隔离构建 GUI，正式安装与生产会话核对按规则待用户明确授权。③ 首跑 desktop-tools 1 项 flake 已重跑排除，不代表通过率虚报。"
+  "limits": "① 承认局限：手动键入 /permission <preset> 仍会写 DSH sandbox 状态，但执行模式继续被 execution-policy.json 覆盖，不构成旁路；若未来设置卡清空覆盖，需重新决定菜单/slash 命令的暴露面。② 本验收为隔离构建 GUI，正式安装与生产会话核对按规则待用户明确授权。③ 首跑 desktop-tools 1 项 flake 已重跑排除，不代表通过率虚报。",
+  "plusMenuFollowUp": {
+    "timeBeijing": "2026-11-12 21:45:00 +08:00",
+    "question": "用户追问输入框左下角 + 按钮（添加文件或调用指令）是否也没作用。结论：它有用，且 ui-permission 禁用同时移除了 + 菜单里的『权限』入口，未留假 UI 残余。",
+    "method": "隔离 0.1.48 候选与 0.1.47 对照各启动一次，CDP Page.setInterceptFileChooserDialog 拦截文件选择器并逐项用真实坐标鼠标事件（Input.dispatchMouseEvent）点击菜单项（el.click() 对菜单项无效，首次尝试已如实废弃）；脚本 artifacts/plus-button-probe/probe-plus.mjs、probe-plus-menu.mjs，报告 recovery-w8B6jM（候选五项）、recovery-YnGPHk（对照权限项）、recovery-C66sII（候选下载日志专项）、recovery-qgw0am（会话列表『添加工作区』按钮）",
+    "items": {
+      "文件": "真功能：Page.fileChooserOpened 事件触发，上传链路存在（与既有附件验收 E61/E110 一致）",
+      "反馈": "点击后向输入框插入 /反馈 斜杠命令（slash 命令面板行为）；命令提交后的实际后端效果未验证，如实标注",
+      "权限": "0.1.47 对照菜单项存在且点击后弹出同一张三档卡（仅可查看/工作区内修改/完全权限，即假 UI 的第二入口）；0.1.48 候选该项从菜单中消失——ui-permission 禁用同时移除 composer 触发按钮与命令面板入口，无残余",
+      "模型": "真功能：弹出本会话模型选择卡，显示已配置模型（fixture）与自动选择",
+      "下载日志": "真功能：Page.downloadWillBegin + Page.downloadProgress 事件触发，会话内容 ZIP 导出链路存在",
+      "添加工作区（另一处 +）": "真功能：弹出真实的工作区目录选择对话框"
+    },
+    "screenshots": "artifacts/plus-button-probe/recovery-YnGPHk/probe/item-权限.png（0.1.47 对照三档卡）",
+    "limits": "反馈命令的端到端效果未验证；下载日志 ZIP 落盘内容未展开检查；均为只读诊断，未改产品代码，不影响 E134 验收结论"
+  }
 }

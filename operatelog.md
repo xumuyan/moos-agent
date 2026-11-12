@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 21:45:00 +08:00｜P03.13.19 后续：输入框 + 按钮逐项诊断（E134 补充，未安装）
+
+- 修改或新增内容：用户追问输入框左下角 + 按钮（aria 添加文件或调用指令）是否也无作用。只读隔离诊断：新增探针 artifacts/plus-button-probe/probe-plus.mjs 与 probe-plus-menu.mjs，用 CDP Page.setInterceptFileChooserDialog 拦截文件选择器、Input.dispatchMouseEvent 真实坐标点击逐项验证；evidence p03-permission-menu-removal.json 追加 plusMenuFollowUp 字段，PLAN E134 行补记。不改产品代码。
+- 遇到的难题：首轮用 el.click() 点菜单项全部无效（该项监听真实指针事件，非合成 click）；菜单项文本是「文件/反馈/权限/模型/下载日志」（分节标题「添加/指令」不在项内）致首版选择器未命中；两轮探针启动报 bad option --remote-debugging-port 退出 9——本轮 bash 漏 unset ELECTRON_RUN_AS_NODE，Electron 被当纯 Node 启动，补 unset 后恢复；+ 菜单还存在第二个同名 + 按钮（会话列表添加工作区），首轮误点后改为按 aria 精确匹配。
+- 处理方式：菜单项改用真实坐标 mouseMoved/Pressed/Released 序列点击；按 [class*=itemName] 精确匹配项名；每次点击后 Escape 清场并断言菜单/对话框归零再验证下一项。
+- 验证结果：文件=fileChooserOpened 真触发；模型=弹出本会话模型选择卡（显示 fixture 模型与自动选择）；下载日志=downloadWillBegin+downloadProgress 真触发（ZIP 导出链路）；反馈=向输入框插入 /反馈 命令（端到端效果未验证，如实标注）；会话列表的添加工作区 + 弹真实目录选择对话框；关键项『权限』：0.1.47 对照点击后弹出同一张三档假 UI 卡（即被移除菜单的第二入口），0.1.48 候选该项从 + 菜单中消失——E134 的 ui-permission 禁用同时移除 composer 按钮与命令面板入口，无残余。报告 recovery-w8B6jM/recovery-YnGPHk/recovery-C66sII/recovery-qgw0am，截图已回读。
+- 遗留问题：反馈命令端到端效果未验证；下载日志 ZIP 落盘内容未展开检查；均为隔离环境只读诊断，正式版未动。0.1.48 安装仍待用户明确授权。
+- 对应 Git 提交：唯一说明 `test(P03.13.19): audit composer plus-menu entries after permission removal`；查询 `git log --all --oneline --grep='audit composer plus-menu'`。
+
 ## 2026-11-12 21:05:00 +08:00｜P03.13.19 移除对话三档执行权限菜单（E134，未安装）
 
 - 修改或新增内容：用户此前问对话输入框左下角三档菜单（仅可查看/工作区内修改/完全权限）「这三个现在起作用不？」，只读诊断确认不生效（设置页「命令执行」卡写入 private/execution-policy.json 的 executionMode 在 getPermissions() 短路 sandboxPolicy.resolve，菜单切换被覆盖形成假 UI，E103 链路复核）。用户在方案 A（菜单为准）与方案 B（移除菜单）中选择「去掉对话菜单 那去掉这个吧」。本轮实现：apps/electron/execution.patch.yml 新增 `ui-permission disabled: true`（菜单为 DSH 原版 dsh-client-ui-permission-presets 的 composer 控件与 /permission 选择器；host 端 dsh-permission-presets preset 定义不动，带参 /permission 命令仍可写 DSH sandbox 状态但同样被 execution-policy.json 覆盖，不构成旁路）；apps/electron/host.test.mjs overlay 断言列表新增 ui-permission；两处 package.json 同步 0.1.48；新增证据 docs/evidence/desktop/p03-permission-menu-removal.json、验收脚本 artifacts/remove-permission-menu/gui.mjs（对照+候选双跑）与临时诊断 probe-dom.mjs。
