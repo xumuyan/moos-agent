@@ -1,7 +1,7 @@
 {
   "name": "moos-electron",
   "productName": "\u6c90\u7801",
-  "version": "0.1.47",
+  "version": "0.1.48",
   "private": true,
   "type": "module",
   "main": "main.mjs",

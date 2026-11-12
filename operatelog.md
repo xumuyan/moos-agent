@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-12 21:05:00 +08:00｜P03.13.19 移除对话三档执行权限菜单（E134，未安装）
+
+- 修改或新增内容：用户此前问对话输入框左下角三档菜单（仅可查看/工作区内修改/完全权限）「这三个现在起作用不？」，只读诊断确认不生效（设置页「命令执行」卡写入 private/execution-policy.json 的 executionMode 在 getPermissions() 短路 sandboxPolicy.resolve，菜单切换被覆盖形成假 UI，E103 链路复核）。用户在方案 A（菜单为准）与方案 B（移除菜单）中选择「去掉对话菜单 那去掉这个吧」。本轮实现：apps/electron/execution.patch.yml 新增 `ui-permission disabled: true`（菜单为 DSH 原版 dsh-client-ui-permission-presets 的 composer 控件与 /permission 选择器；host 端 dsh-permission-presets preset 定义不动，带参 /permission 命令仍可写 DSH sandbox 状态但同样被 execution-policy.json 覆盖，不构成旁路）；apps/electron/host.test.mjs overlay 断言列表新增 ui-permission；两处 package.json 同步 0.1.48；新增证据 docs/evidence/desktop/p03-permission-menu-removal.json、验收脚本 artifacts/remove-permission-menu/gui.mjs（对照+候选双跑）与临时诊断 probe-dom.mjs。
+- 遇到的难题：定位菜单归属耗时较长——正式包 web 前端静态 bundle 与用户数据 profile node_modules 均无该组件，最终经 `dsh --profile web --dump-config` 找到清单短 id ui-permission（对应包名 @deepseek-ai/dsh-client-ui-permission-presets，由 host 运行时向 ModuleLoader 注入）；/Applications 沐码.app 内 cli.mjs 无执行位致 host.test 首跑 EACCES，改用构建产物 host-runtime/bin/dsh；DOM 探测首两轮未命中——innerText 探测在窗口隐藏与 locale/底栏晚挂载下存在竞态（textContent 697 字符且无三档文案而截图可见按钮），诊断脚本确认等 3 秒后 `button.SJRB_q_trigger`（aria「访问模式，当前：工作区内修改」）出现且浮层需点击展开；另外 python json.dump 重写 package.json 引入无关中文转义 diff，checkout 后改用字符串精准替换。
+- 处理方式：验收脚本改为「composer 就绪→等 3 秒→按 aria 前缀找触发按钮→click() 展开浮层→textContent 查三档文案」，并以 0.1.47 对照构建双跑排除探测方法本身无效的可能；flake 与竞态均如实记录不改测试迁就。
+- 验证结果：npm test 227/227（首跑 desktop-tools.test「post-click AX element geometry drift…」1 项失败期望 DESKTOP_FOCUS_CHANGED 得 {}，为 AX helper 时序 flake，单文件 25/25 与全量重跑均过）；npm run test:electron 113 项 104 通过 9 跳过 0 失败（host.test 9/9 含新 ui-permission 断言，跑于 build-9jwHgP 包内 dsh 的 dump-config）；python3 -m unittest discover -s tests 109/109；npm run build:app→build-m69uNn（0.1.48，codesign --verify --strict 通过，包内 execution.patch.yml 含禁用条目）；隔离 GUI 对照验收 recovery-SBJluB：0.1.47 对照 trigger 存在且点击后浮层三档全部出现（仅可查看/工作区内修改/完全权限），0.1.48 候选 trigger 不存在（button 22→21）、三档文案与浮层均不出现，断言 PERMISSION-MENU-REMOVED OK，截图已回读；report.json 含双跑原始探测值。
+- 遗留问题：0.1.48 隔离候选未安装，正式版仍为 /Applications/沐码.app 0.1.47，安装待用户明确授权并按 E84 独立进程执行；0.1.48 已排队的其余项（pi-route.js:22 旧文案修复、任务失败上游原始错误脱敏入库）本轮未做；历史 /Applications/.moos-update-* 旧目录清理仍待用户决定；P03.14、P06.6 状态不变。
+- 对应 Git 提交：唯一说明 `feat(P03.13.19): remove non-functional conversation permission menu`；查询 `git log --all --oneline --grep='remove non-functional conversation permission menu'`；门禁完成后提交推送并以远程 HEAD 核对，本条不预称部署。
+
 ## 2026-11-12 19:52:46 +08:00｜P06.6 单次点击真实送达子集与安装版 Dock 误挡再确认（E133，未安装）
 
 - 修改或新增内容：仅新增证据/文档测试/PLAN/日志；运行时代码不改。一次性 SwiftUI 按钮夹具（local.muma.click-receipt，无网络/无持久化/不记录键盘）验证：候选包 helper 单次点击 posted 后夹具收到坐标一致的 NSEvent down/up，按钮计数 0→1，新截图人工确认；安装版 helper 同参数返回 target-occluded 且无投递。

@@ -207,7 +207,8 @@ test('the shipped DSH overlay disables optional built-ins and keeps the package 
     'cordis-host-runner', 'cordis-client-runner', 'cordis-inspect-providers', 'ui-cordis', 'ptc-runtime',
     'harness-dev-context',
     'terminal-controller', 'ui-sidebar-terminal', 'ui-sidebar-browser', 'office-to-pdf',
-    'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins', 'directory-picker']) {
+    'web-search-deepseek', 'mcp-resources', 'ui-settings-plugin-inventory', 'ui-settings-plugins', 'directory-picker',
+    'ui-permission']) {
     assert.match(rows.get(id) ?? '', /^  disabled: true$/m, id);
   }
   for (const id of ['plugin-manager', 'ui-plugin-manager', 'ui-sidebar', 'ui-sidebar-files', 'ui-conversation',

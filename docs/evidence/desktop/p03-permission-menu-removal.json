@@ -1,0 +1,26 @@
+{
+  "task": "P03.13.19 移除对话三档执行权限菜单（ui-permission）",
+  "evidence": "E134",
+  "timeBeijing": "2026-11-12 21:00:00 +08:00",
+  "state": "implemented-code-automated-tests-and-isolated-gui-acceptance-passed-install-pending-user",
+  "change": "用户报告对话输入框左下角的三档执行权限菜单（仅可查看/工作区内修改/完全权限）『这三个现在起作用不？』，只读诊断确认（E103 链路复核）该菜单不生效：设置页「命令执行」卡写入 private/execution-policy.json 的 executionMode 在 host.js getPermissions() 里短路 sandboxPolicy.resolve，任务始终按用户已保存的 danger-full-access 全量执行，菜单切换结果被覆盖形成假 UI（菜单勾选态与实际行为一致纯属巧合）。用户在方案 A（菜单为准）与方案 B（移除菜单）中选择『去掉对话菜单 那去掉这个吧』。实现：apps/electron/execution.patch.yml 新增『- id: ui-permission / disabled: true』（菜单为 DSH 原版 @deepseek-ai/dsh-client-ui-permission-presets 的 composer 控件 conversation.input.permission 与 /permission 选择器；host 端 dsh-permission-presets preset 定义不动，/permission <preset> 带参命令仍可切换但同样被 execution-policy.json 覆盖，不构成旁路）。执行权限继续由设置页「命令执行」卡统一控制，两处 package.json 同步 0.1.48。",
+  "verification": {
+    "method": "隔离 Electron 对照验收：ditto 拷贝 0.1.47 对照构建（build-9jwHgP，未禁用）与 0.1.48 候选构建（build-m69uNn，禁用）至 artifacts 内 scratch，各自 ad-hoc 重签 + seedHome 独立数据目录 + fixture openai-completions 模型直连，CDP 探查真实渲染 DOM；正式安装版与用户数据不受影响",
+    "script": "artifacts/remove-permission-menu/gui.mjs（对照+候选双跑，断言写入 report.json；临时诊断脚本 probe-dom.mjs 用于定位触发按钮 DOM，验收后保留）",
+    "probe": "composer data-composer-input 就绪后等待 3 秒（locale 与 composer 底栏晚于输入框挂载，innerText 探测存在竞态，需用 textContent）；按 aria-label 前缀『访问模式』查找触发按钮并 click() 展开浮层，再查 body.textContent 含三档文案",
+    "assertions": [
+      "对照 0.1.47 execution.patch.yml 不含 ui-permission 禁用条目，触发按钮存在（aria『访问模式，当前：工作区内修改』），点击后浮层文案含 仅可查看/工作区内修改/完全权限 三档全部出现",
+      "候选 0.1.48 execution.patch.yml 含禁用条目，触发按钮不存在（button 数 22→21，少的正是权限按钮），textContent 不含任何三档文案，菜单浮层不出现",
+      "候选构建版本 0.1.48、codesign --verify --strict 通过"
+    ],
+    "screenshots": [
+      "artifacts/remove-permission-menu/recovery-SBJluB/control-0.1.47/composer.png（浮层展开：仅可查看/工作区内修改✓/完全权限）",
+      "artifacts/remove-permission-menu/recovery-SBJluB/candidate-0.1.48/composer.png（输入框左下角按钮消失，无浮层）"
+    ],
+    "report": "artifacts/remove-permission-menu/recovery-SBJluB/report.json（含双跑探测原始值）"
+  },
+  "tests": "npm test 227/227（首跑 desktop-tools.test 1 项 AX 时序 flake 失败 DESKTOP_FOCUS_CHANGED，单文件与全量重跑均通过，如实记录）；npm run test:electron 113 项 104 通过 9 跳过 0 失败（host.test overlay 断言新增 ui-permission，跑于 build-9jwHgP 包内 dsh CLI 的 dump-config：对照 home 的 overlay 覆盖后 ui-permission disabled:true）；python3 -m unittest discover -s tests 109/109",
+  "build": "0.1.48 隔离候选 build-m69uNn（npm run build:app，codesign strict 通过，包内 execution.patch.yml 含禁用条目）；未安装，正式版仍为 0.1.47",
+  "envNote": "node v24.15.0；测试前清空 MOOS_ELECTRON_*/DSH_*/ELECTRON_RUN_AS_NODE/NODE_OPTIONS/NODE_PATH 并显式 HOME/PATH；host.test 需要 MOOS_ELECTRON_TEST_DSH_CLI 指向构建产物 host-runtime/bin/dsh（Resources 下 cli.mjs 无执行位）",
+  "limits": "① 承认局限：手动键入 /permission <preset> 仍会写 DSH sandbox 状态，但执行模式继续被 execution-policy.json 覆盖，不构成旁路；若未来设置卡清空覆盖，需重新决定菜单/slash 命令的暴露面。② 本验收为隔离构建 GUI，正式安装与生产会话核对按规则待用户明确授权。③ 首跑 desktop-tools 1 项 flake 已重跑排除，不代表通过率虚报。"
+}

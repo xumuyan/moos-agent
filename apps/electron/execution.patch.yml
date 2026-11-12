@@ -90,6 +90,11 @@
   disabled: true
 - id: ui-subagent
   disabled: true
+# ui-permission：composer 三档权限菜单与 /permission 选择器（仅查看/工作区内/完全权限）。
+# 执行权限实际由设置页「命令执行」卡统一控制（execution-policy.json 覆盖 sandboxPolicy），
+# 菜单选择会被覆盖形成假 UI，用户 2026-11-12 决定移除（E134）。
+- id: ui-permission
+  disabled: true
 - id: ui-workflow-run
   disabled: true
 - id: goal-round-driver

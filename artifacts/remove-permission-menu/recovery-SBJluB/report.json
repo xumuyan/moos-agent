@@ -1,0 +1,33 @@
+{
+  "time": "2026-11-12T12:58:15.418Z",
+  "scratch": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/remove-permission-menu/recovery-SBJluB",
+  "control": {
+    "label": "control-0.1.47",
+    "version": "0.1.47",
+    "patchDisables": false,
+    "trigger": {
+      "text": "工作区内修改",
+      "aria": "访问模式，当前：工作区内修改"
+    },
+    "triggerCount": 22,
+    "composer": true,
+    "menuLabels": [
+      "仅可查看",
+      "工作区内修改",
+      "完全权限"
+    ],
+    "screenshot": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/remove-permission-menu/recovery-SBJluB/control-0.1.47/composer.png",
+    "dir": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/remove-permission-menu/recovery-SBJluB/control-0.1.47"
+  },
+  "candidate": {
+    "label": "candidate-0.1.48",
+    "version": "0.1.48",
+    "patchDisables": true,
+    "trigger": null,
+    "triggerCount": 21,
+    "composer": true,
+    "menuLabels": [],
+    "screenshot": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/remove-permission-menu/recovery-SBJluB/candidate-0.1.48/composer.png",
+    "dir": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/remove-permission-menu/recovery-SBJluB/candidate-0.1.48"
+  }
+}
