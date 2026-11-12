@@ -2086,3 +2086,38 @@ class ClickSettleEvidenceTests(unittest.TestCase):
         regression = (ROOT / 'packages/pi-runtime/desktop-tools.test.mjs').read_text()
         self.assertIn('cancelling click settling closes its focus child before another owner runs', regression)
         self.assertIn('drift during capture', regression)
+
+
+class ClickReceiptEvidenceTests(unittest.TestCase):
+    def test_one_click_receipt_subset_and_dock_attribution_stay_within_limits(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/m06-click-receipt.json').read_text())
+        self.assertEqual(e['id'], 'E133')
+        self.assertEqual(e['status'], 'click-receipt-subset-verified-dock-false-positive-reconfirmed-not-deployed')
+        self.assertEqual(e['task'], 'P06.6')
+        installed = e['observations']['installedHelper']
+        self.assertFalse(installed['clickResult']['posted'])
+        self.assertEqual(installed['clickResult']['reason'], 'target-occluded')
+        self.assertEqual(installed['clickResult']['eventRowsNew'], 0)
+        candidate = e['observations']['candidateHelper']['clickResult']
+        self.assertTrue(candidate['posted'])
+        receipt = e['observations']['candidateHelper']['fixtureReceipt']
+        self.assertEqual((receipt['countBefore'], receipt['countAfter']), (0, 1))
+        self.assertEqual(e['observations']['focusProbes'], {'reads': 6, 'identical': True})
+        self.assertEqual(e['observations']['frontmostSampling'], {'seconds': 20, 'flips': 0})
+        self.assertFalse(e['attribution']['newFocusInstabilityClaimed'])
+        self.assertFalse(e['attribution']['sidebarPostedNotSwitchedExplained'])
+        self.assertTrue(all(value is False for value in e['deployment'].values()))
+        self.assertTrue(e['failedOrIncomplete'])
+        d = ROOT / 'docs/evidence/desktop/m06-click-receipt'
+        for name, expected in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((d / name).read_bytes()).hexdigest(), expected)
+        rows = [json.loads(line) for line in (d / 'events.jsonl').read_text().splitlines() if '"semantic"' in line]
+        self.assertEqual([row['count'] for row in rows], [1, 2, 1])
+        self.assertEqual(rows[-1], {'count': 1, 'semantic': 'swiftui'})
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('送达子集（E133，2026-11-12）', plan)
+        for pending in ['P06.3a', 'P06.6']:
+            self.assertIn('- [ ] ' + pending, plan)
+        log = (ROOT / 'operatelog.md').read_text()
+        self.assertIn('record one-click SwiftUI receipt', log)
+        self.assertIn('E133', log)

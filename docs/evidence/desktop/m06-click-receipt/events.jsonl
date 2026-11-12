@@ -1,0 +1,11 @@
+sandbox_extension_issue_file_to_process failed for /tmp/musu-051-fixture.app: 1 (Operation not permitted)
+{"clickCount":1,"event":1,"flags":0,"timestamp":983762.96376454097,"x":350.76171875,"y":172.20703125}
+{"clickCount":1,"event":2,"flags":0,"timestamp":983763.04374195798,"x":350.76171875,"y":172.20703125}
+{"count":1,"semantic":"swiftui"}
+{"clickCount":1,"event":1,"flags":0,"timestamp":983764.15546137502,"x":355.953125,"y":168.3359375}
+{"clickCount":1,"event":2,"flags":0,"timestamp":983764.22860891605,"x":355.953125,"y":168.3359375}
+{"count":2,"semantic":"swiftui"}
+sandbox_extension_issue_file_to_process failed for /tmp/musu-051-fixture.app: 1 (Operation not permitted)
+{"clickCount":1,"event":1,"flags":0,"timestamp":984253.40065641596,"x":319,"y":171}
+{"clickCount":1,"event":2,"flags":0,"timestamp":984253.402155458,"x":319,"y":171}
+{"count":1,"semantic":"swiftui"}

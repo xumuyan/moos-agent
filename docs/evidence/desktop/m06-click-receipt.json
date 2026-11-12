@@ -1,0 +1,119 @@
+{
+  "id": "E133",
+  "task": "P06.6",
+  "status": "click-receipt-subset-verified-dock-false-positive-reconfirmed-not-deployed",
+  "baseline": "7d8a92e4efa20df35db9e24b872272ef11a30649",
+  "environment": {
+    "beijingTime": "2026-11-12 19:36–19:51 +08:00",
+    "permissionsGranted": true,
+    "displays": 2,
+    "fixture": {
+      "bundleId": "local.muma.click-receipt",
+      "windowId": 66577,
+      "pid": 96046,
+      "role": "AXWindow",
+      "path": [],
+      "elementEqualsWindow": [
+        730,
+        378,
+        640,
+        332
+      ]
+    }
+  },
+  "observations": {
+    "installedHelper": {
+      "sha256Prefix": "759658664413f7cd",
+      "clickResult": {
+        "reason": "target-occluded",
+        "exit": 5,
+        "posted": false,
+        "eventRowsNew": 0
+      }
+    },
+    "candidateHelper": {
+      "sha256Prefix": "19eae0708ab454de",
+      "clickResult": {
+        "posted": true,
+        "at": [
+          1049,
+          539
+        ],
+        "eventsDownUp": 2
+      },
+      "fixtureReceipt": {
+        "windowCoords": [
+          319,
+          171
+        ],
+        "downUpGapMs": 1.5,
+        "countBefore": 0,
+        "countAfter": 1,
+        "semanticRow": "{\"count\":1,\"semantic\":\"swiftui\"}"
+      }
+    },
+    "focusProbes": {
+      "reads": 6,
+      "identical": true
+    },
+    "frontmostSampling": {
+      "seconds": 20,
+      "flips": 0
+    },
+    "mcpRefusals": {
+      "clicksBeforeDelivery": 2,
+      "mappedMessage": "目标窗口或输入焦点无法确认/已经变化，已停止桌面事务。请重新观察目标，不要自动抢回焦点继续输入。",
+      "code": "DESKTOP_FOCUS_CHANGED"
+    },
+    "humanClicksOnOldProcess": 2,
+    "visualConfirmation": {
+      "countZero": "20261112114642-9b0ceebb9e03.png",
+      "countOne": "20261112115019-2d7dc2dbd8d7.png",
+      "endVerifyManuallyRead": true
+    }
+  },
+  "attribution": {
+    "mcpRuntime": "安装版沐码0.1.47/E127",
+    "refusalRootCause": "E128 Dock layer-20 全屏表面误挡（修复仅在候选，未部署）",
+    "newFocusInstabilityClaimed": false,
+    "sidebarPostedNotSwitchedExplained": false
+  },
+  "deployment": {
+    "formalAppReplaced": false,
+    "formalAppRestarted": false,
+    "musuSourceChanged": false,
+    "credentialsRead": false,
+    "paidRequest": false,
+    "officialSiteAccessed": false
+  },
+  "validation": {
+    "runtimeCodeChanged": false,
+    "establishedFromE132": {
+      "core": 227,
+      "electron": 113,
+      "focused": 45,
+      "native": 11,
+      "bridge": 5,
+      "skin": 4
+    },
+    "docsRerunActual": 109
+  },
+  "failedOrIncomplete": [
+    "首次沙箱内启动夹具二进制被拒（sandbox_extension_issue_file_to_process），改沙箱外一次性启动",
+    "MCP desktop_app activate 因无法先绑定非前台窗口焦点而按设计拒绝",
+    "夹具以 SIGTERM 终止并确认消失，非 GUI 关闭路径",
+    "旧进程两次人工点击仅作 provenance 区分，不计入投递证据"
+  ],
+  "remaining": [
+    "侧栏点击 posted 未切页仍未解释",
+    "多控件/网页/副屏/并发取消/正式聊天截图桥仍待实机验收",
+    "安装版 Dock 误挡修复仍需另行授权安装"
+  ],
+  "evidenceSha256": {
+    "click-fixture.swift": "df2add08714a188a07cf3c565ed8d372e1186e17bbf5aad814a81993c8b7a9f0",
+    "count-one.png": "ad4f9bbc6548d891beb02d00ba12418c0a062c9e3223246a6313f727d1bf4428",
+    "README.md": "8f3c35150465aa68cf4289c82e89718e04174d2915233cd71d24ac1a1446c9f2",
+    "events.jsonl": "4088ee8ea9525e002230604650602cd7cf45a9006f81f08b94062e71bb11c6bc",
+    "count-zero.png": "3ff21f0146623f83cb8ad8e14a1f586f0cf04f3f16ceaee993a43126655df9dc"
+  }
+}
