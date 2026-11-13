@@ -1,0 +1,20 @@
+{
+ "task": "P03.13.21",
+ "evidence": "E137",
+ "timeBeijing": "2026-11-13 12:30:00 +08:00",
+ "state": "verified-in-isolation",
+ "change": "图片按预算压缩进上下文 + 中转站 413 请求体超限兜底自救。① 新增 packages/pi-runtime/image-policy.mjs：IMAGE_RESIZE_PROFILE（maxWidth/maxHeight 1568、maxBytes 512KB、jpegQuality 80）、IMAGE_COMPRESS_THRESHOLD_BYTES 384KB、IMAGE_COMPRESS_TIMEOUT_MS 15000；modelInputLimits() 把 images.resize 注入模型定义供 PI read 工具消费；createImageCompressor 为 best-effort（小图/无 resizeImage/失败/超时/无收益一律透传原图，永不阻塞截图）；resizeScaleNote 按 PI formatDimensionNote 格式生成坐标换算说明。② desktop-tools.mjs 三处截图进上下文前经 observeImage 压缩并向模型附坐标换算文本；落盘截图文件保持原图字节。③ sdk-runtime.mjs：模型定义注入 modelInputLimits()；desktop 工具挂 compressor；提交失败为 context_limit 且错误文本含 (413)/request size 时 removeLargestContextImage——扫描 getEntries 中最大图片 toolResult，以官方 appendContextEdit 追加 context_edit 替换为文本占位（原 entry 不改，跳过已替换 id），emit context_relief {round,removedBytes,entryId} 后 dispose 重建会话重试，每任务上限 2 轮；无可清图保持原 context_limit 终止语义。④ prepare-local.mjs 打包清单补 image-policy.mjs（packaging.test 暴露的缺漏）。⑤ E132 证据 runtimeSha256 同步 desktop-tools.mjs 新哈希并新增 runtimeEvolution 注记，E132 验收事实不变。",
+ "trigger": "生产徐-moss-hotal 会话 b94f034a-7b0f-4e49-b05a-a84cd1506f1d 任务 feaa6f9e 因会话历史含多张截图，模型请求反复失败「API error (413): Input exceeds the context window or request size limit」（jsonl L2697）。只读诊断：PI 默认单图限制为 4.5MB base64，≤2000px 图片原样透传进上下文；多张累积触发中转站请求体上限；PI 溢出恢复压缩只减少 token，不清尾部图片字节，压缩后重试仍 413 形成 P03.13.18/P03.13.20 未覆盖的死锁形态。用户批准三步：A 先救会话（已完成：8 张投影大图 c0fd32b5/af90576e/fe638060/21127edf/a6485397/9e70cfac/c026b8c1/5b3d826d 经官方 appendContextEdit 替换为文本占位，投影 8.9MB→0.16MB，备份 ~/.moos-rescue/b94f034a-20261113-full.jsonl，隔离冒烟通过）；B 图片预算+413 兜底（本任务）；C 安装新版（待用户后续明确执行）。",
+ "verification": {
+  "tests": [
+   "image-policy.test.mjs 6/6：阈值透传、压缩调用与尺寸注记、超时透传（timeoutMs:50）、无 resizeImage 透传、无收益透传（'y'.repeat(900*1024) 解码 675KB≥原图）、modelInputLimits 注入形状。",
+   "desktop-tools.test.mjs 26/26（新增 P03.13.21 断言）：桌面截图走 compressImage（500KB 假 PNG→100KB 假 JPEG 进模型上下文 + 'Multiply coordinates by 1.91' 文本），落盘文件字节与原图一致；压缩失败回退原图（PNG 原样）。首跑 1 项 AX 时序 flake 失败，单文件与全量重跑均过（与 E134 同款）。",
+   "context-image-relief.test.mjs 端到端（真实 PI SDK + 本地 mock openai-completions 上游）：任务 1 指示模型 read 真实 PNG（node_modules/@earendil-works/pi-coding-agent/docs/images/interactive-mode.png，519083 字节）→ 进上下文图片 213832 字节 JPEG（inputLimits.images.resize 生效，mock 捕获请求体 data:image/png→jpeg 实证）；任务 2 提交带图请求 → mock 回 413 'Input exceeds the context window or request size limit' → relief round 1 替换最大图片 entry → 重试请求体不再含图 → 任务完成；断言 context_relief 事件恰一次（removedBytes>0）、会话文件含 type:context_edit 与占位文案、413 仅打在带图请求上。mock 判据按 openai-completions wire 格式 image_url/data URL，与实现解耦。",
+   "真实 resizeImage 函数实测：519083B PNG → 213832B JPEG（1500×1736→1355×1568），约 1.1s。",
+   "npm test 236/236；npm run test:electron 113 项 104 通过+9 跳过+0 失败；python3 -m unittest discover -s tests 109/109。"
+  ],
+  "limits": "未安装：正式版仍为 0.1.48（build-6C9P2R），不含本修复；生产会话实图重跑验证待用户授权安装新版后自然触发确认。relief 上限 2 轮：若单任务内可清图超过 2 张仍可能以 context_limit 终止（有界，不无限循环）。PI 溢出恢复（compact-and-retry）在 mock 中对该 413 文案未触发 compact 直接放弃——PI 内部判定不属本任务验收面，relief 为独立兜底链路。压缩依赖 PI 内置 photon worker，image-resize.js 无超时保护由本侧 IMAGE_COMPRESS_TIMEOUT_MS 兜底（超时透传原图）。"
+ },
+ "build": "未打包；0.1.49 候选待用户授权安装环节再构建。",
+ "envNote": "macOS 27.0.1 arm64；测试为隔离临时目录 + 本地 mock SSE 上游，未触真实模型服务；生产数据仅只读 sqlite/jsonl 查询（会话救援 A 步已单独获用户同意并备份）；Electron 首轮失败为工具环境残留 MOOS_ELECTRON_PI_RUNTIME（E107 同款，unset 后 104/104 通过），packaging 首轮失败为本任务真实缺漏已修。"
+}

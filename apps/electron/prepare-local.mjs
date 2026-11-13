@@ -118,6 +118,7 @@ await cp(join(source, 'execution.patch.yml'), join(resources, 'execution.patch.y
   execFileSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
     { cwd: runtime, stdio: 'inherit' });
   for (const file of ['packages/pi-runtime/sdk-runtime.mjs', 'packages/pi-runtime/image-tool.mjs', 'packages/pi-runtime/tool-policy.mjs', 'packages/pi-runtime/toolchain.mjs',
+    'packages/pi-runtime/image-policy.mjs',
     'packages/pi-runtime/repair-routing.mjs', 'packages/pi-runtime/session-fork.mjs', 'packages/pi-adapter/index.mjs',
     'packages/pi-runtime/desktop-queue.mjs', 'packages/pi-runtime/desktop-tools.mjs', 'packages/pi-runtime/desktop-transaction.mjs', 'packages/pi-runtime/desktop-focus-settle.mjs',
     'services/agent/store.mjs', 'services/agent/scheduler.mjs',

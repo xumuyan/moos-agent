@@ -12,12 +12,45 @@ import { normalizeUsage } from '../../services/agent/usage.mjs';
 import { workspaceTools } from './tool-policy.mjs';
 import { createImageTool } from './image-tool.mjs';
 import { createDesktopTools } from './desktop-tools.mjs';
+import { createImageCompressor, loadPiResizeImage, modelInputLimits } from './image-policy.mjs';
 import { repairRouting } from './repair-routing.mjs';
 import { openPiSession } from './session-fork.mjs';
 
 const busy = new Set();
 const transportTimeoutMs = ALLOWED_TASK_TIMEOUTS.at(-1);
 const retryPrompt = '继续上一次未完成的任务。先核对当前工作区和已有工具结果，再完成剩余步骤。已经成功的操作无需重做。';
+
+// P03.13.21：图片压缩器（懒加载 PI resizeImage；不可用时压缩退化为原样透传，不阻塞任务）。
+let compressorPromise;
+const imageCompressor = async (bytes, mimeType) => {
+  compressorPromise ??= loadPiResizeImage().then(resizeImage => createImageCompressor({ resizeImage }));
+  const compress = await compressorPromise;
+  return compress(bytes, mimeType);
+};
+
+/**
+ * P03.13.21 请求体超限自救：把上下文投影中最大的图片 toolResult 替换为文本占位。
+ * 原始会话文件不动，只追加官方 context_edit；PI 压缩只减少 token 不清尾部图片字节，
+ * 中转站 413 request-size 限制会在压缩后仍被残留图片再次触发（生产 b94f034a 实测）。
+ * skipIds：已被替换过的 entry 不再命中（原 entry 仍在 entries 里，context_edit 只是覆盖投影）。
+ */
+function removeLargestContextImage(sessionManager, skipIds = new Set()) {
+  let best = null;
+  for (const entry of sessionManager.getEntries()) {
+    if (skipIds.has(entry.id)) continue;
+    if (entry.type !== 'message' || entry.message?.role !== 'toolResult') continue;
+    const content = Array.isArray(entry.message.content) ? entry.message.content : [];
+    const image = content.find(part => part.type === 'image' && typeof part.data === 'string');
+    if (!image) continue;
+    const bytes = Math.round(image.data.length * 3 / 4); // base64 → 原始字节估算
+    if (!best || bytes > best.bytes) best = { id: entry.id, bytes };
+  }
+  if (!best) return null;
+  sessionManager.appendContextEdit(best.id, {
+    content: '[此前的截图/图片结果已从上下文移除以减小请求体积；如需再次查看请重新截图或读取对应文件。]',
+  });
+  return best;
+}
 
 // Node's built-in fetch otherwise aborts while waiting for response headers at
 // five minutes, before PI's request timeout is reached. The shared transport is
@@ -106,6 +139,8 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         ...(profile.service === 'glm' ? { compat: { thinkingFormat: 'zai', supportsReasoningEffort: false } } : {}),
         models: [{ id: profile.model, name: profile.name, reasoning: thinkingLevel !== 'off' || profile.service === 'glm',
           input: profile.imageInput ? ['text', 'image'] : ['text'],
+          // P03.13.21：给 read 等进上下文的图片统一压缩预算（PI read 工具消费 inputLimits.images.resize）。
+          ...modelInputLimits(),
           // GLM Responses 真实档位只有 low/high/max；off 显式发送 effort none 放弃思考，旧档位由 PI clamp 归一到最近官方档。
           ...(profile.service === 'glm'
             ? { thinkingLevelMap: { off: 'none', minimal: null, low: 'low', medium: null, high: 'high', xhigh: null, max: 'max' } }
@@ -148,7 +183,8 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
       await desktopTools?.dispose?.();
       desktopTools = desktop?.helperPath
         ? createDesktopTools({ helperPath: desktop.helperPath, dataDir, ownerId: `conversation:${conversation?.id ?? task?.id ?? 'anon'}`,
-          getMode: permissions ? () => permissions.getMode() : undefined, emit, taskSignal: controller.signal })
+          getMode: permissions ? () => permissions.getMode() : undefined, emit, taskSignal: controller.signal,
+          compressImage: imageCompressor })
         : [];
       const extraTools = [image, ...desktopTools].filter(Boolean);
       const customTools = extraTools.length ? [...(base ?? []), ...extraTools] : base;
@@ -224,6 +260,8 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     controller.signal.addEventListener('abort', onAbort, { once: true });
     try {
       const checkpoint = sessionManager.getLeafId();
+      let reliefRounds = 0;
+      const reliefSkipped = new Set();
       for (;;) {
         await createSession();
         if (controller.signal.aborted) throw aborted();
@@ -272,6 +310,21 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         }
         const code = lastFailure ?? active.proxy.failure() ??
           classifyTaskError(new Error(last?.errorMessage ?? `PI model stop reason ${last?.stopReason ?? 'missing'}`)).code;
+        // P03.13.21：413/request-size 类 context_limit 先做图片减负重试（bounded：每任务最多 2 轮）。
+        // 有真实大图可清时继续；无图可清（真 token 超限）仍按原语义终止。
+        if (code === 'context_limit' && reliefRounds < 2 && /\(413\)|request size/i.test(last?.errorMessage ?? '')) {
+          const removed = removeLargestContextImage(sessionManager, reliefSkipped);
+          if (removed) {
+            reliefRounds += 1;
+            reliefSkipped.add(removed.id);
+            progressed = false;
+            emit('context_relief', { round: reliefRounds, removedBytes: removed.bytes, entryId: removed.id });
+            console.error(`[moos-pi] request-size relief round ${reliefRounds}: replaced image entry ${removed.id} (${removed.bytes} bytes)`);
+            unsubscribe?.(); session.dispose(); session = undefined; unsubscribe = undefined;
+            continue;
+          }
+          console.error(`[moos-pi] request-size relief skipped: no image toolResult in context; errorMessage=${String(last?.errorMessage ?? '').slice(0, 200)}`);
+        }
         if (!backup || active !== primary || progressed || !['rate_limit', 'quota', 'network'].includes(code)) {
           throw new TaskFailure(code);
         }

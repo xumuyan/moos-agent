@@ -110,6 +110,51 @@ process.stdout.write(JSON.stringify({ status: 'ok', scope: 'display', imageWidth
   assert.equal(result.details.status, 'ok');
 });
 
+test('desktop_screenshot compresses the model-observed image while keeping the file original (P03.13.21)', async () => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-shots-'));
+  // helper 写出 >384KB 的“原图”，压缩器把它换成小 JPEG。
+  const original = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.alloc(500 * 1024, 1)]);
+  const helper = await fakeHelper(`#!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
+const out = process.argv[process.argv.indexOf('--out') + 1];
+writeFileSync(out, Buffer.from(${JSON.stringify(original.toString('hex'))}, 'hex'));
+process.stdout.write(JSON.stringify({ status: 'ok', scope: 'display', imageWidth: 3000, imageHeight: 2000 }));
+`);
+  const compressImage = async (bytes, mimeType) => ({
+    bytes: Buffer.alloc(100 * 1024, 2),
+    mimeType: 'image/jpeg',
+    width: 1568,
+    height: 1045,
+    originalWidth: 3000,
+    originalHeight: 2000,
+    wasResized: true,
+  });
+  const tools = createDesktopTools({
+    helperPath: helper, dataDir, ownerId: 'conversation:shot-c', getMode: () => 'danger-full-access', compressImage,
+  });
+  const screenshot = tools.find(t => t.name === 'desktop_screenshot');
+  const result = await screenshot.execute('t1', { scope: 'display' }, undefined);
+  const image = result.content.find(part => part.type === 'image');
+  assert.equal(image.mimeType, 'image/jpeg', 'model sees the compressed image');
+  assert.equal(image.data, Buffer.alloc(100 * 1024, 2).toString('base64'));
+  const note = result.content.find(part => part.type === 'text' && part.text.includes('Multiply coordinates'));
+  assert.ok(note, 'coordinate scale note expected when resized');
+  assert.match(note.text, /original 3000x2000, displayed at 1568x1045\. Multiply coordinates by 1\.91/);
+  // 落盘文件保持原样（聊天缩略图与用户查看不受压缩影响）。
+  const { readFile } = await import('node:fs/promises');
+  const saved = await readFile(result.details.savedTo);
+  assert.ok(saved.equals(original), 'file on disk stays original');
+  // 压缩失败/未注入时仍返回原图，不阻塞截图。
+  const failing = createDesktopTools({
+    helperPath: helper, dataDir: await mkdtemp(join(tmpdir(), 'moos-desktop-shots-')), ownerId: 'conversation:shot-f',
+    getMode: () => 'danger-full-access', compressImage: async () => { throw new Error('boom'); },
+  });
+  const failed = await failing.find(t => t.name === 'desktop_screenshot').execute('t1', { scope: 'display' }, undefined);
+  const raw = failed.content.find(part => part.type === 'image');
+  assert.equal(raw.mimeType, 'image/png');
+  assert.equal(failed.content.find(part => part.type === 'text' && part.text.includes('Multiply coordinates')), undefined);
+});
+
 test('desktop tools enforce queue exclusivity and reject read-only sessions', async () => {
   const tools = setup(OK_HELPER);
   const click = tools.find(t => t.name === 'desktop_click');

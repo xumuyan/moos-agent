@@ -8,6 +8,7 @@ import { createDesktopQueue } from './desktop-queue.mjs';
 import { createDesktopTransaction } from './desktop-transaction.mjs';
 import { isDeepStrictEqual } from 'node:util';
 import { settleClickFocus } from './desktop-focus-settle.mjs';
+import { resizeScaleNote } from './image-policy.mjs';
 
 /**
  * M06 桌面操作工具组（PI 自定义工具）。
@@ -112,8 +113,19 @@ function assertHelperPayload(payload) {
   return payload;
 }
 
-export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit, queue = SHARED_QUEUE, queueLimits = {}, taskSignal }) {
+export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit, queue = SHARED_QUEUE, queueLimits = {}, taskSignal, compressImage }) {
   if (!helperPath || typeof helperPath !== 'string' || !existsSync(helperPath)) return [];
+  // P03.13.21：发给模型的截图经图片预算压缩（sdk-runtime 注入；未注入/失败时原样返回），
+  // 落盘文件保持原始分辨率，聊天缩略图与用户查看不受影响。压缩是尽力而为，不阻塞截图观察。
+  const observeImage = async (bytes) => {
+    if (typeof compressImage !== 'function') return { part: imagePart(bytes), note: undefined };
+    try {
+      const compressed = await compressImage(bytes, 'image/png');
+      return { part: imagePart(compressed.bytes, compressed.mimeType), note: resizeScaleNote(compressed) };
+    } catch {
+      return { part: imagePart(bytes), note: undefined };
+    }
+  };
   const mode = getMode ?? (() => 'danger-full-access');
   const report = (phase, extra) => {
     try { emit?.('desktop_action', { phase, owner: ownerId, ...extra }); } catch { /* 事件失败不影响动作 */ }
@@ -160,8 +172,8 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
     return { payload, target, bytes, focus, shotId };
   }
 
-  function imagePart(bytes) {
-    return { type: 'image', data: bytes.toString('base64'), mimeType: 'image/png' };
+  function imagePart(bytes, mimeType = 'image/png') {
+    return { type: 'image', data: bytes.toString('base64'), mimeType };
   }
 
   async function refreshAfterInput(signal, focus) {
@@ -257,9 +269,10 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
           if (Number.isFinite(input.displayId)) args.push('--display', String(Math.trunc(input.displayId)));
         }
         const { payload, target, bytes, focus, shotId } = await capturePng(args, lockSignal, Boolean(input.transactionId));
+        const { part, note } = await observeImage(bytes);
         const text = `截图已保存（${payload.scope}，${payload.imageWidth}x${payload.imageHeight} 像素）：${target}。图片已返回给模型观察，缩略图（ID ${shotId}）会在聊天中显示。`;
         return {
-          content: [{ type: 'text', text }, imagePart(bytes)],
+          content: note ? [{ type: 'text', text }, { type: 'text', text: note }, part] : [{ type: 'text', text }, part],
           details: { ...payload, shotId, savedTo: target, bytes: bytes.length, ...(focus ? { focus } : {}) },
         };
       }, input, false);
@@ -301,7 +314,11 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
         const content = [{ type: 'text', text: shot
           ? `已在 (${payload.at.x},${payload.at.y}) 完成${input.double ? '双击' : input.right ? '右键' : '单击'}，点击后截图见下。`
           : `已在 (${payload.at.x},${payload.at.y}) 完成${input.double ? '双击' : input.right ? '右键' : '单击'}。` }];
-        if (shot) content.push(imagePart(shot.bytes));
+        if (shot) {
+          const { part, note } = await observeImage(shot.bytes);
+          if (note) content.push({ type: 'text', text: note });
+          content.push(part);
+        }
         return { content, details: { click: payload, ...(shot ? { screenshot: shot.payload, savedTo: shot.target } : {}) } };
       }, input, true);
     },
@@ -477,7 +494,9 @@ export function createDesktopTools({ helperPath, dataDir, ownerId, getMode, emit
       if (input.action !== 'verify') throw new Error('action 非法');
       return transaction.run(input.transactionId, signal, async lockSignal => {
         const shot = await capturePng([], lockSignal, true);
-        return { content: [{ type: 'text', text: '已在同一桌面事务内截取最终结果，事务结束。请核对图片，不得只凭工具成功宣称业务目标完成。' }, imagePart(shot.bytes)],
+        const { part, note } = await observeImage(shot.bytes);
+        const text = '已在同一桌面事务内截取最终结果，事务结束。请核对图片，不得只凭工具成功宣称业务目标完成。';
+        return { content: note ? [{ type: 'text', text }, { type: 'text', text: note }, part] : [{ type: 'text', text }, part],
           details: { ...shot.payload, savedTo: shot.target, resultObservationConfirmed: true, businessGoalVerified: false } };
       }, { finish: true, requiresObservation: true, observationId: input.observationId });
     },

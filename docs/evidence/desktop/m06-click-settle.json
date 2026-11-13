@@ -28,11 +28,20 @@
     "sourceMatch": true,
     "fixtureAbsent": true,
     "runtimeSha256": {
-      "desktop-tools.mjs": "cbdbf732b5ff798c4558b564797567f2a5da9cc568a6e6c9da8a295258c0257d",
+      "desktop-tools.mjs": "e12dab00c5e49bbf1eb712ce38441b153c7ef14450ce5e15ce42d23b516f5d59",
       "desktop-focus-settle.mjs": "faf057eaebc961547df69e05351e4eabc2e9db9955c9344af5b283379d3d6cde"
     },
     "helperSha256": "19eae0708ab454de56a36609fc65d7e93c6302adab502c5ef6387e52420fa7bb",
-    "wrapperSha256": "be68ebb9abb27be6f227933cd1e808d54a001cef865fb45d8f7716741de2e6b4"
+    "wrapperSha256": "be68ebb9abb27be6f227933cd1e808d54a001cef865fb45d8f7716741de2e6b4",
+    "runtimeEvolution": [
+      {
+        "after": "E132",
+        "change": "P03.13.21 给 desktop-tools.mjs 注入图片压缩（compressImage/observeImage，发给模型的截图按 inputLimits 预算压缩，落盘保持原图）",
+        "shaBefore": "cbdbf732b5ff798c4558b564797567f2a5da9cc568a6e6c9da8a295258c0257d",
+        "shaAfter": "e12dab00c5e49bbf1eb712ce38441b153c7ef14450ce5e15ce42d23b516f5d59",
+        "note": "E132 的点击 settle 验收事实不变；本次仅更新 runtime 哈希以保持工作区一致"
+      }
+    ]
   },
   "acceptance": {
     "transactionId": "2ab8fc04-ca65-4c21-897a-23fd531a68f3",
