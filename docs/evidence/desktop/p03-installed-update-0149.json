@@ -1,0 +1,43 @@
+{
+ "id": "E138",
+ "dateBeijing": "2026-11-13",
+ "completionTimeBeijing": "2026-11-13 12:14:16 +08:00（result.json time=2026-11-13T04:14:16.600Z）",
+ "task": "0.1.49 安装（P03.13.21 图片按预算压缩进上下文 + 中转站 413 请求体超限兜底自救随包生效）",
+ "sourceBuild": "build-3v6RdT",
+ "shellVersion": "0.1.49",
+ "previousShellVersion": "0.1.48",
+ "bundleId": "dev.moos.agent.electron",
+ "installedPath": "/Applications/沐码.app",
+ "signatureDeepStrict": "passed（staged 与安装后均独立执行 codesign --verify --deep --strict）",
+ "userAuthorizedUpdate": true,
+ "flow": "E84 独立进程安装器（/Applications/.moos-update-0.1.49/update.mjs，nohup 脱离沐码宿主进程树，Terminal.app 承接，安装器进程 PPID=1）",
+ "installerRun": {
+   "attempt1": "12:07 preflight 通过后验证门停止：electron.exit 误写为 'ELECTRON_EXIT=0'，脚本按 Number(trim()) 解析为 NaN。未触碰应用（未退出、未备份、未换包），存档 result-attempt1.json / update-attempt1.log；门文件更正为纯数字后二次交接（commit da21ec0）",
+   "attempt2": "12:11 交接，preflight 全过（全树 diff 门禁 + bundle 级 diff + 6 项 exit 门 + 本轮/历史标记 + 数据可读性），state=waiting-for-idle 后经应用正常退出路径完成安装",
+   "finalState": "success",
+   "idleNote": "安装器自身即运行中任务，等待空闲 3 分钟上限后走应用正常退出路径，本会话宿主任务由应用取消（正常终态）"
+ },
+ "verification": {
+   "baselineGate": "对安装版 0.1.48（E136 验收包）全 Resources 逐字节树 diff：changed 恰为 7 个版本元数据文件 + sdk-runtime.mjs + desktop-tools.mjs；added/removed 仅 image-policy.mjs、0.1.49 shell tgz、构建期 plugin-manager 日志；换包后用 previous/ 旧包重放同一 diff 复核（treeDiffReconfirmedInInstalled=true）；bundle 级仅 Info.plist/MacOS/MuMa/_CodeSignature 允许差异",
+   "roundMarkers": "reliefMarkerInInstalled / imagePolicyInInstalled / compressImageInInstalled = true；3 个变更文件与仓库逐字节一致",
+   "regressionMarkers": "0.1.48 预压缩分类与权限菜单移除、0.1.47 errors 分类、E126 排队三态、E125 超时强制、E113 链接处理等历史标记全部 true",
+   "process": "installedMainProcesses=1，host 运行，已加载 client 与包内一致",
+   "validationGate": "core=0、electron=0、native=0、docs=0（本轮实跑）+ bridge=0、skin=0（E126）"
+ },
+ "dataNotes": {
+   "readableSavedModels": 6,
+   "apiAndCredentialsIdentical": true,
+   "chatFilesRetained": true,
+   "piHistoryFilesRetained": true,
+   "skinsRetained": true,
+   "workspaceRetained": true,
+   "originalDatabaseRowsRetained": true,
+   "userPluginDependenciesRetained": true,
+   "stoppedBackup": "停机完整备份 10723 文件，根目录 0700 核实",
+   "postRestartDb": "quick_check ok；tasks：cancelled 12→13（本次安装指令任务被应用取消，正常终态）、running 1（新会话）、succeeded 380/failed 34/interrupted 1 与安装前一致",
+   "liveConfirmation": "用户在新版 0.1.49 中正常对话（聊天记录与模型配置可读的直接证据）"
+ },
+ "backupCleanup": "成功且新版数据核对通过后，按 AGENTS 规则删除停机备份 data-before-install（888M）与 previous/ 旧包（675M）；result.json、result-attempt1.json、update-attempt1.log、脚本与日志保留",
+ "postInstallObservations": "生产会话实图重跑（b94f034a）待自然触发确认压缩/relief 生效；PI 默认单图 4.5MB 限制已被 modelInputLimits 注入的 1568px/512KB 预算覆盖",
+ "limits": "本证据覆盖 arm64/macOS 27.0.1 本机安装；不推断其他系统版本。relief 每任务上限 2 轮的行为未在生产再触发，仅在隔离 e2e（E137）验证"
+}

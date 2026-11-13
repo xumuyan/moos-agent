@@ -2167,3 +2167,13 @@
 - 遗留问题：安装仍未执行；二次交接结果以 result.json 为准。
 - 对应 Git 提交：见同日更正提交；查询 `git log --all --oneline --grep='0.1.49 gate format correction'`。
 
+## 2026-11-13 12:30:10 +08:00｜0.1.49 安装完成（E138，用户授权，E84 独立进程）
+
+- 修改或新增内容：/Applications/沐码.app 由 0.1.48 (build-6C9P2R) 更换为 0.1.49 (build-3v6RdT)，P03.13.21 图片按预算压缩进上下文 + 中转站 413 请求体超限兜底自救随包生效。新增 `docs/evidence/desktop/p03-installed-update-0149.json`（E138）；`artifacts/installed-update-0.1.49/` 保留 update.mjs/update.command/checkpoint.md/result.json/result-attempt1.json/update-attempt1.log/update.log；PLAN.md P03.13.21 行与证据表 E138 行同步。
+- 遇到的难题：第一次交接（12:07）preflight 通过但验证门停止——electron.exit 误写为 "ELECTRON_EXIT=0" 而脚本按 Number(trim()) 解析出 NaN；本会话宿主任务在应用正常退出时被取消，会话一度中断，恢复后凭 result.json 核对（不凭窗口恢复宣称成功）。
+- 处理方式：第一次停止发生在触碰应用之前（未退出、未备份、未换包，沐码进程持续运行），现场确认无副作用后按检查点约定更正门文件（纯数字 "0"）、存档 attempt1、提交推送（da21ec0）后二次交接成功。
+- 处理方式（安装器执行）：等待空闲 3 分钟上限后走应用正常退出路径 → 停机完整备份 10723 文件（0700/0600 核实）→ 原子换包（旧包移 previous/）→ 签名 strict 校验 → 3 个变更文件与仓库逐字节比对 → 用 previous/ 旧包重放全树 diff 复核 → 启动后核对单实例、host、已加载 client、6 个模型配置可读、API/凭据/聊天/PI 历史/皮肤/工作区/数据库行/插件依赖保留 → state=success（12:14:16）。
+- 验证结果：安装后独立复核 CFBundleShortVersionString=CFBundleVersion=0.1.49、codesign deep strict 通过、Identifier=dev.moos.agent.electron、includesPiFixture=false、relief 标记与 image-policy.mjs 在位；SQLite quick_check ok，cancelled 12→13（安装指令任务正常取消）、running 1（新会话）、succeeded/failed/interrupted 计数不变；用户在新版正常对话（聊天与模型配置可读的直接证据）。本轮门禁：core 236/236、Electron 104+9skip+0fail、native 11/11、文档 109/109（交接前实跑）。
+- 遗留问题：按 AGENTS 规则已删除本次停机备份（888M）与旧包（675M）；生产会话实图重跑（b94f034a）待自然触发确认压缩/relief 生效；relief 每任务 2 轮上限未在生产再触发；既有遗留（.moos-update-0.1.31~.45 清理、反馈命令、下载日志 ZIP 等）不变。
+- 对应 Git 提交：交接 e98c4ed、门格式更正 da21ec0、本条收尾提交见下；查询 `git log --all --oneline --grep='0.1.49'`。
+
