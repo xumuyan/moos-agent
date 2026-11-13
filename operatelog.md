@@ -2148,3 +2148,13 @@
 - 验证结果：复核 23/23 通过（result-verify.json）；安装版 codesign strict 通过、CFBundleShortVersionString=0.1.48、加载壳 0.1.48；P03.13.19/P03.13.20 marker 在安装包与加载侧均核对通过。复核 23/23 通过外均如实记录于各字段。
 - 遗留问题：P03.13.20 真实上下文场景待生产自然触发确认；host 任务底层异常无持久化日志（0.1.47 起同限制）列为后续改进；反馈命令端到端、下载日志 ZIP 内容检查、聊天分页、旧更新目录清理（.moos-update-0.1.31/0.1.32 等）仍为遗留项。
 - 对应 Git 提交：本轮唯一提交（见下一条日志或 `git log --oneline -1`）。
+
+## 2026-11-13 12:05:30 +08:00｜0.1.49 安装交接检查点（用户授权，E84 独立进程待执行）
+
+- 修改或新增内容：用户本轮明确指示安装更新（三步方案 C）。版本 bump 至 0.1.49（apps/electron/package.json、plugin/package.json），`npm run build:app` 构建 0.1.49 候选 build-3v6RdT（codesign --deep --strict 通过、includesPiFixture=false）。新增 `artifacts/installed-update-0.1.49/update.mjs`（改编自已验证的 0.1.48 流程）：0.1.48 手挑基线列表升级为对安装版 0.1.48（E136 验收包）的全树逐字节 diff（changed 必须恰为 7 个版本元数据 + 2 个本轮运行时文件；added/removed 仅允许 image-policy.mjs、0.1.49 shell tgz、构建期 plugin-manager 日志；bundle 级仅允许 Info.plist、MacOS/MuMa、_CodeSignature；desktop helper 等其余文件全部被覆盖校验，严格强于 0.1.48）+ 换包后用 previous/ 旧包重放同一 diff 复核。门禁读取本轮真实结果 `artifacts/image-budget-relief/final/`（core=0/electron=0/native=0/docs=0）+ E126 bridge/skin=0。断言轮标记：本轮 relief/compressImage/image-policy + 0.1.48 预压缩分类/权限菜单 + 0.1.47 errors 分类 + E126 排队三态 + E125 超时强制 + E113 链接处理等历史回归；修正 0.1.48 脚本行 423 字段名笔误（unchangedFilesMatchE126BaselineInInstalled→treeDiffReconfirmedInInstalled）。
+- 遇到的难题：本会话由运行中的沐码托管（任务 679d0c7f 即本次安装指令），交接后本对话无法继续观察；0.1.48 脚本最终核对数组存在引用不存在字段的笔误（E136 运行版未受影响，repo 存档版有误）。
+- 处理方式：候选包已 ditto 至 /Applications/.moos-update-0.1.49/沐码.app 并再次签名校验；`node update.mjs --preflight` 通过（PREFLIGHT_OK，含空间/双包签名/身份/版本/检查点/数据可读性/全树 diff/门禁/全部标记）；交接用 update.command（Terminal→nohup，祖先链脱离沐码）。
+- 验证结果：核心 236/236、Electron 104+9skip+0fail、native 11/11、文档 109/109 全部本轮实跑通过；候选与安装版全树 diff 仅含预期 12 changed + 3 added + 2 removed（版本元数据、本轮 3 个运行时文件、构建痕迹日志）。
+- 遗留问题：安装尚未执行；结果以 /Applications/.moos-update-0.1.49/result.json 与 update.log 为准（不凭窗口恢复宣称成功）；完成后需独立复核数据保全、聊天/模型/插件保留，再更新 PLAN/证据并清理备份。
+- 对应 Git 提交：见同日 0.1.49 安装轮提交（apps/electron 版本 bump、安装器脚本、exit 门禁、本条与 PLAN 同步）；查询 `git log --all --oneline --grep='0.1.49 install handoff'`。
+
