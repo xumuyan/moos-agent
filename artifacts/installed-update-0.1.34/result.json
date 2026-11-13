@@ -1,0 +1,36 @@
+{
+  "state": "success",
+  "targetShell": "0.1.34",
+  "userAuthorizedUpdate": true,
+  "stoppedActiveTasks": false,
+  "productionDataReset": false,
+  "automaticDataRestore": false,
+  "time": "2026-11-09T03:26:16.714Z",
+  "fullBackupFilesVerified": 751,
+  "backupPermissionsVerified": true,
+  "backupVerified": true,
+  "beforeCounts": {
+    "messages": 108,
+    "conversations": 1,
+    "tasks": 58
+  },
+  "loadedClientMatches": true,
+  "hostRunning": true,
+  "glmEffortsInInstalled": true,
+  "probeFixInInstalled": true,
+  "hintStyleInInstalled": true,
+  "readableSavedModels": 14,
+  "apiAndCredentialsIdentical": true,
+  "chatFilesRetained": true,
+  "piHistoryFilesRetained": true,
+  "skinsRetained": true,
+  "workspaceRetained": true,
+  "originalDatabaseRowsRetained": true,
+  "afterCounts": {
+    "messages": 108,
+    "conversations": 1,
+    "tasks": 58
+  },
+  "userPluginDependenciesRetained": true,
+  "installedMainProcesses": 1
+}

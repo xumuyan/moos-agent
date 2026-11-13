@@ -1,0 +1,32 @@
+{
+  "state": "success",
+  "targetShell": "0.1.31",
+  "userAuthorizedUpdate": true,
+  "stoppedActiveTasks": false,
+  "productionDataReset": false,
+  "automaticDataRestore": false,
+  "time": "2026-11-08T15:34:17.581Z",
+  "fullBackupFilesVerified": 691,
+  "backupPermissionsVerified": true,
+  "backupVerified": true,
+  "beforeCounts": {
+    "messages": 75,
+    "conversations": 1,
+    "tasks": 41
+  },
+  "loadedClientMatches": true,
+  "hostRunning": true,
+  "apiAndCredentialsIdentical": true,
+  "chatFilesRetained": true,
+  "piHistoryFilesRetained": true,
+  "skinsRetained": true,
+  "workspaceRetained": true,
+  "originalDatabaseRowsRetained": true,
+  "afterCounts": {
+    "messages": 75,
+    "conversations": 1,
+    "tasks": 41
+  },
+  "userPluginDependenciesRetained": true,
+  "installedMainProcesses": 1
+}

@@ -1,0 +1,6 @@
+waiting-for-idle
+normal-quit-requested
+backing-up-stopped-data
+backup-verified
+stopped-for-review
+更新停止，请保留备份，不要删除或重置数据。错误：ENOENT: no such file or directory, rename '/Applications/Moos.app' -> '/Applications/.moos-update-0.1.31/previous/Moos.app'

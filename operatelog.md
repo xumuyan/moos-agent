@@ -2177,3 +2177,12 @@
 - 遗留问题：按 AGENTS 规则已删除本次停机备份（888M）与旧包（675M）；生产会话实图重跑（b94f034a）待自然触发确认压缩/relief 生效；relief 每任务 2 轮上限未在生产再触发；既有遗留（.moos-update-0.1.31~.45 清理、反馈命令、下载日志 ZIP 等）不变。
 - 对应 Git 提交：交接 e98c4ed、门格式更正 da21ec0、本条收尾提交见下；查询 `git log --all --oneline --grep='0.1.49'`。
 
+## 2026-11-13 12:45:00 +08:00｜清理遗留旧更新目录 0.1.31~0.1.45（用户授权「顺手清理」）
+
+- 修改或新增内容：删除 /Applications/.moos-update-0.1.{31,32,33,34,38,39,45} 共 7 个旧更新工作目录（合计 3.3G，主要为 0.1.31 的 1.5G 停机备份+旧包、0.1.38/0.1.39 各约 0.9G）。删除前将其中的证据小文件归档进仓库：各版本 result.json、first-attempt-result.json、terminal-update.log、resume-terminal.log、update.log（17 个文件，均 <2KB），对应 artifacts/installed-update-0.1.X/ 目录。保留 /Applications/.moos-update-0.1.47/0.1.48/0.1.49（近期轮次小目录，0.1.49 为 E138 证据所在）。
+- 遇到的难题：无。
+- 处理方式：删除前逐目录盘点内容并核对 repo 归档情况，缺 result.json 的版本先拷贝归档再删除；历史日志（E90/E111 等）中引用的 /Applications 结果路径已由仓库归档副本承接。
+- 验证结果：删除后 /Applications 仅剩 .moos-update-0.1.47/.48/.49；磁盘可用 29Gi（清理前约 31Gi，加上本轮早前已清理的 1.5G 安装备份）；文档检查 109/109。
+- 遗留问题：仓库本地 artifacts/installed-update-0.1.31（25M，含旧日志）与 installed-update-0.1.33/gui（1.4G 截图目录）仍在本地磁盘且未入 Git，属历史验收产物，未经确认不删除；正式桌面清理不影响应用与数据。
+- 对应 Git 提交：见本日清理提交；查询 `git log --all --oneline --grep='legacy update dirs cleanup'`。
+

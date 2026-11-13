@@ -1,0 +1,43 @@
+{
+  "state": "success",
+  "targetShell": "0.1.38",
+  "userAuthorizedUpdate": true,
+  "stoppedActiveTasks": false,
+  "productionDataReset": false,
+  "automaticDataRestore": false,
+  "time": "2026-11-10T00:46:56.781Z",
+  "fullBackupFilesVerified": 1443,
+  "backupPermissionsVerified": true,
+  "backupVerified": true,
+  "beforeCounts": {
+    "messages": 286,
+    "conversations": 6,
+    "tasks": 149
+  },
+  "loadedClientMatches": true,
+  "formalPath": "/Applications/MuMa.app",
+  "brandingAndCollapsePresent": true,
+  "appIconMatchesAccepted": true,
+  "oldFormalPathAbsent": true,
+  "hostRunning": true,
+  "executionPolicyInInstalled": true,
+  "executionPolicyCardInInstalled": true,
+  "tableFixInInstalled": true,
+  "imageToolInInstalled": true,
+  "readableSavedModels": 6,
+  "apiAndCredentialsIdentical": true,
+  "chatFilesRetained": true,
+  "piHistoryFilesRetained": true,
+  "skinsRetained": true,
+  "workspaceRetained": true,
+  "originalDatabaseRowsRetained": true,
+  "afterCounts": {
+    "messages": 286,
+    "conversations": 6,
+    "tasks": 149
+  },
+  "userPluginDependenciesRetained": true,
+  "installedMainProcesses": 1,
+  "nativeVisibleAppearanceVerified": false,
+  "installerAncestorsIndependent": true
+}
