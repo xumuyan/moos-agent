@@ -2158,3 +2158,12 @@
 - 遗留问题：安装尚未执行；结果以 /Applications/.moos-update-0.1.49/result.json 与 update.log 为准（不凭窗口恢复宣称成功）；完成后需独立复核数据保全、聊天/模型/插件保留，再更新 PLAN/证据并清理备份。
 - 对应 Git 提交：见同日 0.1.49 安装轮提交（apps/electron 版本 bump、安装器脚本、exit 门禁、本条与 PLAN 同步）；查询 `git log --all --oneline --grep='0.1.49 install handoff'`。
 
+## 2026-11-13 12:12:40 +08:00｜0.1.49 第一次交接停止与更正（未触碰应用与数据）
+
+- 修改或新增内容：12:05 交接后安装器 preflight 通过，但验证门检查 electron 项失败（validation_electron=NaN），state=stopped-for-review。artifacts/image-budget-relief/final/electron.exit 内容由 "ELECTRON_EXIT=0" 更正为纯数字 "0"（脚本按 Number(trim()) 解析，其余 core/docs/native/bridge/skin 五个门文件格式本来就正确）。第一次尝试存档为 /Applications/.moos-update-0.1.49/result-attempt1.json 与 update-attempt1.log。
+- 遇到的难题：写 exit 门禁文件时用了 echo "ELECTRON_EXIT=$?" 格式而不是纯退出码；gate 在退出应用之前检查，应用未受影响（沐码 2 进程持续运行、previous/ 为空目录、data-before-install 未创建、installed 未换）。
+- 处理方式：确认现场无副作用后按检查点约定可安全重跑（old/backup 均不存在，preflight 的检查点守卫允许），更正门文件后二次交接。
+- 验证结果：attempt1 的 treeDiffAtPreflight 与本轮预检一致（changed 仅版本元数据与 2 个本轮运行时文件），说明全树 diff 门禁本身工作正常。
+- 遗留问题：安装仍未执行；二次交接结果以 result.json 为准。
+- 对应 Git 提交：见同日更正提交；查询 `git log --all --oneline --grep='0.1.49 gate format correction'`。
+
