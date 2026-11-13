@@ -2123,3 +2123,19 @@
 - 验证结果：result.json state=waiting-for-idle，targetShell0.1.39、未强停任务/重置/恢复数据；文档86/86提交前再次执行，业务/GUI测试沿用本次已提交源码验证。
 - 遗留问题：安装尚未执行，结果/Applications/.moos-update-0.1.39/result.json，日志同目录terminal-update.log；下次先读实际结果，成功后再确认单实例与聊天/模型保留，不预称完成。原0.1.38备份暂保留，无清理动作。
 - 对应 Git 提交：源码077166a；本条唯一说明 `docs(P03.13.11): record Chinese display update handoff`；查询 `git log --all --oneline --grep='Chinese display update handoff'`。
+
+## 2026-11-13 09:06:41 +08:00｜0.1.48 安装完成（E136，用户授权，E84 独立进程）
+
+- 修改或新增内容：/Applications/沐码.app 由 0.1.47 (build-9jwHgP) 更换为 0.1.48 (build-6C9P2R)。随包生效：P03.13.20 预压缩失败不再误报上下文过长、P03.13.19 对话三档执行权限菜单移除（含 + 菜单「权限」第二入口消失）、E129/E132/E133 桌面事务系列。新增 `artifacts/installed-update-0.1.48/`（update.mjs/update.command/checkpoint.md/verify-installed.mjs/result-attempt3.json/result-verify.json/update.log）与 `docs/evidence/desktop/p03-installed-update-0148.json`；PLAN.md 总览、P03.13.19/P03.13.20 行与证据表 E136 行同步。
+- 执行过程（三次脚本交接）：
+  1. 仿 0.1.47 已验证脚本适配 0.1.48（路径/版本/基线 build-9jwHgP/E134 对照候选 build-m69uNn/验证 gate 换为本轮 precompact-misreport exit 文件），`--preflight` 通过后经 Terminal.app 独立进程启动。第 1 次 stopped-for-review：0.1.47 遗留的 quit 前 activeTasks 防线把安装器自身（宿主内运行中任务）当活跃工作拦截；未换包，应用未动。删除该防线后重交接。
+  2. 第 2 次 stopped-for-review（07:55）：换包完成、0.1.48 启动成功、record 中全部真实断言为 True，但最终 gate 的 every 数组引用了改名前字段 `record.unchangedFilesMatchE126BaselineInInstalled`（undefined）→ 误报「Data preservation verification did not fully pass」。**包与应用已是新版**，未回滚、未重装。
+  3. 处置：不重装，写只读复核脚本 `verify-installed.mjs` 对已安装状态重跑全部安装后断言 + 数据保全核对。期间修复复核脚本自身两个 bug（ps ENOBUFS→加大 maxBuffer；mainPids 缺 split 提取 pid）。最终 result-verify.json **state=success，23 项核对全过**。脚本三处修正同步回 artifacts 副本。
+- 数据保全核对（基准=停机备份）：providers.json/private/credentials.json 等保护文件字节一致；messages 784→789、tasks 414→418（新增为安装后正常新消息/新任务，旧行全部原样保留）；pi/sessions 44 个历史文件纯追加；agent/models.json 为 PI 运行时模型缓存，唯一差异是本地中转站代理端口刷新（60979→58123），模型定义逐字段一致，规范化端口后内容一致；皮肤/工作区保留；6 模型凭证可读；插件依赖保留。安装后徐-moss-hotal/沐-UI/codex-weixin-notifier 三项目任务并行运行、心跳新鲜，新版调度正常。
+- 截图红字核查：对话中「本轮运行失败」两条 = ①当前对话任务 9db61f8d 随应用正常退出取消（cancelled 正常终态，E84 预期内）②codex-weixin-notifier 任务 bfa1489f internal 失败——该会话升级前已有 internal/rate_limit 失败史，升级后同会话另有 2 个 succeeded 任务；host 底层异常无持久化日志（0.1.47 同限制），具体原因不可回溯，判定与升级无关。
+- 遇到的难题：安装器最终 gate 的 every 数组引用了改名前字段（undefined）导致换包启动成功后仍误报 preservation 失败；0.1.47 遗留的 quit 前 activeTasks 防线也会把安装器自身（宿主内运行中任务）当活跃工作拦截。
+- 处理方式：第 1 次停止后删除该防线重交接；第 2 次误报后不重装，以独立只读复核脚本 verify-installed.mjs 对已安装状态重跑全部断言与数据保全核对，并保留两次 stopped 的 result 文件原文；quit 防线与数组名两处脚本修正已同步 artifacts 副本。
+- 备份清理：新版核对通过且用户实际使用确认后，按规则删除 data-before-install 与 previous/（/Applications/.moos-update-0.1.48/ 现仅存脚本与结果文件）。
+- 验证结果：复核 23/23 通过（result-verify.json）；安装版 codesign strict 通过、CFBundleShortVersionString=0.1.48、加载壳 0.1.48；P03.13.19/P03.13.20 marker 在安装包与加载侧均核对通过。复核 23/23 通过外均如实记录于各字段。
+- 遗留问题：P03.13.20 真实上下文场景待生产自然触发确认；host 任务底层异常无持久化日志（0.1.47 起同限制）列为后续改进；反馈命令端到端、下载日志 ZIP 内容检查、聊天分页、旧更新目录清理（.moos-update-0.1.31/0.1.32 等）仍为遗留项。
+- 对应 Git 提交：本轮唯一提交（见下一条日志或 `git log --oneline -1`）。

@@ -1,0 +1,41 @@
+{
+  "state": "success",
+  "time": "2026-11-13T01:02:15.859Z",
+  "beforeCounts": {
+    "messages": 784,
+    "conversations": 8,
+    "tasks": 414
+  },
+  "afterCounts": {
+    "messages": 790,
+    "conversations": 8,
+    "tasks": 419
+  },
+  "piRuntimeCacheDiffs": [],
+  "checks": {
+    "signatureStrict": true,
+    "version048": true,
+    "singleMainProcess": true,
+    "hostChildRunning": true,
+    "changedFilesMatchRepo": true,
+    "unchangedFilesMatch47BaselineOrCandidate": true,
+    "helperMatchesComparedCandidate": true,
+    "preCompactClassifyMarker": true,
+    "piRouteNewMessage": true,
+    "uiPermissionDisabled": true,
+    "contextLimitMessage47": true,
+    "preCompactGate47": true,
+    "loadedShellVersion048": true,
+    "liveClientQueuedCards": true,
+    "liveClientPermissionMenuGone": true,
+    "liveClientExecutionPolicyCard": true,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryFilesRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "originalDatabaseRowsRetained": true,
+    "savedModelsReadable": true
+  },
+  "allPassed": true
+}

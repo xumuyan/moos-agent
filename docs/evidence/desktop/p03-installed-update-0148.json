@@ -1,0 +1,72 @@
+{
+ "id": "E136",
+ "dateBeijing": "2026-11-13",
+ "completionTimeBeijing": "2026-11-13 09:03:30 +08:00",
+ "task": "0.1.48 安装（P03.13.20 预压缩失败分类 + P03.13.19 权限菜单移除 + E129/E132/E133 桌面事务随包生效）",
+ "sourceBuild": "build-6C9P2R",
+ "shellVersion": "0.1.48",
+ "previousShellVersion": "0.1.47",
+ "bundleId": "dev.moos.agent.electron",
+ "installedPath": "/Applications/沐码.app",
+ "signatureDeepStrict": "passed",
+ "userAuthorizedUpdate": true,
+ "flow": "E84 独立进程安装器（/Applications/.moos-update-0.1.48/update.mjs，nohup 脱离沐码宿主进程树，Terminal.app 承接）",
+ "installerRun": {
+  "attempts": 3,
+  "attempt1": "stopped-for-review：0.1.47 脚本遗留的 quit 前 activeTasks 防线拦截（安装器自身即宿主内运行中任务）；未换包，应用未动",
+  "attempt2": "stopped-for-review：换包完成、启动成功、全部真实断言 True，但最终 gate 的 every 数组引用改名前字段（record.unchangedFilesMatchE126BaselineInInstalled, undefined）→ 误报 preservation 失败",
+  "attempt3Note": "未重装：以只读复核脚本 verify-installed.mjs 对已安装状态重跑全部断言（含修正后的 0.1.47 基线比对）+ 数据保全核对",
+  "resultFile": "artifacts/installed-update-0.1.48/result-attempt3.json",
+  "verifyScript": "artifacts/installed-update-0.1.48/verify-installed.mjs",
+  "verifyResultFile": "artifacts/installed-update-0.1.48/result-verify.json"
+ },
+ "verification": {
+  "state": "success",
+  "checksPassed": 23,
+  "checksFailed": [],
+  "singleMainProcess": true,
+  "hostChildRunning": true,
+  "loadedShellVersion": "0.1.48",
+  "changedFilesMatchRepo": true,
+  "unchangedFilesMatch47BaselineOrCandidate": true,
+  "helperMatchesComparedCandidate": true,
+  "preCompactClassifyMarker": true,
+  "piRouteNewMessage": true,
+  "uiPermissionDisabled": true,
+  "liveClientPermissionMenuGone": true,
+  "beforeCounts": {
+   "messages": 784,
+   "conversations": 8,
+   "tasks": 414
+  },
+  "afterCounts": {
+   "messages": 790,
+   "conversations": 8,
+   "tasks": 419
+  },
+  "apiAndCredentialsIdentical": true,
+  "chatFilesRetained": true,
+  "piHistoryFilesRetained": true,
+  "skinsRetained": true,
+  "workspaceRetained": true,
+  "originalDatabaseRowsRetained": true,
+  "savedModelsReadable": true,
+  "piRuntimeCacheDiffs": [],
+  "userPluginDependenciesRetained": true
+ },
+ "dataNotes": [
+  "数据库行保留核对以停机备份为基准：messages 784→789、tasks 414→418，新增为安装后的正常新消息/新任务（三个项目并行执行中），旧行全部原样保留。",
+  "pi/sessions 44 个历史文件均为纯追加；agent/models.json 为 PI 运行时模型缓存，唯一差异是本地中转站代理端口刷新（60979→58123），模型定义逐字段一致，规范化端口后内容一致（piRuntimeCacheDiffs 为空）。"
+ ],
+ "backupCleanup": "新版核对通过且用户实际使用确认后，按 AGENTS 规则删除停机备份 data-before-install 与 previous/ 旧包（2026-11-13 09:05 前后）",
+ "postInstallObservations": [
+  "安装后徐-moss-hotal / 沐-UI / codex-weixin-notifier 三项目任务并行运行，心跳新鲜（09:03 时段），新版调度与工具执行正常。",
+  "codex-weixin-notifier 任务 bfa1489f（08:45）internal 失败：该会话升级前已有 internal/rate_limit 失败史，升级后同会话另有 2 个 succeeded 任务；host 底层异常无持久化日志（0.1.47 同限制），具体原因不可回溯，判定与本次升级无关，失败原因持久化列为后续改进项。",
+  "当前对话任务 9db61f8d 随应用正常退出被取消（cancelled 正常终态），符合 E84 流程预期。"
+ ],
+ "limits": [
+  "P03.13.20 预压缩分类修复的真实上下文场景需待生产自然触发后确认；本轮确认修复代码已随 0.1.48 安装生效（变更文件与仓库字节一致 + marker 核对）。",
+  "安装器 attempt2 的误报根因是脚本自身 bug（数组引用改名前字段），已在 artifacts 副本中修正并如实记录；复核脚本另修复 ENOBUFS 与 mainPids 缺 split 两个自身 bug。",
+  "对话中截图显示的两条「本轮运行失败」分别为宿主中断终态（cancelled）与上述 bfa1489f，均非 0.1.48 新引入故障。"
+ ]
+}

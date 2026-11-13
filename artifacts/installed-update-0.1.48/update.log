@@ -1,0 +1,11 @@
+waiting-for-idle
+normal-quit-requested
+stopped-for-review
+更新停止，请保留备份，不要删除或重置数据。错误：A task started before shutdown
+waiting-for-idle
+normal-quit-requested
+backing-up-stopped-data
+backup-verified
+new-package-installed
+stopped-for-review
+更新停止，请保留备份，不要删除或重置数据。错误：Data preservation verification did not fully pass; preserve backup and request review
