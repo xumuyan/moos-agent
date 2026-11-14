@@ -1,6 +1,7 @@
 /** Single-Host FIFO desktop queue. Executors must stop native effects on abort.
- * Cancellation/run timeout rejects late results; after grace the caller settles and
- * the next owner may proceed. A released owner's late completion cannot unlock it.
+ * Cancellation/run timeout rejects late results; after grace the caller settles,
+ * but the desktop remains held until the executor settles (native child closed).
+ * A stuck executor blocks only desktop work; queued callers retain bounded waits.
  */
 export class QueueTimeoutError extends Error {
   constructor(message, detail) { super(message); this.name = 'QueueTimeoutError'; this.detail = detail; }
@@ -49,7 +50,8 @@ export function createDesktopQueue() {
     if (signal?.aborted) throw cancelled('cancelled');
     const controller = new AbortController();
     const entry = { owner, label, onQueued, waitTimer: null };
-    let runTimer, graceTimer, failure;
+    let runTimer, graceTimer, failure, execution, executionSettled = false;
+    const release = () => { if (holder === entry) { holder = null; pump(); } };
     let rejectGrace;
     // Resolve with an error rather than rejecting before Promise.race has attached.
     const grace = new Promise(resolve => { rejectGrace = resolve; });
@@ -82,8 +84,13 @@ export function createDesktopQueue() {
       runTimer = setTimeout(() => cancel(new QueueCancelledError('desktop operation exceeded run timeout', {
         owner, label, runTimeoutMs, reason: 'run-timeout',
       })), runTimeoutMs);
+      execution = Promise.resolve().then(() => { if (failure) throw failure; return fn(controller.signal); });
+      // Install both handlers before racing. If grace wins, late native cleanup
+      // still owns the lease; rejection is observed and cannot become unhandled.
+      const settled = () => { executionSettled = true; release(); };
+      execution.then(settled, settled);
       const result = await Promise.race([
-        Promise.resolve().then(() => { if (failure) throw failure; return fn(controller.signal); }),
+        execution,
         grace.then(error => { throw error; }),
       ]);
       if (failure) throw failure;
@@ -95,14 +102,14 @@ export function createDesktopQueue() {
       clearTimeout(runTimer);
       clearTimeout(graceTimer);
       signal?.removeEventListener('abort', onAbort);
-      if (holder === entry) { holder = null; pump(); }
+      if (!execution || executionSettled) release();
     }
   }
 
   function releaseAll(reason = 'released') {
     for (const entry of [...waiting]) entry.cancel(new QueueCancelledError('desktop queue cleared while queued', { owner: entry.owner, reason }));
     if (holder) holder.cancel(new QueueCancelledError('desktop lock force-released', { owner: holder.owner, reason }));
-    // Still allow the active executor its grace to terminate native effects.
+    // Caller cancellation is bounded, but native cleanup must finish before handoff.
   }
   return { withLock, status, releaseAll };
 }

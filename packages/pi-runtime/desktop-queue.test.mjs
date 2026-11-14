@@ -100,7 +100,7 @@ test('desktop queue releases the lock when the executor throws and passes the er
   assert.equal(await queue.withLock({ owner: 'after' }, async () => 'recovered'), 'recovered');
 });
 
-test('desktop queue aborts executor on run timeout and frees the lock after grace', async () => {
+test('desktop queue aborts executor on run timeout and hands off after cooperative cleanup', async () => {
   const queue = createDesktopQueue();
   const observed = [];
   const stubborn = queue.withLock(
@@ -108,8 +108,8 @@ test('desktop queue aborts executor on run timeout and frees the lock after grac
     async (signal) => {
       const aborted = once(signal, 'abort').then(() => 'aborted');
       observed.push(signal);
-      await Promise.race([delay(5000), aborted]);
-      return 'ignored-after-force-release';
+      await aborted;
+      return 'ignored-after-cancellation';
     },
   );
   const follower = queue.withLock({ owner: 'follower', waitTimeoutMs: 3000 }, async () => 'took-over');
@@ -216,21 +216,30 @@ test('cancellation before executor starts prevents any action', async () => {
   assert.equal(queue.status().locked, false);
 });
 
-test('running cancellation rejects late success and bounds an uncooperative executor', async () => {
+test('running cancellation rejects late success and keeps the desktop held until cleanup', async () => {
   const queue = createDesktopQueue();
   const abort = new AbortController();
-  const entered = deferred();
-  const result = queue.withLock({ owner: 'a', signal: abort.signal, graceMs: 10 }, async signal => {
+  const entered = deferred(), cleanup = deferred();
+  const result = queue.withLock({ owner: 'old', signal: abort.signal, graceMs: 10 }, async () => {
     entered.resolve();
-    await once(signal, 'abort');
+    await cleanup.promise;
     return 'must-not-succeed';
   });
+  const rejected = assert.rejects(result, QueueCancelledError);
   await entered.promise;
   abort.abort();
-  await assert.rejects(result, QueueCancelledError);
-  const hung = queue.withLock({ owner: 'hung', runTimeoutMs: 10, graceMs: 10 }, () => new Promise(() => {}));
-  await assert.rejects(Promise.race([hung, delay(300).then(() => { throw new Error('promise did not settle'); })]), QueueCancelledError);
+  await rejected; // Caller settles even if native cleanup has not completed.
+  assert.equal(queue.status().owner, 'old');
+  let nextRan = false;
+  try {
+    await assert.rejects(queue.withLock({ owner: 'impatient', waitTimeoutMs: 10 }, () => {
+      nextRan = true;
+    }), QueueTimeoutError);
+    assert.equal(nextRan, false);
+    assert.equal(await Promise.resolve('ordinary project work'), 'ordinary project work');
+  } finally { cleanup.resolve(); }
   assert.equal(await queue.withLock({ owner: 'next' }, async () => 'ok'), 'ok');
+  assert.equal(queue.status().locked, false);
 });
 
 test('waiting timeout removes abort listeners and reentrant cancellation leaves no timer', async () => {
@@ -250,15 +259,41 @@ test('waiting timeout removes abort listeners and reentrant cancellation leaves 
   assert.equal(queue.status().locked, false);
 });
 
-test('late completion from a cancelled holder cannot release its successor', async () => {
+test('cancelled holder releases only after cleanup; releaseAll cannot force an early handoff', async () => {
   const queue = createDesktopQueue();
-  const oldGate = deferred(), newGate = deferred();
-  const old = queue.withLock({ owner: 'old', runTimeoutMs: 10, graceMs: 10 }, () => oldGate.promise);
+  const oldGate = deferred(), newGate = deferred(), entered = deferred();
+  const old = queue.withLock({ owner: 'old', runTimeoutMs: 10, graceMs: 10 }, () => {
+    entered.resolve();
+    return oldGate.promise;
+  });
+  const rejected = assert.rejects(old, QueueCancelledError);
   const next = queue.withLock({ owner: 'new' }, () => newGate.promise);
-  await assert.rejects(old, QueueCancelledError);
-  assert.equal(queue.status().owner, 'new');
+  // Observe a cancellation immediately; releaseAll also cancels queued entries.
+  const nextRejected = assert.rejects(next, QueueCancelledError);
+  await entered.promise;
+  await rejected;
+  assert.equal(queue.status().owner, 'old');
+  queue.releaseAll('shutdown');
+  await nextRejected;
+  assert.equal(queue.status().owner, 'old');
+  const successor = queue.withLock({ owner: 'successor' }, () => newGate.promise);
   oldGate.resolve('late');
   await delay(5);
-  assert.equal(queue.status().owner, 'new');
-  newGate.resolve(); await next;
+  assert.equal(queue.status().owner, 'successor');
+  newGate.resolve(); await successor;
+  assert.equal(queue.status().locked, false);
+});
+
+// Test the rejection path as well: failed cleanup must unlock, with no unhandled rejection.
+test('late executor rejection releases the retained desktop lock', async () => {
+  const queue = createDesktopQueue();
+  let fail;
+  const cleanup = new Promise((_, reject) => { fail = reject; });
+  const old = queue.withLock({ owner: 'old', runTimeoutMs: 10, graceMs: 10 }, () => cleanup);
+  await assert.rejects(old, QueueCancelledError);
+  assert.equal(queue.status().owner, 'old');
+  const next = queue.withLock({ owner: 'next' }, async () => 'safe');
+  fail(new Error('cleanup failed'));
+  assert.equal(await next, 'safe');
+  assert.equal(queue.status().locked, false);
 });

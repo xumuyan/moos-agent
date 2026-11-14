@@ -1,11 +1,23 @@
-import test from 'node:test';
+import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { chmod, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { createDesktopTools } from './desktop-tools.mjs';
+import { createDesktopTools as makeDesktopTools } from './desktop-tools.mjs';
 import { createDesktopQueue } from './desktop-queue.mjs';
+
+// A failed assertion/timeout must not leave a transaction holding the shared
+// queue and turn later independent cases into spurious queued/timeout failures.
+const ownedTools = [];
+function createDesktopTools(options) {
+  const tools = makeDesktopTools(options);
+  ownedTools.push(tools);
+  return tools;
+}
+afterEach(async () => {
+  await Promise.all(ownedTools.splice(0).map(tools => tools.dispose?.()));
+});
 
 // 假 helper：用脚本模拟真实 helper 的输出协议（ok JSON / blocked exit 3 / failed exit 1），
 // 覆盖工具层语义；真实 Swift helper 的行为由 apps/electron/desktop-helper.test.mjs 验证。
@@ -357,28 +369,31 @@ console.log(JSON.stringify(payload));
   await assert.rejects(screenshot.execute('bad', { scope: 'window', windowId: -1 }), /windowId/);
 });
 
-test('running cancellation waits for the helper to exit, rejects success and frees the queue', async () => {
+test('running cancellation waits for the helper to exit, rejects success and frees the queue', { timeout: 45000 }, async t => {
   const { readFile } = await import('node:fs/promises');
   const { setTimeout: delay } = await import('node:timers/promises');
   const dataDir = await mkdtemp(join(tmpdir(), 'moos-desktop-cancel-'));
   const marker = join(dataDir, 'pid');
   const helper = await fakeHelper(`#!/usr/bin/env node
 import { writeFileSync } from 'node:fs';
+process.on('SIGTERM', () => setTimeout(() => { console.log(JSON.stringify({ status: 'ok', at: {x:1,y:1} })); process.exit(0); }, 200));
 writeFileSync(${JSON.stringify(marker)}, String(process.pid));
-process.on('SIGTERM', () => setTimeout(() => { console.log(JSON.stringify({ status: 'ok', at: {x:1,y:1} })); process.exit(0); }, 80));
 setInterval(() => {}, 1000);
 `);
   const queue = createDesktopQueue();
   const controller = new AbortController();
   const events = [];
   const tools = createDesktopTools({ helperPath: helper, ownerId: 'cancel-test', queue,
-    emit: (_, e) => events.push(e) });
+    queueLimits: { graceMs: 10 }, emit: (_, e) => events.push(e) });
   const pending = tools.find(t => t.name === 'desktop_displays').execute('c', {}, controller.signal);
-  let pid;
-  for (let n = 0; n < 100 && !pid; n++) { pid = Number(await readFile(marker, 'utf8').catch(() => '')); if (!pid) await delay(10); }
-  assert.ok(pid, 'helper actually started');
-  controller.abort();
   const rejected = assert.rejects(pending);
+  t.after(async () => { controller.abort(); await rejected; });
+  let pid;
+  const deadline = Date.now() + 30000;
+  while (!pid && Date.now() < deadline) { pid = Number(await readFile(marker, 'utf8').catch(() => '')); if (!pid) await delay(10); }
+  assert.ok(pid, 'helper actually started and installed its abort handler');
+  controller.abort();
+  await rejected;
   await queue.withLock({ owner: 'next' }, async () => {
     assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }, 'old helper exited before next desktop action');
   });

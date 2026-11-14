@@ -1,0 +1,43 @@
+{
+  "scope": "P06.1/P06.3a cancellation handoff candidate, not full M06 acceptance",
+  "system": "arm64 macOS 27.0.1, Node 22.22.0",
+  "baseCommit": "6cd476fb9381f8cb6bb9ee554459a7e7e606d967",
+  "state": "baseCommit plus precommit workspace; exact final targeted tests followed final test-only edits",
+  "regression": {
+    "baseline": "Original native-child cancellation test failed: old helper still alive at next owner; outer tool call timed out at 65s. New deterministic queue cases both failed before implementation (owner null instead of old).",
+    "contract": "Grace bounds caller cancellation, not ownership. Retain lock until executor settles; native executor must wait for child close. A permanently stuck executor blocks desktop work but queued callers retain wait timeouts.",
+    "finalLease": { "tests": 24, "passed": 24, "failed": 0, "exit": 0, "seconds": 2.610474166 },
+    "finalNativeChild": { "tests": 1, "passed": 1, "failed": 0, "exit": 0, "seconds": 4.359729459 },
+    "initialDesktop": { "tests": 33, "passed": 33, "exit": 0, "seconds": 9.701677541, "state": "before later test cleanup and stronger transaction regression" },
+    "finalDesktop": { "exit": 1, "timedOut": true, "seconds": 240.060567375, "completeSummary": false },
+    "defaultCore": { "exit": 1, "timedOut": true, "seconds": 420.658294791, "completeSummary": false },
+    "serialCore": { "exit": 1, "timedOut": true, "seconds": 420.306094917, "completeSummary": false },
+    "initialElectron": { "tests": 113, "passed": 104, "failed": 0, "cancelled": 0, "skipped": 9, "exit": 0 },
+    "finalElectron": { "tests": 113, "passed": 100, "failed": 3, "cancelled": 1, "skipped": 9, "exit": 1 },
+    "hostAcceptance": { "exit": 0, "seconds": 4.947642834, "scope": "loopback TLS, real PI SDK, local mock model, not phone or production" },
+    "rustOffline": { "exit": 101, "reason": "existing +1.100.0 toolchain, offline tauri dependency unavailable; no download or toolchain repair" }
+  },
+  "build": {
+    "command": "npm run build:app",
+    "exit": 0,
+    "seconds": 160.840181875,
+    "directory": ".generated/moos-electron/build-PgQXpH/沐码.app",
+    "version": "0.1.49",
+    "strictDeepSignatureVerified": true,
+    "queueSourceMatchesWorkspace": true,
+    "includesPiFixture": false
+  },
+  "evidenceDirectory": "artifacts/nsh-validation/results/continue-* (ignored local logs and result JSON)",
+  "limits": {
+    "allTestsPassed": false,
+    "fullM06Verified": false,
+    "realDesktopInputOrScreenshotPerformed": false,
+    "guiHumanAcceptancePerformed": false,
+    "phoneVerified": false,
+    "deployed": false,
+    "productionAppRestartedOrReplaced": false,
+    "productionDataModifiedForTests": false,
+    "allTestDescendantsConfirmedExited": false,
+    "notes": "Native-child acceptance uses a synthetic Node helper, waits for old PID ESRCH before next owner. It is not macOS input delivery verification. Final broad regressions retain adapter/SDK/helper/host/sandbox failures. Queue semantics do not prove arbitrary executors actually stop native effects. No fixed environment-only root cause claimed."
+  }
+}

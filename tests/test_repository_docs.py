@@ -8,6 +8,25 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class M06CancellationHandoffTests(unittest.TestCase):
+    def test_plan_preserves_historical_evidence_and_new_handoff_boundary(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/m06-cancel-handoff.json').read_text())
+        self.assertEqual(evidence['regression']['finalLease']['passed'], 24)
+        self.assertEqual(evidence['regression']['finalNativeChild']['exit'], 0)
+        self.assertFalse(evidence['limits']['allTestsPassed'])
+        self.assertFalse(evidence['limits']['deployed'])
+        self.assertFalse(evidence['build']['includesPiFixture'])
+        self.assertIn('不覆盖E116历史', plan)
+        self.assertIn('宽限只结束调用方', plan)
+        self.assertIn('桌面锁仍保留到executor实际settle', plan)
+        self.assertIn('- [ ] P06.3a', plan)
+        self.assertIn('- [ ] P06.6', plan)
+        source = (ROOT / 'packages/pi-runtime/desktop-queue.mjs').read_text()
+        self.assertIn('execution.then(settled, settled)', source)
+        self.assertIn('if (!execution || executionSettled) release()', source)
+
+
 class M06ShotBridgeTests(unittest.TestCase):
     """E123：P06.5a 截图聊天可见受限桥（路径不进读取模型/DOM/IPC 响应）。"""
 

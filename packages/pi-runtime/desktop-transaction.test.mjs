@@ -67,18 +67,28 @@ test('task cancellation between model calls, dispose and action failure release 
   }
 });
 
-test('cancellation during action waits for action cleanup; a late success stays rejected', async () => {
+test('cancellation beyond grace retains the desktop until active transaction cleanup', async () => {
   const queue = createDesktopQueue(), task = new AbortController();
-  const a = setup(queue, 'a', { signal: task.signal }), b = setup(queue, 'b');
-  const id = await a.begin(); let closed = false, started;
+  const a = setup(queue, 'a', { signal: task.signal, limits: { graceMs: 10 } }), b = setup(queue, 'b');
+  const id = await a.begin(); let closed = false, started, finish;
   const ready = new Promise(r => { started = r; });
+  const cleanup = new Promise(r => { finish = r; });
   const run = a.run(id, undefined, async signal => {
     started(); await new Promise(r => signal.addEventListener('abort', r, { once: true }));
-    await delay(20); closed = true; return 'late';
+    await cleanup; closed = true; return 'late';
   });
   const rejected = assert.rejects(run);
-  await ready; const next = b.begin(); task.abort();
-  const bid = await next; assert.equal(closed, true); await rejected; await b.cancel(bid);
+  await ready;
+  const next = b.begin(); task.abort();
+  await a.dispose(); // Caller has settled after grace, but active action has not.
+  assert.equal(closed, false);
+  assert.equal(queue.status().owner, 'a');
+  assert.equal(b.active(), true, 'successor is pending, not executing');
+  finish();
+  const bid = await next;
+  assert.equal(closed, true);
+  assert.equal(queue.status().owner, 'b');
+  await rejected; await b.cancel(bid);
 });
 
 test('queued task cancellation and wait timeout leave holder and next waiter intact', async () => {
