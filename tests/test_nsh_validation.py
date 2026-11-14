@@ -93,6 +93,24 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('MOBILE-TRANSPORT.md', (ROOT / 'PLAN.md').read_text())
         self.assertIn('phoneVerified: false', (PROBE / 'verify-native-tls.mjs').read_text())
 
+    def test_pinned_tls_checkpoint_does_not_claim_bridge_or_phone_runtime(self):
+        report = (PROBE / 'PINNED-TLS-CHECK.md').read_text()
+        for marker in ('13项断言通过', '不是SPKI', '未签名', '尚未证明NSH→Swift→网络运行',
+                       '没有交付认证轮换协议', 'systemTrustChanged=false', 'N01整体继续未完成'):
+            self.assertIn(marker, report)
+        source = (PROBE / 'PinnedTLS.swift').read_text()
+        for marker in ('SecTrustSetAnchorCertificatesOnly(trust, true)',
+                       'SecPolicyCreateSSL(true, hostname', 'SecTrustEvaluateWithError',
+                       'SHA256.hash', 'SecTrustSetNetworkFetchAllowed(trust, false)'):
+            self.assertIn(marker, source)
+        bridge = (PROBE / 'PinnedTLSBridge.swift').read_text()
+        self.assertIn('app.handle("n01.trustCheck")', bridge)
+        self.assertNotIn('URL(string:', bridge)
+        build = (PROBE / 'verify-ios-bridge.mjs').read_text()
+        self.assertIn('CODE_SIGNING_ALLOWED=NO', build)
+        self.assertIn('phoneInstalled: false', build)
+        self.assertIn('PINNED-TLS-CHECK.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

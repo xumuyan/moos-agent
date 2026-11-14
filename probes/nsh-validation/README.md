@@ -1,6 +1,6 @@
 # N01｜NSH 隔离验证（不是沐码迁移版）
 
-独立工程，固定 **NSH 0.5.0 (f4d68f7)**。NSH界面仍仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。新增独立Mac Host依赖探针使用真实PI SDK+本地模拟模型，仅监听TLS回环地址，不与当前手机UI连接；见 [HOST-CHECK.md](./HOST-CHECK.md)。新增未接UI的HTTPS任务客户端和原生证书拒绝检查，当前手机可信TLS/配对仍待验证，见 [MOBILE-TRANSPORT.md](./MOBILE-TRANSPORT.md)。应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录同步计划、日志、文档检查，`npm test`补入隔离Host测试；不改 `apps/electron`、依赖或正式构建入口。
+独立工程，固定 **NSH 0.5.0 (f4d68f7)**。NSH界面仍仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。新增独立Mac Host依赖探针使用真实PI SDK+本地模拟模型，仅监听TLS回环地址，不与当前手机UI连接；见 [HOST-CHECK.md](./HOST-CHECK.md)。新增未接UI的HTTPS任务客户端和原生证书拒绝检查，当前手机可信TLS/配对仍待验证，见 [MOBILE-TRANSPORT.md](./MOBILE-TRANSPORT.md)。应用内专用锚+叶证书固定原语已获Mac原生实际网络测试，Swift嵌入iOS设备包构建/链接通过（未签名/未安装，桥接运行未验），详见 [PINNED-TLS-CHECK.md](./PINNED-TLS-CHECK.md)。应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录同步计划、日志、文档检查，`npm test`补入隔离Host测试；不改 `apps/electron`、依赖或正式构建入口。
 
 ## 准备与运行
 

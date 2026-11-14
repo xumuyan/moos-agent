@@ -10,7 +10,8 @@
   - 回归：核心默认并行首次232通过/1失败/3取消，串行236/236；native11/11；Electron两次均103通过/1失败/9跳过（`ctx.on is not a function`，缺少部分隔离构建输入）。全仓验收未全过，N01保持未完成；不为本原型顺带改正式工程。
   - Mac Host依赖检查点（2026-11-14）：新增隔离host/测试/独立实际验收，复用PI SDK+本地模拟模型与Store/Scheduler，TLS仅回环、测试主体token/资源归属、幂等提交和游标重连、真实write/bash、停止及项目隔离/工具子进程清理通过；不是手机配对或LAN任务服务，iPhone App仍无网络。证据 `probes/nsh-validation/HOST-CHECK.md`；本轮默认核心237/238（桌面几何用例helper超时）、串行238/238，Electron103/1失败/9跳过、native11/11，未宣称全仓通过。
   - 手机传输前置检查（2026-11-14）：核实v0.5.0 iOS NSURLSession使用系统TLS且无TSX自定义CA/证书固定接口；新增尚未接UI的HTTPS task-client，单次请求/拒绝重定向/响应限制/归属及游标验证，headless与macOS各8/8。独立macOS真实原生网络验收1/1确认自签证书被拒、HTTP请求0，不冒充iPhone成功连接；手机包及系统信任未改、无LAN监听。证据 `probes/nsh-validation/MOBILE-TRANSPORT.md`。下一步先验证应用内原生证书固定扩展能否用于固定工具链，不擅装系统CA；配对/UI/手机端到端仍未做。
-  - 后续依赖：验证NSH iOS可信TLS扩展/证书分发，再实现手机认证配对/撤销、资源授权和PI任务端到端流式/停止/断连恢复；补完整聊天/工具和图片等功能，再对齐业务资源基准。无同业务性能数据，不宣称内存/CPU节省比例，也未替代既有正式技术选型。证据与命令 `probes/nsh-validation/VALIDATION.md`，复现 `README.md`；提交前工作区基础30d3973，关联唯一提交说明 `feat(N01): add isolated NSH native UI validation`。
+  - 应用内TLS原语与Swift嵌入构建（2026-11-14）：专用锚+主机名/链/有效期+叶DER SHA256校验，Mac原生URLSession实际回环HTTPS及错误pin/CA/主机/时间/轮换/重定向/超大响应13项断言通过；官方v0.5.0 release NativeShell设备框架核验整包后独立iOS arm64构建/链接通过，未签名/安装。证据 `probes/nsh-validation/PINNED-TLS-CHECK.md`。仅证明信任原语及桥代码可链接，不证明NSH host.call实际运行或iPhone联网；未改变系统信任/手机模拟包/正式应用。配对、手机任务和撤销/轮换协议未交付，下一步先补受限桥运行及首次信任引导。
+  - 后续依赖：验证NSH受限原生TLS桥运行及安全证书分发，再实现手机认证配对/撤销、资源授权和PI任务端到端流式/停止/断连恢复；补完整聊天/工具和图片等功能，再对齐业务资源基准。无同业务性能数据，不宣称内存/CPU节省比例，也未替代既有正式技术选型。证据与命令 `probes/nsh-validation/VALIDATION.md`，复现 `README.md`；提交前工作区基础30d3973，关联唯一提交说明 `feat(N01): add isolated NSH native UI validation`。
 
 当前开发助手用户可见名称统一为 **沐码**，技术英文名 **MuMa** 仅用于可执行文件、Helper/CFBundleName 等内部位置；MOOS 保留为系列品牌。其他已确认名称：沐言（AI 个人语音助理）、沐序（桌面整理与电脑实时信息）、沐宿（智能酒店自动预订助手）；沐声保留为按歌单与心情推荐歌曲的 AI 音乐电台，不能误作语音助理。本次只实施开发助手更名；历史 Moos 证据、M01 探针与手机工程不批量更名。应用标识和既有数据目录 `dev.moos.agent.electron` 不变；2026-11-10 用户明确授权本轮图标/名称更新，按 E84 保护数据流程执行，不构成未来自动部署授权。
 
