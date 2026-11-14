@@ -2,6 +2,10 @@
 
 ## 范围与状态
 
+### 本地存储维护（2026-11-15）
+
+- 用户授权只清不需要的产物：已删除35份旧桌面构建（保留最新0.1.49）及collapse-turn-tail内38份Moos.app；保留7,761个非应用证据/测试数据文件且前后内容与权限一致。两处du占用减少50,528,960 KiB（约48.19 GiB），不是APFS物理释放承诺；原位历史二进制已移除，复现需按对应提交重建。正式应用/用户数据/安装备份/签名及NSH工具链未动。证据 `docs/evidence/desktop/storage-cleanup-20261115.json`；自动回归结果见operatelog，不改变N01或其他功能验收状态。
+
 ### N01｜NSH 独立可行性验证（2026-11-14 用户授权，不迁移正式应用）
 
 - [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。

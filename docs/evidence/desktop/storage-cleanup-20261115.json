@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-build-artifact-cleanup",
+  "timestamp": "2026-11-15T00:04:46+08:00",
+  "baseCommit": "bba813c822b4ca0ea57eb16102610815c76265fc",
+  "authorization": "用户：好的 就先只清除不需要的",
+  "beforeProjectAllocatedKiB": 97385128,
+  "scopes": [
+    {
+      "path": ".generated/moos-electron",
+      "beforeAllocatedKiB": 24911188,
+      "afterAllocatedKiB": 691756,
+      "deletedBuilds": 35,
+      "retainedBuild": "build-3v6RdT",
+      "retainedVersion": "0.1.49"
+    },
+    {
+      "path": "artifacts/collapse-turn-tail",
+      "beforeAllocatedKiB": 27118052,
+      "afterAllocatedKiB": 808524,
+      "deletedAppCopies": 38,
+      "retainedFileCount": 7761,
+      "retainedContentAndModesUnchanged": true
+    }
+  ],
+  "checks": {
+    "noTrackedDeletion": true,
+    "targetsIgnoredByGit": true,
+    "noActiveTargetBeforeDeletion": true,
+    "allTargetsAbsentAfterDeletion": true,
+    "productionAppTouched": false,
+    "userDataTouched": false,
+    "installationBackupsTouched": false,
+    "signingMaterialsTouched": false,
+    "nshToolchainTouched": false
+  },
+  "measurement": "du -k：allocated blocks; APFS clones/shared extents mean directory reductions are not equivalent to physical free-space gain",
+  "executionEvidence": "artifacts/storage-cleanup/result.json; artifacts/storage-cleanup-run2.log",
+  "initialGuard": "首轮遇到历史MuMa.app命名，安全检查拒绝且未删除；核验同一应用标识后加入明确允许名单再执行",
+  "recovery": "已删构建副本没有备份，恢复需从对应提交按原构建流程重建；历史报告与数据保留，旧二进制不再原位存在；未提供自动清理器",
+  "afterProjectAllocatedKiB": 46856224,
+  "scopeAllocatedReductionKiB": 50528960,
+  "verification": {
+    "documentTests": "123/123 passed before final log",
+    "coreSerial": "stopped after >10 minutes; stalled after test 70; desktop-tools failures/timeouts preserved; not passed",
+    "electron": "113 tests:100 passed,3 failed,1 cancelled,9 skipped; exit1; details in operatelog",
+    "localAcceptance": "73 targets absent, latest build retained, 7761 retained evidence files unchanged",
+    "native": "offline command stuck at rustup stable synchronization; no exit result; process inspection timed out; not passed or confirmed stopped"
+  }
+}
