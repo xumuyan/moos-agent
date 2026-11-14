@@ -185,6 +185,22 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertNotIn('redeem', bridge)
         self.assertIn('PAIRING-NETWORK.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_local_review_is_native_but_not_human_or_phone_evidence(self):
+        doc = (PROBE / 'PAIRING-REVIEW.md').read_text()
+        for marker in ('humanConfirmationVerified:false', 'phoneVerified:false',
+                       'windowShown:false', 'N01保持未完成', '非网络服务', '默认未勾选'):
+            self.assertIn(marker, doc)
+        source = (PROBE / 'pairing-review.mjs').read_text()
+        for marker in ('authority.pending()', 'authority.confirm', 'authority.deny',
+                       'Object.freeze', 'Promise.race', 'controller.abort()', 'requestId'):
+            self.assertIn(marker, source)
+        panel = (PROBE / 'PairingReview.swift').read_text()
+        self.assertIn('windowShouldClose', panel)
+        self.assertIn('approve.isEnabled = false', panel)
+        self.assertNotIn('URLSession', panel)
+        self.assertNotIn('host.call', panel)
+        self.assertIn('PAIRING-REVIEW.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)
