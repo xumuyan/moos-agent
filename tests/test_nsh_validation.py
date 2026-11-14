@@ -165,6 +165,26 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertNotIn('rejectUnauthorized', runner)
         self.assertIn('BOOTSTRAP-CHECK.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_native_pairing_network_is_not_human_confirmation_or_phone_delivery(self):
+        doc = (PROBE / 'PAIRING-NETWORK.md').read_text()
+        for marker in ('40项断言通过', 'N01整体未完成', 'humanConfirmationVerified:false',
+                       'credentialsPersisted:false', 'claimSentOverHTTPS:true', '仅typecheck',
+                       '没有注册配对handler', '不是人工Mac确认'):
+            self.assertIn(marker, doc)
+        native = (PROBE / 'Bootstrap.swift').read_text()
+        for marker in ('func acknowledgeComparison', 'redeemAttempts < 4', 'private var token',
+                       'func claim() async', 'locallyCompared', 'catch N01TLSError.pending'):
+            self.assertIn(marker, native)
+        runner = (PROBE / 'verify-pairing-network.mjs').read_text()
+        self.assertIn('startPairingHost', runner)
+        self.assertIn('host.confirm', runner)
+        self.assertIn('closedBeforeResponse, 1', runner)
+        self.assertNotIn('rejectUnauthorized', runner)
+        bridge = (PROBE / 'PinnedTLSBridge.swift').read_text()
+        self.assertNotIn('postPairing', bridge)
+        self.assertNotIn('redeem', bridge)
+        self.assertIn('PAIRING-NETWORK.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

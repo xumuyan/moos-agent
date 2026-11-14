@@ -60,3 +60,5 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 ## 本轮结果与下一步
 
 详见 [VALIDATION.md](./VALIDATION.md)。本轮 **UI 子集通过，整体 N01 未完成**：Mac Host真实PI+本地模拟模型、隔离/停止/TLS依赖子集已通过，手机认证通信/端到端任务、桌面工具闭环、图片/皮肤/插件及业务资源基准仍待独立推进。不能用这个无业务内核原型的包大小或占用推断完整沐码的迁移收益。
+
+原生固定HTTPS claim/redeem新增检查点见 [PAIRING-NETWORK.md](PAIRING-NETWORK.md)：仅Mac回环自动确认测试，非手机/人工首次信任/长期锚提升或PI任务交付。

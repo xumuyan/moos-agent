@@ -35,10 +35,10 @@ struct N01TrustPolicy: Sendable {
     }
 }
 
-enum N01TLSError: Error { case invalidConfiguration, rejected, invalidResponse, responseTooLarge, network, cancelled }
+enum N01TLSError: Error { case invalidConfiguration, rejected, invalidResponse, responseTooLarge, network, cancelled, pending }
 
-// Deliberately only a single GET /trust-check without credentials, retries, storage or LAN discovery.
-// The future NSH host handler must separately implement exact route/method/body/ownership limits.
+// One bounded request: fixed trust-check GET or exact pairing POST. No arbitrary fetch/redirect/retry.
+// The NSH trust-check handler still exposes only GET; native pairing is not registered with JS.
 final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendable {
     private let policy: N01TrustPolicy
     private let lock = NSLock()
@@ -47,13 +47,34 @@ final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendabl
     private var session: URLSession?
     private var started = false
     private var cancelled = false
-    init(policy: N01TrustPolicy) { self.policy = policy }
+    private let pairing: Bool
+    init(policy: N01TrustPolicy, pairing: Bool = false) { self.policy = policy; self.pairing = pairing }
 
     func get(_ url: URL) async throws -> Data {
-        guard url.scheme == "https", url.host == policy.hostname, url.user == nil, url.password == nil,
+        guard !pairing, url.scheme == "https", url.host == policy.hostname, url.user == nil, url.password == nil,
               url.path == "/trust-check", url.query == nil, url.fragment == nil else {
             throw N01TLSError.invalidConfiguration
         }
+        return try await perform(URLRequest(url: url))
+    }
+    func postPairing(_ url: URL, body: Data) async throws -> Data {
+        guard pairing, url.scheme == "https", url.host == policy.hostname, url.user == nil, url.password == nil,
+              url.query == nil, url.fragment == nil,
+              ["/v1/pairing/claim", "/v1/pairing/redeem"].contains(url.path), body.count <= 4096,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: String] else {
+            throw N01TLSError.invalidConfiguration
+        }
+        let keys = url.path.hasSuffix("/claim") ? ["invitationId", "secret", "clientNonce"] : ["claimId", "receipt"]
+        guard Set(object.keys) == Set(keys), object.values.allSatisfy({
+            $0.utf8.count == 64 && $0.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+        }) else { throw N01TLSError.invalidConfiguration }
+        // Re-encode validated input; duplicate fields cannot be forwarded to a different parser.
+        var request = URLRequest(url: url); request.httpMethod = "POST"
+        request.httpBody = try JSONSerialization.data(withJSONObject: object)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        return try await perform(request)
+    }
+    private func perform(_ request: URLRequest) async throws -> Data {
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 lock.lock()
@@ -66,7 +87,7 @@ final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendabl
                 config.tlsMinimumSupportedProtocolVersion = .TLSv12
                 let session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
                 self.session = session
-                session.dataTask(with: url).resume()
+                session.dataTask(with: request).resume()
                 lock.unlock()
             }
         } onCancel: { self.cancel() }
@@ -96,7 +117,14 @@ final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendabl
     }
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+        guard let response = response as? HTTPURLResponse,
+              !pairing || response.value(forHTTPHeaderField: "Content-Type") == "application/json" else {
+            completionHandler(.cancel); finish(.failure(N01TLSError.invalidResponse)); return
+        }
+        if pairing && response.statusCode == 409 {
+            completionHandler(.cancel); finish(.failure(N01TLSError.pending)); return
+        }
+        guard response.statusCode == 200 else {
             completionHandler(.cancel); finish(.failure(N01TLSError.invalidResponse)); return
         }
         completionHandler(.allow)
