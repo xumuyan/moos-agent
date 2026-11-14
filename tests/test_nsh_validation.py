@@ -44,6 +44,16 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('--target ios --name MuMaNSHProbe', readme)
         self.assertIn('尚未签名/安装/运行', readme)
 
+    def test_installation_does_not_claim_launch_or_security_bypass(self):
+        report = (PROBE / 'IOS-INSTALL.md').read_text()
+        for marker in ('用户明确授权', 'dev.muma.probe.nsh', 'profile',
+                       'codesign --verify --deep --strict', 'outcome=success',
+                       'exit1', '复合诊断', 'launched=false', '不绕过安全授权',
+                       '全量本轮未重跑', 'N01继续未完成'):
+            self.assertIn(marker, report)
+        self.assertIn('IOS-INSTALL.md', (PROBE / 'README.md').read_text())
+        self.assertIn('启动被iOS Security拒绝', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

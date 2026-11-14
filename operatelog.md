@@ -2205,3 +2205,12 @@
 - 验证结果：iOS静态包构建通过，Info.plist ID dev.muma.probe.nsh、Mach-O arm64，声明最低15.0（非最低系统实测），无embedded.mobileprovision。CLI报unsigned，但实际预构建二进制有ad-hoc签名/TeamIdentifier not set：初始断言codesign应失败未通过，更正为检查ad-hoc+无team/profile通过；无开发签名、未安装/启动手机应用。NSH check exit0、headless4/4通过。文档检查首轮失败已保留在结果日志，修正后 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 113/113通过。完整核心/Electron/native未在本轮重跑，上一轮Electron1fail/9skip继续未解决，不能宣称全仓通过。
 - 遗留问题：手机触控/输入法/流式/停止/列表及真实PI/Mac认证连接未验收；待用户明确同意安装独立测试App后准备匹配profile并签名安装。模拟器/Android未验证、N01仍未完成；无桌面沐码退出/替换/部署，无手机既有应用/个人内容读取或修改。
 - 对应 Git 提交：本次唯一说明 `docs(N01): record connected iPhone and isolated iOS package check`，查询 `git log --all --oneline --grep='connected iPhone and isolated iOS package check'`；前轮7a462cd已推送，当前条目提交后再推送核对，推送非安装。
+
+## 2026-11-14 13:36:25 +08:00｜N01 用户授权独立iPhone App安装，启动受系统安全拦截
+
+- 修改或新增内容：用户明确同意安装MuMaNSHProbe；在忽略目录ios-install生成独立N01Signing工程/profile、复制并签名仅dev.muma.probe.nsh测试包、安装并尝试启动。新增IOS-INSTALL.md、同步README/PLAN和1项文档状态测试。基础c0b61bf加本次提交前工作区，无App/model/正式Electron或依赖修改，不退出、替换或部署桌面沐码。
+- 遇到的难题：手机安装成功后，launch被CoreDeviceError10002/FBSOpenApplicationErrorDomain3 Security拒绝，提示可能签名无效、权限不足或profile未经用户明确信任，不能只断定信任问题。
+- 处理方式：使用既有Xcode账号和唯一有效开发团队，经xcodegen/xcodebuild自动签名仅生成独立ID开发profile（空壳不安装），核对有效期、当前设备、开发用途、应用ID/团队/有效证书匹配，无Apple登录/推送；复用本机私钥不导出，codesign严格验证并检查签后application-identifier。安装只对独立ID执行一次，失败启动后停止，不重装、不绕过安全；提示用户在设置/通用/VPN与设备管理检查信任/验证，系统密码与授权由用户完成。原始设备/profile/私钥引用及输出只在忽略目录，根0700、文件0600，不输出账号/设备标识。
+- 验证结果：xcodegen、xcodebuild、签名及codesign --verify --deep --strict均exit0；devicectl install exit0/outcome success，结果installed=true/signatureVerified=true/profileValidForDevice=true；launch exit1/launched=false，尚无手机界面或功能验收。NSH check exit0、headless4/4；PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 114/114通过。核心/Electron/native全量本轮未重跑，上一轮Electron1fail/9skip仍未解除，不宣称全量通过。证据IOS-INSTALL.md，本地结果artifacts/nsh-validation/ios-install/result.json等；一次性脚本不作为通用安装器，不盲目续跑重复安装。
+- 遗留问题：等待用户检查开发者信任后只重试启动；若仍失败继续核对签名/权限，不声称已运行。触控、输入法、流式/停止/会话/长列表未验收，无真实PI/Mac认证通信和资源收益数据；模拟器/Android未验证，N01未完成。手机其他App/个人数据及现用沐码未操作。
+- 对应 Git 提交：本次唯一说明 `docs(N01): record authorized iPhone install and blocked launch`；查询 `git log --all --oneline --grep='authorized iPhone install and blocked launch'`。提交后推送并核对远程，源码推送与手机安装分别报告。

@@ -38,7 +38,7 @@ bash probes/nsh-validation/nsh.sh package --target macos
 
 NSH 官方确实提供 **iOS / Android 原生运行时**，TSX 可共用。CLI 有 `--target ios`、`--target android`、`package --target ios` / `ios-simulator` / `android`。不代表本工程手机已验收，也不代表 Node/PI 可直接在 iPhone 运行。将来的手机仍应通过认证加密连接 Mac 执行任务。
 
-初轮 `xcrun simctl list runtimes` / `devices booted` 均为空；自动下载TLS EOF、curl失败。用户连接并开启手机后，复查确认有线配对/开发者模式有效、DDI可用；官方发布包经有界分片下载与SHA-256校验后已在隔离工具链安装。**独立iOS未签名包构建通过，尚未签名/安装/运行；模拟器运行时仍为空，Android未验证**。未安装系统运行时或手机应用、未申请profile或请求签名私钥。详细证据与命名冲突说明见 [IOS-CHECK.md](./IOS-CHECK.md)。
+初轮 `xcrun simctl list runtimes` / `devices booted` 均为空；自动下载TLS EOF、curl失败。用户连接并开启手机后，复查确认有线配对/开发者模式有效、DDI可用；官方发布包经有界分片下载与SHA-256校验后已在隔离工具链安装。初次复查时独立包尚未签名/安装/运行，历史记录见 [IOS-CHECK.md](./IOS-CHECK.md)。随后用户明确授权安装，已取得独立profile、签名严格校验通过并成功安装 `MuMaNSHProbe`；**启动被iOS Security拒绝，待用户检查开发者信任，手机运行尚未通过**。当前未装系统模拟器运行时、Android未验证。安装/签名证据及安全停止边界见 [IOS-INSTALL.md](./IOS-INSTALL.md)。
 
 ```bash
 artifacts/nsh-validation/toolchain/nsh/bin/nsh component add ios
