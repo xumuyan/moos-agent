@@ -79,6 +79,20 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('probes/nsh-validation/*.test.mjs', package['scripts']['test'])
         self.assertIn('HOST-CHECK.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_transport_keeps_certificate_verification_and_phone_evidence_separate(self):
+        report = (PROBE / 'MOBILE-TRANSPORT.md').read_text()
+        for marker in ('NSURLSession', 'v0.5.0', '没有完成配对',
+                       '不是iPhone TLS成功', '未安装CA', 'NSLocalNetworkUsageDescription',
+                       'headless8/8', 'macOS AppKit8/8', '尚未选定或执行'):
+            self.assertIn(marker, report)
+        source = (PROBE / 'task-client.ts').read_text()
+        self.assertIn('redirect: "error"', source)
+        self.assertIn('AbortSignal.timeout(10000)', source)
+        self.assertIn('MAX_BYTES = 1024 * 1024', source)
+        self.assertNotIn('rejectUnauthorized', source)
+        self.assertIn('MOBILE-TRANSPORT.md', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('phoneVerified: false', (PROBE / 'verify-native-tls.mjs').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)
