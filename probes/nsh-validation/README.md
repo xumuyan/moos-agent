@@ -55,6 +55,8 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 
 独立Node HTTPS回环配对状态机已验证短期邀请、程序化本机确认、一次性凭据、项目归属/撤销/过期；不等于实现手机首次信任或人工Mac确认，详见 [PAIRING-CHECK.md](./PAIRING-CHECK.md)。`node probes/nsh-validation/verify-pairing.mjs`仅生成临时身份并清理，不开放LAN/接PI/更新手机。
 
+原生候选信任层新增严格有界材料解析、固定URLSession探测与跨语言配对摘要校验，见 [BOOTSTRAP-CHECK.md](./BOOTSTRAP-CHECK.md)；`node probes/nsh-validation/verify-bootstrap.mjs` 仅在Mac回环验证，不提升长期信任/签发凭据、不调用NSH桥、不安装手机，claim还不是原生HTTPS传输。二维码与可信双端确认UI尚未实现。
+
 ## 本轮结果与下一步
 
 详见 [VALIDATION.md](./VALIDATION.md)。本轮 **UI 子集通过，整体 N01 未完成**：Mac Host真实PI+本地模拟模型、隔离/停止/TLS依赖子集已通过，手机认证通信/端到端任务、桌面工具闭环、图片/皮肤/插件及业务资源基准仍待独立推进。不能用这个无业务内核原型的包大小或占用推断完整沐码的迁移收益。

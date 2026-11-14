@@ -147,6 +147,24 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('timingSafeEqual', authority)
         self.assertNotIn('writeFile', authority)
 
+    def test_native_bootstrap_candidate_does_not_promote_or_claim_phone_pairing(self):
+        doc = (PROBE / 'BOOTSTRAP-CHECK.md').read_text()
+        for marker in ('42项原生断言通过', 'N01整体未完成', 'claim没有走HTTPS',
+                       '不是完整首次信任交付或iPhone验收', 'humanConfirmationVerified:false',
+                       'trustPromoted:false', 'credentialsIssued:false'):
+            self.assertIn(marker, doc)
+        source = (PROBE / 'Bootstrap.swift').read_text()
+        for marker in ('bytes.count <= 8192', 'systemUptime', 'time >= previous', 'time < deadline',
+                       'SecRandomCopyBytes', 'N01PinnedProbe', '.withoutEscapingSlashes', 'func cancel()'):
+            self.assertIn(marker, source)
+        self.assertNotIn('write(', source)
+        runner = (PROBE / 'verify-bootstrap.mjs').read_text()
+        for marker in ("server.listen(0, '127.0.0.1'", 'claimSentOverHTTPS: false',
+                       'credentialsIssued: false', 'assert.equal(requests, 2)'):
+            self.assertIn(marker, runner)
+        self.assertNotIn('rejectUnauthorized', runner)
+        self.assertIn('BOOTSTRAP-CHECK.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)
