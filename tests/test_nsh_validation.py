@@ -8,6 +8,23 @@ PROBE = ROOT / 'probes/nsh-validation'
 
 
 class NshValidationScopeTests(unittest.TestCase):
+    def test_local_flow_keeps_explicit_actions_and_native_evidence_bounded(self):
+        report = (PROBE / 'PAIRING-FLOW.md').read_text()
+        for marker in ('N01未完成', 'phoneVerified:false', 'humanConfirmationVerified:false',
+                       'windowShown:false', 'taskServerConnected:false', '程序化', '不开放LAN'):
+            self.assertIn(marker, report)
+        source = (PROBE / 'pairing-flow.mjs').read_text()
+        for marker in ('startPairingHost', 'encodeBootstrap', 'createPairingReviewer',
+                       'begin()', 'reviewPending()', 'host.close()', 'Math.min(left, 60000)'):
+            self.assertIn(marker, source)
+        for forbidden in ('rejectUnauthorized', 'host.call', 'credentials.json', 'console.log', '/confirm'):
+            self.assertNotIn(forbidden, source)
+        peer = (PROBE / 'PairingFlowCheck.swift').read_text()
+        self.assertIn('candidate.claim()', peer)
+        self.assertIn('candidate.redeem()', peer)
+        self.assertNotIn('URLSession', peer)
+        self.assertIn('PAIRING-FLOW.md', (ROOT / 'PLAN.md').read_text())
+
     def test_probe_has_separate_identity_and_no_external_capabilities(self):
         config = json.loads((PROBE / 'nsh.json').read_text())
         self.assertEqual(config['id'], 'dev.muma.probe.nsh')

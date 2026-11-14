@@ -66,3 +66,7 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 ## 本机原生确认候选（未接手机）
 
 见 [PAIRING-REVIEW.md](./PAIRING-REVIEW.md)：新增可信本机状态绑定和AppKit摘要/项目确认面板；当前仅隐藏控件自动化及子进程自动拒绝证据，非人工双端确认。没有接入已装手机/PI/NSH或部署正式应用，N01未完成。
+
+## 一次性本机流程整合候选
+
+见 [PAIRING-FLOW.md](./PAIRING-FLOW.md)：显式本机邀请/确认、HTTPS claim/redeem、固定项目及整轮关闭已在独立回环整合检查；批准仍程序化，拒绝为AppKit子进程自动化，非人工/手机。无NSH/PI/长期存储、LAN或安装更新。
