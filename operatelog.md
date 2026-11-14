@@ -2186,3 +2186,12 @@
 - 遗留问题：仓库本地 artifacts/installed-update-0.1.31（25M，含旧日志）与 installed-update-0.1.33/gui（1.4G 截图目录）仍在本地磁盘且未入 Git，属历史验收产物，未经确认不删除；正式桌面清理不影响应用与数据。
 - 对应 Git 提交：见本日清理提交；查询 `git log --all --oneline --grep='legacy update dirs cleanup'`。
 
+
+## 2026-11-14 12:38:15 +08:00｜N01 NSH 隔离原生 UI 验证（非正式迁移）
+
+- 修改或新增内容：按用户要求新增独立 `probes/nsh-validation/`（App.tsx、纯内存model.ts、4项NSH测试、独立nsh.json、版本守卫nsh.sh、README/VALIDATION、类型配置/忽略规则），固定NSH0.5.0发布包并SHA-256校验；新增3项文档/隔离边界检查，PLAN新增N01未完成条目。无根依赖/正式Electron源码/构建入口变更；工具链、包及原始证据仅在忽略目录artifacts/nsh-validation，不接触真实聊天/模型配置，不安装、退出或重启正式沐码。
+- 遇到的难题：Button直接字符串无尺寸；短模拟流期间切换会话导致停止前已结束；默认PATH无npm/cargo；并行全量测试时序/超时失败；Electron上下文测试ctx.on缺失；原生编译首轮超工具180秒时限；iOS组件TLS EOF、curl HTTP2/空响应，系统无模拟器运行时；两次桌面事务立即失效，未执行其输入。
+- 处理方式：Button改显式Text/样式、延长模拟间隔并先停再验切换、无余量不滚动；使用现有Node22.22/Cargo路径，不安装新版本；核心串行重跑、原生续编译，保留失败日志；Electron失败和9项缺构建输入跳过不扩大范围修正式工程。以NSH自身后台AppKit输入测试+自有窗口截图验收，截图已回读，不冒充手机截图或拼音组合态；CLI交互实例仅终止其自身PID并确认host收尾。iOS不安装系统组件/手机包，不读签名私钥，下载失败即如实标阻塞。
+- 验证结果：提交前工作区基础30d3973；shasum校验通过；nsh check exit0、headless4/4（末轮再次4/4）、macOS后台原生4/4、stdin原生输入/Markdown/1000条滚动截图1/1；隔离macOS包codesign --verify --deep --strict通过、ID独立，包未安装/未做打包GUI。npm test首次232pass/1fail/3cancel（PI超时/桌面时序），完整串行236/236；cargo test --release --offline 11/11；npm run test:electron及串行重跑均103pass/1fail/9skip（host.test.mjs:73，ctx.on is not a function，未改此文件）；bash -n通过。PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 112/112通过（含新增3项）；所有命令、预期/实际及本地证据路径在probes/nsh-validation/VALIDATION.md。
+- 遗留问题：全仓验收未全通过，N01不勾选完成。需独立修复/验证Electron测试上下文并提供缺失隔离输入；iOS组件下载和系统运行时恢复后补iOS构建/模拟器，真机签名/安装另行授权，Android未验证；真实PI/工具/项目隔离/图片/皮肤插件/手机Mac通信及同业务CPU内存对照均未执行，不能宣称全功能保留或资源收益。当前原型仅无网络无持久化模拟UI；手机仍连接Mac执行任务。本轮是可追溯的部分验证检查点，不是全量验收完成或部署。
+- 对应 Git 提交：唯一说明 `feat(N01): add isolated NSH native UI validation`；查询 `git log --all --oneline --grep='add isolated NSH native UI validation'`；提交后尝试推送并核对，未核对前不称远程同步成功。

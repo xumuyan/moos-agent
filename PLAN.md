@@ -2,6 +2,14 @@
 
 ## 范围与状态
 
+### N01｜NSH 独立可行性验证（2026-11-14 用户授权，不迁移正式应用）
+
+- [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。
+  - UI子集：类型检查、headless 4/4、macOS AppKit后台窗口4/4、原生输入/流式Markdown/1000条滚动截图1/1、隔离macOS打包及签名检查通过；开发host截图已核对，打包产物未安装/未做GUI验收，不当作完整沐码迁移通过。自动中文输入不等同拼音输入法组合态验收。
+  - 手机：NSH官方有iOS/Android原生运行时；本机iOS模拟器运行时为空，iOS组件下载TLS/HTTP错误，未构建iOS包、未运行模拟器/真机，Android未验证；需恢复下载并准备系统运行时，真机安装/签名另行授权，手机仍连接Mac执行任务。
+  - 回归：核心默认并行首次232通过/1失败/3取消，串行236/236；native11/11；Electron两次均103通过/1失败/9跳过（`ctx.on is not a function`，缺少部分隔离构建输入）。全仓验收未全过，N01保持未完成；不为本原型顺带改正式工程。
+  - 后续依赖：先补隔离真实PI/本地模拟模型、停止与项目隔离、完整聊天/工具和图片等功能，再对齐业务资源基准及手机运行。无同业务性能数据，不宣称内存/CPU节省比例，也未替代既有正式技术选型。证据与命令 `probes/nsh-validation/VALIDATION.md`，复现 `README.md`；提交前工作区基础30d3973，关联唯一提交说明 `feat(N01): add isolated NSH native UI validation`。
+
 当前开发助手用户可见名称统一为 **沐码**，技术英文名 **MuMa** 仅用于可执行文件、Helper/CFBundleName 等内部位置；MOOS 保留为系列品牌。其他已确认名称：沐言（AI 个人语音助理）、沐序（桌面整理与电脑实时信息）、沐宿（智能酒店自动预订助手）；沐声保留为按歌单与心情推荐歌曲的 AI 音乐电台，不能误作语音助理。本次只实施开发助手更名；历史 Moos 证据、M01 探针与手机工程不批量更名。应用标识和既有数据目录 `dev.moos.agent.electron` 不变；2026-11-10 用户明确授权本轮图标/名称更新，按 E84 保护数据流程执行，不构成未来自动部署授权。
 
 2026-11-08 正式桌面源码统一到 `apps/electron`，由 Electron、DSH 工作台和 PI 组成。原 Tauri 2 产品目录已退役，旧版验收记录移至 `docs/evidence/desktop/`，源代码可查迁移前的提交 `d499316`。独立的 M01 Tauri 探针与 iPhone 工程继续保留。下文原 Tauri 产品实现及测试记录属于历史。当前构建和桌面测试入口分别为 `npm run build:app` 和 `npm run test:electron`。

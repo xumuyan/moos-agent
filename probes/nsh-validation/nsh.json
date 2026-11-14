@@ -1,0 +1,12 @@
+{
+  "name": "沐码 NSH 验证",
+  "id": "dev.muma.probe.nsh",
+  "version": "0.0.1",
+  "build": 1,
+  "capabilities": {},
+  "window": {
+    "title": "沐码 NSH 独立验证（非正式应用）",
+    "defaultSize": { "width": 850, "height": 720 },
+    "minSize": { "width": 360, "height": 500 }
+  }
+}
