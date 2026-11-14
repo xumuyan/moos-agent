@@ -54,6 +54,16 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('IOS-INSTALL.md', (PROBE / 'README.md').read_text())
         self.assertIn('启动被iOS Security拒绝', (ROOT / 'PLAN.md').read_text())
 
+    def test_user_report_is_attributed_without_inventing_device_automation(self):
+        report = (PROBE / 'IOS-INSTALL.md').read_text()
+        for marker in ('出现了', '没有 都正常着 可以发送消息',
+                       '用户实机手动反馈', '没有逐项独立截图', '无真实模型',
+                       '不是助手直接操作', '保留设备原始失败日志不改写'):
+            self.assertIn(marker, report)
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('不能把模拟发送当真实模型消息', plan)
+        self.assertIn('- [ ] N01', plan)
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

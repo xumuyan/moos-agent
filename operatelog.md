@@ -2214,3 +2214,12 @@
 - 验证结果：xcodegen、xcodebuild、签名及codesign --verify --deep --strict均exit0；devicectl install exit0/outcome success，结果installed=true/signatureVerified=true/profileValidForDevice=true；launch exit1/launched=false，尚无手机界面或功能验收。NSH check exit0、headless4/4；PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 114/114通过。核心/Electron/native全量本轮未重跑，上一轮Electron1fail/9skip仍未解除，不宣称全量通过。证据IOS-INSTALL.md，本地结果artifacts/nsh-validation/ios-install/result.json等；一次性脚本不作为通用安装器，不盲目续跑重复安装。
 - 遗留问题：等待用户检查开发者信任后只重试启动；若仍失败继续核对签名/权限，不声称已运行。触控、输入法、流式/停止/会话/长列表未验收，无真实PI/Mac认证通信和资源收益数据；模拟器/Android未验证，N01未完成。手机其他App/个人数据及现用沐码未操作。
 - 对应 Git 提交：本次唯一说明 `docs(N01): record authorized iPhone install and blocked launch`；查询 `git log --all --oneline --grep='authorized iPhone install and blocked launch'`。提交后推送并核对远程，源码推送与手机安装分别报告。
+
+## 2026-11-14 14:05:20 +08:00｜N01 用户确认iPhone启动与本地模拟操作正常
+
+- 修改或新增内容：用户先确认界面“出现了”，收到中文发送/流式、停止、会话和1000条滚动检查清单后反馈“没有 都正常着 可以发送消息”。追加IOS-INSTALL用户手动验收反馈，同步PLAN/README，并新增文档测试约束反馈来源及模拟发送边界。基础ba5e28c加本次提交前文档工作区，未改App/model、依赖或正式工程，未安装/签名/重启任何应用。
+- 遇到的难题：前轮设备launch失败与用户后续成功打开是不同证据；用户为总体反馈，不能补造逐项截图/计时、系统信任操作或助手直接验收。
+- 处理方式：保留首次Security错误和原始launched=false检查点，仅追加用户确认界面显示及本地模拟操作总体正常。标明实机手动反馈来源、无独立手机自动化证据；不重装、不重跑安装脚本，不读取手机个人数据或正式沐码配置。
+- 验证结果：用户实机报告启动/发送正常、清单内操作总体无异常；不据此声明精确根因已解决、每项细节均独立验证或模型/PI/Mac已连通。本轮 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 115/115通过；核心/Electron/native全量和NSH应用测试本轮未重跑（无业务代码改动），上一轮Electron1fail/9skip仍在，不宣称全仓通过。证据probes/nsh-validation/IOS-INSTALL.md追加段及本次对话，无新手机截图。
+- 遗留问题：仅UI子集用户手动确认，发送仍为纯内存模拟，无真实模型/PI/Mac任务；下一阶段需认证加密通信、真实任务/取消/断连恢复及完整业务资源对照。N01继续未完成，未测Android/模拟器，不承诺性能收益。
+- 对应 Git 提交：唯一说明 `docs(N01): record user-confirmed iPhone UI smoke check`；查询 `git log --all --oneline --grep='user-confirmed iPhone UI smoke check'`；提交后推送核对远程，推送不等于部署。
