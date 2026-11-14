@@ -64,6 +64,21 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('不能把模拟发送当真实模型消息', plan)
         self.assertIn('- [ ] N01', plan)
 
+    def test_host_checkpoint_keeps_tls_and_mobile_scope_explicit(self):
+        report = (PROBE / 'HOST-CHECK.md').read_text()
+        for marker in ('127.0.0.1', '不关闭TLS证书验证', '不是手机',
+                       '不支持重启后的恢复/去重', '全仓验收未全通过',
+                       'phoneConnected=false', '238/238', 'ctx.on is not a function'):
+            self.assertIn(marker, report)
+        source = (PROBE / 'host.mjs').read_text()
+        self.assertIn("server.listen(0, '127.0.0.1'", source)
+        self.assertIn('timingSafeEqual', source)
+        self.assertIn('task.conversationId !== client.conversationId', source)
+        self.assertNotIn('rejectUnauthorized: false', source)
+        package = json.loads((ROOT / 'package.json').read_text())
+        self.assertIn('probes/nsh-validation/*.test.mjs', package['scripts']['test'])
+        self.assertIn('HOST-CHECK.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

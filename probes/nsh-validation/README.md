@@ -1,6 +1,6 @@
 # N01｜NSH 隔离验证（不是沐码迁移版）
 
-独立工程，固定 **NSH 0.5.0 (f4d68f7)**。仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录只同步计划、日志、文档检查，不改 `apps/electron`、依赖或正式构建入口。
+独立工程，固定 **NSH 0.5.0 (f4d68f7)**。NSH界面仍仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。新增独立Mac Host依赖探针使用真实PI SDK+本地模拟模型，仅监听TLS回环地址，不与当前手机UI连接；见 [HOST-CHECK.md](./HOST-CHECK.md)。应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录同步计划、日志、文档检查，`npm test`补入隔离Host测试；不改 `apps/electron`、依赖或正式构建入口。
 
 ## 准备与运行
 
@@ -53,4 +53,4 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 
 ## 本轮结果与下一步
 
-详见 [VALIDATION.md](./VALIDATION.md)。本轮 **UI 子集通过，整体 N01 未完成**：真实 PI、任务/项目隔离与停止、桌面工具闭环、图片/皮肤/插件、手机及业务资源基准仍待独立推进。不能用这个无业务内核原型的包大小或占用推断完整沐码的迁移收益。
+详见 [VALIDATION.md](./VALIDATION.md)。本轮 **UI 子集通过，整体 N01 未完成**：Mac Host真实PI+本地模拟模型、隔离/停止/TLS依赖子集已通过，手机认证通信/端到端任务、桌面工具闭环、图片/皮肤/插件及业务资源基准仍待独立推进。不能用这个无业务内核原型的包大小或占用推断完整沐码的迁移收益。
