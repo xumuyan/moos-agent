@@ -128,6 +128,25 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('app.handle("n01.cancelTrustCheck")', (PROBE / 'PinnedTLSBridge.swift').read_text())
         self.assertIn('BRIDGE-RUNTIME.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_pairing_lifecycle_does_not_claim_native_first_trust_or_human_confirmation(self):
+        doc = (PROBE / 'PAIRING-CHECK.md').read_text()
+        for marker in ('首次信任仍未实现', 'N01整体未完成', 'humanConfirmationVerified:false',
+                       'nativeBootstrapVerified:false', '没有HTTP确认/邀请/撤销接口',
+                       '二维码、URL、名称和扫描结果都是不可信输入', '不关闭rejectUnauthorized'):
+            self.assertIn(marker, doc)
+        source = (PROBE / 'pairing-host.mjs').read_text()
+        self.assertIn("server.listen(0, '127.0.0.1'", source)
+        self.assertNotIn('scheduler', source)
+        self.assertNotIn('/v1/tasks', source)
+        client = (PROBE / 'verify-pairing.mjs').read_text()
+        self.assertIn('checkServerIdentity(hostname, cert)', client)
+        self.assertNotIn('rejectUnauthorized: false', client)
+        self.assertIn('PAIRING-CHECK.md', (ROOT / 'PLAN.md').read_text())
+        authority = (PROBE / 'pairing.mjs').read_text()
+        self.assertIn('performance.now()', authority)
+        self.assertIn('timingSafeEqual', authority)
+        self.assertNotIn('writeFile', authority)
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

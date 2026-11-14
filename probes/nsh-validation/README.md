@@ -51,6 +51,10 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 # iPhone 真机安装/签名另行授权与验收，不复用正式应用ID
 ```
 
+## 配对生命周期依赖
+
+独立Node HTTPS回环配对状态机已验证短期邀请、程序化本机确认、一次性凭据、项目归属/撤销/过期；不等于实现手机首次信任或人工Mac确认，详见 [PAIRING-CHECK.md](./PAIRING-CHECK.md)。`node probes/nsh-validation/verify-pairing.mjs`仅生成临时身份并清理，不开放LAN/接PI/更新手机。
+
 ## 本轮结果与下一步
 
 详见 [VALIDATION.md](./VALIDATION.md)。本轮 **UI 子集通过，整体 N01 未完成**：Mac Host真实PI+本地模拟模型、隔离/停止/TLS依赖子集已通过，手机认证通信/端到端任务、桌面工具闭环、图片/皮肤/插件及业务资源基准仍待独立推进。不能用这个无业务内核原型的包大小或占用推断完整沐码的迁移收益。
