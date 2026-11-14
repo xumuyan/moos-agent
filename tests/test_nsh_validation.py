@@ -32,6 +32,18 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertNotIn('--run', runner)
         self.assertIn('.nsh/', (PROBE / '.gitignore').read_text())
 
+    def test_ios_followup_distinguishes_connection_package_and_install(self):
+        report = (PROBE / 'IOS-CHECK.md').read_text()
+        for marker in ('wired', 'paired', '--no-auto-mount-ddis', 'MuMaNSHProbe',
+                       'e0a5039702ad3c53fa938d8dfba488856e8be8632f5fac1538f241df6f6bb53d',
+                       '无开发签名', 'Signature=adhoc', 'iPhone安装/启动', '全量没有在本轮重跑'):
+            self.assertIn(marker, report)
+        for private_field in ('serialNumber', 'udid', 'uniqueDeviceID'):
+            self.assertNotIn(private_field, report)
+        readme = (PROBE / 'README.md').read_text()
+        self.assertIn('--target ios --name MuMaNSHProbe', readme)
+        self.assertIn('尚未签名/安装/运行', readme)
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

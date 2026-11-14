@@ -2195,3 +2195,13 @@
 - 验证结果：提交前工作区基础30d3973；shasum校验通过；nsh check exit0、headless4/4（末轮再次4/4）、macOS后台原生4/4、stdin原生输入/Markdown/1000条滚动截图1/1；隔离macOS包codesign --verify --deep --strict通过、ID独立，包未安装/未做打包GUI。npm test首次232pass/1fail/3cancel（PI超时/桌面时序），完整串行236/236；cargo test --release --offline 11/11；npm run test:electron及串行重跑均103pass/1fail/9skip（host.test.mjs:73，ctx.on is not a function，未改此文件）；bash -n通过。PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v 112/112通过（含新增3项）；所有命令、预期/实际及本地证据路径在probes/nsh-validation/VALIDATION.md。
 - 遗留问题：全仓验收未全通过，N01不勾选完成。需独立修复/验证Electron测试上下文并提供缺失隔离输入；iOS组件下载和系统运行时恢复后补iOS构建/模拟器，真机签名/安装另行授权，Android未验证；真实PI/工具/项目隔离/图片/皮肤插件/手机Mac通信及同业务CPU内存对照均未执行，不能宣称全功能保留或资源收益。当前原型仅无网络无持久化模拟UI；手机仍连接Mac执行任务。本轮是可追溯的部分验证检查点，不是全量验收完成或部署。
 - 对应 Git 提交：唯一说明 `feat(N01): add isolated NSH native UI validation`；查询 `git log --all --oneline --grep='add isolated NSH native UI validation'`；提交后尝试推送并核对，未核对前不称远程同步成功。
+
+## 2026-11-14 13:29:10 +08:00｜N01 iPhone连接复查与iOS独立包（尚未安装）
+
+- 修改或新增内容：用户表示已打开后，先只读检查USB设备、配对、开发模式与DDI，再补隔离iOS组件/包构建。新增 `probes/nsh-validation/IOS-CHECK.md` 脱敏实机条件/构建证据，更新README、PLAN与1项文档检查；不改App/model、正式Electron或依赖。基础提交7a462cd，证据对应本次提交前工作区。
+- 实际检查：devicectl list devices成功，iPhone13 Pro/iOS27.0.1有线、paired、developerMode enabled；初始tunnel disconnected/DDI false快照后，device info ddiServices --no-auto-mount-ddis成功，DDI可用；Xcode27.0/27A266a，模拟器运行时仍为空。security find-identity仅统计1个有效Apple Development身份，不使用私钥，不核对/申请profile。设备原始JSON与标识只在忽略目录device-check，不写入Git/普通日志。
+- 遇到的难题：组件下载缓慢、旧Python解压接口不支持、包名与资源目录冲突、CLI unsigned与实际ad-hoc签名表述不同；文档检查首轮2失败（测试仍断言“无签名”、日志字段不匹配），随后更正为开发签名边界和标准字段。
+- 处理方式：自动组件下载110秒超时，直连110秒仅收到10090138/84591648字节；有界Range分片、仅重试未完整分片，最终官方SHA256 e0a5039702ad3c53fa938d8dfba488856e8be8632f5fac1538f241df6f6bb53d一致，检查归档路径/成员类型后仅解压本仓隔离toolchain，ios显示installed。旧Python不支持tarfile filter参数导致首次未解压，逐项校验后用兼容方法。默认名称打包两次Is a directory；查v0.5.0官方package.rs确认ASCII化NSH与nsh资源目录冲突，覆盖测试包名MuMaNSHProbe后exit0，未修改正式工程或界面。
+- 验证结果：iOS静态包构建通过，Info.plist ID dev.muma.probe.nsh、Mach-O arm64，声明最低15.0（非最低系统实测），无embedded.mobileprovision。CLI报unsigned，但实际预构建二进制有ad-hoc签名/TeamIdentifier not set：初始断言codesign应失败未通过，更正为检查ad-hoc+无team/profile通过；无开发签名、未安装/启动手机应用。NSH check exit0、headless4/4通过。文档检查首轮失败已保留在结果日志，修正后 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 113/113通过。完整核心/Electron/native未在本轮重跑，上一轮Electron1fail/9skip继续未解决，不能宣称全仓通过。
+- 遗留问题：手机触控/输入法/流式/停止/列表及真实PI/Mac认证连接未验收；待用户明确同意安装独立测试App后准备匹配profile并签名安装。模拟器/Android未验证、N01仍未完成；无桌面沐码退出/替换/部署，无手机既有应用/个人内容读取或修改。
+- 对应 Git 提交：本次唯一说明 `docs(N01): record connected iPhone and isolated iOS package check`，查询 `git log --all --oneline --grep='connected iPhone and isolated iOS package check'`；前轮7a462cd已推送，当前条目提交后再推送核对，推送非安装。
