@@ -218,6 +218,22 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertNotIn('host.call', panel)
         self.assertIn('PAIRING-REVIEW.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_local_project_entry_stays_before_listener_and_does_not_claim_human_trust(self):
+        doc = (PROBE / 'PAIRING-ENTRY.md').read_text()
+        for marker in ('N01保持未完成', '默认未选', 'humanSelectionVerified:false',
+                       'humanConfirmationVerified:false', 'phoneVerified:false', '同进程恶意代码'):
+            self.assertIn(marker, doc)
+        source = (PROBE / 'pairing-entry.mjs').read_text()
+        for marker in ('Promise.race', 'Object.freeze', 'available.includes',
+                       "state !== 'starting'", 'await created.close()', 'active.abort()'):
+            self.assertIn(marker, source)
+        panel = (PROBE / 'PairingEntry.swift').read_text()
+        self.assertIn('start.isEnabled = false', panel)
+        self.assertIn('windowShouldClose', panel)
+        self.assertNotIn('URLSession', panel)
+        self.assertNotIn('host.call', panel)
+        self.assertIn('PAIRING-ENTRY.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

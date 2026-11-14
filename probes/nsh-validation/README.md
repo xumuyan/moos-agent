@@ -70,3 +70,7 @@ bash probes/nsh-validation/nsh.sh package --target ios --name MuMaNSHProbe
 ## 一次性本机流程整合候选
 
 见 [PAIRING-FLOW.md](./PAIRING-FLOW.md)：显式本机邀请/确认、HTTPS claim/redeem、固定项目及整轮关闭已在独立回环整合检查；批准仍程序化，拒绝为AppKit子进程自动化，非人工/手机。无NSH/PI/长期存储、LAN或安装更新。
+
+## 可信本机项目选择入口候选
+
+见 [PAIRING-ENTRY.md](./PAIRING-ENTRY.md)：显式本机发起、默认未选/取消不监听，所选可信项目子集通过绑定和期限校验后才创建一次性flow及私密邀请。原生隐藏自动化/子进程拒绝与程序化HTTPS范围检查不是人工双端确认；没有生产注册表/材料分发/手机/NSH/PI接入，N01未完成。
