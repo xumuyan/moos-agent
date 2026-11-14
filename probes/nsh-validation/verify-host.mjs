@@ -29,19 +29,24 @@ try {
     req.on('error', reject); req.end(body && JSON.stringify(body));
   });
   const created = await api('/v1/tasks', { scenario: 'write', requestId: 'acceptance-once' });
-  let snapshot;
+  let snapshot; let cursor = 0; const events = [];
   const deadline = Date.now() + 30000;
   do {
-    snapshot = await api(`/v1/tasks/${created.task.id}`);
-    if (snapshot.terminal) break;
-    await delay(50);
+    snapshot = await api(`/v1/tasks/${created.task.id}?after=${cursor}`);
+    assert.ok(snapshot.events.every(event => event.id > cursor));
+    assert.ok(!snapshot.hasMore || snapshot.cursor > cursor, 'pagination must advance');
+    events.push(...snapshot.events); cursor = snapshot.cursor;
+    // Task terminal state is independent of the event page: always drain pages.
+    if (snapshot.terminal && !snapshot.hasMore) break;
+    if (!snapshot.hasMore) await delay(50);
   } while (Date.now() < deadline);
   assert.equal(snapshot.task.status, 'succeeded');
+  assert.equal(snapshot.hasMore, false, 'acceptance must drain the terminal backlog');
   assert.equal(await readFile(join(host.clients[0].path, 'result.txt'), 'utf8'), 'N01_OK\n');
-  const tools = snapshot.events.filter(e => e.type === 'tool_end');
+  const tools = events.filter(e => e.type === 'tool_end');
   assert.deepEqual(tools.map(e => e.payload.toolName), ['write', 'bash']);
   assert.ok(tools.every(e => !e.payload.isError));
-  const output = snapshot.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join('');
+  const output = events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join('');
   assert.match(output, /完成 N01_OK/);
   const duplicate = await api('/v1/tasks', { scenario: 'write', requestId: 'acceptance-once' });
   assert.equal(duplicate.task.id, created.task.id); assert.equal(duplicate.replayed, true);

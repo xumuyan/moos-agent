@@ -31,3 +31,10 @@ node probes/nsh-validation/verify-host.mjs
 ## 手机接入尚未完成
 
 现装iPhone App仍是原无网络模拟UI，以上客户端是Node，不是手机。尚未建立NSH iOS侧可信HTTPS/证书方案、配对/设备撤销/资源授权、手机流式界面及停止任务的端到端链路。不得把Node TLS回环测试、游标重连或用户上轮模拟发送当手机连接Mac验收。下一步需先核实NSH iOS TLS/API与可安全分发的信任材料，再实现手机网络能力（明确最小权限）、认证配对和断连恢复；不用明文LAN控制服务或关闭校验绕过阻塞。任何新手机包更新均需保留独立身份/数据边界，正式桌面沐码不动。
+
+
+## 2026-11-15 验收器修正（不覆盖上述历史结果）
+
+- `terminal不等于事件已读完`：任务状态与事件页独立。旧测试/验收只取前100条，慢任务心跳积压时可能将后页文字/工具事件误判为缺失。现在按cursor连续读取，`hasMore=false`后才判断终态和完整工具/文本；校验cursor前进和事件ID，保留原TLS、归属、工具结果及幂等断言，没有放宽服务协议。
+- 新增确定性150条text_delta后附工具事件/终态的回归：首页恰好100条、已terminal且hasMore=true，后页工具和终态必须被读取；完整事件无重复，游标续读为空。实际Host/PI验收及全仓结果见根operatelog与`artifacts/nsh-validation/results/fix-*`，不是手机/人工GUI证据。
+- 同轮单独修复Electron无runtime shell测试的环境隔离，仅修改测试，不修改正式应用实现：独立Node子进程去掉继承的PI runtime/fixture/workspace及Node注入项，避免测试意外动态导入安装版runtime；不修改当前宿主环境、不读取用户配置。历史ctx.on失败记录保留。N01仍未完成，不部署。

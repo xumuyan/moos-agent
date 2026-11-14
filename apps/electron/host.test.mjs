@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { startHost, parseBootstrap } from './host.mjs';
-import { apply as applyShell, desktopHelperPath } from './plugin/host.js';
+import { desktopHelperPath } from './plugin/host.js';
 
 const token = 'fake-local-bootstrap-token-only';
 const line = `dsh web: http://127.0.0.1:43123/?token=${token}`;
@@ -71,14 +71,24 @@ test('the opt-in fixture runs inside the existing host with its own model overla
 });
 
 test('the shell never exposes or dispatches upstream model tool calls', async () => {
-  let executor;
-  const unregister = () => {};
-  await applyShell({
-    effect: setup => assert.equal(setup(), unregister),
-    tools: { setExecutor(value) { executor = value; return unregister; } },
-  });
-  assert.deepEqual(executor.describe([{ name: 'bash' }]), { schemas: [], knownNames: [] });
-  await assert.rejects(executor.execute({ calls: [{ name: 'bash' }] }), /由 PI 执行/);
+  // A test launched from Moos inherits its live PI runtime. This fixture exercises
+  // only the no-runtime shell contract; never import the installed runtime/data.
+  const env = { ...process.env };
+  for (const key of ['MOOS_ELECTRON_PI_RUNTIME', 'MOOS_ELECTRON_PI_FIXTURE_MODE',
+    'MOOS_ELECTRON_WORKSPACE_ROOT', 'NODE_OPTIONS', 'NODE_PATH']) delete env[key];
+  await promisify(execFile)(process.execPath, ['--input-type=module', '-e', `
+    import assert from 'node:assert/strict';
+    import { apply } from ${JSON.stringify(new URL('./plugin/host.js', import.meta.url).href)};
+    assert.equal(process.env.MOOS_ELECTRON_PI_RUNTIME, undefined);
+    let executor;
+    const unregister = () => {};
+    await apply({
+      effect: setup => assert.equal(setup(), unregister),
+      tools: { setExecutor(value) { executor = value; return unregister; } },
+    });
+    assert.deepEqual(executor.describe([{ name: 'bash' }]), { schemas: [], knownNames: [] });
+    await assert.rejects(executor.execute({ calls: [{ name: 'bash' }] }), /由 PI 执行/);
+  `], { env, timeout: 15000 });
 });
 
 const dshCli = process.env.MOOS_ELECTRON_TEST_DSH_CLI;

@@ -96,6 +96,20 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('probes/nsh-validation/*.test.mjs', package['scripts']['test'])
         self.assertIn('HOST-CHECK.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_host_verification_drains_terminal_backlog(self):
+        report = (PROBE / 'HOST-CHECK.md').read_text()
+        self.assertIn('terminal不等于事件已读完', report)
+        self.assertIn('150条', report)
+        acceptance = (PROBE / 'verify-host.mjs').read_text()
+        self.assertIn('snapshot.terminal && !snapshot.hasMore', acceptance)
+        self.assertIn('events.push(...snapshot.events)', acceptance)
+        self.assertIn('snapshot.cursor > cursor', acceptance)
+        behavior = (PROBE / 'host.test.mjs').read_text()
+        self.assertIn('i < 150', behavior)
+        self.assertIn('first.events.length, 100', behavior)
+        self.assertIn('while (page.hasMore)', behavior)
+        self.assertIn('new Set(all.events.map(event => event.id))', behavior)
+
     def test_transport_keeps_certificate_verification_and_phone_evidence_separate(self):
         report = (PROBE / 'MOBILE-TRANSPORT.md').read_text()
         for marker in ('NSURLSession', 'v0.5.0', '没有完成配对',

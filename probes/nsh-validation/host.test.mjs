@@ -42,10 +42,46 @@ async function until(check, timeout = 30000) {
   while (Date.now() < deadline) { const value = await check(); if (value) return value; await delay(40); }
   throw new Error('Acceptance wait timed out');
 }
-async function poll(f, task, state, client = 0) {
-  return until(async () => { const r = await f.req(`/v1/tasks/${task.id}`, { client });
-    assert.equal(r.status, 200); return r.value.task.status === state && r.value; });
+async function snapshot(f, task, client = 0) {
+  const events = []; let cursor = 0; let page;
+  do {
+    const r = await f.req(`/v1/tasks/${task.id}?after=${cursor}`, { client });
+    assert.equal(r.status, 200); page = r.value;
+    assert.ok(page.events.every(event => event.id > cursor));
+    assert.ok(!page.hasMore || page.cursor > cursor, 'pagination must advance');
+    events.push(...page.events); cursor = page.cursor;
+  } while (page.hasMore);
+  return { ...page, events };
 }
+async function poll(f, task, state, client = 0) {
+  return until(async () => {
+    const value = await snapshot(f, task, client);
+    return value.task.status === state && value;
+  });
+}
+
+test('N01 terminal status does not truncate paged stream/tool events', { timeout: 30000 }, async t => {
+  const f = await fixture(t, { run: async ({ emit }) => {
+    // Deterministic backlog, independent of CPU load and heartbeat scheduling.
+    for (let i = 0; i < 150; i++) emit('text_delta', { delta: String(i) });
+    emit('tool_start', { toolName: 'write' });
+    emit('tool_end', { toolName: 'write', isError: false });
+    return { text: 'paged result' };
+  } });
+  const task = await f.submit('write', 'paged');
+  await poll(f, task, 'succeeded');
+  const first = (await f.req(`/v1/tasks/${task.id}`)).value;
+  assert.equal(first.terminal, true); assert.equal(first.hasMore, true);
+  assert.equal(first.events.length, 100);
+  assert.equal(first.events.some(event => event.type === 'tool_end'), false);
+  const all = await snapshot(f, task);
+  assert.equal(all.hasMore, false); assert.equal(all.task.status, 'succeeded');
+  assert.equal(all.events.filter(event => event.type === 'text_delta').length, 150);
+  assert.equal(new Set(all.events.map(event => event.id)).size, all.events.length);
+  assert.deepEqual(all.events.filter(event => event.type === 'tool_start').map(event => event.payload.toolName), ['write']);
+  assert.equal(all.events.at(-1).payload.status, 'succeeded');
+  assert.equal((await f.req(`/v1/tasks/${task.id}?after=${all.cursor}`)).value.events.length, 0);
+});
 
 test('N01 TLS trust, authentication, strict body/routes, ownership and bounded admission', { timeout: 30000 }, async t => {
   const f = await fixture(t, { run: async () => ({ text: 'unit runner' }) });
