@@ -35,7 +35,7 @@ struct N01TrustPolicy: Sendable {
     }
 }
 
-enum N01TLSError: Error { case invalidConfiguration, rejected, invalidResponse, responseTooLarge, network }
+enum N01TLSError: Error { case invalidConfiguration, rejected, invalidResponse, responseTooLarge, network, cancelled }
 
 // Deliberately only a single GET /trust-check without credentials, retries, storage or LAN discovery.
 // The future NSH host handler must separately implement exact route/method/body/ownership limits.
@@ -46,6 +46,7 @@ final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendabl
     private var bytes = Data()
     private var session: URLSession?
     private var started = false
+    private var cancelled = false
     init(policy: N01TrustPolicy) { self.policy = policy }
 
     func get(_ url: URL) async throws -> Data {
@@ -53,19 +54,26 @@ final class N01PinnedProbe: NSObject, URLSessionDataDelegate, @unchecked Sendabl
               url.path == "/trust-check", url.query == nil, url.fragment == nil else {
             throw N01TLSError.invalidConfiguration
         }
-        return try await withCheckedThrowingContinuation { continuation in
-            lock.lock()
-            guard !started else { lock.unlock(); continuation.resume(throwing: N01TLSError.invalidConfiguration); return }
-            started = true; completion = continuation
-            let config = URLSessionConfiguration.ephemeral
-            config.urlCache = nil; config.httpCookieStorage = nil; config.urlCredentialStorage = nil
-            config.timeoutIntervalForRequest = 5; config.timeoutIntervalForResource = 8
-            config.tlsMinimumSupportedProtocolVersion = .TLSv12
-            let session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-            self.session = session
-            lock.unlock()
-            session.dataTask(with: url).resume()
-        }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                lock.lock()
+                guard !cancelled else { lock.unlock(); continuation.resume(throwing: N01TLSError.cancelled); return }
+                guard !started else { lock.unlock(); continuation.resume(throwing: N01TLSError.invalidConfiguration); return }
+                started = true; completion = continuation
+                let config = URLSessionConfiguration.ephemeral
+                config.urlCache = nil; config.httpCookieStorage = nil; config.urlCredentialStorage = nil
+                config.timeoutIntervalForRequest = 5; config.timeoutIntervalForResource = 8
+                config.tlsMinimumSupportedProtocolVersion = .TLSv12
+                let session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+                self.session = session
+                session.dataTask(with: url).resume()
+                lock.unlock()
+            }
+        } onCancel: { self.cancel() }
+    }
+    func cancel() {
+        lock.lock(); cancelled = true; lock.unlock()
+        finish(.failure(N01TLSError.cancelled))
     }
     private func finish(_ result: Result<Data, Error>) {
         lock.lock(); let callback = completion; completion = nil

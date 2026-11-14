@@ -111,6 +111,23 @@ class NshValidationScopeTests(unittest.TestCase):
         self.assertIn('phoneInstalled: false', build)
         self.assertIn('PINNED-TLS-CHECK.md', (ROOT / 'PLAN.md').read_text())
 
+    def test_bridge_runtime_is_catalyst_not_phone_and_cancellation_is_explicit(self):
+        report = (PROBE / 'BRIDGE-RUNTIME.md').read_text()
+        for marker in ('21项断言通过', '不是 iPhone 联网验收', '全仓验收未全通过',
+                       'JS host.call 等待超时不自动等于native请求取消', 'N01整体未完成'):
+            self.assertIn(marker, report)
+        source = (PROBE / 'verify-bridge-runtime.mjs').read_text()
+        for marker in ("server.listen(0, '127.0.0.1'", 'phoneVerified: false',
+                       'systemTrustChanged: false', "['-W', '-n', '-g', '-j'", 'counts.http, 3',
+                       'counts.closedBeforeResponse, 2', 'n01.noHandler'):
+            self.assertIn(marker, source)
+        self.assertNotIn('rejectUnauthorized', source)
+        native = (PROBE / 'PinnedTLS.swift').read_text()
+        self.assertIn('withTaskCancellationHandler', native)
+        self.assertIn('func cancel()', native)
+        self.assertIn('app.handle("n01.cancelTrustCheck")', (PROBE / 'PinnedTLSBridge.swift').read_text())
+        self.assertIn('BRIDGE-RUNTIME.md', (ROOT / 'PLAN.md').read_text())
+
     def test_plan_keeps_unverified_mobile_and_business_work_open(self):
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('- [ ] N01', plan)

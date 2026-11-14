@@ -33,7 +33,11 @@ node probes/nsh-validation/verify-ios-bridge.mjs
 
 忽略证据：`results/pinned-tls-{initial,final}.log`、`results/ios-bridge-{initial,final}.log`、`results/embed-download.log`、`results/pin-*.log`；`bridge-build/run-*/build.log`及未签名产物。测试证书/原始框架和Xcode产物不提交Git。不会自动执行手机安装。
 
-## 下一依赖
+## 后续运行检查点
+
+本页保留前一轮构建时状态。后续Mac Catalyst实际桥运行21项断言、原生取消新增后15项TLS测试通过，见 [BRIDGE-RUNTIME.md](./BRIDGE-RUNTIME.md)；不将该Mac结果替换成iPhone运行证据，设备构建样本仍未注册handler。
+
+## 下一依赖（本页历史检查点，后续以BRIDGE-RUNTIME为准）
 
 1. 在能实际运行的NSH Swift嵌入宿主验证JS `host.call`→handler→受限HTTPS→安全返回，覆盖错误参数/超时/重复调用/取消和桥能力未授予；现无iOS模拟器runtime，未为此自动下载系统组件。可先补Mac Catalyst/原生宿主运行验证，不能替代iPhone。
 2. 设计首次信任引导：本机确认的二维码携带短期一次性配对材料/专用锚+pin、有效期，首次Mac确认，长期设备token签发/过期/撤销与项目归属；二维码本身是不可信输入，不能由任意扫码直接替换信任锚；CA私钥只留Mac。安全设计和实现测试后才开放最小LAN TLS监听，不能直接搬当前本机测试token。

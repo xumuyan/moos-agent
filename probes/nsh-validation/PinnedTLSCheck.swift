@@ -47,6 +47,18 @@ import CryptoKit
         rejected = false
         do { _ = try await N01PinnedProbe(policy: good).get(URL(string: args[4])!) } catch { rejected = true }
         try check(rejected, "oversized response rejected")
-        print("{\"status\":\"passed\",\"checks\":13,\"phoneVerified\":false,\"systemTrustChanged\":false}")
+        let cancelled = N01PinnedProbe(policy: good)
+        cancelled.cancel(); cancelled.cancel()
+        rejected = false
+        do { _ = try await cancelled.get(url) } catch N01TLSError.cancelled { rejected = true }
+        try check(rejected, "cancel before start is sticky and idempotent")
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await N01PinnedProbe(policy: good).get(url)
+        }
+        rejected = false
+        do { _ = try await task.value } catch { rejected = true }
+        try check(rejected, "Swift task cancellation prevents request")
+        print("{\"status\":\"passed\",\"checks\":15,\"phoneVerified\":false,\"systemTrustChanged\":false}")
     }
 }
