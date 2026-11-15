@@ -338,3 +338,40 @@ test('queue positions never cross projects; other projects do not delay a projec
   assert.deepEqual([reader.read('queue-b', null).queueAhead], [1],
     'project B queue position is unaffected by project A turnover');
 });
+
+test('team progress is parent-owned, bounded and strips goals, verdict prose and foreign parents', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-turn-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root);
+  const conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'private goal' });
+  store.setSetting('dsh-session:team-one', conversation.id);
+  store.setSetting('dsh-turn:team-one:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { version: 1, mode: 'team' });
+  assert.equal(reader.read('team-one', 1).team.phase, 'queued');
+  store.updateTask(task.id, { status: 'running' });
+  const event = payload => store.appendEvent(task.id, 'team_state', { teamId: task.id, ...payload });
+  event({ phase: 'planned', tasks: [
+    { id: 'build', role: 'implementer', goal: 'private goal /secret', dependsOn: [] },
+    { id: 'check', role: 'verifier', goal: 'private verdict', dependsOn: ['build'] },
+  ] });
+  event({ phase: 'running', nodeId: 'build', member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' });
+  event({ phase: 'completed', nodeId: 'build', member: 'implementer' });
+  event({ phase: 'completed', nodeId: 'check', member: 'implementer' }); // wrong role
+  event({ phase: 'blocked', nodeId: 'check', member: 'verifier', reason: 'private verdict /secret' });
+  event({ teamId: 'foreign-parent', phase: 'succeeded', nodeId: 'check', member: 'verifier' });
+  const team = reader.read('team-one', 1).team;
+  assert.equal(team.phase, 'blocked');
+  assert.deepEqual(team.nodes.map(node => node.state), ['completed', 'blocked']);
+  assert.doesNotMatch(JSON.stringify(team), /private|secret|goal|reason|attemptId/);
+  store.updateTask(task.id, { status: 'interrupted' });
+  assert.equal(reader.read('team-one', 1).team.phase, 'interrupted');
+  for (let i = 0; i < 130; i++) event({ phase: 'running', member: 'captain' });
+  assert.equal(reader.read('team-one', 1).team.limited, true);
+  const ordinary = store.createTask({ conversationId: conversation.id, message: 'ordinary' });
+  store.setSetting('dsh-turn:team-one:2', ordinary.id);
+  store.appendEvent(ordinary.id, 'team_state', { teamId: ordinary.id, phase: 'succeeded' });
+  assert.equal(reader.read('team-one', 2).team, undefined, 'no invented team without snapshot');
+});

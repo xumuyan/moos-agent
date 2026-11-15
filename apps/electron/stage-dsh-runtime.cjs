@@ -35,6 +35,19 @@ function patchBundledSource(dsh, packageName, anchor, replacement, { entry = 'in
   fs.writeFileSync(file, source.replaceAll(anchor, replacement));
 }
 
+function configurePiSubmission(dsh) {
+  const { sessionModeMethods } = require('./pi-team-client.cjs');
+  const entry = { entry: 'client.js' };
+  patchBundledSource(dsh, 'dsh-api-session-controller',
+    'beginSubmission(input) {\n\t\t\t\tconst requestId = randomUUID();',
+    sessionModeMethods + '\n\t\t\tbeginSubmission(input) {\n\t\t\t\tconst requestId = this.moosRequestId();', entry);
+  // Direct prompts without a local echo also snapshot now; explicit retry IDs
+  // and caller-minted identities must remain byte-for-byte intact.
+  patchBundledSource(dsh, 'dsh-api-session-controller',
+    'requestId: requestId ?? randomUUID(),\n\t\t\t\t\t\tsessionId: this.sessionId,',
+    'requestId: requestId ?? this.moosRequestId(),\n\t\t\t\t\t\tsessionId: this.sessionId,', entry);
+}
+
 function configurePiQueue(dsh) {
   // DSH can claim multiple next-step messages at once. PI owns the whole
   // task, so keep one queued input per turn, including calls from old clients.
@@ -239,6 +252,7 @@ function stageDshRuntime(resources, destination) {
     }
   }
   copy('');
+  configurePiSubmission(dsh);
   configurePiQueue(dsh);
   configureModelPicker(dsh);
   configureModelSettings(dsh);
@@ -289,5 +303,5 @@ function stageDshRuntime(resources, destination) {
   }
 }
 
-module.exports = { stageDshRuntime, configurePiQueue, groupModelsBySite };
+module.exports = { stageDshRuntime, configurePiQueue, configurePiSubmission, groupModelsBySite };
 if (require.main === module) stageDshRuntime(process.resourcesPath, process.argv[2]);

@@ -119,3 +119,11 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 专项19/19，真实生产Host.apply→路由→Scheduler→PI SDK→本地模拟模型→write answer.txt=42→独立read/verdict→队长交付；新隔离包同链路亦通过。默认核心275/275，Electron110通过9跳过，build-D7oaW7包内118通过1跳过、严格验签/无fixture；Rust离线缺tauri，皮肤专项缺材料，全仓仍非全绿。详见`docs/evidence/desktop/agent-teams-host-route.json`。
 
 **客户端发送身份钩子、＋菜单/团队协作×标签及团队进度面板仍未接入**，不能把Host可调用说成用户可用；测试请求ID为测试构造，不冒充用户菜单发送。外部模型、正常GUI、节点恢复和正式安装仍待验收。不启动或替换现用沐码，不改真实用户数据，不安装上游插件或恢复旧DSH执行器。
+
+### 7.7 客户端发送身份、菜单与真实进度候选（2026-11-15，未安装）
+
+本节是7.6之后的状态，不改写之前无界面的历史。已接Session的beginSubmission和direct prompt身份兜底；菜单「团队协作」及「团队协作 ×」使用commandUi与conversation.input.left。默认普通、按Session临时保存，不适用于routed subagent；切换/×只改变之后生成的请求身份，不取消现有任务。显式重试保持原ID，Host仍以原task_submission恢复模式/目标。排队/回显/附件引用的ID由同一入口生成；VM测试不是完整真实附件上传验收。
+
+进度来自父team_state，最多128事件/6节点，展示角色、依赖、真实枚举状态和通用阻塞指引，父终态覆盖；不暴露成员原文、目标、验收正文或任意路径，无新增团队轮询。尚无独立右侧成员消息/详细阻塞面板；投影目前校验父/角色及running attempt形状，不是完整逐节点attempt关联，不能冒称投影已屏蔽所有stale。runtime的stale工具/迟到emit防护独立保留。无节点恢复或恰好一次副作用保证。
+
+专项34/34；新无fixture build-a0XbOz严格验签，包内Electron123通过1skip。隐藏QA窗口经CDP完成实际菜单/发送→Host→PI→写42→独立读→汇总，运行中×不取消，下一条普通成功，9次本地模拟请求。两次脚本选择失败保留。可复验 `node scripts/verify-electron-team.mjs .generated/moos-electron/build-a0XbOz/沐码.app`，只接受.generated/moos-electron内真路径、复制新QA包/独立数据，不修改原包或正式数据。此脚本不是正常可见GUI/原生输入验收，不是外部模型或生产安装。默认核心初轮helper超时保留、最终npm test 276/276，完整串行276/276；脚本另有流式文字/DB终态竞态，等待终态后复验成功；Rust缺离线tauri、皮肤材料不足，全仓非全绿。证据 `docs/evidence/desktop/agent-teams-client-ui.json`。外部模型、正常GUI、真实停止/重试全链路与剩余恢复/配额场景继续验证；正式安装需另获授权E84。

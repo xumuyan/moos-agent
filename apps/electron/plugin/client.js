@@ -362,10 +362,40 @@ window.__ModuleLoader__.load({
       });
     }
 
+    const teamRoles = { captain: '队长', implementer: '执行成员', verifier: '独立验证成员' };
+    const teamPhases = { queued: '等待执行', planning: '正在规划', planned: '计划已生成', running: '正在执行',
+      done: '当前轮次结束', blocked: '验收阻塞', completed: '节点已完成', summarizing: '正在汇总',
+      succeeded: '已交付', failed: '失败', cancelled: '已停止', interrupted: '已中断' };
+    function TeamProgress({ team }) {
+      if (!team) return null;
+      return createElement('section', { 'data-moos-team-progress': '', 'aria-label': '团队协作进度' },
+        createElement('strong', null, '团队协作 · ', teamPhases[team.phase] ?? '状态未知'),
+        teamRoles[team.member] ? createElement('span', null, ' · ', teamRoles[team.member]) : null,
+        createElement('ul', null, team.nodes.map(node => createElement('li', { key: node.id },
+          createElement('span', null, node.id, ' · ', teamRoles[node.role]),
+          node.dependsOn.length ? createElement('span', null, '依赖 ', node.dependsOn.join('、')) : null,
+          createElement('small', null, teamPhases[node.state] ?? '状态未知')))),
+        ['blocked', 'failed', 'cancelled', 'interrupted'].includes(team.phase)
+          ? createElement('p', null, '团队未完成交付；下游不会继续。重试沿用原目标和团队模式，不会自动恢复节点。') : null,
+        team.limited ? createElement('p', null, '团队事件展示已达上限') : null);
+    }
+
+    function TeamMode({ session }) {
+      const [mode, setMode] = useState(() => session?.moosMode?.() ?? 'ordinary');
+      useEffect(() => {
+        setMode(session?.moosMode?.() ?? 'ordinary');
+        return session?.moosSubscribeMode?.(() => setMode(session.moosMode()));
+      }, [session]);
+      if (!session?.moosCanSetMode?.() || mode !== 'team') return null;
+      return createElement('span', { 'data-moos-team-mode': '', title: '仅影响之后发送的任务；不停止已提交任务' },
+        '团队协作', createElement('button', { type: 'button', 'aria-label': '退出团队模式（不停止任务）',
+          onClick: () => session.moosSetMode('ordinary') }, '×'));
+    }
+
     function PiProcess({ data, sessionId }) {
       const queued = data?.status === 'queued';
       // 排队中的任务没有动作/路由/截图也要展示卡片，避免用户把等待误认为卡死。
-      if (!data || (!queued && !data.actions.length && !data.route && !data.desktop && !data.shots?.length)) return null;
+      if (!data || (!queued && !data.actions.length && !data.route && !data.desktop && !data.shots?.length && !data.team)) return null;
       // 项目独立队列：位次只在本项目内计数；无同项目任务时区分「等同项目上一任务」与「等全局执行位」。
       const queuedSummary = (data.queueAhead ?? 0) >= 1
         ? `排队中 · 本项目前方 ${data.queueAhead} 个任务`
@@ -375,7 +405,8 @@ window.__ModuleLoader__.load({
       return createElement('details', { 'data-moos-pi-process': '', ...(queued ? { 'data-moos-queued': 'true' } : {}) },
         createElement('summary', null, ...(queued
           ? [queuedSummary]
-          : ['执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status]])),
+          : ['执行过程 · ', data.actions.length, ' 项操作 · ', turnStates[data.status], data.team ? ' · 团队协作' : ''])),
+        createElement(TeamProgress, { team: data.team }),
         data.route ? createElement('p', { 'data-moos-model-route': '' },
           data.route.previous, ' → ', data.route.current, ' · ', routeReasons[data.route.reason]) : null,
         data.desktop ? createElement('p', { 'data-moos-desktop-state': '' },
@@ -527,6 +558,18 @@ window.__ModuleLoader__.load({
         }, ComposerUsage));
       }
       if (window.moosTurn) {
+        ctx.inject?.(['commandUi'], scope => {
+          scope.effect(() => scope.get('commandUi').register({
+            name: 'moos-team', label: () => '团队协作', icon: taskIcon,
+            description: () => '自动规划、执行、独立验证并汇总；仅影响之后发送的任务',
+            available: target => ctx.sessions.binding(target.sessionId)?.session.moosCanSetMode?.() === true,
+            ui: { kind: 'action', run: target => ctx.sessions.binding(target.sessionId)?.session.moosSetMode('team') },
+          }));
+        });
+        ctx.slots.inject('conversation.input.left', () => ctx.slots.register({
+          name: 'conversation.input.left', id: 'moos-team-mode',
+          inject: sessionId => ({ session: ctx.sessions.binding(sessionId)?.session }),
+        }, TeamMode));
         const sessionProps = sessionId => ({ sessionId });
         ctx.slots.inject('conversation.chat.turnProcess', () => ctx.slots.register({
           name: 'conversation.chat.turnProcess', id: 'moos-pi-process', inject: sessionProps,
@@ -559,6 +602,9 @@ window.__ModuleLoader__.load({
         [data-plugin-package="moos-electron-shell"] { display: none !important; }
         [data-moos-composer-usage] { display: flex; flex-wrap: wrap; gap: 0 12px; font-size: 12px; opacity: .75; }
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
+        [data-moos-team-mode] { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; padding: 2px 7px; border-radius: 8px; background: var(--dsw-alias-bg-module-platform); }
+        [data-moos-team-mode] button { color: inherit; background: transparent; border: 0; cursor: pointer; font: inherit; padding: 2px 4px; }
+        [data-moos-team-progress] { padding: 8px 0; }
         [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-desktop-shots] { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }

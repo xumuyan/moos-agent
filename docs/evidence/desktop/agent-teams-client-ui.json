@@ -1,0 +1,169 @@
+{
+  "status": "client-ui-isolated-local-model-candidate-not-installed",
+  "recordedAt": "2026-11-15T19:31:02+08:00",
+  "workspace": {
+    "baseCommit": "625f63a15eb486157edf72c8e8ef8d60c73ca4e4",
+    "state": "precommit application sources fixed before build-a0XbOz; runtime test added node ownership assertions; projection test renamed to avoid stale-attempt overclaim; verification script promoted afterward; docs appended after acceptance",
+    "platform": "arm64 macOS 27.0.1 (26A434)",
+    "node": "24.15.0"
+  },
+  "implementation": {
+    "clientSubmissionIdentityHook": true,
+    "menuAndRemovableTag": true,
+    "parentOwnedBoundedProgress": true,
+    "newPollingTimers": false,
+    "modeSelection": "ephemeral per root Session, ordinary default; routed subagents excluded; clear affects future minted IDs only",
+    "identity": "beginSubmission snapshots mode; same explicit ID for echo/attachment/admission; direct prompt fallback mints once; retry IDs unchanged",
+    "projection": "first 128 parent team_state events, at most 6 nodes; bounded IDs/dependencies/enums only; terminal parent lifecycle authoritative",
+    "projectionLimits": "running validates attempt shape; completed/blocked validate parent and role, not full per-node attempt correlation; runtime stale-attempt fencing is separately tested",
+    "resultLimits": "no member mailbox/chat, detailed blocker/verdict prose panel, node resume or exactly-once guarantee"
+  },
+  "acceptance": {
+    "targeted": {
+      "pass": 34,
+      "skip": 0,
+      "exitCode": 0,
+      "milliseconds": 5249.058334,
+      "log": "artifacts/team-ui/targeted-final.log"
+    },
+    "renderer": {
+      "script": "scripts/verify-electron-team.mjs",
+      "status": "passed",
+      "scope": "isolated copied QA bundle, show suppressed, CDP input and synthetic local SSE model; not normal macOS input/GUI or external model acceptance",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "modeClearDoesNotCancel": true,
+        "independentReadAndArtifact": true,
+        "ordinaryAfterClear": true
+      },
+      "requests": 9,
+      "artifact": "answer.txt = 42 newline; actual implementer write and independent verifier read; parent tasks succeeded with saved modes team then ordinary",
+      "failedAttemptsRetained": [
+        "gui-b06iPo: menu selector exact text mismatch",
+        "gui-8BkPUa: .click() did not invoke pinned menu onMouseDown; harness corrected, application sources unchanged",
+        "gui-OUr6AK: streaming ordinary text preceded successful task commit; DB later confirmed both succeeded, harness now awaits persisted terminal state"
+      ],
+      "screenshots": [
+        "artifacts/team-ui/gui-Wn69IE/team-selected.png",
+        "artifacts/team-ui/gui-Wn69IE/team-live.png",
+        "artifacts/team-ui/gui-Wn69IE/team-delivered.png"
+      ],
+      "notCovered": [
+        "actual attachment upload lifecycle",
+        "normal visible GUI and native input",
+        "external model",
+        "team stop/retry from real GUI"
+      ],
+      "finalScriptIsolationGuard": {
+        "pass": 1,
+        "fail": 0,
+        "milliseconds": 232.220375
+      },
+      "finalReproduction": {
+        "status": "passed",
+        "requests": 9,
+        "report": "artifacts/team-ui/gui-yBVwMP/report.json",
+        "log": "artifacts/team-ui/gui-final-fixed.log",
+        "persistedTerminalStateAwaited": true
+      },
+      "reportSha256": "7f76abc035fb1f9301bc4204e98070e695e3e72d13d6489359ca5ec3df03e053"
+    }
+  },
+  "regression": {
+    "defaultCore": {
+      "command": "npm test",
+      "pass": 274,
+      "fail": 1,
+      "exitCode": 1,
+      "seconds": 69.01,
+      "failure": "desktop-tools geometry drift expected DESKTOP_FOCUS_CHANGED but helper timed out; historical failure retained"
+    },
+    "coreSerial": {
+      "pass": 275,
+      "fail": 0,
+      "exitCode": 0,
+      "seconds": 164.18
+    },
+    "electron": {
+      "pass": 114,
+      "skip": 10,
+      "fail": 0,
+      "exitCode": 0,
+      "seconds": 22.74,
+      "skipReasons": "9 require explicit packaged DSH/helper plus 1 reviewed skin material; fresh-package run resolves 9, retains skin skip"
+    },
+    "packaged": {
+      "pass": 123,
+      "skip": 1,
+      "fail": 0,
+      "exitCode": 0,
+      "seconds": 35.95,
+      "skipReason": "reviewed skin-center 0.4.16 / Maid materials unavailable"
+    },
+    "native": {
+      "exitCode": 101,
+      "reason": "offline tauri missing; no toolchain/download changes"
+    },
+    "allRegressionsGreen": false,
+    "historicalFailuresRetained": true,
+    "coreFinalSerial": {
+      "command": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
+      "pass": 276,
+      "fail": 0,
+      "skip": 0,
+      "exitCode": 0,
+      "milliseconds": 170289.342625,
+      "note": "includes new renderer-script isolation guard; verification script later awaited persisted task terminal state to fix QA race"
+    },
+    "defaultCoreFinal": {
+      "command": "npm test",
+      "pass": 276,
+      "fail": 0,
+      "skip": 0,
+      "exitCode": 0,
+      "milliseconds": 63208.701792,
+      "log": "artifacts/team-ui/core-default-final.log",
+      "note": "final rerun passed; earlier helper timeout retained"
+    }
+  },
+  "build": {
+    "command": "npm run build:app",
+    "path": ".generated/moos-electron/build-a0XbOz/沐码.app",
+    "exitCode": 0,
+    "seconds": 54.34,
+    "includesPiFixture": false,
+    "version": "0.1.49 candidate, not installed",
+    "dshVersion": "0.2.2-rc.1",
+    "strictCodesignExitCode": 0,
+    "strictCodesignSeconds": 6.65,
+    "installerArchiveProduced": false,
+    "runtimeDownloadBytes": null,
+    "sourceHashes": {
+      "apps/electron/pi-turn.mjs": "7f90fa20b19522be421df787bb144507bdac53b167d6e2230b751791c21411c9",
+      "apps/electron/plugin/client.js": "84cfbacbad777c1a2f314e7581152b73dd79a8c13769d6691b4d4579a90ad793",
+      "packages/pi-runtime/team-runtime.mjs": "b38cd5bd65b2f0a5b1c2e3829b9fa3b3dd58cc7a9e91ccec6659ac341ca2a400"
+    },
+    "turnAndTeamRuntimeMatchSource": true,
+    "stagedModeMethodsPresent": true,
+    "logicalFileBytesExcludingSymlinks": 616392401,
+    "duKiB": 691668
+  },
+  "pending": {
+    "externalModel": true,
+    "normalGUI": true,
+    "memberMessagesAndDetailedBlockerPanel": true,
+    "fullAttemptCorrelationInProjection": true,
+    "nodeRecovery": true,
+    "nativeAndSkinGates": true,
+    "deployment": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false,
+    "upstreamPluginInstalled": false
+  },
+  "logs": "artifacts/team-ui/ (ignored; isolated synthetic inputs only)"
+}

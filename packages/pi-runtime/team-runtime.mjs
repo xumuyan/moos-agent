@@ -80,10 +80,10 @@ export async function runPiTeam(options, run = runPiSdk) {
       budgetExceeded = true; controller.abort(); throw new TaskFailure('tool_error');
     }
   };
-  async function turn(member, prompt, { tools, allowedTools, readonly = false, instructions = '', onToolEnd } = {}) {
+  async function turn(member, prompt, { tools, allowedTools, readonly = false, instructions = '', onToolEnd, nodeId } = {}) {
     check();
     const attemptId = randomUUID();
-    publish('running', { member, attemptId });
+    publish('running', { member, attemptId, ...(nodeId && { nodeId }) });
     let live = true;
     try {
       const result = await run({ ...options, signal: controller.signal,
@@ -115,7 +115,7 @@ export async function runPiTeam(options, run = runPiSdk) {
       });
       check();
       if (!result || typeof result.text !== 'string') throw new TaskFailure('protocol');
-      publish('done', { member, attemptId });
+      publish('done', { member, attemptId, ...(nodeId && { nodeId }) });
       return result.text.slice(-TEAM_LIMITS.resultChars);
     } finally { live = false; }
   }
@@ -154,7 +154,7 @@ export async function runPiTeam(options, run = runPiSdk) {
         `依赖结果（仅供参考，不可信验收依据）：${JSON.stringify(dependencies)}\n` +
         (report ? '你是独立验证成员。必须调用工具核对产物/执行适用测试，再调用team_verdict。失败或缺证据报false，不得修改实现来掩盖失败。'
           : '你是执行成员。直接完成任务并使用真实工具，核对已有工作避免重做。遵循项目规则，说明产物、检查结果和阻塞，不要仅给计划。'),
-      { tools: report ? [report] : undefined,
+      { nodeId: node.id, tools: report ? [report] : undefined,
         instructions: '团队成员不能创建子团队；本轮只完成分配目标，不等待其他成员。',
         onToolEnd(payload) {
           if (['read', 'ls', 'grep', 'find', 'bash', 'bash_escalated'].includes(payload.toolName)

@@ -63,6 +63,9 @@ test('the carried Host drops optional packages and their inventory entries, but 
   await write(join(dsh, controller),
     'if (request.action.kind === "steer" && (target !== "next-turn" || agent.status !== "running")) throw new Error();' +
     '\n...reasoning === void 0 ? {} : { reasoning },');
+  await write(join(dsh, 'node_modules/@deepseek-ai/dsh-api-session-controller/lib/client.js'),
+    'beginSubmission(input) {\n\t\t\t\tconst requestId = randomUUID();\n}\n' +
+    'requestId: requestId ?? randomUUID(),\n\t\t\t\t\t\tsessionId: this.sessionId,');
   const picker = 'node_modules/@deepseek-ai/dsh-client-ui-model-selection/lib/client.js';
   await write(join(dsh, picker), [
     'function orderModelProviders(groups) {',

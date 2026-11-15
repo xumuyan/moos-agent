@@ -238,6 +238,32 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('7.6 Host路由与提交模式快照候选', guide)
         self.assertIn('不能充当外部副作用去重保证', guide)
 
+    def test_agent_teams_client_checkpoint_separates_hidden_fixture_from_normal_gui(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-client-ui.json').read_text())
+        self.assertEqual(e['status'], 'client-ui-isolated-local-model-candidate-not-installed')
+        for key in ('clientSubmissionIdentityHook', 'menuAndRemovableTag', 'parentOwnedBoundedProgress'):
+            self.assertTrue(e['implementation'][key])
+        self.assertFalse(e['implementation']['newPollingTimers'])
+        self.assertEqual(e['acceptance']['targeted']['pass'], 34)
+        self.assertEqual(e['acceptance']['renderer']['status'], 'passed')
+        self.assertTrue(all(e['acceptance']['renderer']['checks'].values()))
+        self.assertIn('not normal', e['acceptance']['renderer']['scope'])
+        self.assertEqual(e['regression']['defaultCore']['fail'], 1)
+        self.assertEqual(e['regression']['coreFinalSerial']['pass'], 276)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['native']['exitCode'], 101)
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertTrue(e['build']['turnAndTeamRuntimeMatchSource'])
+        self.assertTrue(e['build']['stagedModeMethodsPresent'])
+        self.assertTrue(all(e['pending'].values()))
+        self.assertTrue(all(value is False for value in e['protection'].values()))
+        self.assertTrue((ROOT / e['acceptance']['renderer']['script']).is_file())
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        for term in ('客户端隔离闭环候选', '客户端检查点', 'CDP', '未安装', '全仓未全绿'):
+            self.assertIn(term, plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.7 客户端发送身份', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

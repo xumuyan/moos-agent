@@ -58,6 +58,11 @@ test('independent bounded PI turns run sequentially and only final summary is em
   assert.equal(events.filter(event => event.type === 'text_delta').length, 1);
   assert.equal(events.filter(event => event.payload.phase === 'succeeded').length, 1);
   assert.match(events.find(event => event.type === 'tool_end').payload.toolCallId, /^verifier:/);
+  const activeNodes = events.filter(event => event.type === 'team_state' && event.payload.phase === 'running' && event.payload.nodeId);
+  assert.deepEqual(activeNodes.map(event => [event.payload.nodeId, event.payload.member]), plan.tasks.map(node => [node.id, node.role]));
+  assert.ok(activeNodes.every(event => /^[a-f0-9-]{36}$/.test(event.payload.attemptId)));
+  for (const { payload } of activeNodes) assert.ok(events.some(event => event.payload.phase === 'done'
+    && event.payload.nodeId === payload.nodeId && event.payload.attemptId === payload.attemptId));
 });
 
 test('failed or unsubstantiated verifier never becomes success and cannot release downstream', async () => {

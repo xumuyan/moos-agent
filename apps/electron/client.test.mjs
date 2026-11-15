@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
-async function loadClient(overrides = {}) {
+async function loadClient(overrides = {}, contextOverrides = {}) {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;
   const effects = [];
@@ -47,6 +47,7 @@ async function loadClient(overrides = {}) {
       register({ name, id }, component) { renderers.set(id ?? name, component); },
     },
     on() {},
+    ...contextOverrides,
   });
   const render = (...args) => {
     stateIndex = 0; // 每次渲染重置 hook 序号，状态值沿用上一轮（与 React 行为一致）。
@@ -62,7 +63,8 @@ async function loadClient(overrides = {}) {
     };
     return walk(element);
   };
-  return { render, effects, source };
+  return { render, effects, source, renderers,
+    renderComponent: (id, props) => { stateIndex = 0; return renderers.get(id)(props); } };
 }
 
 async function flush() {
@@ -511,4 +513,51 @@ test('queued turns render a queue-position card without actions; empty running t
   await flush();
   assert.equal(running.render({ sessionId: 'session-running', startSeq: null, live: false }), null,
     'running turns without actions keep the existing hidden behaviour');
+});
+
+test('team menu and removable tag change only future submissions without prompting or cancelling', async () => {
+  const { sessionModeMethods } = await import('./pi-team-client.cjs');
+  const Session = runInNewContext(`(class { ${sessionModeMethods} })`, { randomUUID: () => '00000000-0000-0000-0000-000000000001' });
+  const session = new Session();
+  let command;
+  const harness = await loadClient({ moosTurn: async () => null }, {
+    sessions: { binding: id => id === 'one' ? { session } : undefined },
+    inject(_deps, callback) {
+      callback({ get: () => ({ register: value => { command = value; return () => {}; } }), effect: setup => setup() });
+    },
+  });
+  assert.equal(command.label(), '团队协作');
+  assert.equal(command.available({ sessionId: 'one' }), true);
+  assert.equal(command.available({ sessionId: 'missing' }), false);
+  assert.equal(harness.renderComponent('moos-team-mode', { session }), null);
+  harness.effects.splice(0).forEach(effect => effect.callback());
+  command.ui.run({ sessionId: 'one' });
+  const submitted = session.moosRequestId();
+  const tag = harness.renderComponent('moos-team-mode', { session });
+  assert.match(tag.props.title, /不停止/);
+  assert.equal(tag.children[0], '团队协作');
+  tag.children[1].props.onClick();
+  assert.equal(session.moosMode(), 'ordinary');
+  assert.match(submitted, /:team:/, 'already minted identity is untouched');
+  assert.equal(harness.renderComponent('moos-team-mode', { session }), null);
+  session.address = {};
+  assert.equal(command.available({ sessionId: 'one' }), false, 'no team selector on routed subagent');
+});
+
+test('team process renders real node states without inventing verdict or completing interrupted work', async () => {
+  const harness = await loadClient({ moosTurn: async () => ({ status: 'interrupted', actions: [],
+    team: { phase: 'interrupted', nodes: [
+      { id: 'build', role: 'implementer', dependsOn: [], state: 'completed' },
+      { id: 'check', role: 'verifier', dependsOn: ['build'], state: 'queued' },
+    ] },
+  }) });
+  harness.render({ sessionId: 'team-one', startSeq: 1, live: false });
+  harness.effects.splice(0).forEach(effect => effect.callback());
+  await flush();
+  const tree = harness.render({ sessionId: 'team-one', startSeq: 1, live: false });
+  const text = JSON.stringify(tree);
+  assert.match(text, /团队协作/); assert.match(text, /已中断/);
+  assert.match(text, /独立验证成员/); assert.match(text, /等待执行/);
+  assert.doesNotMatch(text, /已交付|private|passed/);
+  assert.equal(harness.effects.at(-1).dependencies[2], false, 'finished turns add no team polling');
 });

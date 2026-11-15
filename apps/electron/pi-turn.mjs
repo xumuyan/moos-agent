@@ -149,11 +149,45 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
       const desktop = !terminal.has(task.status) && desktopEvent && (desktopEvent.phase === 'queued' || desktopEvent.phase === 'running')
         ? { phase: desktopEvent.phase, label: desktopEvent.label, queueAhead: desktopEvent.queueAhead }
         : undefined;
+      // Only finite enums, IDs and DAG edges cross IPC. User goals, raw
+      // member output, model verdict prose and arbitrary paths never do.
+      const submission = db.prepare(`SELECT json_extract(payload, '$.mode') AS mode
+        FROM events WHERE taskId = ? AND type = 'task_submission' ORDER BY id DESC LIMIT 1`).get(task.id);
+      let team;
+      if (submission?.mode === 'team') {
+        const states = db.prepare(`SELECT payload FROM events
+          WHERE taskId = ? AND type = 'team_state' ORDER BY id LIMIT 129`).all(task.id);
+        const nodes = new Map();
+        const phases = new Set(['planning', 'planned', 'queued', 'running', 'done', 'blocked', 'completed', 'summarizing', 'succeeded', 'failed']);
+        let phase = 'queued', member;
+        const id = value => typeof value === 'string' && /^[a-z][a-z0-9_-]{0,31}$/.test(value);
+        for (const row of states.slice(0, 128)) {
+          let state; try { state = JSON.parse(row.payload); } catch { continue; }
+          if (state?.teamId !== task.id || !phases.has(state.phase)) continue;
+          phase = state.phase;
+          member = ['captain', 'implementer', 'verifier'].includes(state.member) ? state.member : undefined;
+          if (phase === 'planned' && Array.isArray(state.tasks) && !nodes.size) {
+            for (const node of state.tasks.slice(0, 6)) {
+              if (!node || !id(node.id) || !['implementer', 'verifier'].includes(node.role) || !Array.isArray(node.dependsOn)) continue;
+              nodes.set(node.id, { id: node.id, role: node.role, dependsOn: node.dependsOn.filter(id).slice(0, 6), state: 'queued' });
+            }
+          }
+          const node = nodes.get(state.nodeId);
+          if (node && node.role === member && phase === 'running' && typeof state.attemptId === 'string'
+            && /^[a-f0-9-]{36}$/.test(state.attemptId)) {
+            node.state = phase;
+          }
+          if (node && node.role === member && ['completed', 'blocked'].includes(phase)) node.state = phase;
+        }
+        // Parent lifecycle is authoritative, including cancel/deadline/restart.
+        if (terminal.has(task.status)) phase = task.status;
+        team = { phase, member, nodes: [...nodes.values()], limited: states.length > 128 };
+      }
       const confirmed = new Map(changes?.files.map(file => [file.path, file.summary]));
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([
         ...[...files].map(([path, operations]) => [path, [...operations].join('、')]), ...confirmed,
       ]);
-      return { status: task.status, queueAhead: queueInfo.queueAhead, projectRunning: queueInfo.projectRunning, actions: [...actions.values()], route, desktop, shots, limited: events.length > 400,
+      return { status: task.status, queueAhead: queueInfo.queueAhead, projectRunning: queueInfo.projectRunning, actions: [...actions.values()], route, desktop, shots, team, limited: events.length > 400,
         filesLimited: changes?.limited === true, workspaceChanges: changes !== undefined,
         files: [...mergedFiles].filter(([path]) => isWorkspaceChangeVisible(path)).map(([path, summary]) => ({ path, summary })) };
     },
