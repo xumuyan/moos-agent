@@ -157,27 +157,47 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
       if (submission?.mode === 'team') {
         const states = db.prepare(`SELECT payload FROM events
           WHERE taskId = ? AND type = 'team_state' ORDER BY id LIMIT 129`).all(task.id);
-        const nodes = new Map();
+        const nodes = new Map(), attempts = new Map();
         const phases = new Set(['planning', 'planned', 'queued', 'running', 'done', 'blocked', 'completed', 'summarizing', 'succeeded', 'failed']);
         let phase = 'queued', member;
         const id = value => typeof value === 'string' && /^[a-z][a-z0-9_-]{0,31}$/.test(value);
         for (const row of states.slice(0, 128)) {
           let state; try { state = JSON.parse(row.payload); } catch { continue; }
           if (state?.teamId !== task.id || !phases.has(state.phase)) continue;
+          const role = ['captain', 'implementer', 'verifier'].includes(state.member) ? state.member : undefined;
+          if (state.nodeId !== undefined) {
+            const node = nodes.get(state.nodeId);
+            if (!node || node.role !== role) continue;
+            const attempt = attempts.get(node.id);
+            if (state.phase === 'queued') {
+              if (attempt) continue;
+            } else if (state.phase === 'running') {
+              // This runtime has one attempt per node; explicit retry creates
+              // a new parent task. Never replace an accepted attempt in-place.
+              if (attempt || typeof state.attemptId !== 'string' || state.attemptId.length !== 36
+                || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(state.attemptId)) continue;
+              attempts.set(node.id, { id: state.attemptId, done: false });
+              node.state = 'running';
+            } else if (['done', 'completed', 'blocked'].includes(state.phase)) {
+              if (!attempt || attempt.id !== state.attemptId || node.state !== 'running') continue;
+              if (state.phase === 'done') {
+                if (attempt.done) continue;
+                attempt.done = true;
+              } else {
+                if (!attempt.done) continue;
+                node.state = state.phase;
+              }
+            } else continue;
+          } else if (['queued', 'completed', 'blocked'].includes(state.phase)
+            || ['running', 'done'].includes(state.phase) && role !== 'captain') continue;
           phase = state.phase;
-          member = ['captain', 'implementer', 'verifier'].includes(state.member) ? state.member : undefined;
+          member = role;
           if (phase === 'planned' && Array.isArray(state.tasks) && !nodes.size) {
             for (const node of state.tasks.slice(0, 6)) {
               if (!node || !id(node.id) || !['implementer', 'verifier'].includes(node.role) || !Array.isArray(node.dependsOn)) continue;
               nodes.set(node.id, { id: node.id, role: node.role, dependsOn: node.dependsOn.filter(id).slice(0, 6), state: 'queued' });
             }
           }
-          const node = nodes.get(state.nodeId);
-          if (node && node.role === member && phase === 'running' && typeof state.attemptId === 'string'
-            && /^[a-f0-9-]{36}$/.test(state.attemptId)) {
-            node.state = phase;
-          }
-          if (node && node.role === member && ['completed', 'blocked'].includes(phase)) node.state = phase;
         }
         // Parent lifecycle is authoritative, including cancel/deadline/restart.
         if (terminal.has(task.status)) phase = task.status;

@@ -358,9 +358,12 @@ test('team progress is parent-owned, bounded and strips goals, verdict prose and
     { id: 'check', role: 'verifier', goal: 'private verdict', dependsOn: ['build'] },
   ] });
   event({ phase: 'running', nodeId: 'build', member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' });
-  event({ phase: 'completed', nodeId: 'build', member: 'implementer' });
+  event({ phase: 'done', nodeId: 'build', member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' });
+  event({ phase: 'completed', nodeId: 'build', member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' });
   event({ phase: 'completed', nodeId: 'check', member: 'implementer' }); // wrong role
-  event({ phase: 'blocked', nodeId: 'check', member: 'verifier', reason: 'private verdict /secret' });
+  event({ phase: 'running', nodeId: 'check', member: 'verifier', attemptId: '00000000-0000-0000-0000-000000000002' });
+  event({ phase: 'done', nodeId: 'check', member: 'verifier', attemptId: '00000000-0000-0000-0000-000000000002' });
+  event({ phase: 'blocked', nodeId: 'check', member: 'verifier', attemptId: '00000000-0000-0000-0000-000000000002', reason: 'private verdict /secret' });
   event({ teamId: 'foreign-parent', phase: 'succeeded', nodeId: 'check', member: 'verifier' });
   const team = reader.read('team-one', 1).team;
   assert.equal(team.phase, 'blocked');
@@ -374,4 +377,40 @@ test('team progress is parent-owned, bounded and strips goals, verdict prose and
   store.setSetting('dsh-turn:team-one:2', ordinary.id);
   store.appendEvent(ordinary.id, 'team_state', { teamId: ordinary.id, phase: 'succeeded' });
   assert.equal(reader.read('team-one', 2).team, undefined, 'no invented team without snapshot');
+});
+
+test('team node projection accepts only its first owned attempt and ordered terminal event', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-attempt-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'goal' });
+  store.setSetting('dsh-session:attempt', conversation.id); store.setSetting('dsh-turn:attempt:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { version: 1, mode: 'team' });
+  store.updateTask(task.id, { status: 'running' });
+  const append = payload => store.appendEvent(task.id, 'team_state', { teamId: task.id, ...payload });
+  const a = '00000000-0000-0000-0000-000000000001', b = '00000000-0000-0000-0000-000000000002';
+  append({ phase: 'planned', tasks: [{ id: 'build', role: 'implementer', dependsOn: [] }] });
+  const node = (phase, attemptId = a, extra = {}) => append({ phase, nodeId: 'build', member: 'implementer', attemptId, ...extra });
+  const current = () => reader.read('attempt', 1).team;
+  for (const invalid of [undefined, '------------------------------------', a + '\n']) { node('running', invalid, { attemptId: invalid }); assert.equal(current().nodes[0].state, 'queued'); }
+  node('completed'); assert.equal(current().phase, 'planned', 'no completion without running');
+  node('running'); assert.equal(current().nodes[0].state, 'running');
+  node('completed'); assert.equal(current().phase, 'running', 'must finish matching turn before completion');
+  for (const phase of ['running', 'done', 'completed', 'blocked']) {
+    node(phase, b); assert.equal(current().phase, 'running', 'foreign attempt cannot replace or finish current one');
+    node(phase, a, { member: 'verifier' }); assert.equal(current().phase, 'running', 'wrong role ignored');
+    node(phase, a, { nodeId: 'other' }); assert.equal(current().phase, 'running', 'wrong node ignored');
+    node(phase, a, { teamId: 'other' }); assert.equal(current().phase, 'running', 'wrong parent ignored');
+  }
+  node('done'); assert.equal(current().phase, 'done');
+  node('completed', undefined, { attemptId: undefined });
+  assert.equal(current().phase, 'done', 'legacy terminal without attempt remains unknown, never guessed');
+  node('completed'); assert.equal(current().nodes[0].state, 'completed');
+  for (const phase of ['queued', 'running', 'done', 'blocked']) node(phase);
+  assert.equal(current().phase, 'completed', 'settled node cannot regress');
+  assert.equal(current().nodes[0].state, 'completed');
+  assert.doesNotMatch(JSON.stringify(current()), /attemptId|00000000/);
+  store.updateTask(task.id, { status: 'cancelled' }); assert.equal(current().phase, 'cancelled');
 });

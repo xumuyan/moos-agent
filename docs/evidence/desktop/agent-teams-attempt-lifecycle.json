@@ -1,0 +1,245 @@
+{
+  "status": "isolated-attempt-lifecycle-candidate-not-installed",
+  "recordedAt": "2026-11-15T20:20:33+08:00",
+  "workspace": {
+    "baseCommit": "e037e91c0ad580a4bb4cb95d7bc80fc36f855a31",
+    "state": "precommit runtime fixed before build-WmgJoT; additional legacy projection assertion and docs afterward",
+    "system": "arm64 macOS 27.0.1 (26A434), Node 24.15.0"
+  },
+  "implementation": {
+    "nodeAttemptsPerParent": 1,
+    "matchingDoneBeforeTerminal": true,
+    "nodeRecovery": false,
+    "legacyUncorrelatedTerminalIgnored": true,
+    "rules": "first node running binds parent/node/role/UUID-shaped attempt; matching done before completed/blocked; reject replacement, foreign, malformed, duplicate and post-terminal events; explicit retry creates a new parent",
+    "limits": "first 128 parent events, at most 6 nodes; no attempt IDs or private prose exposed; parent terminal authoritative; legacy uncorrelated node completion remains unknown (no migration); captain phase events are not included in node-attempt correlation; no cryptographic event authentication, no exactly-once side effects"
+  },
+  "acceptance": {
+    "success": {
+      "scenario": "success",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 9,
+      "report": "artifacts/team-ui/gui-SrUCnr/report.json",
+      "reportSha256": "fe5c1216cd2d04223d10966e82d362c79e4963fd84baf8368eccf35ac00c90c6",
+      "exit": 0,
+      "seconds": 84.95,
+      "command": [
+        "node",
+        "scripts/verify-electron-team.mjs",
+        ".generated/moos-electron/build-WmgJoT/沐码.app",
+        "success"
+      ]
+    },
+    "blocked": {
+      "scenario": "blocked",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 8,
+      "report": "artifacts/team-ui/gui-wcHuEs/report.json",
+      "reportSha256": "c11f528b2999ddba5d7b621b0543c6cec192a6032bc0a05004a80169726aabca",
+      "exit": 0,
+      "seconds": 47.41,
+      "command": [
+        "node",
+        "scripts/verify-electron-team.mjs",
+        ".generated/moos-electron/build-WmgJoT/沐码.app",
+        "blocked"
+      ]
+    },
+    "stop": {
+      "scenario": "stop",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 4,
+      "report": "artifacts/team-ui/gui-LfeEQp/report.json",
+      "reportSha256": "a4740e93d737971567ef0ba5643cdeeb43676a71f96a64a9c8ab34bad33d4e2e",
+      "exit": 0,
+      "seconds": 48.91,
+      "command": [
+        "node",
+        "scripts/verify-electron-team.mjs",
+        ".generated/moos-electron/build-WmgJoT/沐码.app",
+        "stop"
+      ]
+    },
+    "targeted": {
+      "pass": 21,
+      "fail": 0,
+      "skip": 0,
+      "milliseconds": 4685.982667,
+      "log": "artifacts/team-attempt/targeted-final.log"
+    }
+  },
+  "regression": {
+    "initial": {
+      "targeted": {
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/pi-turn.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "exit": 0,
+        "seconds": 3.47
+      },
+      "core": {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "exit": 0,
+        "seconds": 64.77
+      },
+      "electron": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "exit": 0,
+        "seconds": 20.23
+      },
+      "native": {
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "exit": 101,
+        "seconds": 0.19
+      },
+      "build": {
+        "command": [
+          "npm",
+          "run",
+          "build:app"
+        ],
+        "exit": 0,
+        "seconds": 49.43
+      }
+    },
+    "coreFirst": {
+      "pass": 276,
+      "fail": 0,
+      "milliseconds": 64273.260458
+    },
+    "coreOverlappingQA": {
+      "pass": 275,
+      "fail": 1,
+      "milliseconds": 73087.632458,
+      "failure": "post-click AX geometry drift expected DESKTOP_FOCUS_CHANGED; helper timed out; ran concurrently with copied QA work; load causality not proven"
+    },
+    "packaged": {
+      "pass": 124,
+      "skip": 1,
+      "fail": 0,
+      "exit": 0,
+      "seconds": 30.03,
+      "command": [
+        "npm",
+        "run",
+        "test:electron"
+      ],
+      "skipReason": "reviewed skin materials unavailable"
+    },
+    "allRegressionsGreen": false,
+    "coreFinal": {
+      "pass": 276,
+      "fail": 0,
+      "skip": 0,
+      "milliseconds": 64015.237208,
+      "exit": 0,
+      "seconds": 64.42,
+      "note": "after QA finished; earlier overlapping-helper failure retained"
+    }
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-WmgJoT/沐码.app",
+    "installed": false,
+    "includesPiFixture": false,
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 5.83,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        ".generated/moos-electron/build-WmgJoT/沐码.app"
+      ]
+    },
+    "sourceHashes": {
+      "apps/electron/pi-turn.mjs": "334393e264862326f38237593cb30ffbe221974941979129358d3fb015cefc54",
+      "packages/pi-runtime/team-runtime.mjs": "a64bd1c58f8f0a0ee6dd1c936b9a927570bea6d139540ac7473d16e659fda41d"
+    },
+    "sourceMatches": true,
+    "installerArchiveProduced": false,
+    "firstInstallRuntimeDownloadMeasured": false,
+    "metadata": {
+      "dshVersion": "0.2.2-rc.1",
+      "includesPiFixture": false
+    },
+    "duKiB": 691668,
+    "logicalFileBytesExcludingSymlinks": 616393638,
+    "version": "0.1.49 candidate"
+  },
+  "pending": {
+    "normalGUI": true,
+    "externalModel": true,
+    "actualAttachmentAndRetryGUI": true,
+    "detailedMemberAndBlockerPanel": true,
+    "nodeRecovery": true,
+    "nativeAndSkinGates": true,
+    "deployment": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false
+  },
+  "logs": "artifacts/team-attempt/ (ignored); synthetic QA reports referenced below"
+}

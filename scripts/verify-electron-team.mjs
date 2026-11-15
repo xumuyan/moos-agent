@@ -10,7 +10,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
-const [inputApp] = process.argv.slice(2);
+const [inputApp, scenario = 'success'] = process.argv.slice(2);
+assert.ok(['success', 'blocked', 'stop'].includes(scenario), 'Unsupported QA scenario');
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
@@ -23,6 +24,7 @@ await writeFile(entry, main.replace("app.setName('沐码');", "BrowserWindow.pro
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
+let heldRequest = false, heldRequestClosed = false;
 const server = createServer(async (req, res) => {
   try {
     let raw = ''; for await (const chunk of req) raw += chunk;
@@ -41,11 +43,22 @@ const server = createServer(async (req, res) => {
     } else if (names.includes('team_verdict')) {
       if (!latest) { name = 'read'; args = { path: 'answer.txt' }; }
       else if (latest.name === 'read' || latest.content.includes('42')) {
-        assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: true, summary: 'read confirmed 42' };
+        assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: scenario !== 'blocked', summary: scenario === 'blocked' ? 'synthetic acceptance blocked' : 'read confirmed 42' };
       } else content = 'verified';
     } else if (prompt.includes('当前任务build')) {
       if (latest) content = 'written'; else { name = 'write'; args = { path: 'answer.txt', content: '42\n' }; }
     } else content = 'ORDINARY_GUI_REPLY';
+    // Hold an actual implementer request until the UI Stop cancels it.
+    // No write tool has been returned; an incorrectly uncancelled request times out.
+    if (scenario === 'stop' && prompt.includes('当前任务build') && !latest) {
+      heldRequest = true;
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, 30000);
+        res.once('close', () => { heldRequestClosed = true; clearTimeout(timer); resolve(); });
+      });
+      if (!res.destroyed) res.end();
+      return;
+    }
     // Leave the team live long enough to observe state and change future mode.
     if (names.includes('team_plan') && !latest) await sleep(2500);
     res.writeHead(200, { 'content-type': 'text/event-stream' });
@@ -69,7 +82,7 @@ async function until(fn, label) {
   for (let i = 0; i < 240; i++) { const result = await fn(); if (result) return result; if (child.exitCode !== null) break; await sleep(250); }
   throw new Error('Missing ' + label);
 }
-const report = { scope: 'isolated copied QA bundle with show suppressed; CDP input; synthetic local model', checks: {}, productionTouched: false, normalGUI: false, externalModel: false };
+const report = { scenario, scope: 'isolated copied QA bundle with show suppressed; CDP input; synthetic local model', checks: {}, productionTouched: false, normalGUI: false, externalModel: false };
 try {
   await until(async () => port, 'debug port');
   const target = await until(async () => (await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json())).find(row => row.url.startsWith('http://127.0.0.1:')), 'workbench');
@@ -101,9 +114,19 @@ try {
   await capture('team-live'); report.checks.liveProgress = true;
   await evaluate(`document.querySelector('[aria-label="退出团队模式（不停止任务）"]').click()`);
   await until(() => evaluate(`!document.querySelector('[data-moos-team-mode]')`), 'tag cleared');
-  await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
-  await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes('已交付') && el.textContent.includes('独立验证成员'))`), 'completed team progress');
-  await capture('team-delivered');
+  if (scenario === 'stop') {
+    await until(() => heldRequest, 'active implementer model request');
+    await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="停止生成"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit stop');
+  }
+  const terminalLabel = scenario === 'success' ? '已交付' : scenario === 'stop' ? '已停止' : '失败';
+  if (scenario === 'success') await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
+  await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes(${JSON.stringify(terminalLabel)}))`), 'terminal team progress');
+  if (scenario !== 'success') assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
+  const nodeText = await evaluate(`[...document.querySelectorAll('[data-moos-team-progress] li')].map(el => el.textContent)`);
+  if (scenario === 'success') assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
+  if (scenario === 'blocked') assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
+  report.checks.nodeProjection = true;
+  await capture('team-' + scenario);
   await send('Reply ordinary');
   await until(() => evaluate(`document.body.innerText.includes('ORDINARY_GUI_REPLY')`), 'ordinary response');
   const db = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
@@ -111,11 +134,27 @@ try {
     const rows = db.prepare(`SELECT tasks.id, tasks.status, projects.path, events.payload FROM tasks JOIN projects ON projects.id = tasks.projectId JOIN events ON events.taskId = tasks.id AND events.type = 'task_submission' ORDER BY tasks.rowid`).all();
     assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), ['team', 'ordinary']);
     // Streaming reply can precede the parent task's terminal commit.
-    await until(() => db.prepare(`SELECT COUNT(*) AS n FROM tasks WHERE status = 'succeeded'`).get().n === 2, 'persisted successful tasks');
-    assert.ok(db.prepare(`SELECT status FROM tasks`).all().every(row => row.status === 'succeeded'));
-    assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
-    assert.ok(db.prepare(`SELECT COUNT(*) AS n FROM events WHERE taskId = ? AND type = 'tool_end' AND json_extract(payload, '$.member') = 'verifier' AND json_extract(payload, '$.toolName') = 'read'`).get(rows[0].id).n > 0);
-    report.checks.modeClearDoesNotCancel = true; report.checks.independentReadAndArtifact = true;
+    const expected = [scenario === 'success' ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
+    await until(() => JSON.stringify(db.prepare(`SELECT status FROM tasks ORDER BY rowid`).all().map(row => row.status)) === JSON.stringify(expected), 'persisted terminal tasks');
+    const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
+    const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
+    if (scenario === 'stop') {
+      assert.equal(heldRequestClosed, true, 'actual upstream request closed after Stop');
+      await assert.rejects(readFile(join(rows[0].path, 'answer.txt')), { code: 'ENOENT' });
+      assert.ok(!events.some(row => row.payload.member === 'verifier'));
+      report.checks.explicitStopCancels = true;
+    } else {
+      assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
+      assert.ok(events.some(row => row.type === 'tool_end' && row.payload.member === 'verifier' && row.payload.toolName === 'read'));
+      report.checks.independentReadAndArtifact = true;
+      report.checks.modeClearDoesNotCancel = true;
+    }
+    if (scenario !== 'success') {
+      assert.ok(!phases.includes('summarizing') && !phases.includes('succeeded'));
+      if (scenario === 'blocked') assert.ok(phases.includes('blocked'));
+      report.checks.noFalseDeliveryOrDownstream = true;
+    }
+    report.checks.persistedTerminalState = true;
     report.checks.ordinaryAfterClear = true;
   } finally { db.close(); }
   assert.deepEqual(errors, []);

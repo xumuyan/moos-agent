@@ -116,7 +116,7 @@ export async function runPiTeam(options, run = runPiSdk) {
       check();
       if (!result || typeof result.text !== 'string') throw new TaskFailure('protocol');
       publish('done', { member, attemptId, ...(nodeId && { nodeId }) });
-      return result.text.slice(-TEAM_LIMITS.resultChars);
+      return { text: result.text.slice(-TEAM_LIMITS.resultChars), attemptId };
     } finally { live = false; }
   }
   try {
@@ -162,11 +162,11 @@ export async function runPiTeam(options, run = runPiSdk) {
           if (payload.isError || payload.result?.isError) failedCheck = true;
         } });
       if (report && (!verdict || !verdict.passed || failedCheck)) {
-        publish('blocked', { nodeId: node.id, member: node.role, reason: verdict?.summary ?? '验证成员未提交验收结论' });
+        publish('blocked', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, reason: verdict?.summary ?? '验证成员未提交验收结论' });
         throw new TaskFailure('tool_error');
       }
-      results.set(node.id, report ? `${actual}\n独立验收结论：${verdict.summary}` : actual);
-      publish('completed', { nodeId: node.id, member: node.role });
+      results.set(node.id, report ? `${actual.text}\n独立验收结论：${verdict.summary}` : actual.text);
+      publish('completed', { nodeId: node.id, member: node.role, attemptId: actual.attemptId });
     }
     publish('summarizing');
     const answer = await turn('captain', `目标：${task.text}\n独立成员已执行并提交验收结果：${JSON.stringify([...results])}\n` +
@@ -174,8 +174,8 @@ export async function runPiTeam(options, run = runPiSdk) {
     { allowedTools: [], readonly: true });
     check();
     publish('succeeded');
-    emit('text_delta', { delta: answer });
-    return { text: answer };
+    emit('text_delta', { delta: answer.text });
+    return { text: answer.text };
   } catch (error) {
     if (!controller.signal.aborted) publish('failed');
     throw budgetExceeded ? new TaskFailure('tool_error') : controller.signal.aborted ? failure() : error;

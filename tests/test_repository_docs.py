@@ -264,6 +264,33 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.7 客户端发送身份', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_attempt_checkpoint_keeps_legacy_and_acceptance_limits_explicit(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-attempt-lifecycle.json').read_text())
+        self.assertEqual(e['status'], 'isolated-attempt-lifecycle-candidate-not-installed')
+        self.assertEqual(e['implementation']['nodeAttemptsPerParent'], 1)
+        self.assertTrue(e['implementation']['matchingDoneBeforeTerminal'])
+        self.assertFalse(e['implementation']['nodeRecovery'])
+        self.assertTrue(e['implementation']['legacyUncorrelatedTerminalIgnored'])
+        for name in ('success', 'blocked', 'stop'):
+            self.assertEqual(e['acceptance'][name]['status'], 'passed')
+            self.assertTrue(all(e['acceptance'][name]['checks'].values()))
+            self.assertFalse(e['acceptance'][name]['normalGUI'])
+            self.assertFalse(e['acceptance'][name]['externalModel'])
+            self.assertFalse(e['acceptance'][name]['productionTouched'])
+        self.assertTrue(e['acceptance']['stop']['checks']['explicitStopCancels'])
+        self.assertTrue(e['acceptance']['blocked']['checks']['noFalseDeliveryOrDownstream'])
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['coreFinal']['pass'], 276)
+        self.assertEqual(e['regression']['coreFinal']['fail'], 0)
+        self.assertEqual(e['regression']['coreOverlappingQA']['fail'], 1)
+        self.assertFalse(e['build']['installed'])
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertTrue(all(e['pending'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('轮次关联与异常链路检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.8 节点轮次关联', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

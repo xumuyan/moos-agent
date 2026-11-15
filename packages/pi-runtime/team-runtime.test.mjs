@@ -61,7 +61,7 @@ test('independent bounded PI turns run sequentially and only final summary is em
   const activeNodes = events.filter(event => event.type === 'team_state' && event.payload.phase === 'running' && event.payload.nodeId);
   assert.deepEqual(activeNodes.map(event => [event.payload.nodeId, event.payload.member]), plan.tasks.map(node => [node.id, node.role]));
   assert.ok(activeNodes.every(event => /^[a-f0-9-]{36}$/.test(event.payload.attemptId)));
-  for (const { payload } of activeNodes) assert.ok(events.some(event => event.payload.phase === 'done'
+  for (const { payload } of activeNodes) for (const phase of ['done', 'completed']) assert.ok(events.some(event => event.payload.phase === phase
     && event.payload.nodeId === payload.nodeId && event.payload.attemptId === payload.attemptId));
 });
 
@@ -71,6 +71,12 @@ test('failed or unsubstantiated verifier never becomes success and cannot releas
     await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, fakeRun(trace, settings)));
     assert.equal(trace.length, 3, 'summary not started after failed verification');
     assert.ok(!events.some(event => event.payload.phase === 'succeeded'));
+    if (settings.failed) {
+      const started = events.find(event => event.payload.phase === 'running' && event.payload.nodeId === 'check').payload;
+      const blocked = events.find(event => event.payload.phase === 'blocked').payload;
+      assert.equal(blocked.attemptId, started.attemptId);
+      assert.equal(blocked.nodeId, started.nodeId);
+    }
   }
 });
 

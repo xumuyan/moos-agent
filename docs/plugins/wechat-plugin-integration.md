@@ -127,3 +127,9 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 进度来自父team_state，最多128事件/6节点，展示角色、依赖、真实枚举状态和通用阻塞指引，父终态覆盖；不暴露成员原文、目标、验收正文或任意路径，无新增团队轮询。尚无独立右侧成员消息/详细阻塞面板；投影目前校验父/角色及running attempt形状，不是完整逐节点attempt关联，不能冒称投影已屏蔽所有stale。runtime的stale工具/迟到emit防护独立保留。无节点恢复或恰好一次副作用保证。
 
 专项34/34；新无fixture build-a0XbOz严格验签，包内Electron123通过1skip。隐藏QA窗口经CDP完成实际菜单/发送→Host→PI→写42→独立读→汇总，运行中×不取消，下一条普通成功，9次本地模拟请求。两次脚本选择失败保留。可复验 `node scripts/verify-electron-team.mjs .generated/moos-electron/build-a0XbOz/沐码.app`，只接受.generated/moos-electron内真路径、复制新QA包/独立数据，不修改原包或正式数据。此脚本不是正常可见GUI/原生输入验收，不是外部模型或生产安装。默认核心初轮helper超时保留、最终npm test 276/276，完整串行276/276；脚本另有流式文字/DB终态竞态，等待终态后复验成功；Rust缺离线tauri、皮肤材料不足，全仓非全绿。证据 `docs/evidence/desktop/agent-teams-client-ui.json`。外部模型、正常GUI、真实停止/重试全链路与剩余恢复/配额场景继续验证；正式安装需另获授权E84。
+
+### 7.8 节点轮次关联与异常链路（2026-11-15，隔离候选）
+
+后续实现更新7.7的投影缺口：runtime节点completed/blocked携带本次turn的attemptId；投影只绑定首次running，父任务/节点/角色/UUID-shaped轮次均匹配且done后才接受完成/阻塞，错配/重复/终态回退忽略。每节点每父任务一轮；显式重试产生新父任务，不在旧节点替换轮次，不是节点恢复。旧无attempt终态只保留未知节点状态、父终态仍权威，不改真实数据库或迁移。事件仍最多128/6节点，无新增轮询或私有正文/attempt暴露；不宣称captain阶段全部轮次关联。
+
+新build-WmgJoT无fixture、源码核对/严格验签；包内124通过1皮肤skip。`node scripts/verify-electron-team.mjs <generated-app> [success|blocked|stop]` 三场景均以独立复制隐藏QA包/CDP/本地模拟模型通过：成功两个节点完成；实际读42后synthetic verdict=false，显示check验收阻塞/父失败，无总结/假交付；点击停止生成确实关闭挂起模型连接、父cancelled，无文件/验证成员，后续普通成功。该停止场景不覆盖活跃shell/子进程或桌面动作取消，非正常GUI/外部模型验收。核心初轮276/276，另次QA并行回归275通过1helper超时记录保留，QA结束后默认完整复跑276/276、64.02s，专项最终21/21；Rust离线缺tauri及皮肤材料仍受阻。证据`docs/evidence/desktop/agent-teams-attempt-lifecycle.json`。详细成员/阻塞界面、真实附件/重试GUI、恢复/外部模型/正常GUI待做；不安装/替换/重启正式沐码，不改真实数据。
