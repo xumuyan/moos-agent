@@ -133,3 +133,9 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 后续实现更新7.7的投影缺口：runtime节点completed/blocked携带本次turn的attemptId；投影只绑定首次running，父任务/节点/角色/UUID-shaped轮次均匹配且done后才接受完成/阻塞，错配/重复/终态回退忽略。每节点每父任务一轮；显式重试产生新父任务，不在旧节点替换轮次，不是节点恢复。旧无attempt终态只保留未知节点状态、父终态仍权威，不改真实数据库或迁移。事件仍最多128/6节点，无新增轮询或私有正文/attempt暴露；不宣称captain阶段全部轮次关联。
 
 新build-WmgJoT无fixture、源码核对/严格验签；包内124通过1皮肤skip。`node scripts/verify-electron-team.mjs <generated-app> [success|blocked|stop]` 三场景均以独立复制隐藏QA包/CDP/本地模拟模型通过：成功两个节点完成；实际读42后synthetic verdict=false，显示check验收阻塞/父失败，无总结/假交付；点击停止生成确实关闭挂起模型连接、父cancelled，无文件/验证成员，后续普通成功。该停止场景不覆盖活跃shell/子进程或桌面动作取消，非正常GUI/外部模型验收。核心初轮276/276，另次QA并行回归275通过1helper超时记录保留，QA结束后默认完整复跑276/276、64.02s，专项最终21/21；Rust离线缺tauri及皮肤材料仍受阻。证据`docs/evidence/desktop/agent-teams-attempt-lifecycle.json`。详细成员/阻塞界面、真实附件/重试GUI、恢复/外部模型/正常GUI待做；不安装/替换/重启正式沐码，不改真实数据。
+
+### 7.9 显式重试：保存模式与输入框选择分离（2026-11-15，隔离验收）
+
+运行 `node scripts/verify-electron-team.mjs <generated-app> retry`。使用既有无fixture的build-WmgJoT，仅复制QA包、隐藏窗口、CDP操作、合成本地模型及独立配置；本轮没有应用runtime改动或新构建。原团队运行中清团队标签为普通；实际write42/独立read后故意verdict=false，再点「继续上次任务」：保存team和原目标沿用，不改变输入框；产生新父任务、全新attempt、6份不同父所属角色历史（各队长/执行/验证），请求不含旧assistant上下文。队长和执行成员先read原产物、不再次write，验证独立read后两节点完成并汇总；随后普通请求成功，数据库failed/succeeded/succeeded及team/team/ordinary核对。
+
+最终retry 17次本地请求、所有检查通过；success/blocked/stop回归亦过。两次QA脚本失败保留：工具结果不保证name，须按tool_call_id关联前面tool_calls；Page.close可能先退出再丢CDP回执，脚本与真实退出竞争并仍要求exitCode0，不吞异常强行当成功。证据`docs/evidence/desktop/agent-teams-retry-ui.json`含失败/通过记录与哈希、最终命令/回归及严格验签；核心276/276，皮肤/Rust门仍阻塞，全仓未全绿。此例的“先检查”由本地合成模型遵循提示，不能保证任意线上模型不重复副作用；不是节点恢复，不覆盖cancelled/interrupted GUI重试、附件生命周期、正常GUI/原生输入或外部模型。正式应用/数据未动，安装另获授权。

@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join, resolve, sep } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { createInterface } from 'node:readline';
@@ -11,7 +12,7 @@ import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
 const [inputApp, scenario = 'success'] = process.argv.slice(2);
-assert.ok(['success', 'blocked', 'stop'].includes(scenario), 'Unsupported QA scenario');
+assert.ok(['success', 'blocked', 'stop', 'retry'].includes(scenario), 'Unsupported QA scenario');
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
@@ -24,7 +25,8 @@ await writeFile(entry, main.replace("app.setName('沐码');", "BrowserWindow.pro
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
-let heldRequest = false, heldRequestClosed = false;
+let heldRequest = false, heldRequestClosed = false, planningRounds = 0;
+const roleStarts = [], originalGoal = 'Create answer.txt with 42 and independently verify it';
 const server = createServer(async (req, res) => {
   try {
     let raw = ''; for await (const chunk of req) raw += chunk;
@@ -33,20 +35,38 @@ const server = createServer(async (req, res) => {
     const prompt = typeof user.content === 'string' ? user.content : user.content.map(part => part.text ?? '').join('');
     const names = body.tools?.map(item => item.function.name) ?? [];
     const latest = body.messages.at(-1).role === 'tool' ? body.messages.at(-1) : undefined;
+    const latestTool = latest && body.messages.flatMap(item => item.tool_calls ?? [])
+      .find(call => call.id === latest.tool_call_id)?.function.name;
     let name, args, content;
+    const planning = names.includes('team_plan');
+    if (planning && !body.messages.some(item => item.role === 'tool')) planningRounds++;
+    if (!latest && !body.messages.some(item => item.role === 'tool')
+      && (planning || names.includes('team_verdict') || prompt.includes('当前任务build'))) {
+      roleStarts.push({ round: planningRounds, role: planning ? 'captain' : names.includes('team_verdict') ? 'verifier' : 'implementer',
+        priorAssistant: body.messages.some(item => item.role === 'assistant') });
+    }
+    const retryRound = scenario === 'retry' && planningRounds === 2;
     if (prompt.includes('只根据已有工具/成员证据')) content = 'TEAM_GUI_DELIVERED_42';
-    else if (names.includes('team_plan')) {
-      if (latest) content = 'planned'; else { name = 'team_plan'; args = { tasks: [
+    else if (planning) {
+      if (retryRound) {
+        assert.ok(prompt.includes(originalGoal) && prompt.includes('这是用户显式重试的团队任务'));
+        assert.ok(prompt.includes('禁止盲目重复安装、提交、发送或部署'));
+      }
+      if (retryRound && !latest) { name = 'read'; args = { path: 'answer.txt' }; }
+      else if (latest && latestTool !== 'read') content = 'planned'; else { name = 'team_plan'; args = { tasks: [
         { id: 'build', role: 'implementer', goal: 'Write answer.txt as 42', dependsOn: [] },
         { id: 'check', role: 'verifier', goal: 'Read answer.txt and verify 42', dependsOn: ['build'] },
       ] }; }
     } else if (names.includes('team_verdict')) {
       if (!latest) { name = 'read'; args = { path: 'answer.txt' }; }
-      else if (latest.name === 'read' || latest.content.includes('42')) {
-        assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: scenario !== 'blocked', summary: scenario === 'blocked' ? 'synthetic acceptance blocked' : 'read confirmed 42' };
+      else if (latestTool === 'read' || latest.content.includes('42')) {
+        const blocked = scenario === 'blocked' || scenario === 'retry' && !retryRound;
+        assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: !blocked, summary: blocked ? 'synthetic acceptance blocked' : 'read confirmed 42' };
       } else content = 'verified';
     } else if (prompt.includes('当前任务build')) {
-      if (latest) content = 'written'; else { name = 'write'; args = { path: 'answer.txt', content: '42\n' }; }
+      if (latest) { if (retryRound) assert.ok(latest.content.includes('42')); content = 'written'; }
+      else if (retryRound) { name = 'read'; args = { path: 'answer.txt' }; }
+      else { name = 'write'; args = { path: 'answer.txt', content: '42\n' }; }
     } else content = 'ORDINARY_GUI_REPLY';
     // Hold an actual implementer request until the UI Stop cancels it.
     // No write tool has been returned; an incorrectly uncancelled request times out.
@@ -108,7 +128,7 @@ try {
     await call('Input.insertText', { text });
     await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="发送消息"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'send');
   }
-  await send('Create answer.txt with 42 and independently verify it');
+  await send(originalGoal);
   await until(() => evaluate(`!!document.querySelector('[data-moos-team-progress]')`), 'live team progress');
   await evaluate(`document.querySelector('[data-moos-pi-process]')?.setAttribute('open','')`);
   await capture('team-live'); report.checks.liveProgress = true;
@@ -124,17 +144,27 @@ try {
   if (scenario !== 'success') assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
   const nodeText = await evaluate(`[...document.querySelectorAll('[data-moos-team-progress] li')].map(el => el.textContent)`);
   if (scenario === 'success') assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
-  if (scenario === 'blocked') assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
+  if (['blocked', 'retry'].includes(scenario)) assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
   report.checks.nodeProjection = true;
   await capture('team-' + scenario);
+  if (scenario === 'retry') {
+    assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false);
+    await until(() => evaluate(`(() => { const button = document.querySelector('[data-moos-pi-retry] button'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit retry from ordinary composer');
+    await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'retried team delivery');
+    await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes('已交付'))`), 'retried terminal progress');
+    assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false, 'retry must not change future composer mode');
+    await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes('已交付') && [...el.querySelectorAll('li')].filter(node => node.textContent.includes('节点已完成')).length === 2)`), 'retried completed nodes');
+    await capture('team-retry-delivered');
+  }
   await send('Reply ordinary');
   await until(() => evaluate(`document.body.innerText.includes('ORDINARY_GUI_REPLY')`), 'ordinary response');
   const db = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
   try {
     const rows = db.prepare(`SELECT tasks.id, tasks.status, projects.path, events.payload FROM tasks JOIN projects ON projects.id = tasks.projectId JOIN events ON events.taskId = tasks.id AND events.type = 'task_submission' ORDER BY tasks.rowid`).all();
-    assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), ['team', 'ordinary']);
+    assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), scenario === 'retry' ? ['team', 'team', 'ordinary'] : ['team', 'ordinary']);
     // Streaming reply can precede the parent task's terminal commit.
-    const expected = [scenario === 'success' ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
+    const expected = scenario === 'retry' ? ['failed', 'succeeded', 'succeeded']
+      : [scenario === 'success' ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
     await until(() => JSON.stringify(db.prepare(`SELECT status FROM tasks ORDER BY rowid`).all().map(row => row.status)) === JSON.stringify(expected), 'persisted terminal tasks');
     const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
     const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
@@ -151,16 +181,51 @@ try {
     }
     if (scenario !== 'success') {
       assert.ok(!phases.includes('summarizing') && !phases.includes('succeeded'));
-      if (scenario === 'blocked') assert.ok(phases.includes('blocked'));
+      if (['blocked', 'retry'].includes(scenario)) assert.ok(phases.includes('blocked'));
       report.checks.noFalseDeliveryOrDownstream = true;
+    }
+    if (scenario === 'retry') {
+      assert.equal(new Set(rows.map(row => row.id)).size, 3);
+      assert.deepEqual(db.prepare('SELECT message FROM tasks ORDER BY rowid LIMIT 2').all().map(row => row.message), [originalGoal, originalGoal]);
+      const retried = db.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(rows[1].id)
+        .map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
+      assert.equal(retried.find(row => row.type === 'task_retry')?.payload.previousTaskId, rows[0].id);
+      const oldAttempts = new Set(events.filter(row => row.type === 'team_state').map(row => row.payload.attemptId).filter(Boolean));
+      const newAttempts = retried.filter(row => row.type === 'team_state' && row.payload.phase === 'running');
+      assert.equal(newAttempts.length, 4, 'fresh captain planning/summary and both worker turns');
+      assert.ok(newAttempts.every(row => row.payload.teamId === rows[1].id && !oldAttempts.has(row.payload.attemptId)));
+      assert.deepEqual(roleStarts.map(({ round, role }) => [round, role]), [1, 2].flatMap(round => ['captain', 'implementer', 'verifier'].map(role => [round, role])));
+      assert.ok(roleStarts.every(row => !row.priorAssistant), 'retry role contexts must not reuse previous assistant/tool history');
+      assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'captain' && row.payload.toolName === 'read' && !row.payload.isError));
+      assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'implementer' && row.payload.toolName === 'read' && !row.payload.isError));
+      assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'verifier' && row.payload.toolName === 'read' && !row.payload.isError));
+      assert.equal(retried.filter(row => row.type === 'team_state' && row.payload.phase === 'completed').length, 2);
+      assert.ok(retried.some(row => row.type === 'team_state' && row.payload.phase === 'succeeded'));
+      assert.ok(!retried.some(row => row.type === 'tool_start' && row.payload.toolName === 'write'), 'synthetic retry inspects retained artifact instead of rewriting it');
+      const owners = db.prepare('SELECT id, conversationId FROM tasks ORDER BY rowid LIMIT 2').all();
+      const histories = [];
+      for (const owner of owners) for (const role of ['captain', 'implementer', 'verifier']) {
+        const prefix = createHash('sha256').update(owner.conversationId + ':' + owner.id).digest('hex').slice(0, 32);
+        const directory = join(data, 'pi/sessions', `team-${prefix}-${role}`);
+        const files = (await readdir(directory)).filter(file => file.endsWith('.jsonl'));
+        assert.equal(files.length, 1, 'one persisted history per task-owned role');
+        histories.push(join(directory, files[0]));
+      }
+      assert.equal(new Set(histories).size, 6, 'retry persists separate task-owned role histories');
+      report.checks.retryRetainsModeAndGoal = true;
+      report.checks.freshParentAndRoleContexts = true;
+      report.checks.artifactInspectedNotRewritten = true;
     }
     report.checks.persistedTerminalState = true;
     report.checks.ordinaryAfterClear = true;
   } finally { db.close(); }
   assert.deepEqual(errors, []);
   report.status = 'passed'; report.requests = requests.length;
-  await call('Page.close'); await Promise.race([closed, sleep(10000)]);
-  assert.notEqual(child.exitCode, null, 'normal QA quit');
+  // Closing the last window can terminate Electron before CDP acknowledges
+  // Page.close. A normal child exit is authoritative, not a lost CDP reply.
+  await Promise.race([call('Page.close'), closed]);
+  await Promise.race([closed, sleep(10000)]);
+  assert.equal(child.exitCode, 0, 'normal QA quit');
 } catch (error) { report.status = 'failed'; report.error = error.message; throw error; }
 finally {
   await writeFile(join(scratch, 'report.json'), JSON.stringify(report, null, 2)); console.log(scratch, JSON.stringify(report));

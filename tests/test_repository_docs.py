@@ -291,6 +291,33 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.8 节点轮次关联', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_retry_acceptance_keeps_composer_and_saved_mode_distinct(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-retry-ui.json').read_text())
+        self.assertEqual(e['status'], 'isolated-retry-ui-acceptance-not-installed')
+        report = e['acceptance']['retry']
+        self.assertEqual(report['status'], 'passed')
+        for key in ('retryRetainsModeAndGoal', 'freshParentAndRoleContexts',
+                    'artifactInspectedNotRewritten', 'ordinaryAfterClear'):
+            self.assertTrue(report['checks'][key])
+        self.assertTrue(all(report['checks'].values()))
+        for key in ('normalGUI', 'externalModel', 'productionTouched'):
+            self.assertFalse(report[key])
+        self.assertTrue(e['build']['reusedExistingCandidate'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['runtimeModified'])
+        self.assertFalse(e['nodeRecovery'])
+        self.assertFalse(e['exactlyOnceSideEffects'])
+        self.assertEqual(e['regression']['counts']['core']['pass'], 276)
+        self.assertEqual(e['regression']['counts']['core']['fail'], 0)
+        self.assertEqual(e['regression']['counts']['packaged']['skipped'], 1)
+        self.assertEqual(len(e['historicalFailures']), 2)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertTrue(all(e['pending'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('显式重试隔离检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.9 显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

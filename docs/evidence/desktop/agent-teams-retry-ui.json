@@ -1,0 +1,361 @@
+{
+  "status": "isolated-retry-ui-acceptance-not-installed",
+  "recordedAt": "2026-11-15T20:43:56+08:00",
+  "workspace": {
+    "baseCommit": "cd75000133d89f35cbedb2cb90488609b6e232ab",
+    "system": "arm64 macOS 27.0.1 (26A434), Node 24.15.0",
+    "state": "precommit QA harness/tests/docs only; application runtime unchanged"
+  },
+  "runtimeModified": false,
+  "nodeRecovery": false,
+  "exactlyOnceSideEffects": false,
+  "acceptance": {
+    "retry": {
+      "scenario": "retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 17,
+      "report": "artifacts/team-ui/gui-iREFkr/report.json",
+      "reportSha256": "f7b44e12a602373e204c54489277fa51d685626aefe81b95495380a4c63d087d",
+      "command": {
+        "exit": 0,
+        "seconds": 45.31,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "retry"
+        ]
+      }
+    },
+    "success": {
+      "scenario": "success",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 9,
+      "report": "artifacts/team-ui/gui-DUgC4D/report.json",
+      "reportSha256": "fe5c1216cd2d04223d10966e82d362c79e4963fd84baf8368eccf35ac00c90c6",
+      "command": {
+        "exit": 0,
+        "seconds": 36.68,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "success"
+        ]
+      }
+    },
+    "blocked": {
+      "scenario": "blocked",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 8,
+      "report": "artifacts/team-ui/gui-Q6CB2c/report.json",
+      "reportSha256": "c11f528b2999ddba5d7b621b0543c6cec192a6032bc0a05004a80169726aabca",
+      "command": {
+        "exit": 0,
+        "seconds": 35.93,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "blocked"
+        ]
+      }
+    },
+    "stop": {
+      "scenario": "stop",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 4,
+      "report": "artifacts/team-ui/gui-99TC0h/report.json",
+      "reportSha256": "a4740e93d737971567ef0ba5643cdeeb43676a71f96a64a9c8ab34bad33d4e2e",
+      "command": {
+        "exit": 0,
+        "seconds": 35.27,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "stop"
+        ]
+      }
+    }
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 4.29,
+        "command": [
+          "node",
+          "--test",
+          "scripts/verify-electron-team.test.mjs",
+          "apps/electron/pi-tasks.test.mjs",
+          "apps/electron/client.test.mjs",
+          "apps/electron/team-host.test.mjs"
+        ]
+      },
+      "retry": {
+        "exit": 0,
+        "seconds": 45.31,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "retry"
+        ]
+      },
+      "success": {
+        "exit": 0,
+        "seconds": 36.68,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "success"
+        ]
+      },
+      "blocked": {
+        "exit": 0,
+        "seconds": 35.93,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "blocked"
+        ]
+      },
+      "stop": {
+        "exit": 0,
+        "seconds": 35.27,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-WmgJoT/沐码.app",
+          "stop"
+        ]
+      },
+      "core": {
+        "exit": 0,
+        "seconds": 39.01,
+        "command": [
+          "npm",
+          "test"
+        ]
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 11.25,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.13,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ]
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 18.25,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 3.85,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          ".generated/moos-electron/build-WmgJoT/沐码.app"
+        ]
+      }
+    },
+    "counts": {
+      "targeted": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 4229.575667
+      },
+      "core": {
+        "tests": 276,
+        "pass": 276,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 38754.460834
+      },
+      "electron": {
+        "tests": 125,
+        "pass": 115,
+        "fail": 0,
+        "skipped": 10,
+        "durationMs": 10904.332208
+      },
+      "packaged": {
+        "tests": 125,
+        "pass": 124,
+        "fail": 0,
+        "skipped": 1,
+        "durationMs": 17891.402542
+      }
+    },
+    "allRegressionsGreen": false,
+    "blockers": [
+      "offline cargo lacks tauri exit101",
+      "reviewed skin-center/Maid materials unavailable; packaged1skip, source10skip"
+    ]
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-WmgJoT/沐码.app",
+    "reusedExistingCandidate": true,
+    "installed": false,
+    "rebuiltThisCheckpoint": false,
+    "includesPiFixture": false,
+    "version": "0.1.49 candidate / DSH0.2.2-rc.1",
+    "sourceMatches": true,
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 3.85,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        ".generated/moos-electron/build-WmgJoT/沐码.app"
+      ]
+    },
+    "note": "No application source changes: use prior candidate; runtime hashes checked, not a new build or production acceptance",
+    "runtimeSourceHashes": {
+      "apps/electron/pi-turn.mjs": "334393e264862326f38237593cb30ffbe221974941979129358d3fb015cefc54",
+      "packages/pi-runtime/team-runtime.mjs": "a64bd1c58f8f0a0ee6dd1c936b9a927570bea6d139540ac7473d16e659fda41d"
+    }
+  },
+  "historicalFailures": [
+    {
+      "report": "artifacts/team-ui/gui-zkWHCU/report.json",
+      "error": "Missing retried team delivery",
+      "checksPassed": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true
+      },
+      "kind": "fixture-tool-name-dispatch",
+      "productionTouched": false,
+      "resolution": "Resolve OpenAI tool_call_id through prior assistant tool_calls; do not assume tool result name"
+    },
+    {
+      "report": "artifacts/team-ui/gui-NjO3tI/report.json",
+      "error": "CDP timeout",
+      "checksPassed": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "kind": "cdp-close-acknowledgement-timeout",
+      "productionTouched": false,
+      "resolution": "Page.close may terminate process before CDP replies; race real exit and require code0; business checks had passed"
+    }
+  ],
+  "pending": {
+    "normalGUI": true,
+    "externalModel": true,
+    "actualAttachmentLifecycle": true,
+    "stoppedAndInterruptedRetryGUI": true,
+    "detailedMemberAndBlockerPanel": true,
+    "nodeRecovery": true,
+    "nativeAndSkinGates": true,
+    "deployment": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false
+  },
+  "limits": [
+    "Only explicit retry of verifier-failed parent in copied hidden QA bundle; not normal GUI/native input or external model",
+    "Synthetic retry is deliberately instructed to inspect existing artifact; this does not guarantee arbitrary models avoid duplicate side effects",
+    "Fresh parent/attempts, six distinct persisted role histories and no prior assistant context asserted; not node recovery",
+    "Closing QA races CDP Page.close acknowledgement against real process exit, still requires exitCode0; no SIGTERM accepted as normal quit"
+  ]
+}
