@@ -245,3 +245,28 @@ test('explicit team retry starts fresh owned sessions with existing-work inspect
   // This is guidance plus fresh task-scoped ownership, not transactional
   // exactly-once side effects or a resumable-node recovery protocol.
 });
+
+
+test('public node receipts distinguish failed tools, missing verdict and explicit rejection without member prose', async () => {
+  for (const kind of ['verified', 'rejected', 'missing_verdict', 'tool_failure']) {
+    const events = [];
+    const run = async options => {
+      if (options.task.text.includes('你是队长。')) await submit(options, 'team_plan', plan);
+      else if (options.sessionPolicy.customTools?.some(tool => tool.name === 'team_verdict')) {
+        evidence(options);
+        if (kind === 'tool_failure') options.emit('tool_end', { toolName: 'bash', isError: true, result: {} });
+        if (kind !== 'missing_verdict') await submit(options, 'team_verdict', { passed: kind === 'verified', summary: 'private verdict sk-secret' });
+      }
+      return { text: 'private member response' };
+    };
+    const execution = runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, run);
+    if (kind === 'verified') await execution; else await assert.rejects(execution);
+    const node = events.find(event => event.payload.nodeId === 'check' && ['blocked', 'completed'].includes(event.payload.phase)).payload;
+    assert.equal(node.outcome.code, kind);
+    assert.equal(node.outcome.toolsSucceeded, 1);
+    assert.equal(node.outcome.evidenceCount, 1);
+    assert.equal(node.outcome.toolsFailed, kind === 'tool_failure' ? 1 : 0);
+    assert.doesNotMatch(JSON.stringify(node.outcome), /private|secret/);
+    assert.equal(events.some(event => event.payload.phase === 'succeeded'), kind === 'verified');
+  }
+});

@@ -56,6 +56,7 @@ const server = createServer(async (req, res) => {
       else if (latest && latestTool !== 'read') content = 'planned'; else { name = 'team_plan'; args = { tasks: [
         { id: 'build', role: 'implementer', goal: 'Write answer.txt as 42', dependsOn: [] },
         { id: 'check', role: 'verifier', goal: 'Read answer.txt and verify 42', dependsOn: ['build'] },
+        ...(scenario === 'blocked' ? [{ id: 'final', role: 'verifier', goal: 'Final independent check', dependsOn: ['check'] }] : []),
       ] }; }
     } else if (names.includes('team_verdict')) {
       if (!latest) { name = 'read'; args = { path: 'answer.txt' }; }
@@ -146,6 +147,35 @@ try {
   if (scenario === 'success') assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
   if (['blocked', 'retry'].includes(scenario)) assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
   report.checks.nodeProjection = true;
+  async function checkDetails(code) {
+    await evaluate(`document.querySelectorAll('[data-moos-pi-process], [data-moos-team-node-details]').forEach(el => el.setAttribute('open',''))`);
+    await until(() => evaluate(`!!document.querySelector('[data-moos-team-outcome="${code}"]')`), 'correlated member outcome ' + code);
+    const details = await evaluate(`[...document.querySelectorAll('[data-moos-team-node-details]')].map(el => el.innerText).join('\\n')`);
+    assert.ok(details.includes('成功工具记录') && details.includes('成功检查记录'));
+    if (code === 'verified') assert.ok(details.includes('独立验收通过（已提交结论并有工具证据）'));
+    if (code === 'rejected') assert.ok(details.includes('验证成员明确报告未通过'));
+    assert.ok(!details.includes('synthetic acceptance blocked') && !details.includes('read confirmed 42'), 'raw verifier prose is not exposed');
+    if (scenario === 'blocked') {
+      assert.ok(details.includes('未执行：依赖验收阻塞于 check'));
+      report.checks.downstreamBlockerDetails = true;
+    }
+    const layout = await evaluate(`(() => {
+      const panel = [...document.querySelectorAll('[data-moos-team-progress]')].find(el => el.querySelector('[data-moos-team-outcome="${code}"]'));
+      const bounds = panel.getBoundingClientRect(), style = getComputedStyle(panel);
+      return { opaque: !/rgba|transparent/.test(style.backgroundColor),
+        rows: [...panel.querySelectorAll('li')].every(el => getComputedStyle(el).display === 'grid'),
+        contained: [...panel.querySelectorAll('[data-moos-team-node-details]')].every(el => { const b = el.getBoundingClientRect(); return b.left >= bounds.left && b.right <= bounds.right + 1; }),
+        fits: panel.scrollWidth <= panel.clientWidth + 1 };
+    })()`);
+    assert.ok(Object.values(layout).every(Boolean), 'readable team panel layout: ' + JSON.stringify(layout));
+    report.checks.readableMemberLayout = true;
+    report.checks.structuredMemberDetails = true;
+  }
+  if (scenario !== 'stop') await checkDetails(scenario === 'success' ? 'verified' : 'rejected');
+  if (scenario === 'stop') {
+    assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-outcome="verified"]')`), false);
+    report.checks.noInventedStoppedReceipt = true;
+  }
   await capture('team-' + scenario);
   if (scenario === 'retry') {
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false);
@@ -154,6 +184,7 @@ try {
     await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes('已交付'))`), 'retried terminal progress');
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false, 'retry must not change future composer mode');
     await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes('已交付') && [...el.querySelectorAll('li')].filter(node => node.textContent.includes('节点已完成')).length === 2)`), 'retried completed nodes');
+    await checkDetails('verified');
     await capture('team-retry-delivered');
   }
   await send('Reply ordinary');

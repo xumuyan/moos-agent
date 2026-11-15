@@ -561,3 +561,26 @@ test('team process renders real node states without inventing verdict or complet
   assert.doesNotMatch(text, /已交付|private|passed/);
   assert.equal(harness.effects.at(-1).dependencies[2], false, 'finished turns add no team polling');
 });
+
+
+test('member details show structured receipts and blockers without inventing prose or retry controls', async () => {
+  const harness = await loadClient({ moosTurn: async () => ({ status: 'failed', actions: [],
+    team: { phase: 'failed', nodes: [
+      { id: 'build', role: 'implementer', dependsOn: [], state: 'completed', outcome: { code: 'member_finished', toolsSucceeded: 1, toolsFailed: 0, evidenceCount: 0 } },
+      { id: 'check', role: 'verifier', dependsOn: ['build'], state: 'blocked', outcome: { code: 'rejected', toolsSucceeded: 2, toolsFailed: 0, evidenceCount: 1 } },
+      { id: 'last', role: 'verifier', dependsOn: ['check'], state: 'queued', waitingOn: ['check'] },
+    ] },
+  }) });
+  harness.render({ sessionId: 'team-one', startSeq: 1, live: false });
+  harness.effects.splice(0).forEach(effect => effect.callback()); await flush();
+  const text = JSON.stringify(harness.render({ sessionId: 'team-one', startSeq: 1, live: false }));
+  assert.match(text, /data-moos-team-node-details/); assert.match(text, /成员结果与验收/);
+  assert.match(text, /不等于独立验收通过/); assert.match(text, /明确报告未通过/);
+  assert.match(text, /成功工具记录/); assert.match(text, /成功检查记录/);
+  assert.match(text, /未执行：依赖验收阻塞于/);
+  assert.doesNotMatch(text, /已交付|dangerouslySetInnerHTML/);
+  assert.match(text, /不会自动恢复节点/);
+  assert.match(harness.source, /color: CanvasText; background: Canvas/);
+  assert.match(harness.source, /\[data-moos-team-progress\] li \{ display: grid; grid-template-columns: minmax\(0, 1fr\)/);
+  assert.equal(harness.effects.at(-1).dependencies[2], false);
+});

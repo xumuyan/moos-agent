@@ -414,3 +414,52 @@ test('team node projection accepts only its first owned attempt and ordered term
   assert.doesNotMatch(JSON.stringify(current()), /attemptId|00000000/);
   store.updateTask(task.id, { status: 'cancelled' }); assert.equal(current().phase, 'cancelled');
 });
+
+
+test('node result details require correlated terminal receipts and expose bounded enums and counts only', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-details-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const a = '00000000-0000-0000-0000-000000000001';
+  const receipt = { version: 1, code: 'verified', toolsSucceeded: 2, toolsFailed: 0, evidenceCount: 1 };
+  const cases = [receipt, { ...receipt, toolsSucceeded: 10001 }, { ...receipt, toolsFailed: 1 },
+    { ...receipt, evidenceCount: 0 }, { ...receipt, evidenceCount: 3 }, { ...receipt, version: 2 },
+    { ...receipt, code: 'private prose' }, { ...receipt, toolsSucceeded: '2' }, { ...receipt, toolsSucceeded: -1 }];
+  for (const [index, outcome] of cases.entries()) {
+    const task = store.createTask({ conversationId: conversation.id, message: 'private' });
+    store.setSetting('dsh-session:details', conversation.id); store.setSetting('dsh-turn:details:' + index, task.id);
+    store.appendEvent(task.id, 'task_submission', { mode: 'team', version: 1 });
+    const event = payload => store.appendEvent(task.id, 'team_state', { teamId: task.id, ...payload });
+    event({ phase: 'planned', tasks: [{ id: 'check', role: 'verifier', dependsOn: [] }] });
+    const node = { nodeId: 'check', member: 'verifier', attemptId: a };
+    event({ ...node, phase: 'completed', outcome });
+    assert.equal(reader.read('details', index).team.nodes[0].outcome, undefined);
+    event({ ...node, phase: 'running' }); event({ ...node, phase: 'done' });
+    event({ ...node, attemptId: a.replace(/1$/, '2'), phase: 'completed', outcome });
+    assert.equal(reader.read('details', index).team.nodes[0].outcome, undefined);
+    event({ ...node, phase: 'completed', outcome: { ...outcome, text: 'private secret', reason: '/outside' } });
+    const projected = reader.read('details', index).team.nodes[0];
+    assert.equal(projected.state, 'completed');
+    if (!index) assert.deepEqual(projected.outcome, { code: 'verified', toolsSucceeded: 2, toolsFailed: 0, evidenceCount: 1 });
+    else assert.equal(projected.outcome, undefined);
+    assert.doesNotMatch(JSON.stringify(projected), /private|secret|outside|attemptId/);
+  }
+  const task = store.createTask({ conversationId: conversation.id, message: 'private' });
+  store.setSetting('dsh-turn:details:30', task.id); store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  const event = payload => store.appendEvent(task.id, 'team_state', { teamId: task.id, ...payload });
+  event({ phase: 'planned', tasks: [
+    { id: 'check', role: 'verifier', dependsOn: [] },
+    { id: 'other', role: 'implementer', dependsOn: [] },
+    { id: 'next', role: 'implementer', dependsOn: ['check'] },
+    { id: 'last', role: 'verifier', dependsOn: ['next'] },
+  ] });
+  const node = { nodeId: 'check', member: 'verifier', attemptId: a };
+  event({ ...node, phase: 'running' }); event({ ...node, phase: 'done' });
+  event({ ...node, phase: 'blocked', outcome: { ...receipt, code: 'rejected' } });
+  const nodes = reader.read('details', 30).team.nodes;
+  assert.equal(nodes[0].outcome.code, 'rejected');
+  assert.equal(nodes[1].waitingOn, undefined);
+  assert.deepEqual(nodes[2].waitingOn, ['check']); assert.deepEqual(nodes[3].waitingOn, ['check']);
+});

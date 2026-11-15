@@ -16,5 +16,6 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',
+    'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
     "Promise.race([call('Page.close'), closed])", "assert.equal(child.exitCode, 0"]) assert.ok(source.includes(condition));
 });

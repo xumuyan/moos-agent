@@ -318,6 +318,50 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.9 显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_member_details_are_structured_and_keep_unverified_gates_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-details.json').read_text())
+        self.assertEqual(e['status'], 'isolated-member-details-candidate-not-installed')
+        impl = e['implementation']
+        for key in ('structuredReceipts', 'attemptCorrelated', 'legacyUnknownNotInvented',
+                    'transitiveDependencyBlockers'):
+            self.assertTrue(impl[key])
+        for key in ('rawMemberProseExposed', 'rawVerdictProseExposed', 'privateReasoningExposed',
+                    'newPolling', 'memberMessagePanelComplete', 'semanticGoalProof'):
+            self.assertFalse(impl[key])
+        self.assertEqual((impl['receiptVersion'], impl['countsCap'], impl['maxNodes'], impl['maxEvents']),
+                         (1, 10000, 6, 128))
+        self.assertEqual(set(impl['codes']), {'member_finished', 'verified', 'rejected',
+                                            'missing_verdict', 'tool_failure'})
+        for name, report in e['acceptance'].items():
+            self.assertEqual(report['status'], 'passed')
+            self.assertTrue(all(report['checks'].values()))
+            for key in ('normalGUI', 'externalModel', 'productionTouched'):
+                self.assertFalse(report[key])
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertRegex(report['reportSha256'], r'^[0-9a-f]{64}$')
+            self.assertTrue(report['checks']['noInventedStoppedReceipt'] if name == 'stop'
+                            else report['checks']['readableMemberLayout'])
+        self.assertTrue(e['acceptance']['blocked']['checks']['downstreamBlockerDetails'])
+        self.assertFalse(e['build']['installed'])
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertTrue(e['build']['clientArchiveSourceMatches'])
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        for name, expected in (('targeted', 31), ('core', 277), ('electron', 117), ('packaged', 126)):
+            self.assertEqual(e['regression']['counts'][name]['pass'], expected)
+            self.assertEqual(e['regression']['counts'][name]['fail'], 0)
+        self.assertEqual(e['regression']['counts']['packaged']['skipped'], 1)
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(len(e['historicalObservations']), 2)
+        self.assertFalse(e['historicalObservations'][1]['visualAccepted'])
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('成员结果凭据与依赖阻塞检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.10 成员结果凭据', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

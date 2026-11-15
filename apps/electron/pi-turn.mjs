@@ -186,6 +186,19 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
               } else {
                 if (!attempt.done) continue;
                 node.state = state.phase;
+                const outcome = state.outcome;
+                const codes = role === 'verifier'
+                  ? state.phase === 'completed' ? ['verified'] : ['tool_failure', 'missing_verdict', 'rejected']
+                  : state.phase === 'completed' ? ['member_finished'] : [];
+                if (outcome?.version === 1 && codes.includes(outcome.code)
+                  && ['toolsSucceeded', 'toolsFailed', 'evidenceCount'].every(key =>
+                    Number.isSafeInteger(outcome[key]) && outcome[key] >= 0 && outcome[key] <= 10000)
+                  && outcome.evidenceCount <= outcome.toolsSucceeded
+                  && (outcome.code !== 'verified' || outcome.evidenceCount > 0 && outcome.toolsFailed === 0)
+                  && (outcome.code !== 'tool_failure' || outcome.toolsFailed > 0)) {
+                  node.outcome = { code: outcome.code, toolsSucceeded: outcome.toolsSucceeded,
+                    toolsFailed: outcome.toolsFailed, evidenceCount: outcome.evidenceCount };
+                }
               }
             } else continue;
           } else if (['queued', 'completed', 'blocked'].includes(state.phase)
@@ -201,7 +214,16 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
         }
         // Parent lifecycle is authoritative, including cancel/deadline/restart.
         if (terminal.has(task.status)) phase = task.status;
-        team = { phase, member, nodes: [...nodes.values()], limited: states.length > 128 };
+        // Explain actual failed dependencies, not guessed model prose. A
+        // cancelled/running legacy node without a correlated receipt stays unknown.
+        const blockedBy = new Map([...nodes.values()].filter(node => node.state === 'blocked').map(node => [node.id, [node.id]]));
+        for (let i = 0; i < nodes.size; i++) for (const node of nodes.values()) {
+          if (node.state !== 'queued') continue;
+          const ancestors = [...new Set(node.dependsOn.flatMap(id => blockedBy.get(id) ?? []))];
+          if (ancestors.length) blockedBy.set(node.id, ancestors);
+        }
+        team = { phase, member, nodes: [...nodes.values()].map(node => ({ ...node,
+          ...(node.state === 'queued' && blockedBy.has(node.id) && { waitingOn: blockedBy.get(node.id) }) })), limited: states.length > 128 };
       }
       const confirmed = new Map(changes?.files.map(file => [file.path, file.summary]));
       const mergedFiles = changes && !changes.limited ? confirmed : new Map([

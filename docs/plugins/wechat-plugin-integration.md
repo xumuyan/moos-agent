@@ -139,3 +139,10 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 运行 `node scripts/verify-electron-team.mjs <generated-app> retry`。使用既有无fixture的build-WmgJoT，仅复制QA包、隐藏窗口、CDP操作、合成本地模型及独立配置；本轮没有应用runtime改动或新构建。原团队运行中清团队标签为普通；实际write42/独立read后故意verdict=false，再点「继续上次任务」：保存team和原目标沿用，不改变输入框；产生新父任务、全新attempt、6份不同父所属角色历史（各队长/执行/验证），请求不含旧assistant上下文。队长和执行成员先read原产物、不再次write，验证独立read后两节点完成并汇总；随后普通请求成功，数据库failed/succeeded/succeeded及team/team/ordinary核对。
 
 最终retry 17次本地请求、所有检查通过；success/blocked/stop回归亦过。两次QA脚本失败保留：工具结果不保证name，须按tool_call_id关联前面tool_calls；Page.close可能先退出再丢CDP回执，脚本与真实退出竞争并仍要求exitCode0，不吞异常强行当成功。证据`docs/evidence/desktop/agent-teams-retry-ui.json`含失败/通过记录与哈希、最终命令/回归及严格验签；核心276/276，皮肤/Rust门仍阻塞，全仓未全绿。此例的“先检查”由本地合成模型遵循提示，不能保证任意线上模型不重复副作用；不是节点恢复，不覆盖cancelled/interrupted GUI重试、附件生命周期、正常GUI/原生输入或外部模型。正式应用/数据未动，安装另获授权。
+
+
+### 7.10 成员结果凭据与依赖阻塞（2026-11-15，隔离候选）
+
+执行过程→团队协作→“节点 · 成员结果与验收”展开角色、状态、依赖、工具记录计数及验收分类。执行成员只标轮次结束，不代表验收通过；验证成员区分已提交通过且有成功检查、明确未通过、缺少结论、存在工具失败。计数是tool_end记录数（含协调工具），不是去重动作数/测试个数，也不证明任意业务目标正确。凭据采用v1/固定枚举/0–10000有界计数，只在本父节点角色attempt的running→done→终态完整关联后输出；旧或损坏凭据不补造。明确blocked依赖可传递给仍queued的下游，显示实际阻塞ID；其他任务取消/异常不猜测原因。成员正文、verdict.summary、私有推理与工具载荷不进入新详情；这不是已实现通用文本脱敏或完整成员消息/产物链接/用量面板。
+
+首轮四场景业务断言虽通过，截图显示通用action-list flex将详情挤列且背景干扰，视觉未验收；加团队专属单列grid、不透明Canvas/CanvasText底色与DOM几何断言后重建。最终build-39USi2签名通过、无fixture/源码匹配；success/blocked/stop/retry的复制隐藏QA/CDP/本地模型复验均通过（不是正常GUI/原生键鼠或外部模型）。blocked计划增加依赖check的final节点，实际check验收未过、final未执行并显示来源check；Stop无伪造通过凭据；retry新父有通过详情、输入框普通不变。核心277/277、专项31/31、包内126通过1skip；Rust/皮肤仍受阻，不宣称全仓全绿。证据`docs/evidence/desktop/agent-teams-member-details.json`，包含初始断言与视觉问题、最终命令/报告及源码哈希。复验 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' [success|blocked|stop|retry]`。正式应用/真实数据未动，安装仍需另获授权。

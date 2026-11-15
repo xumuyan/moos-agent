@@ -366,6 +366,24 @@ window.__ModuleLoader__.load({
     const teamPhases = { queued: '等待执行', planning: '正在规划', planned: '计划已生成', running: '正在执行',
       done: '当前轮次结束', blocked: '验收阻塞', completed: '节点已完成', summarizing: '正在汇总',
       succeeded: '已交付', failed: '失败', cancelled: '已停止', interrupted: '已中断' };
+    const teamOutcomes = { member_finished: '成员轮次已结束（不等于独立验收通过）', verified: '独立验收通过（已提交结论并有工具证据）',
+      rejected: '验证成员明确报告未通过', missing_verdict: '验证成员未提交验收结论', tool_failure: '验证期间存在工具失败，验收已阻断' };
+    function TeamNodeDetails({ node }) {
+      const outcome = node.outcome;
+      return createElement('details', { 'data-moos-team-node-details': node.id },
+        createElement('summary', null, node.id, ' · 成员结果与验收'),
+        createElement('p', null, '成员：', teamRoles[node.role], '；状态：', teamPhases[node.state] ?? '状态未知'),
+        node.dependsOn.length ? createElement('p', null, '依赖节点：', node.dependsOn.join('、')) : null,
+        node.waitingOn?.length ? createElement('p', { 'data-moos-team-blocker': '' }, '未执行：依赖验收阻塞于 ', node.waitingOn.join('、')) : null,
+        outcome && teamOutcomes[outcome.code]
+          ? createElement('div', { 'data-moos-team-outcome': outcome.code },
+            createElement('p', null, teamOutcomes[outcome.code]),
+            createElement('p', null, '成功工具记录 ', outcome.toolsSucceeded, '；失败工具记录 ', outcome.toolsFailed,
+              '；成功检查记录 ', outcome.evidenceCount),
+            createElement('small', null, '工具记录与模型结论不保证任意目标正确；此处不展示成员私有原文。'))
+          : createElement('p', null, node.state === 'running' ? '成员尚未结束；暂无已确认结果。'
+            : node.state === 'queued' ? '尚无执行结果。' : '没有可关联的结果凭据，不推断验收通过。'));
+    }
     function TeamProgress({ team }) {
       if (!team) return null;
       return createElement('section', { 'data-moos-team-progress': '', 'aria-label': '团队协作进度' },
@@ -374,7 +392,8 @@ window.__ModuleLoader__.load({
         createElement('ul', null, team.nodes.map(node => createElement('li', { key: node.id },
           createElement('span', null, node.id, ' · ', teamRoles[node.role]),
           node.dependsOn.length ? createElement('span', null, '依赖 ', node.dependsOn.join('、')) : null,
-          createElement('small', null, teamPhases[node.state] ?? '状态未知')))),
+          createElement('small', null, teamPhases[node.state] ?? '状态未知'),
+          createElement(TeamNodeDetails, { node })))),
         ['blocked', 'failed', 'cancelled', 'interrupted'].includes(team.phase)
           ? createElement('p', null, '团队未完成交付；下游不会继续。重试沿用原目标和团队模式，不会自动恢复节点。') : null,
         team.limited ? createElement('p', null, '团队事件展示已达上限') : null);
@@ -604,7 +623,7 @@ window.__ModuleLoader__.load({
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-team-mode] { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; padding: 2px 7px; border-radius: 8px; background: var(--dsw-alias-bg-module-platform); }
         [data-moos-team-mode] button { color: inherit; background: transparent; border: 0; cursor: pointer; font: inherit; padding: 2px 4px; }
-        [data-moos-team-progress] { padding: 8px 0; }
+        [data-moos-team-progress] { box-sizing: border-box; max-width: 100%; min-width: 0; margin-block: 8px; padding: 12px; border-radius: 8px; color: CanvasText; background: Canvas; overflow-wrap: anywhere; }
         [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-desktop-shots] { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
@@ -624,6 +643,13 @@ window.__ModuleLoader__.load({
         :is([data-moos-pi-process], [data-moos-file-fallback]) ul { list-style: none; padding: 0; margin: 6px 0 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
         :is([data-moos-pi-process], [data-moos-file-fallback]) li small { margin-inline-start: auto; white-space: nowrap; opacity: .7; }
+        /* Team receipts are full-width rows, not a fourth column of the action-list flex layout. */
+        [data-moos-pi-process] [data-moos-team-progress] li { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 5px; padding: 10px 0; border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+        [data-moos-pi-process] [data-moos-team-progress] li small { margin-inline-start: 0; white-space: normal; }
+        [data-moos-team-node-details] { min-width: 0; max-width: 100%; }
+        [data-moos-team-node-details] summary { font-weight: 600; }
+        [data-moos-team-node-details] p { margin: 6px 0; }
+        [data-moos-team-node-details] small { display: block; }
         .moos-action-subject { min-width: 0; overflow-wrap: anywhere; }
         [data-turn-tail]:has([data-changed-files]) [data-moos-file-fallback] { display: none; }
         [data-chat-flow-kind="assistant-step"] :is(.md-code-block, pre) { display: none; }

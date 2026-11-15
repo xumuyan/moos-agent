@@ -138,7 +138,7 @@ export async function runPiTeam(options, run = runPiSdk) {
       if (node.dependsOn.some(id => !results.has(id))) throw new TaskFailure('protocol');
       publish('queued', { member: node.role, nodeId: node.id });
       let verdict;
-      let evidenceCount = 0;
+      let evidenceCount = 0, toolsSucceeded = 0, toolsFailed = 0;
       let failedCheck = false;
       const report = node.role === 'verifier' ? tool('team_verdict',
         '完成真实工具检查后提交验收结论；缺少检查、失败或受阻必须passed=false，禁止凭成员自述通过。',
@@ -157,16 +157,28 @@ export async function runPiTeam(options, run = runPiSdk) {
       { nodeId: node.id, tools: report ? [report] : undefined,
         instructions: '团队成员不能创建子团队；本轮只完成分配目标，不等待其他成员。',
         onToolEnd(payload) {
-          if (['read', 'ls', 'grep', 'find', 'bash', 'bash_escalated'].includes(payload.toolName)
-            && payload.isError === false && !payload.result?.isError) evidenceCount += 1;
-          if (payload.isError || payload.result?.isError) failedCheck = true;
+          if (payload.isError === false && !payload.result?.isError) {
+            toolsSucceeded = Math.min(10000, toolsSucceeded + 1);
+            if (['read', 'ls', 'grep', 'find', 'bash', 'bash_escalated'].includes(payload.toolName)) {
+              evidenceCount = Math.min(10000, evidenceCount + 1);
+            }
+          }
+          if (payload.isError || payload.result?.isError) {
+            toolsFailed = Math.min(10000, toolsFailed + 1);
+            failedCheck = true;
+          }
         } });
+      // A bounded public receipt, never member prose/tool content or reasoning.
+      // Tool evidence is not semantic proof that an arbitrary user goal is met.
+      const outcome = { version: 1, toolsSucceeded, toolsFailed, evidenceCount,
+        code: report ? failedCheck ? 'tool_failure' : !verdict ? 'missing_verdict'
+          : verdict.passed ? 'verified' : 'rejected' : 'member_finished' };
       if (report && (!verdict || !verdict.passed || failedCheck)) {
-        publish('blocked', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, reason: verdict?.summary ?? '验证成员未提交验收结论' });
+        publish('blocked', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, outcome, reason: verdict?.summary ?? '验证成员未提交验收结论' });
         throw new TaskFailure('tool_error');
       }
       results.set(node.id, report ? `${actual.text}\n独立验收结论：${verdict.summary}` : actual.text);
-      publish('completed', { nodeId: node.id, member: node.role, attemptId: actual.attemptId });
+      publish('completed', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, outcome });
     }
     publish('summarizing');
     const answer = await turn('captain', `目标：${task.text}\n独立成员已执行并提交验收结果：${JSON.stringify([...results])}\n` +
