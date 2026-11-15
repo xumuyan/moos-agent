@@ -494,6 +494,46 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.13 中断重启后的显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_shell_stop_requires_actual_owned_process_exit_not_only_model_abort(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-shell-stop.json').read_text())
+        self.assertEqual(e['status'], 'isolated-active-shell-stop-acceptance-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        case = e['case']
+        self.assertEqual(case['modes'], ['team', 'ordinary'])
+        self.assertEqual(case['statuses'], ['cancelled', 'succeeded'])
+        for key in ('actualBashToolStart', 'shellAndChildRunningBeforeStop', 'childParentRelationChecked',
+                    'ancestorIsExactQAInstance', 'bothPidsGoneAfterUIStop', 'noDirectTestKillOfToolProcesses',
+                    'preStopArtifactPreserved', 'noLateWriteObserved', 'noVerifierOrSummary', 'nextOrdinarySucceeds'):
+            self.assertTrue(case[key])
+        self.assertEqual(case['childSleepSeconds'], 120)
+        self.assertEqual(case['postStopObservationMs'], 1000)
+        self.assertEqual(set(e['acceptance']), {'shell-stop', 'interrupt-retry', 'stop-retry', 'attachments', 'success', 'blocked', 'stop', 'retry'})
+        for report in e['acceptance'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertTrue(all(report['checks'].values()))
+            for key in ('productionTouched', 'normalGUI', 'externalModel'):
+                self.assertFalse(report[key])
+            self.assertRegex(report['reportSha256'], r'^[0-9a-f]{64}$')
+        report = e['acceptance']['shell-stop']
+        self.assertEqual(report['requests'], 4)
+        for key in ('actualOwnedShellAndChildRunning', 'shellAndChildExitedAfterStop', 'noPostStopShellWrite',
+                    'noInventedStoppedReceipt', 'explicitStopCancels', 'ordinaryAfterClear'):
+            self.assertTrue(report['checks'][key])
+        for key in ('sourceMatches', 'clientArchiveSourceMatches', 'reusedExistingCandidate'):
+            self.assertTrue(e['build'][key])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('活跃shell停止检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.14 活跃 shell 与子进程停止', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

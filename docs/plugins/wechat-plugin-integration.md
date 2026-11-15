@@ -175,3 +175,14 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 只覆盖隐藏CDP/本地模型和整棵QA进程树人为故障，不是正常GUI、原生输入或外部模型，不证明仅杀App父进程看门狗清理、操作系统重启/断电恢复、活跃shell/桌面取消或节点恢复/恰好一次。无重复write依赖合成模型，不能保证任意模型不会重复副作用。第一次故意SIGKILL不是正常退出验收，重启后的最终实例仍必须exitCode0。截图中PI执行过程/重试dock显示已中断，但上游DSH气泡仍标已停止并提示进程退出/工具结果未知；不宣称全界面术语统一或皮肤下整体错误对比度通过。正式应用与真实数据未动。
 
 本轮blocked回归曾11项业务检查通过，但QA在既有10秒退出窗口内exitCode仍null，按失败保留；未放宽退出门，原样串行复跑41.6s、最终exit0通过，延迟根因未确认（证据保留首报告与复跑报告），不把复跑成功冒充根因已修复。
+
+
+### 7.14 活跃 shell 与子进程停止（2026-11-15，隔离验收）
+
+执行 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' shell-stop`。不同于只挂起模型请求，本场景由真实PI bash工具先写42到answer.txt及shell.pid/child.pid，然后启动/bin/sleep120并wait，最后原本会写late.txt。默认workspace-write、不改执行权限或请求提权。点停止前检查shell/child PID有效且不同、child的实际PPID为shell、shell祖先为本次spawn的QA、SQLite父running且真实成员bash tool_start、文件42存在而late.txt不存在。
+
+真实点停止生成，不由QA runner直接发kill给工具进程；随后两个PID均ESRCH，父cancelled、无verifier/summary/假交付或通过凭据。已写42保留，1秒观察late.txt仍不存在；再发送ordinary成功说明同项目租约可再次使用。不是其他项目并发不受影响证明。最终4本地请求/11检查真，其他success/blocked/stop/retry/attachments/stop-retry/interrupt-retry七场景通过；专项11/11、核心277/277；源码Electron117通过10skip、包内126通过1skip；Rust离线tauri缺失exit101/皮肤材料缺失，全仓未全绿。复用build-39USi2无fixture、严格验签和runtime/shell归档源码匹配，未新构建/安装。证据`docs/evidence/desktop/agent-teams-shell-stop.json`。
+
+仅证明这条bash+单个直接sleep子进程的取消，不覆盖daemon/脱离进程/孙进程/忽略信号等任意拓扑，也非排队或活跃桌面动作取消、任意副作用恰好一次。隐藏QA/CDP/本地模型，不是正常GUI/原生输入/外部模型验收，既有偶发QA退出延迟根因仍未确认。正式应用和真实数据未动。
+
+本轮初始blocked业务11项通过但QA退出超时，核心首次276/277中桌面geometry drift用例遇helper超时；分别原样串行复跑40.55s正常exit0、核心277/277，未改门限或桌面保护，失败/首结果保留于证据，延迟与超时根因仍未确认。

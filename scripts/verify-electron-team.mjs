@@ -12,9 +12,10 @@ import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
 const [inputApp, scenario = 'success'] = process.argv.slice(2);
-assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry'].includes(scenario), 'Unsupported QA scenario');
+assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry', 'shell-stop'].includes(scenario), 'Unsupported QA scenario');
 const retrying = ['retry', 'stop-retry', 'interrupt-retry'].includes(scenario);
-const stopping = ['stop', 'stop-retry'].includes(scenario);
+const shellStop = scenario === 'shell-stop';
+const stopping = ['stop', 'stop-retry', 'shell-stop'].includes(scenario);
 const interrupted = scenario === 'interrupt-retry';
 const partial = stopping || interrupted;
 const successful = ['success', 'attachments'].includes(scenario);
@@ -30,6 +31,7 @@ await writeFile(entry, main.replace("app.setName('沐码');", "BrowserWindow.pro
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
+let shellPids;
 let heldRequest = false, heldRequestClosed = false, planningRounds = 0;
 const largeUpload = 'UPLOAD_LARGE_42\n' + 'synthetic upload line\n'.repeat(7000);
 const largeUploadPath = '.moos-uploads/' + createHash('sha256').update(largeUpload).digest('hex').slice(0, 8) + '-payload.log';
@@ -80,7 +82,9 @@ const server = createServer(async (req, res) => {
         assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: !blocked, summary: blocked ? 'synthetic acceptance blocked' : 'read confirmed 42' };
       } else content = 'verified';
     } else if (prompt.includes('当前任务build')) {
-      if (scenario === 'attachments' && !latest) {
+      if (shellStop && !latest) {
+        name = 'bash'; args = { command: `printf '42\\n' > answer.txt; printf '%s\\n' "$$" > shell.pid; /bin/sleep 120 & worker=$!; printf '%s\\n' "$worker" > child.pid; wait "$worker"; printf 'UNEXPECTED_LATE_WRITE\\n' > late.txt`, timeout: 150 };
+      } else if (scenario === 'attachments' && !latest) {
         assert.ok(prompt.includes('UPLOAD_INLINE_42') && prompt.includes(largeUploadPath));
         name = 'read'; args = { path: largeUploadPath, limit: 2 };
       } else if (scenario === 'attachments' && latestTool === 'read') {
@@ -213,8 +217,31 @@ try {
     await capture('team-attachments-queued');
     releaseAttachments();
   }
+  if (shellStop) {
+    const active = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      const owner = await until(() => active.prepare('SELECT tasks.id, tasks.status, projects.path FROM tasks JOIN projects ON projects.id = tasks.projectId ORDER BY tasks.rowid').get(), 'shell task owner');
+      shellPids = await until(async () => {
+        try {
+          const pids = await Promise.all(['shell.pid', 'child.pid'].map(file => readFile(join(owner.path, file), 'utf8').then(text => Number(text.trim()))));
+          return pids.every(pid => Number.isSafeInteger(pid) && pid > 1) && pids;
+        } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+      }, 'actual shell and child PID files');
+      assert.notEqual(shellPids[0], shellPids[1]);
+      const parent = pid => Number(execFileSync('/bin/ps', ['-p', String(pid), '-o', 'ppid='], { encoding: 'utf8' }).trim());
+      assert.equal(parent(shellPids[1]), shellPids[0], 'actual sleep belongs to actual running shell');
+      let ancestor = shellPids[0]; const seen = new Set();
+      while (ancestor !== child.pid && ancestor > 1 && !seen.has(ancestor)) { seen.add(ancestor); ancestor = parent(ancestor); }
+      assert.equal(ancestor, child.pid, 'shell must belong to this exact copied QA instance');
+      assert.equal(active.prepare('SELECT status FROM tasks WHERE id = ?').get(owner.id).status, 'running');
+      assert.equal(await readFile(join(owner.path, 'answer.txt'), 'utf8'), '42\n');
+      await assert.rejects(readFile(join(owner.path, 'late.txt')), { code: 'ENOENT' });
+      assert.ok(active.prepare('SELECT payload FROM events WHERE taskId = ? AND type = ?').all(owner.id, 'tool_start').some(row => { const p = JSON.parse(row.payload); return p.member === 'implementer' && p.toolName === 'bash'; }));
+      report.checks.actualOwnedShellAndChildRunning = true;
+    } finally { active.close(); }
+  }
   if (stopping) {
-    await until(() => heldRequest, 'active implementer model request');
+    if (!shellStop) await until(() => heldRequest, 'active implementer model request');
     await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="停止生成"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit stop');
   }
   if (interrupted) {
@@ -277,6 +304,12 @@ try {
       report.checks.restartMarksInterruptedWithoutReplay = true;
       report.checks.restartPreservesEventPrefixAndArtifact = true;
     } finally { restored.close(); }
+  }
+  if (shellStop) {
+    for (const pid of shellPids) await until(() => {
+      try { process.kill(pid, 0); return false; } catch (error) { if (error.code === 'ESRCH') return true; throw error; }
+    }, 'actual shell and child exit after UI Stop');
+    report.checks.shellAndChildExitedAfterStop = true;
   }
   const terminalLabel = successful ? '已交付' : interrupted ? '已中断' : stopping ? '已停止' : '失败';
   if (successful) await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
@@ -355,7 +388,13 @@ try {
     const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
     const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
     if (partial) {
-      assert.equal(heldRequestClosed, true, 'actual upstream request closed after Stop');
+      if (!shellStop) assert.equal(heldRequestClosed, true, 'actual upstream request closed after Stop');
+      if (shellStop) {
+        assert.ok(events.some(row => row.type === 'tool_start' && row.payload.toolName === 'bash' && row.payload.member === 'implementer'));
+        await sleep(1000);
+        await assert.rejects(readFile(join(rows[0].path, 'late.txt')), { code: 'ENOENT' });
+        report.checks.noPostStopShellWrite = true;
+      }
       if (scenario === 'stop') await assert.rejects(readFile(join(rows[0].path, 'answer.txt')), { code: 'ENOENT' });
       else assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
       assert.ok(!events.some(row => row.payload.member === 'verifier'));
