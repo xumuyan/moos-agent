@@ -453,6 +453,47 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.12 停止后的显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_interrupted_retry_preserves_event_prefix_and_never_replays_on_startup(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-interrupted-retry.json').read_text())
+        self.assertEqual(e['status'], 'isolated-interrupted-retry-acceptance-not-installed')
+        for key in ('runtimeModified', 'nodeRecovery', 'exactlyOnceSideEffects'):
+            self.assertFalse(e[key])
+        case = e['case']
+        self.assertEqual(case['modes'], ['team', 'team', 'ordinary'])
+        self.assertEqual(case['statuses'], ['interrupted', 'succeeded', 'succeeded'])
+        self.assertEqual(case['persistedRoleHistories'], 5)
+        for key in ('writeBeforeFault', 'coldTaskStillRunning', 'startupAddsOnlyInterruptedEvent', 'oldEventPrefixPreserved', 'actualModelConnectionClosed', 'artifactReadBeforeRetry',
+                    'oldTaskEventsUnchanged', 'freshParentAndAttempts', 'noAutomaticReplayObserved',
+                    'retryInspectsWithoutRewriting', 'ordinaryComposerUnchanged'):
+            self.assertTrue(case[key])
+        self.assertEqual(set(e['acceptance']), {'interrupt-retry', 'stop-retry', 'attachments', 'success', 'blocked', 'stop', 'retry'})
+        for report in e['acceptance'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertTrue(all(report['checks'].values()))
+            for key in ('normalGUI', 'externalModel', 'productionTouched'):
+                self.assertFalse(report[key])
+            self.assertRegex(report['reportSha256'], r'^[0-9a-f]{64}$')
+        report = e['acceptance']['interrupt-retry']
+        self.assertEqual(report['requests'], 14)
+        for key in ('abruptOwnedQAFaultAndColdRunning', 'restartMarksInterruptedWithoutReplay', 'restartPreservesEventPrefixAndArtifact', 'stoppedPartialArtifactNoAutoReplay', 'stoppedTaskHistoryUnchanged',
+                    'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten'):
+            self.assertTrue(report['checks'][key])
+        self.assertTrue(e['build']['reusedExistingCandidate'])
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertTrue(e['build']['clientArchiveSourceMatches'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('中断重启后显式重试检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.13 中断重启后的显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

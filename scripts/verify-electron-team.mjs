@@ -12,9 +12,11 @@ import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
 const [inputApp, scenario = 'success'] = process.argv.slice(2);
-assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments', 'stop-retry'].includes(scenario), 'Unsupported QA scenario');
-const retrying = ['retry', 'stop-retry'].includes(scenario);
+assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry'].includes(scenario), 'Unsupported QA scenario');
+const retrying = ['retry', 'stop-retry', 'interrupt-retry'].includes(scenario);
 const stopping = ['stop', 'stop-retry'].includes(scenario);
+const interrupted = scenario === 'interrupt-retry';
+const partial = stopping || interrupted;
 const successful = ['success', 'attachments'].includes(scenario);
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
@@ -94,7 +96,7 @@ const server = createServer(async (req, res) => {
     // stop holds before write; stop-retry holds after actual write, before the
     // member turn ends. This tests retained side effects, not active-shell Stop.
     if (prompt.includes('当前任务build') && (scenario === 'stop' && !latest
-      || scenario === 'stop-retry' && !retryRound && latestTool === 'write')) {
+      || ['stop-retry', 'interrupt-retry'].includes(scenario) && !retryRound && latestTool === 'write')) {
       heldRequest = true;
       await new Promise(resolve => {
         const timer = setTimeout(resolve, 30000);
@@ -118,27 +120,38 @@ await piModels(data, checkedProvider).save({ id: 'gui', model: 'fixture-model', 
 const env = { ...process.env, TMPDIR: '/private/tmp/' };
 for (const key of Object.keys(env)) if (key.startsWith('MOOS_ELECTRON_') || key.startsWith('DSH_') || ['ELECTRON_RUN_AS_NODE', 'NODE_OPTIONS', 'NODE_PATH'].includes(key)) delete env[key];
 env.MOOS_ELECTRON_DATA = data;
-const child = spawn(join(app, 'Contents/MacOS/MuMa'), ['--remote-debugging-port=0'], { env, stdio: ['ignore', 'ignore', 'pipe'] });
-const closed = new Promise(r => child.once('exit', r));
-const lines = createInterface({ input: child.stderr }); let port, socket;
-lines.on('line', line => { const m = line.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)/); if (m) port = m[1]; void appendFile(join(scratch, 'app.log'), line + '\n'); });
+let child, closed, lines, port, socket;
+function launch() {
+  port = undefined;
+  child = spawn(join(app, 'Contents/MacOS/MuMa'), ['--remote-debugging-port=0'], { env, stdio: ['ignore', 'ignore', 'pipe'] });
+  const own = child;
+  closed = new Promise(r => own.once('exit', r));
+  lines = createInterface({ input: own.stderr });
+  lines.on('line', line => { const m = line.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)/); if (m) port = m[1]; void appendFile(join(scratch, 'app.log'), line + '\n'); });
+}
+launch();
 async function until(fn, label) {
   for (let i = 0; i < 240; i++) { const result = await fn(); if (result) return result; if (child.exitCode !== null) break; await sleep(250); }
   throw new Error('Missing ' + label);
 }
 const report = { scenario, scope: 'isolated copied QA bundle with show suppressed; CDP input; synthetic local model', checks: {}, productionTouched: false, normalGUI: false, externalModel: false };
 try {
-  await until(async () => port, 'debug port');
-  const target = await until(async () => (await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json())).find(row => row.url.startsWith('http://127.0.0.1:')), 'workbench');
-  socket = new WebSocket(target.webSocketDebuggerUrl); await new Promise(r => socket.addEventListener('open', r, { once: true }));
-  let seq = 0; const pending = new Map();
-  socket.addEventListener('message', event => { const result = JSON.parse(event.data); pending.get(result.id)?.(result); });
-  const call = (method, params = {}) => new Promise((r, j) => {
-    const id = ++seq, timer = setTimeout(() => { pending.delete(id); j(new Error('CDP timeout')); }, 15000);
-    pending.set(id, response => { clearTimeout(timer); pending.delete(id); response.error ? j(new Error(response.error.message)) : r(response.result); });
-    socket.send(JSON.stringify({ id, method, params }));
-  });
-  const evaluate = async expression => { const result = await call('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails)); return result.result.value; };
+  let call, evaluate;
+  async function connect() {
+    await until(async () => port, 'debug port');
+    const target = await until(async () => (await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json())).find(row => row.url.startsWith('http://127.0.0.1:')), 'workbench');
+    socket = new WebSocket(target.webSocketDebuggerUrl); await new Promise(r => socket.addEventListener('open', r, { once: true }));
+    const ownSocket = socket;
+    let seq = 0; const pending = new Map();
+    ownSocket.addEventListener('message', event => { const result = JSON.parse(event.data); pending.get(result.id)?.(result); });
+    call = (method, params = {}) => new Promise((r, j) => {
+      const id = ++seq, timer = setTimeout(() => { pending.delete(id); j(new Error('CDP timeout')); }, 15000);
+      pending.set(id, response => { clearTimeout(timer); pending.delete(id); response.error ? j(new Error(response.error.message)) : r(response.result); });
+      ownSocket.send(JSON.stringify({ id, method, params }));
+    });
+    evaluate = async expression => { const result = await call('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails)); return result.result.value; };
+  }
+  await connect();
   const capture = async name => writeFile(join(scratch, name + '.png'), Buffer.from((await call('Page.captureScreenshot')).data, 'base64'));
   await until(() => evaluate(`(() => { const el = document.querySelector('[data-composer-input]'); if (!el) return false; if (el.dataset.phase === 'inert') { el.click(); return false; } return el.contentEditable === 'true'; })()`), 'active composer');
   await sleep(1200);
@@ -204,7 +217,68 @@ try {
     await until(() => heldRequest, 'active implementer model request');
     await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="停止生成"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit stop');
   }
-  const terminalLabel = successful ? '已交付' : stopping ? '已停止' : '失败';
+  if (interrupted) {
+    await until(() => heldRequest, 'active request after actual write');
+    const before = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    let owner, beforeEvents;
+    try {
+      owner = before.prepare('SELECT tasks.id, tasks.status, projects.path FROM tasks JOIN projects ON projects.id = tasks.projectId ORDER BY tasks.rowid').get();
+      assert.equal(owner.status, 'running');
+      assert.equal(await readFile(join(owner.path, 'answer.txt'), 'utf8'), '42\n');
+      beforeEvents = before.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(owner.id);
+    } finally { before.close(); }
+    // Fault only the exact copied-QA descendant tree; never kill by app name,
+    // process group shared with this runner, installed path, or global pattern.
+    const table = execFileSync('/bin/ps', ['-axo', 'pid=,ppid='], { encoding: 'utf8' }).trim().split('\n')
+      .map(line => line.trim().split(/\s+/).map(Number));
+    const descendants = [];
+    function collect(parent) { for (const [pid, ppid] of table) if (ppid === parent) { descendants.push(pid); collect(pid); } }
+    collect(child.pid);
+    assert.ok(descendants.length > 0, 'owned QA descendants must be observed');
+    const hostPids = descendants.filter(pid => {
+      try { return execFileSync('/bin/ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf8' }).includes(scratch.split(sep).at(-1) + '/QA.app/Contents/Resources/host-runtime/cli.mjs web --patch '); }
+      catch { return false; }
+    });
+    assert.equal(hostPids.length, 1, 'uniquely bind copied QA Host before fault');
+    process.kill(child.pid, 'SIGSTOP');
+    for (const pid of descendants.reverse()) {
+      try { process.kill(pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+    }
+    child.kill('SIGKILL'); await closed;
+    assert.equal(child.signalCode, 'SIGKILL');
+    await until(() => heldRequestClosed, 'faulted connection close');
+    for (const pid of hostPids) await until(() => {
+      try { process.kill(pid, 0); return false; } catch (error) { if (error.code === 'ESRCH') return true; throw error; }
+    }, 'faulted owned Host exit');
+    socket.close(); lines.close();
+    const cold = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      assert.equal(cold.prepare('SELECT status FROM tasks WHERE id = ?').get(owner.id).status, 'running', 'abrupt fault leaves nonterminal task for startup reconciliation');
+      assert.deepEqual(cold.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(owner.id), beforeEvents);
+    } finally { cold.close(); }
+    const count = requests.length;
+    launch(); await connect();
+    await until(() => evaluate(`(() => { const el = [...document.querySelectorAll('*')].find(el => el.children.length === 0 && el.textContent.startsWith('Create answer.txt with 42')); el?.click(); return !!el; })()`), 'saved team conversation selected');
+    await until(() => evaluate(`!!document.querySelector('[data-composer-input]')`), 'restored composer');
+    const restored = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      await until(() => restored.prepare('SELECT status FROM tasks WHERE id = ?').get(owner.id)?.status === 'interrupted', 'startup marks interrupted');
+      const afterEvents = restored.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(owner.id);
+      assert.deepEqual(afterEvents.slice(0, beforeEvents.length), beforeEvents, 'startup preserves prior event prefix');
+      assert.equal(afterEvents.length, beforeEvents.length + 1);
+      const terminal = afterEvents.at(-1);
+      assert.equal(terminal.type, 'task_state');
+      assert.equal(JSON.parse(terminal.payload).errorCode, 'host_interrupted');
+      await sleep(1000);
+      assert.equal(requests.length, count, 'restart must not replay model calls');
+      assert.equal(restored.prepare('SELECT COUNT(*) AS count FROM tasks').get().count, 1);
+      assert.equal(await readFile(join(owner.path, 'answer.txt'), 'utf8'), '42\n');
+      report.checks.abruptOwnedQAFaultAndColdRunning = true;
+      report.checks.restartMarksInterruptedWithoutReplay = true;
+      report.checks.restartPreservesEventPrefixAndArtifact = true;
+    } finally { restored.close(); }
+  }
+  const terminalLabel = successful ? '已交付' : interrupted ? '已中断' : stopping ? '已停止' : '失败';
   if (successful) await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
   await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes(${JSON.stringify(terminalLabel)}))`), 'terminal team progress');
   if (!successful) assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
@@ -236,17 +310,17 @@ try {
     report.checks.readableMemberLayout = true;
     report.checks.structuredMemberDetails = true;
   }
-  if (!stopping) await checkDetails(successful ? 'verified' : 'rejected');
-  if (stopping) {
+  if (!partial) await checkDetails(successful ? 'verified' : 'rejected');
+  if (partial) {
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-outcome="verified"]')`), false);
     report.checks.noInventedStoppedReceipt = true;
   }
   await capture('team-' + scenario);
   let stoppedSnapshot;
-  if (scenario === 'stop-retry') {
+  if (scenario === 'stop-retry' || interrupted) {
     const stoppedDb = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
     try {
-      await until(() => stoppedDb.prepare('SELECT status FROM tasks ORDER BY rowid').get()?.status === 'cancelled', 'persisted Stop before retry');
+      await until(() => stoppedDb.prepare('SELECT status FROM tasks ORDER BY rowid').get()?.status === (interrupted ? 'interrupted' : 'cancelled'), 'persisted terminal before retry');
       await until(() => heldRequestClosed, 'actual stopped connection close');
       const stopped = stoppedDb.prepare('SELECT tasks.id, projects.path FROM tasks JOIN projects ON projects.id = tasks.projectId ORDER BY tasks.rowid').get();
       assert.equal(await readFile(join(stopped.path, 'answer.txt'), 'utf8'), '42\n');
@@ -275,17 +349,17 @@ try {
     const rows = db.prepare(`SELECT tasks.id, tasks.status, projects.path, events.payload FROM tasks JOIN projects ON projects.id = tasks.projectId JOIN events ON events.taskId = tasks.id AND events.type = 'task_submission' ORDER BY tasks.rowid`).all();
     assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), retrying ? ['team', 'team', 'ordinary'] : ['team', 'ordinary']);
     // Streaming reply can precede the parent task's terminal commit.
-    const expected = retrying ? [stopping ? 'cancelled' : 'failed', 'succeeded', 'succeeded']
+    const expected = retrying ? [interrupted ? 'interrupted' : stopping ? 'cancelled' : 'failed', 'succeeded', 'succeeded']
       : [successful ? 'succeeded' : stopping ? 'cancelled' : 'failed', 'succeeded'];
     await until(() => JSON.stringify(db.prepare(`SELECT status FROM tasks ORDER BY rowid`).all().map(row => row.status)) === JSON.stringify(expected), 'persisted terminal tasks');
     const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
     const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
-    if (stopping) {
+    if (partial) {
       assert.equal(heldRequestClosed, true, 'actual upstream request closed after Stop');
       if (scenario === 'stop') await assert.rejects(readFile(join(rows[0].path, 'answer.txt')), { code: 'ENOENT' });
       else assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
       assert.ok(!events.some(row => row.payload.member === 'verifier'));
-      report.checks.explicitStopCancels = true;
+      report.checks[interrupted ? 'faultClosesModelConnection' : 'explicitStopCancels'] = true;
     } else {
       assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
       assert.ok(events.some(row => row.type === 'tool_end' && row.payload.member === 'verifier' && row.payload.toolName === 'read'));
@@ -307,7 +381,7 @@ try {
       const newAttempts = retried.filter(row => row.type === 'team_state' && row.payload.phase === 'running');
       assert.equal(newAttempts.length, 4, 'fresh captain planning/summary and both worker turns');
       assert.ok(newAttempts.every(row => row.payload.teamId === rows[1].id && !oldAttempts.has(row.payload.attemptId)));
-      assert.deepEqual(roleStarts.map(({ round, role }) => [round, role]), [1, 2].flatMap(round => (stopping && round === 1 ? ['captain', 'implementer'] : ['captain', 'implementer', 'verifier']).map(role => [round, role])));
+      assert.deepEqual(roleStarts.map(({ round, role }) => [round, role]), [1, 2].flatMap(round => (partial && round === 1 ? ['captain', 'implementer'] : ['captain', 'implementer', 'verifier']).map(role => [round, role])));
       assert.ok(roleStarts.every(row => !row.priorAssistant), 'retry role contexts must not reuse previous assistant/tool history');
       assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'captain' && row.payload.toolName === 'read' && !row.payload.isError));
       assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'implementer' && row.payload.toolName === 'read' && !row.payload.isError));
@@ -318,15 +392,15 @@ try {
       const owners = db.prepare('SELECT id, conversationId FROM tasks ORDER BY rowid LIMIT 2').all();
       const histories = [];
       for (const owner of owners) for (const role of ['captain', 'implementer', 'verifier']) {
-        if (stopping && owner.id === rows[0].id && role === 'verifier') continue;
+        if (partial && owner.id === rows[0].id && role === 'verifier') continue;
         const prefix = createHash('sha256').update(owner.conversationId + ':' + owner.id).digest('hex').slice(0, 32);
         const directory = join(data, 'pi/sessions', `team-${prefix}-${role}`);
         const files = (await readdir(directory)).filter(file => file.endsWith('.jsonl'));
         assert.equal(files.length, 1, 'one persisted history per task-owned role');
         histories.push(join(directory, files[0]));
       }
-      assert.equal(new Set(histories).size, stopping ? 5 : 6, 'retry persists separate task-owned role histories');
-      if (stopping) {
+      assert.equal(new Set(histories).size, partial ? 5 : 6, 'retry persists separate task-owned role histories');
+      if (partial) {
         assert.deepEqual(db.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(rows[0].id), stoppedSnapshot, 'retry must not mutate or append old task events');
         assert.equal(events.filter(row => row.type === 'tool_start' && row.payload.toolName === 'write').length, 1);
         report.checks.stoppedTaskHistoryUnchanged = true;

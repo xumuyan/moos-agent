@@ -164,3 +164,14 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 重试原目标/保存team，新父及fresh attempts/独立角色历史；队长和执行成员先read文件，不再次write，独立验证成员read/verdict成功再汇总。数据库cancelled/succeeded/succeeded、team/team/ordinary，原任务事件与重试前逐条相同，旧2角色+新3角色共5份持久化历史；输入框普通不变，后续普通任务成功。实际无重写依赖合成模型遵循检查提示，不代表任意外部模型副作用去重、同节点恢复或恰好一次。
 
 仅QA脚本/测试/文档变化，既有build-39USi2重新验签和源码核对，未构建/安装。最终stop-retry 14请求/15检查全真，其余success/blocked/stop/retry/attachments五场景均通过；专项11/11、核心277/277，源码117通过10skip、包内126通过1skip，Rust离线tauri/皮肤门仍阻塞。证据`docs/evidence/desktop/agent-teams-stopped-retry.json`。仅复制隐藏QA/CDP/本地模型，不是正常GUI/原生输入/外部模型；中断重启重试、活跃shell/子进程/桌面取消等未验收。未安装/退出/重启正式应用或改用户数据。
+
+
+### 7.13 中断重启后的显式重试（2026-11-15，隔离验收）
+
+命令 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' interrupt-retry`。原团队实际write42、执行成员后续模型请求挂起时，只定向故障本次复制QA及其已观察后代：SIGSTOP父，SIGKILL后代与父，不使用全局应用名或共享进程组；先唯一绑定本QA Host。冷SQLite必须仍running/旧事件逐条相同，不能用预写interrupted或普通退出代替。复用同副本和临时数据启动，重新选择已保存团队会话。startup旧事件前缀相同、只追加一条task_state/interrupted/host_interrupted；原文件保留，UI已中断，无假成功凭据。1秒无新请求/任务，显式点击继续上次任务后才创建新team父/原目标/全新轮次与成员历史，队长/执行成员read而不再write、独立验证read/verdict/汇总成功；下一普通任务成功，输入框仍普通，原中断后事件流不再改变。数据库interrupted/succeeded/succeeded、team/team/ordinary，旧2+新3共5份角色历史。
+
+最终14请求/18检查全真，其余success/blocked/stop/retry/attachments/stop-retry通过；专项11/11、核心277/277，源码Electron117通过10skip、包内126通过1skip；Rust离线缺tauri exit101/皮肤材料缺失，全仓未全绿。既有build-39USi2无fixture/严格验签/源码匹配，未新构建或安装；证据`docs/evidence/desktop/agent-teams-interrupted-retry.json`包含失败/修复：ps转义中文全路径使guard拒绝，改在已绑定后代PID内匹配唯一ASCII临时目录后缀；重启默认会话导致找不到团队卡，补选原会话，未绕过检查。
+
+只覆盖隐藏CDP/本地模型和整棵QA进程树人为故障，不是正常GUI、原生输入或外部模型，不证明仅杀App父进程看门狗清理、操作系统重启/断电恢复、活跃shell/桌面取消或节点恢复/恰好一次。无重复write依赖合成模型，不能保证任意模型不会重复副作用。第一次故意SIGKILL不是正常退出验收，重启后的最终实例仍必须exitCode0。截图中PI执行过程/重试dock显示已中断，但上游DSH气泡仍标已停止并提示进程退出/工具结果未知；不宣称全界面术语统一或皮肤下整体错误对比度通过。正式应用与真实数据未动。
+
+本轮blocked回归曾11项业务检查通过，但QA在既有10秒退出窗口内exitCode仍null，按失败保留；未放宽退出门，原样串行复跑41.6s、最终exit0通过，延迟根因未确认（证据保留首报告与复跑报告），不把复跑成功冒充根因已修复。

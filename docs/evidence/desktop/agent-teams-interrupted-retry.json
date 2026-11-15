@@ -1,0 +1,598 @@
+{
+  "status": "isolated-interrupted-retry-acceptance-not-installed",
+  "recordedAt": "2026-11-15T22:38:22+08:00",
+  "workspace": {
+    "baseCommit": "8ed820ab309dfb8d23e8f3275af8b902fd7ce80b",
+    "state": "precommit QA/tests/docs; application runtime unchanged",
+    "system": "arm64 macOS27.0.1(26A434), Node24.15.0"
+  },
+  "runtimeModified": false,
+  "nodeRecovery": false,
+  "exactlyOnceSideEffects": false,
+  "case": {
+    "writeBeforeFault": true,
+    "coldTaskStillRunning": true,
+    "startupAddsOnlyInterruptedEvent": true,
+    "oldEventPrefixPreserved": true,
+    "actualModelConnectionClosed": true,
+    "artifactReadBeforeRetry": true,
+    "oldTaskEventsUnchanged": true,
+    "freshParentAndAttempts": true,
+    "noAutomaticReplayObserved": true,
+    "noReplayObservationMs": 1000,
+    "retryInspectsWithoutRewriting": true,
+    "ordinaryComposerUnchanged": true,
+    "modes": [
+      "team",
+      "team",
+      "ordinary"
+    ],
+    "statuses": [
+      "interrupted",
+      "succeeded",
+      "succeeded"
+    ],
+    "persistedRoleHistories": 5,
+    "oldRoles": [
+      "captain",
+      "implementer"
+    ],
+    "newRoles": [
+      "captain",
+      "implementer",
+      "verifier"
+    ],
+    "initialWriteToolStarts": 1,
+    "retriedWriteToolStarts": 0,
+    "fault": "SIGSTOP exact spawned copied-QA parent; SIGKILL its observed descendants then same parent; no global process-name/group matching",
+    "startupErrorCode": "host_interrupted",
+    "priorEventChanges": 0,
+    "startupNewEvents": 1,
+    "oldTaskNewEventsDuringExplicitRetry": 0
+  },
+  "acceptance": {
+    "interrupt-retry": {
+      "scenario": "interrupt-retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "abruptOwnedQAFaultAndColdRunning": true,
+        "restartMarksInterruptedWithoutReplay": true,
+        "restartPreservesEventPrefixAndArtifact": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "stoppedPartialArtifactNoAutoReplay": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "faultClosesModelConnection": true,
+        "noFalseDeliveryOrDownstream": true,
+        "stoppedTaskHistoryUnchanged": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 14,
+      "report": "artifacts/team-ui/gui-CSUAT6/report.json",
+      "reportSha256": "d962f30aaf245e69d20b1264fce82be246683df6bffeb210e1eb9450dcaa161e",
+      "command": {
+        "exit": 0,
+        "seconds": 55.44,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "interrupt-retry"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit",
+      "screenshots": [
+        {
+          "path": "artifacts/team-ui/gui-CSUAT6/team-interrupt-retry.png",
+          "sha256": "3e8717dcdc15be2cd155ae08fcbbd6610708088b6c496f08ce0acc9e60cd7444",
+          "encoding": "JPEG bytes from CDP capture; filename .png"
+        },
+        {
+          "path": "artifacts/team-ui/gui-CSUAT6/team-retry-delivered.png",
+          "sha256": "30432b863d0185afc2bfaf4fb91a3e45416eba64c5c1ea44ab1a7e5c13c9fbf7",
+          "encoding": "JPEG bytes from CDP capture; filename .png"
+        }
+      ]
+    },
+    "stop-retry": {
+      "scenario": "stop-retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "stoppedPartialArtifactNoAutoReplay": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "stoppedTaskHistoryUnchanged": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 14,
+      "report": "artifacts/team-ui/gui-OLGSiT/report.json",
+      "reportSha256": "ef3e0b6115817d7292ac8350ffdb7e4279d48cdac81e6d257ea83a8b5099dc75",
+      "command": {
+        "exit": 0,
+        "seconds": 50.65,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop-retry"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    },
+    "attachments": {
+      "scenario": "attachments",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "attachmentAdmissionFailureNoTask": true,
+        "liveProgress": true,
+        "actualUploadsAndQueueAdmission": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "uploadBytesAndCaptainMemberReads": true,
+        "queuedModeImmutableAfterFutureSelection": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 11,
+      "report": "artifacts/team-ui/gui-NCYwZl/report.json",
+      "reportSha256": "b6721821ce4e755901475235f676b9741764d4d16bb579a7dd324a32c7469df0",
+      "command": {
+        "exit": 0,
+        "seconds": 55.57,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "attachments"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    },
+    "success": {
+      "scenario": "success",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 9,
+      "report": "artifacts/team-ui/gui-loHQhw/report.json",
+      "reportSha256": "d2f0a816ad0c71cd59ada08a8e0c2873594fb4cae221875270652d9bfcf9e761",
+      "command": {
+        "exit": 0,
+        "seconds": 61.42,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "success"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    },
+    "blocked": {
+      "scenario": "blocked",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "downstreamBlockerDetails": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 8,
+      "report": "artifacts/team-ui/gui-RhIRxm/report.json",
+      "reportSha256": "c88e5445a01fed7d32a27e53c5264e00b37eccf59141502a909086d5346be44e",
+      "command": {
+        "exit": 0,
+        "seconds": 41.6,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "blocked"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    },
+    "stop": {
+      "scenario": "stop",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 4,
+      "report": "artifacts/team-ui/gui-jOfEpN/report.json",
+      "reportSha256": "6cc88c4fdae79b1ec344ac4789c40fc9cb8e6d229a51a2f33a77d6e8221704d2",
+      "command": {
+        "exit": 0,
+        "seconds": 45.17,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    },
+    "retry": {
+      "scenario": "retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 17,
+      "report": "artifacts/team-ui/gui-GFzlIv/report.json",
+      "reportSha256": "0f1206cd17c41eceab3dd56a34ae0f4cc2135a4047450be4d7b653de6b0a1162",
+      "command": {
+        "exit": 0,
+        "seconds": 46.03,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "retry"
+        ]
+      },
+      "normalExitEvidence": "final QA instance must exitCode0; first interrupt-retry instance deliberately SIGKILL-faulted, not treated as normal exit"
+    }
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-39USi2/沐码.app",
+    "version": "0.1.49",
+    "reusedExistingCandidate": true,
+    "rebuilt": false,
+    "installed": false,
+    "includesPiFixture": false,
+    "sourceMatches": true,
+    "clientArchiveSourceMatches": true,
+    "sourceHashes": {
+      "apps/electron/pi-turn.mjs": "55d52db295e75a21dcf524ee8b06dc2a276b7e0db6f33135e321a07b544e94e8",
+      "packages/pi-runtime/team-runtime.mjs": "528afcc5d6289f6632b111fa038ff07d446aa26422065010e6e9830eef952d71",
+      "apps/electron/plugin/client.js": "96aafcf00e0d0b68d3b7371b4fdce6015795a585ba572b91318bfa14b1ca6103"
+    },
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 9.31,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        ".generated/moos-electron/build-39USi2/沐码.app"
+      ]
+    }
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 8.55,
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/pi-team-client.test.mjs",
+          "apps/electron/pi-uploads.test.mjs",
+          "apps/electron/pi-tasks.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 9.31,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          ".generated/moos-electron/build-39USi2/沐码.app"
+        ]
+      },
+      "interrupt-retry": {
+        "exit": 0,
+        "seconds": 55.44,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "interrupt-retry"
+        ]
+      },
+      "stop-retry": {
+        "exit": 0,
+        "seconds": 50.65,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop-retry"
+        ]
+      },
+      "attachments": {
+        "exit": 0,
+        "seconds": 55.57,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "attachments"
+        ]
+      },
+      "success": {
+        "exit": 0,
+        "seconds": 61.42,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "success"
+        ]
+      },
+      "blocked": {
+        "exit": 0,
+        "seconds": 41.6,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "blocked"
+        ]
+      },
+      "stop": {
+        "exit": 0,
+        "seconds": 45.17,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop"
+        ]
+      },
+      "retry": {
+        "exit": 0,
+        "seconds": 46.03,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "retry"
+        ]
+      },
+      "core": {
+        "exit": 0,
+        "seconds": 59.03,
+        "command": [
+          "npm",
+          "test"
+        ]
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 17.73,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 27.44,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.2,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ]
+      }
+    },
+    "counts": {
+      "targeted": {
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 8413.952375
+      },
+      "core": {
+        "tests": 277,
+        "pass": 277,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 58664.22175
+      },
+      "electron": {
+        "tests": 127,
+        "pass": 117,
+        "fail": 0,
+        "skipped": 10,
+        "durationMs": 17143.073917
+      },
+      "packaged": {
+        "tests": 127,
+        "pass": 126,
+        "fail": 0,
+        "skipped": 1,
+        "durationMs": 26862.068791
+      }
+    },
+    "allRegressionsGreen": false,
+    "blockers": [
+      "offline cargo missing tauri exit101; no dependency download or toolchain changes",
+      "reviewed skin-center0.4.16/Maid materials missing: source10skip/package1skip"
+    ],
+    "environment": "clean Node24/Rust PATH, unset Electron/Node/Moos/DSH overrides, TMPDIR=/private/tmp/, sequential QA then regressions",
+    "documentation": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "tests": 139,
+      "pass": 139,
+      "fail": 0,
+      "seconds": 0.252,
+      "log": "artifacts/team-interrupted/docs-initial.log",
+      "diffCheck": "git diff --check passed; final metadata rechecked before commit"
+    },
+    "firstRunResults": "artifacts/team-interrupted/first/results.json"
+  },
+  "preservedFailures": [
+    {
+      "log": "artifacts/team-interrupted/first/blocked.log",
+      "report": "artifacts/team-ui/gui-iIdTTW/report.json",
+      "error": "normal QA quit: null !== 0",
+      "checksAlreadyPassed": "all eleven business checks; actual normal exit missing so report correctly fails",
+      "resolution": "unchanged strict exitCode0 guard; serial rerun passed in41.6s at artifacts/team-ui/gui-RhIRxm/report.json; shutdown delay root cause unconfirmed, no timeout relaxation/forced-exit acceptance"
+    },
+    {
+      "log": "artifacts/team-interrupted/initial.log",
+      "report": "artifacts/team-ui/gui-zH90J5/report.json",
+      "error": "uniquely bind copied QA Host before fault: 0 !== 1",
+      "resolution": "ps encodes non-ASCII path; bind ASCII unique scratch suffix inside exact PID-descendant ownership instead of whole Chinese path; no fault executed"
+    },
+    {
+      "log": "artifacts/team-interrupted/diagnostic.log",
+      "report": "artifacts/team-ui/gui-SYFA1a/report.json",
+      "error": "same guard failure; descendant diagnostic confirms ps escaped Chinese path",
+      "resolution": "guard kept strict and corrected match; no fault executed"
+    },
+    {
+      "log": "artifacts/team-interrupted/second.log",
+      "report": "artifacts/team-ui/gui-C6vEpO/report.json",
+      "error": "Missing terminal team progress",
+      "checksAlreadyPassed": [
+        "abruptOwnedQAFaultAndColdRunning",
+        "restartMarksInterruptedWithoutReplay",
+        "restartPreservesEventPrefixAndArtifact"
+      ],
+      "resolution": "restart opens default conversation; explicitly select saved team conversation before inspecting restored progress"
+    }
+  ],
+  "documentationUtilityObservation": "stdin helper initially rejected missing UTF-8 declaration before execution; explicit coding header added and doc-test insertion succeeded; no application mutation or acceptance failure",
+  "preliminaryRun": {
+    "log": "artifacts/team-interrupted/third.log",
+    "report": "artifacts/team-ui/gui-ZpLlN9/report.json",
+    "status": "passed",
+    "requests": 14
+  },
+  "limits": [
+    "Fault-injects copied-QA app AND observed child processes to ensure abrupt nonterminal persistence; does not prove parent-only crash/watchdog cleanup, OS reboot or power-loss recovery",
+    "Final QA instance exits0; intentional SIGKILL on first instance is not normal shutdown acceptance",
+    "Startup preserves old events and appends exactly one interrupted event; only subsequent retry must leave that reconciled old stream byte-identical",
+    "No replay observed in explicit one-second post-restart idle window and before retry; not arbitrary future guarantee",
+    "Read/no-write behavior depends on synthetic model following retry prompt; not general external-model side-effect deduplication",
+    "Fresh parent/attempts and five histories, not node recovery/exactly-once effects",
+    "Hidden CDP and local synthetic model, not visible GUI/native input/external model or production acceptance",
+    "Not active shell/subprocess/desktop cancellation; only local model connection close from targeted fault",
+    "Screenshot: PI process/retry dock say interrupted; upstream DSH bubble still says stopped with crash/tool-result-unknown warning, not unified interrupted vocabulary or skin-wide contrast acceptance"
+  ],
+  "pending": {
+    "parentOnlyCrashCleanupAndOSReboot": true,
+    "activeShellAndDesktopCancellation": true,
+    "normalGUI": true,
+    "externalModel": true,
+    "memberMessagesAndArtifacts": true,
+    "captainCorrelationAndNodeRecovery": true,
+    "nativeAndSkinGates": true,
+    "deployment": true,
+    "intermittentQAShutdownDiagnosis": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false,
+    "desktopSafeguardsChanged": false
+  }
+}
