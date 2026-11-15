@@ -12,7 +12,9 @@ import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
 const [inputApp, scenario = 'success'] = process.argv.slice(2);
-assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments'].includes(scenario), 'Unsupported QA scenario');
+assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments', 'stop-retry'].includes(scenario), 'Unsupported QA scenario');
+const retrying = ['retry', 'stop-retry'].includes(scenario);
+const stopping = ['stop', 'stop-retry'].includes(scenario);
 const successful = ['success', 'attachments'].includes(scenario);
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
@@ -50,7 +52,7 @@ const server = createServer(async (req, res) => {
       roleStarts.push({ round: planningRounds, role: planning ? 'captain' : names.includes('team_verdict') ? 'verifier' : 'implementer',
         priorAssistant: body.messages.some(item => item.role === 'assistant') });
     }
-    const retryRound = scenario === 'retry' && planningRounds === 2;
+    const retryRound = retrying && planningRounds === 2;
     if (prompt.includes('只根据已有工具/成员证据')) content = 'TEAM_GUI_DELIVERED_42';
     else if (planning) {
       if (scenario === 'attachments') {
@@ -89,8 +91,10 @@ const server = createServer(async (req, res) => {
       content = 'ORDINARY_GUI_REPLY';
     }
     // Hold an actual implementer request until the UI Stop cancels it.
-    // No write tool has been returned; an incorrectly uncancelled request times out.
-    if (scenario === 'stop' && prompt.includes('当前任务build') && !latest) {
+    // stop holds before write; stop-retry holds after actual write, before the
+    // member turn ends. This tests retained side effects, not active-shell Stop.
+    if (prompt.includes('当前任务build') && (scenario === 'stop' && !latest
+      || scenario === 'stop-retry' && !retryRound && latestTool === 'write')) {
       heldRequest = true;
       await new Promise(resolve => {
         const timer = setTimeout(resolve, 30000);
@@ -196,11 +200,11 @@ try {
     await capture('team-attachments-queued');
     releaseAttachments();
   }
-  if (scenario === 'stop') {
+  if (stopping) {
     await until(() => heldRequest, 'active implementer model request');
     await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="停止生成"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit stop');
   }
-  const terminalLabel = successful ? '已交付' : scenario === 'stop' ? '已停止' : '失败';
+  const terminalLabel = successful ? '已交付' : stopping ? '已停止' : '失败';
   if (successful) await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
   await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes(${JSON.stringify(terminalLabel)}))`), 'terminal team progress');
   if (!successful) assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
@@ -232,13 +236,29 @@ try {
     report.checks.readableMemberLayout = true;
     report.checks.structuredMemberDetails = true;
   }
-  if (scenario !== 'stop') await checkDetails(successful ? 'verified' : 'rejected');
-  if (scenario === 'stop') {
+  if (!stopping) await checkDetails(successful ? 'verified' : 'rejected');
+  if (stopping) {
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-outcome="verified"]')`), false);
     report.checks.noInventedStoppedReceipt = true;
   }
   await capture('team-' + scenario);
-  if (scenario === 'retry') {
+  let stoppedSnapshot;
+  if (scenario === 'stop-retry') {
+    const stoppedDb = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      await until(() => stoppedDb.prepare('SELECT status FROM tasks ORDER BY rowid').get()?.status === 'cancelled', 'persisted Stop before retry');
+      await until(() => heldRequestClosed, 'actual stopped connection close');
+      const stopped = stoppedDb.prepare('SELECT tasks.id, projects.path FROM tasks JOIN projects ON projects.id = tasks.projectId ORDER BY tasks.rowid').get();
+      assert.equal(await readFile(join(stopped.path, 'answer.txt'), 'utf8'), '42\n');
+      stoppedSnapshot = stoppedDb.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(stopped.id);
+      assert.ok(!stoppedSnapshot.some(row => JSON.parse(row.payload).member === 'verifier'));
+      const count = requests.length; await sleep(1000);
+      assert.equal(requests.length, count, 'stopped team must not automatically replay');
+      assert.equal(stoppedDb.prepare('SELECT COUNT(*) AS count FROM tasks').get().count, 1);
+      report.checks.stoppedPartialArtifactNoAutoReplay = true;
+    } finally { stoppedDb.close(); }
+  }
+  if (retrying) {
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false);
     await until(() => evaluate(`(() => { const button = document.querySelector('[data-moos-pi-retry] button'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit retry from ordinary composer');
     await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'retried team delivery');
@@ -253,16 +273,17 @@ try {
   const db = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
   try {
     const rows = db.prepare(`SELECT tasks.id, tasks.status, projects.path, events.payload FROM tasks JOIN projects ON projects.id = tasks.projectId JOIN events ON events.taskId = tasks.id AND events.type = 'task_submission' ORDER BY tasks.rowid`).all();
-    assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), scenario === 'retry' ? ['team', 'team', 'ordinary'] : ['team', 'ordinary']);
+    assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), retrying ? ['team', 'team', 'ordinary'] : ['team', 'ordinary']);
     // Streaming reply can precede the parent task's terminal commit.
-    const expected = scenario === 'retry' ? ['failed', 'succeeded', 'succeeded']
-      : [successful ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
+    const expected = retrying ? [stopping ? 'cancelled' : 'failed', 'succeeded', 'succeeded']
+      : [successful ? 'succeeded' : stopping ? 'cancelled' : 'failed', 'succeeded'];
     await until(() => JSON.stringify(db.prepare(`SELECT status FROM tasks ORDER BY rowid`).all().map(row => row.status)) === JSON.stringify(expected), 'persisted terminal tasks');
     const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
     const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
-    if (scenario === 'stop') {
+    if (stopping) {
       assert.equal(heldRequestClosed, true, 'actual upstream request closed after Stop');
-      await assert.rejects(readFile(join(rows[0].path, 'answer.txt')), { code: 'ENOENT' });
+      if (scenario === 'stop') await assert.rejects(readFile(join(rows[0].path, 'answer.txt')), { code: 'ENOENT' });
+      else assert.equal(await readFile(join(rows[0].path, 'answer.txt'), 'utf8'), '42\n');
       assert.ok(!events.some(row => row.payload.member === 'verifier'));
       report.checks.explicitStopCancels = true;
     } else {
@@ -276,7 +297,7 @@ try {
       if (['blocked', 'retry'].includes(scenario)) assert.ok(phases.includes('blocked'));
       report.checks.noFalseDeliveryOrDownstream = true;
     }
-    if (scenario === 'retry') {
+    if (retrying) {
       assert.equal(new Set(rows.map(row => row.id)).size, 3);
       assert.deepEqual(db.prepare('SELECT message FROM tasks ORDER BY rowid LIMIT 2').all().map(row => row.message), [originalGoal, originalGoal]);
       const retried = db.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(rows[1].id)
@@ -286,7 +307,7 @@ try {
       const newAttempts = retried.filter(row => row.type === 'team_state' && row.payload.phase === 'running');
       assert.equal(newAttempts.length, 4, 'fresh captain planning/summary and both worker turns');
       assert.ok(newAttempts.every(row => row.payload.teamId === rows[1].id && !oldAttempts.has(row.payload.attemptId)));
-      assert.deepEqual(roleStarts.map(({ round, role }) => [round, role]), [1, 2].flatMap(round => ['captain', 'implementer', 'verifier'].map(role => [round, role])));
+      assert.deepEqual(roleStarts.map(({ round, role }) => [round, role]), [1, 2].flatMap(round => (stopping && round === 1 ? ['captain', 'implementer'] : ['captain', 'implementer', 'verifier']).map(role => [round, role])));
       assert.ok(roleStarts.every(row => !row.priorAssistant), 'retry role contexts must not reuse previous assistant/tool history');
       assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'captain' && row.payload.toolName === 'read' && !row.payload.isError));
       assert.ok(retried.some(row => row.type === 'tool_end' && row.payload.member === 'implementer' && row.payload.toolName === 'read' && !row.payload.isError));
@@ -297,13 +318,19 @@ try {
       const owners = db.prepare('SELECT id, conversationId FROM tasks ORDER BY rowid LIMIT 2').all();
       const histories = [];
       for (const owner of owners) for (const role of ['captain', 'implementer', 'verifier']) {
+        if (stopping && owner.id === rows[0].id && role === 'verifier') continue;
         const prefix = createHash('sha256').update(owner.conversationId + ':' + owner.id).digest('hex').slice(0, 32);
         const directory = join(data, 'pi/sessions', `team-${prefix}-${role}`);
         const files = (await readdir(directory)).filter(file => file.endsWith('.jsonl'));
         assert.equal(files.length, 1, 'one persisted history per task-owned role');
         histories.push(join(directory, files[0]));
       }
-      assert.equal(new Set(histories).size, 6, 'retry persists separate task-owned role histories');
+      assert.equal(new Set(histories).size, stopping ? 5 : 6, 'retry persists separate task-owned role histories');
+      if (stopping) {
+        assert.deepEqual(db.prepare('SELECT type, payload FROM events WHERE taskId = ? ORDER BY id').all(rows[0].id), stoppedSnapshot, 'retry must not mutate or append old task events');
+        assert.equal(events.filter(row => row.type === 'tool_start' && row.payload.toolName === 'write').length, 1);
+        report.checks.stoppedTaskHistoryUnchanged = true;
+      }
       report.checks.retryRetainsModeAndGoal = true;
       report.checks.freshParentAndRoleContexts = true;
       report.checks.artifactInspectedNotRewritten = true;

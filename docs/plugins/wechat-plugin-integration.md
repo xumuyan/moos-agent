@@ -155,3 +155,12 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 运行中退出团队模式，再上传20B文本并点“排队发送”；在队长请求仍挂起时把未来输入模式切回team。解除本地模型测试门后，团队先交付，排队任务保持ordinary且模型读到它自己的文本附件；数据库team/ordinary和succeeded/succeeded，输入框保持team。门是测试服务协调，不是产品审批。另先上传9文件并实际发送，路由显示最多8附件错误，零PI任务/零模型请求，随后有效附件发送成功；不据此宣称上传网络故障/重试/取消或原子回滚通过。
 
 仅QA脚本/测试/证据变化，既有build-39USi2重新验签、runtime及shell归档源码核对，未重构建或安装。最终附件场景11请求/13项检查全真，另外success/blocked/stop/retry通过；专项11/11、核心277/277，源码117通过10skip、包内126通过1skip，Rust离线/皮肤门仍阻塞。证据`docs/evidence/desktop/agent-teams-attachment-queue.json`。这是隐藏复制QA包/CDP/本地模型/合成文本文件；原生文件选择器/拖放/OS路径引用、图片、steer、上传网络故障/重试/删除/取消、正常GUI与外部模型均待验收。截图中通用错误提示可见，但皮肤下整体错误对比度未在本轮验收。正式应用和用户数据未动。
+
+
+### 7.12 停止后的显式重试（2026-11-15，隔离验收）
+
+运行 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' stop-retry`。原团队实际write answer.txt=42后，在执行成员后续模型请求挂起期间点击“停止生成”；真实模型连接关闭，原父任务cancelled，尚未启动验证成员，文件保留。停止时无成功验收凭据；节点可以保留最后running/queued观察，父已停止权威，不伪造节点已完成。等待1秒没有自动新任务/模型请求，再从普通输入框点“继续上次任务”。
+
+重试原目标/保存team，新父及fresh attempts/独立角色历史；队长和执行成员先read文件，不再次write，独立验证成员read/verdict成功再汇总。数据库cancelled/succeeded/succeeded、team/team/ordinary，原任务事件与重试前逐条相同，旧2角色+新3角色共5份持久化历史；输入框普通不变，后续普通任务成功。实际无重写依赖合成模型遵循检查提示，不代表任意外部模型副作用去重、同节点恢复或恰好一次。
+
+仅QA脚本/测试/文档变化，既有build-39USi2重新验签和源码核对，未构建/安装。最终stop-retry 14请求/15检查全真，其余success/blocked/stop/retry/attachments五场景均通过；专项11/11、核心277/277，源码117通过10skip、包内126通过1skip，Rust离线tauri/皮肤门仍阻塞。证据`docs/evidence/desktop/agent-teams-stopped-retry.json`。仅复制隐藏QA/CDP/本地模型，不是正常GUI/原生输入/外部模型；中断重启重试、活跃shell/子进程/桌面取消等未验收。未安装/退出/重启正式应用或改用户数据。
