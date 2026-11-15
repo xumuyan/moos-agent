@@ -534,6 +534,50 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.14 活跃 shell 与子进程停止', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_stop_isolation_keeps_other_project_live_through_actual_host(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-stop-isolation.json').read_text())
+        self.assertEqual(e['status'], 'isolated-cross-project-team-stop-acceptance-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        self.assertEqual(e['case']['modes'], ['team', 'team', 'ordinary'])
+        self.assertEqual(e['case']['statuses'], ['cancelled', 'succeeded', 'succeeded'])
+        for run in e['hostAcceptance'].values():
+            self.assertEqual(run['command']['exit'], 0)
+            self.assertEqual(run['requests'], 12)
+            self.assertEqual(len(run['checks']), 8)
+            self.assertTrue(all(run['checks'].values()))
+            for key in ('normalGUI', 'externalModel', 'productionTouched'):
+                self.assertFalse(run[key])
+            self.assertEqual(run['postAbortObservationMs'], 1000)
+            self.assertEqual(run['childSleepSeconds'], 120)
+            self.assertRegex(run['logSha256'], r'^[0-9a-f]{64}$')
+        self.assertFalse(e['hostAcceptance']['source']['packagedRuntime'])
+        self.assertTrue(e['hostAcceptance']['packaged']['packagedRuntime'])
+        self.assertEqual(len(e['preservedFailures']), 1)
+        failure = e['preservedFailures'][0]
+        self.assertTrue(failure['businessChecksAllTrue'])
+        self.assertEqual(failure['firstCommand']['exit'], 1)
+        self.assertEqual(failure['unchangedSerialRerun']['exit'], 0)
+        self.assertFalse(failure['rootCauseConfirmed'])
+        self.assertFalse(failure['exitGuardChanged'])
+        self.assertEqual(len(e['rendererRegression']), 8)
+        for report in e['rendererRegression'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertTrue(all(report['checks'].values()))
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertTrue(e['build']['clientArchiveSourceMatches'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('跨项目团队停止隔离检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.15 跨项目团队停止隔离', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

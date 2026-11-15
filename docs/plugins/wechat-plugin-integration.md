@@ -186,3 +186,12 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 仅证明这条bash+单个直接sleep子进程的取消，不覆盖daemon/脱离进程/孙进程/忽略信号等任意拓扑，也非排队或活跃桌面动作取消、任意副作用恰好一次。隐藏QA/CDP/本地模型，不是正常GUI/原生输入/外部模型验收，既有偶发QA退出延迟根因仍未确认。正式应用和真实数据未动。
 
 本轮初始blocked业务11项通过但QA退出超时，核心首次276/277中桌面geometry drift用例遇helper超时；分别原样串行复跑40.55s正常exit0、核心277/277，未改门限或桌面保护，失败/首结果保留于证据，延迟与超时根因仍未确认。
+
+
+### 7.15 跨项目团队停止隔离（2026-11-16，真实Host/PI，未安装）
+
+新增 `node --test apps/electron/team-stop-isolation.test.mjs`，可通过 `MOOS_ELECTRON_TEST_DSH_CLI=<generated-app>/Contents/Resources/host-runtime/bin/dsh` 复验未改包内Host/runtime。真实Host.apply注册PI adapter，Scheduler运行两规范工作区，真实PI SDK使用本地合成模型。A成员bash先写自己的A_ONLY_42并记录shell/direct sleep120子PID，ps核对父子及祖先为本次Host；B不同目录/会话的成员模型响应保持挂起，SQLite两父任务同时running。
+
+只abort A实际adapter请求，A cancelled且两个PID均ESRCH；测试不直接kill工具进程，无late写/无后续verifier或summary。1秒后B连接仍开、controller未abort、父仍running、完整有序事件快照不变。然后释放B本地响应，真正write B_ONLY_42、独立read/team_verdict、summary交付；A旧事件流不变，检查每条事件task/project/conversation/team归属，两个工作区文件各自字节正确，A下一普通成功。源码与包内各12请求/8检查真。挂起/释放是测试同步，不增加产品确认。
+
+源码专项11通过1skip、包内新专项1/1、核心277/277；源码Electron118通过10skip、包内127通过1skip；Rust离线tauri缺失exit101/皮肤材料缺失，全仓未全绿；八既有隐藏renderer场景回归通过，复用build-39USi2严格验签且Host/route/tasks/runtime及client归档源码匹配。首success九项业务检查真但normal QA quit null !== 0失败，保留原日志/gui-shT9Bv报告；原样串行重跑exit0通过，根因未确认、退出门限不改。新场景无Electron renderer/按钮输入，合成Cordis服务上下文不等于完整DSH实例；上轮真实隐藏UI shell-stop证据单独保留。两项目的此拓扑不外推B活跃shell、任意N项目/守护或脱离进程、桌面动作取消、正常GUI/外部模型或性能，历史QA退出延迟/helper超时根因仍未确认。证据`docs/evidence/desktop/agent-teams-stop-isolation.json`。正式应用及用户数据未动。
