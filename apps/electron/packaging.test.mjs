@@ -28,6 +28,11 @@ test('prepare-local bundles every local module imported by the packaged pi-runti
   assert.ok(prepareScript.includes('packages/pi-runtime/desktop-transaction.mjs'), '桌面事务必须随包分发');
   assert.ok(prepareScript.includes('packages/pi-runtime/desktop-focus-settle.mjs'), '点击后只读稳定观察必须随包分发');
   assert.ok(prepareScript.includes('packages/pi-runtime/image-tool.mjs'), '图片工具必须随包分发');
+  assert.ok(prepareScript.includes('packages/pi-runtime/team-runtime.mjs'), '团队执行闭环候选必须随包分发');
+  const teamRuntime = await readFile(join(repo, 'packages/pi-runtime/team-runtime.mjs'), 'utf8');
+  for (const [, name] of teamRuntime.matchAll(/from '\.\/([A-Za-z0-9._-]+\.mjs)'/g)) {
+    assert.ok(prepareScript.includes(`packages/pi-runtime/${name}`), `团队候选依赖必须随包分发：${name}`);
+  }
 });
 
 test('MuMa display branding keeps the existing application and user data identity', async () => {

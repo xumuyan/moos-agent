@@ -203,6 +203,19 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('历史微信来源阻塞已解除', plan)
         self.assertNotIn('- [x] P03.14.', plan)
 
+    def test_agent_teams_backend_checkpoint_keeps_mode_and_deployment_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-pi-backend.json').read_text())
+        self.assertEqual(e['status'], 'isolated-backend-candidate-not-exposed')
+        self.assertTrue(all(value is False for value in e['limits'].values()))
+        self.assertEqual(e['acceptance']['pass'], 9)
+        self.assertIn('274/274', e['regression']['finalCoreSerial'])
+        self.assertIn('exit101', e['regression']['native'])
+        self.assertTrue((ROOT / e['implementation']['entry']).is_file())
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        for term in ('团队租约', '274/274', '全仓未全绿', '正式host路由', '模式快照', '未安装'):
+            self.assertIn(term, plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

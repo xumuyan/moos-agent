@@ -1,0 +1,62 @@
+{
+  "status": "isolated-backend-candidate-not-exposed",
+  "recordedAt": "2026-11-15T18:19:42+08:00",
+  "baseCommit": "f29aed7592443183b50e61093a5073b20b8306d9",
+  "environment": "macOS 27.0.1 arm64, Node 24.15.0",
+  "implementation": {
+    "entry": "packages/pi-runtime/team-runtime.mjs",
+    "executor": "PI SDK, not upstream DSH spawn/fork",
+    "workflow": "captain plan -> sequential independent implementer/verifier histories -> captain summary",
+    "lease": "one parent Scheduler canonical-directory lease, direct sequential child calls, no recursive submit",
+    "limits": {
+      "dagNodes": 6,
+      "modelRequestPreparations": 48,
+      "reportedTokens": 400000
+    },
+    "tokenLimitCaveat": "reported usage only; absent usage is not estimated; a completed request can overshoot the limit; request count and parent deadline remain bounded",
+    "verificationCaveat": "requires successful real tool event and explicit verdict, rejects verifier tool failures; does not prove semantic correctness for arbitrary goals",
+    "cleanup": "await active child cleanup before releasing parent lease, suppress late emits and reject stale coordination tools",
+    "persistence": "child PI JSONL sessions plus team_state events when called by Scheduler; explicit team resume/mode snapshot not implemented"
+  },
+  "acceptance": {
+    "command": "node --test packages/pi-runtime/team-runtime.test.mjs",
+    "pass": 9,
+    "realSdkLocalModel": "actual write answer.txt=42 newline, independent read, team_plan/team_verdict customTools, three separate session directories, captain history resumed; external filesystem assertion",
+    "scheduler": "two teams same canonical project serialized while a second project overlaps; no child recursive queue or deadlock",
+    "negativeCases": [
+      "cycles/missing dependencies/uncovered final verification",
+      "failed or absent verification evidence",
+      "request/token limits",
+      "active cancellation waits cleanup/no downstream",
+      "deadline",
+      "stale coordination tool"
+    ]
+  },
+  "regression": {
+    "defaultCoreAttempts": [
+      "272 total, 271 passed/1 failed, exit1, 61.14s",
+      "272 total, 271 passed/1 failed, exit1, 69.34s"
+    ],
+    "failure": "desktop-tools.test.mjs:507 expected DESKTOP_FOCUS_CHANGED but got desktop helper timeout; not modified or silently waived",
+    "desktopTargeted": "26/26, exit0, 19.17s",
+    "finalCoreSerial": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs; 274/274 exit0, 176.78s",
+    "electron": "104 passed/9 skipped, exit0, 22.71s",
+    "electronExistingPackage": "112 passed/1 skipped, exit0, 32.14s; existing build-GJbx0m DSH, missing skin material; not a new build",
+    "native": "cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml; exit101 missing tauri offline",
+    "logs": "artifacts/team-runtime/ (ignored)",
+    "docs": "131/131 exit0; final document workspace"
+  },
+  "limits": {
+    "productionRouteEnabled": false,
+    "modeMenuImplemented": false,
+    "modeSnapshotImplemented": false,
+    "panelImplemented": false,
+    "upstreamPluginInstalled": false,
+    "externalModelTested": false,
+    "newPackageBuilt": false,
+    "guiVerified": false,
+    "productionDataModified": false,
+    "deployed": false,
+    "allRegressionsGreen": false
+  }
+}

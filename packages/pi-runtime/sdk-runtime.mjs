@@ -105,7 +105,7 @@ function validate({ task, project, conversation, dataDir, apiKey }) {
 }
 
 /** Run a PI task in the existing Node host through the official SDK; no per-task Node process. */
-export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images, imageGen, desktop }) {
+export async function runPiSdk({ task, project, conversation, signal, emit = () => {}, provider, dataDir, apiKey, permissions, routing, retry, fork, captureCheckpoint, images, imageGen, desktop, sessionPolicy }) {
   const upstream = checkedProvider(provider);
   const { message, duration } = validate({ task, project, conversation, dataDir, apiKey });
   if (images?.length && !provider.imageInput) throw new TaskFailure('model_capability');
@@ -186,16 +186,16 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
           getMode: permissions ? () => permissions.getMode() : undefined, emit, taskSignal: controller.signal,
           compressImage: imageCompressor })
         : [];
-      const extraTools = [image, ...desktopTools].filter(Boolean);
+      const extraTools = [image, ...desktopTools, ...(sessionPolicy?.customTools ?? [])].filter(Boolean);
       const customTools = extraTools.length ? [...(base ?? []), ...extraTools] : base;
       const toolNames = extraTools.length
         ? [...(base ? base.map(tool => tool.name) : defaultToolNames), ...extraTools.map(tool => tool.name)]
         : base ? base.map(tool => tool.name) : defaultToolNames;
       ({ session } = await createAgentSession({
         cwd, agentDir, modelRuntime, model: active.model, thinkingLevel: active.thinkingLevel,
-        resourceLoader: resourceLoader(instructions), sessionManager,
+        resourceLoader: resourceLoader([instructions, sessionPolicy?.instructions].filter(Boolean).join('\n\n')), sessionManager,
         settingsManager: sdkSettings(duration),
-        tools: toolNames,
+        tools: sessionPolicy?.allowedTools ?? toolNames,
         customTools: customTools?.length ? customTools : undefined,
       }));
       const transform = session.agent.transformContext?.bind(session.agent);
@@ -209,6 +209,13 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
             { type: 'text', text: '［先前附带的图片，请重新附加后查看］' }] };
         });
       };
+      if (sessionPolicy?.beforeRequest) {
+        const prepare = session.agent.prepareRequest;
+        session.agent.prepareRequest = async (request, requestSignal) => {
+          sessionPolicy.beforeRequest();
+          return prepare?.(request, requestSignal);
+        };
+      }
       if (repair && active === primary) {
         const prepare = session.agent.prepareRequest;
         session.agent.prepareRequest = async (request, requestSignal) => {
