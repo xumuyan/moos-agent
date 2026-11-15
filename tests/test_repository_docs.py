@@ -362,6 +362,56 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.10 成员结果凭据', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_team_attachment_queue_acceptance_keeps_native_and_network_gates_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-attachment-queue.json').read_text())
+        self.assertEqual(e['status'], 'isolated-file-upload-queue-acceptance-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        case = e['case']
+        for key in ('browserFiles', 'actualUploadAndReceiptServices', 'largeBytesPreserved',
+                    'captainAndImplementerActuallyReadUpload', 'verifierActuallyReadArtifact',
+                    'queuedTaskContainsOwnAttachment', 'noClaimOfAtomicUploadRollback'):
+            self.assertTrue(case[key])
+        self.assertFalse(case['localPathMentionShortcutUsed'])
+        self.assertEqual((case['textInlineBytes'], case['largeFileBytes'], case['queuedTextBytes']),
+                         (17, 154016, 20))
+        self.assertGreater(case['largeFileBytes'], case['largeFileBudgetBytes'])
+        self.assertEqual((case['overLimitFiles'], case['allowedFiles']), (9, 8))
+        self.assertEqual(case['modelRequestsOnRejectedSubmission'], 0)
+        self.assertEqual(case['piTasksOnRejectedSubmission'], 0)
+        self.assertEqual(case['queueModes'], ['team', 'ordinary'])
+        self.assertEqual(case['futureComposerMode'], 'team')
+        self.assertEqual(case['terminalStatuses'], ['succeeded', 'succeeded'])
+        self.assertEqual(set(e['acceptance']), {'attachments', 'success', 'blocked', 'stop', 'retry'})
+        for report in e['acceptance'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertTrue(all(report['checks'].values()))
+            self.assertRegex(report['reportSha256'], r'^[0-9a-f]{64}$')
+            for key in ('normalGUI', 'externalModel', 'productionTouched'):
+                self.assertFalse(report[key])
+        attachment = e['acceptance']['attachments']
+        self.assertEqual(attachment['requests'], 11)
+        for key in ('attachmentAdmissionFailureNoTask', 'actualUploadsAndQueueAdmission',
+                    'uploadBytesAndCaptainMemberReads', 'queuedModeImmutableAfterFutureSelection'):
+            self.assertTrue(attachment['checks'][key])
+        self.assertTrue(e['build']['reusedExistingCandidate'])
+        for key in ('rebuilt', 'installed', 'includesPiFixture'):
+            self.assertFalse(e['build'][key])
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertTrue(e['build']['clientArchiveSourceMatches'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        for name, passed in (('targeted', 11), ('core', 277), ('electron', 117), ('packaged', 126)):
+            self.assertEqual(e['regression']['counts'][name]['pass'], passed)
+            self.assertEqual(e['regression']['counts'][name]['fail'], 0)
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('文件附件与排队检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.11 文件附件与排队', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

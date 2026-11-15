@@ -12,7 +12,8 @@ import { checkedProvider } from '../packages/pi-adapter/index.mjs';
 import { piModels } from '../apps/electron/plugin/pi-models.js';
 import { seedHome } from '../apps/electron/profile-home.mjs';
 const [inputApp, scenario = 'success'] = process.argv.slice(2);
-assert.ok(['success', 'blocked', 'stop', 'retry'].includes(scenario), 'Unsupported QA scenario');
+assert.ok(['success', 'blocked', 'stop', 'retry', 'attachments'].includes(scenario), 'Unsupported QA scenario');
+const successful = ['success', 'attachments'].includes(scenario);
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
@@ -26,6 +27,10 @@ execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { s
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
 let heldRequest = false, heldRequestClosed = false, planningRounds = 0;
+const largeUpload = 'UPLOAD_LARGE_42\n' + 'synthetic upload line\n'.repeat(7000);
+const largeUploadPath = '.moos-uploads/' + createHash('sha256').update(largeUpload).digest('hex').slice(0, 8) + '-payload.log';
+let releaseAttachments;
+const attachmentsQueued = new Promise(resolve => { releaseAttachments = resolve; });
 const roleStarts = [], originalGoal = 'Create answer.txt with 42 and independently verify it';
 const server = createServer(async (req, res) => {
   try {
@@ -48,11 +53,17 @@ const server = createServer(async (req, res) => {
     const retryRound = scenario === 'retry' && planningRounds === 2;
     if (prompt.includes('只根据已有工具/成员证据')) content = 'TEAM_GUI_DELIVERED_42';
     else if (planning) {
+      if (scenario === 'attachments') {
+        assert.ok(prompt.includes('UPLOAD_INLINE_42') && prompt.includes(largeUploadPath));
+        if (!latest) await attachmentsQueued;
+        else if (latestTool === 'read') assert.ok(latest.content.includes('UPLOAD_LARGE_42'));
+      }
       if (retryRound) {
         assert.ok(prompt.includes(originalGoal) && prompt.includes('这是用户显式重试的团队任务'));
         assert.ok(prompt.includes('禁止盲目重复安装、提交、发送或部署'));
       }
-      if (retryRound && !latest) { name = 'read'; args = { path: 'answer.txt' }; }
+      if (scenario === 'attachments' && !latest) { name = 'read'; args = { path: largeUploadPath, limit: 2 }; }
+      else if (retryRound && !latest) { name = 'read'; args = { path: 'answer.txt' }; }
       else if (latest && latestTool !== 'read') content = 'planned'; else { name = 'team_plan'; args = { tasks: [
         { id: 'build', role: 'implementer', goal: 'Write answer.txt as 42', dependsOn: [] },
         { id: 'check', role: 'verifier', goal: 'Read answer.txt and verify 42', dependsOn: ['build'] },
@@ -65,10 +76,18 @@ const server = createServer(async (req, res) => {
         assert.ok(latest.content.includes('42')); name = 'team_verdict'; args = { passed: !blocked, summary: blocked ? 'synthetic acceptance blocked' : 'read confirmed 42' };
       } else content = 'verified';
     } else if (prompt.includes('当前任务build')) {
-      if (latest) { if (retryRound) assert.ok(latest.content.includes('42')); content = 'written'; }
+      if (scenario === 'attachments' && !latest) {
+        assert.ok(prompt.includes('UPLOAD_INLINE_42') && prompt.includes(largeUploadPath));
+        name = 'read'; args = { path: largeUploadPath, limit: 2 };
+      } else if (scenario === 'attachments' && latestTool === 'read') {
+        assert.ok(latest.content.includes('UPLOAD_LARGE_42')); name = 'write'; args = { path: 'answer.txt', content: '42\n' };
+      } else if (latest) { if (retryRound) assert.ok(latest.content.includes('42')); content = 'written'; }
       else if (retryRound) { name = 'read'; args = { path: 'answer.txt' }; }
       else { name = 'write'; args = { path: 'answer.txt', content: '42\n' }; }
-    } else content = 'ORDINARY_GUI_REPLY';
+    } else {
+      if (scenario === 'attachments') assert.ok(prompt.includes('QUEUE_ATTACHMENT_42'), 'queued ordinary input retains uploaded text');
+      content = 'ORDINARY_GUI_REPLY';
+    }
     // Hold an actual implementer request until the UI Stop cancels it.
     // No write tool has been returned; an incorrectly uncancelled request times out.
     if (scenario === 'stop' && prompt.includes('当前任务build') && !latest) {
@@ -124,10 +143,40 @@ try {
   await until(() => evaluate(`(() => { const el = [...document.querySelectorAll('[role="menuitem"], [role="option"], button')].find(el => el.textContent.trim().startsWith('团队协作')); if (!el) return false; el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true })); return true; })()`), 'team menu action');
   await until(() => evaluate(`!!document.querySelector('[data-moos-team-mode]')`), 'team tag');
   await capture('team-selected'); report.checks.menuAndTag = true;
-  async function send(text) {
+  async function upload(files) {
+    // Browser-created Files have no OS path: they take the real upload/receipt
+    // route, not Electron's local-path mention shortcut. No service is mocked.
+    await evaluate(`(() => {
+      const input = document.querySelector('input[type="file"]');
+      if (!input || input.disabled) throw new Error('file intake unavailable');
+      const transfer = new DataTransfer();
+      for (const file of ${JSON.stringify(files)}) transfer.items.add(new File([file.content], file.name, { type: 'text/plain' }));
+      input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+    for (const file of files) await until(() => evaluate(`document.body.innerText.includes(${JSON.stringify(file.name)})`), 'attachment chip ' + file.name);
+  }
+  async function send(text, label = '发送消息') {
     await evaluate(`document.querySelector('[data-composer-input]').focus()`);
     await call('Input.insertText', { text });
-    await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="发送消息"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'send');
+    await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="${label}"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'send');
+  }
+  if (scenario === 'attachments') {
+    // Uploads can succeed while task admission rejects the message. Exercise
+    // the real eight-file route limit without manufacturing a network error.
+    await upload(Array.from({ length: 9 }, (_, index) => ({ name: `over-${index}.txt`, content: 'synthetic rejected input' })));
+    await send('Reject nine attachments without starting a task');
+    await until(() => evaluate(`document.body.innerText.includes('附件处理失败。每条消息最多 8 个附件')`), 'visible attachment admission failure');
+    assert.equal(requests.length, 0, 'invalid attachment submission must not reach model');
+    const rejectedDb = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try { assert.equal(rejectedDb.prepare('SELECT COUNT(*) AS count FROM tasks').get().count, 0); }
+    finally { rejectedDb.close(); }
+    assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), true);
+    report.checks.attachmentAdmissionFailureNoTask = true;
+    await capture('team-attachments-rejected');
+    await upload([
+      { name: 'goal.txt', content: 'UPLOAD_INLINE_42\n' },
+      { name: 'payload.log', content: largeUpload },
+    ]);
   }
   await send(originalGoal);
   await until(() => evaluate(`!!document.querySelector('[data-moos-team-progress]')`), 'live team progress');
@@ -135,16 +184,28 @@ try {
   await capture('team-live'); report.checks.liveProgress = true;
   await evaluate(`document.querySelector('[aria-label="退出团队模式（不停止任务）"]').click()`);
   await until(() => evaluate(`!document.querySelector('[data-moos-team-mode]')`), 'tag cleared');
+  if (scenario === 'attachments') {
+    await upload([{ name: 'queued.txt', content: 'QUEUE_ATTACHMENT_42\n' }]);
+    await send('Reply ordinary', '排队发送');
+    await until(() => evaluate(`document.querySelector('[data-composer-input]').innerText.trim() === ''`), 'queued draft settled');
+    await evaluate(`document.querySelector('button[aria-label="添加文件或调用指令"]').click()`);
+    await until(() => evaluate(`(() => { const el = [...document.querySelectorAll('[role="menuitem"], [role="option"], button')].find(el => el.textContent.trim().startsWith('团队协作')); if (!el) return false; el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true })); return true; })()`), 'select future team mode');
+    await until(() => evaluate(`!!document.querySelector('[data-moos-team-mode]')`), 'future team tag');
+    assert.equal(requests.some(body => !body.tools?.some(item => item.function.name === 'team_plan') && JSON.stringify(body.messages).includes('QUEUE_ATTACHMENT_42')), false, 'queued ordinary has not run before release');
+    report.checks.actualUploadsAndQueueAdmission = true;
+    await capture('team-attachments-queued');
+    releaseAttachments();
+  }
   if (scenario === 'stop') {
     await until(() => heldRequest, 'active implementer model request');
     await until(() => evaluate(`(() => { const button = document.querySelector('button[aria-label="停止生成"]'); if (!button || button.disabled) return false; button.click(); return true; })()`), 'explicit stop');
   }
-  const terminalLabel = scenario === 'success' ? '已交付' : scenario === 'stop' ? '已停止' : '失败';
-  if (scenario === 'success') await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
+  const terminalLabel = successful ? '已交付' : scenario === 'stop' ? '已停止' : '失败';
+  if (successful) await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
   await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes(${JSON.stringify(terminalLabel)}))`), 'terminal team progress');
-  if (scenario !== 'success') assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
+  if (!successful) assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
   const nodeText = await evaluate(`[...document.querySelectorAll('[data-moos-team-progress] li')].map(el => el.textContent)`);
-  if (scenario === 'success') assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
+  if (successful) assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
   if (['blocked', 'retry'].includes(scenario)) assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
   report.checks.nodeProjection = true;
   async function checkDetails(code) {
@@ -171,7 +232,7 @@ try {
     report.checks.readableMemberLayout = true;
     report.checks.structuredMemberDetails = true;
   }
-  if (scenario !== 'stop') await checkDetails(scenario === 'success' ? 'verified' : 'rejected');
+  if (scenario !== 'stop') await checkDetails(successful ? 'verified' : 'rejected');
   if (scenario === 'stop') {
     assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-outcome="verified"]')`), false);
     report.checks.noInventedStoppedReceipt = true;
@@ -187,7 +248,7 @@ try {
     await checkDetails('verified');
     await capture('team-retry-delivered');
   }
-  await send('Reply ordinary');
+  if (scenario !== 'attachments') await send('Reply ordinary');
   await until(() => evaluate(`document.body.innerText.includes('ORDINARY_GUI_REPLY')`), 'ordinary response');
   const db = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
   try {
@@ -195,7 +256,7 @@ try {
     assert.deepEqual(rows.map(row => JSON.parse(row.payload).mode), scenario === 'retry' ? ['team', 'team', 'ordinary'] : ['team', 'ordinary']);
     // Streaming reply can precede the parent task's terminal commit.
     const expected = scenario === 'retry' ? ['failed', 'succeeded', 'succeeded']
-      : [scenario === 'success' ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
+      : [successful ? 'succeeded' : scenario === 'stop' ? 'cancelled' : 'failed', 'succeeded'];
     await until(() => JSON.stringify(db.prepare(`SELECT status FROM tasks ORDER BY rowid`).all().map(row => row.status)) === JSON.stringify(expected), 'persisted terminal tasks');
     const events = db.prepare(`SELECT type, payload FROM events WHERE taskId = ? ORDER BY id`).all(rows[0].id).map(row => ({ type: row.type, payload: JSON.parse(row.payload) }));
     const phases = events.filter(row => row.type === 'team_state').map(row => row.payload.phase);
@@ -210,7 +271,7 @@ try {
       report.checks.independentReadAndArtifact = true;
       report.checks.modeClearDoesNotCancel = true;
     }
-    if (scenario !== 'success') {
+    if (!successful) {
       assert.ok(!phases.includes('summarizing') && !phases.includes('succeeded'));
       if (['blocked', 'retry'].includes(scenario)) assert.ok(phases.includes('blocked'));
       report.checks.noFalseDeliveryOrDownstream = true;
@@ -246,6 +307,18 @@ try {
       report.checks.retryRetainsModeAndGoal = true;
       report.checks.freshParentAndRoleContexts = true;
       report.checks.artifactInspectedNotRewritten = true;
+    }
+    if (scenario === 'attachments') {
+      assert.equal(await readFile(join(rows[0].path, largeUploadPath), 'utf8'), largeUpload);
+      const savedGoal = db.prepare('SELECT message FROM tasks WHERE id = ?').get(rows[0].id).message;
+      assert.ok(savedGoal.includes('UPLOAD_INLINE_42') && savedGoal.includes(largeUploadPath));
+      assert.ok(!savedGoal.includes(largeUpload), 'large upload is a workspace reference, not inlined');
+      assert.ok(requests.some(body => body.tools?.some(item => item.function.name === 'team_plan') && body.messages.some(message => message.role === 'tool' && JSON.stringify(message.content).includes('UPLOAD_LARGE_42'))));
+      assert.ok(events.some(row => row.type === 'tool_end' && row.payload.member === 'implementer' && row.payload.toolName === 'read' && !row.payload.isError));
+      assert.ok(db.prepare('SELECT message FROM tasks WHERE id = ?').get(rows[1].id).message.includes('QUEUE_ATTACHMENT_42'));
+      assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), true, 'later selection stays team while queued task remains ordinary');
+      report.checks.uploadBytesAndCaptainMemberReads = true;
+      report.checks.queuedModeImmutableAfterFutureSelection = true;
     }
     report.checks.persistedTerminalState = true;
     report.checks.ordinaryAfterClear = true;

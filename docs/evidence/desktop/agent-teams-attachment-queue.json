@@ -1,0 +1,462 @@
+{
+  "status": "isolated-file-upload-queue-acceptance-not-installed",
+  "recordedAt": "2026-11-15T21:51:50+08:00",
+  "workspace": {
+    "baseCommit": "0201b2492915803bcd622a4517ce45ac6040ee52",
+    "state": "precommit QA/tests/docs only; unchanged application runtime",
+    "system": "arm64 macOS 27.0.1 (26A434), Node 24.15.0"
+  },
+  "runtimeModified": false,
+  "case": {
+    "browserFiles": true,
+    "actualUploadAndReceiptServices": true,
+    "localPathMentionShortcutUsed": false,
+    "textInlineBytes": 17,
+    "largeFileBytes": 154016,
+    "queuedTextBytes": 20,
+    "largeFileSha256": "eaf1c97066043dc46596a263322d64c4227bdd2d2765d709d7193e1f68115e58",
+    "largeFileBudgetBytes": 131072,
+    "overLimitFiles": 9,
+    "allowedFiles": 8,
+    "modelRequestsOnRejectedSubmission": 0,
+    "piTasksOnRejectedSubmission": 0,
+    "queueModes": [
+      "team",
+      "ordinary"
+    ],
+    "terminalStatuses": [
+      "succeeded",
+      "succeeded"
+    ],
+    "futureComposerMode": "team",
+    "largeBytesPreserved": true,
+    "captainAndImplementerActuallyReadUpload": true,
+    "verifierActuallyReadArtifact": true,
+    "queuedTaskContainsOwnAttachment": true,
+    "noClaimOfAtomicUploadRollback": true
+  },
+  "acceptance": {
+    "attachments": {
+      "scenario": "attachments",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "attachmentAdmissionFailureNoTask": true,
+        "liveProgress": true,
+        "actualUploadsAndQueueAdmission": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "uploadBytesAndCaptainMemberReads": true,
+        "queuedModeImmutableAfterFutureSelection": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 11,
+      "report": "artifacts/team-ui/gui-fiZuou/report.json",
+      "reportSha256": "b6721821ce4e755901475235f676b9741764d4d16bb579a7dd324a32c7469df0",
+      "command": {
+        "exit": 0,
+        "seconds": 43.41,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "attachments"
+        ]
+      },
+      "normalExitEvidence": "verifier requires child.exitCode === 0 after closing QA window",
+      "screenshots": [
+        {
+          "path": "artifacts/team-ui/gui-fiZuou/team-attachments-queued.png",
+          "sha256": "d81fac0c0a4b847a09e0d4039ff1ad4391970f34a3527d9dbf1e531b793ed10c",
+          "encoding": "JPEG bytes from CDP capture; filename .png"
+        },
+        {
+          "path": "artifacts/team-ui/gui-fiZuou/team-attachments-rejected.png",
+          "sha256": "b6f0f0cd93411eb10a407113972176eb583fb62afb16b538bc1176cdbbea1e3a",
+          "encoding": "JPEG bytes from CDP capture; filename .png"
+        },
+        {
+          "path": "artifacts/team-ui/gui-fiZuou/team-attachments.png",
+          "sha256": "cf127bbd5f1dfa0e9e8a8e565605ac66f2cb2bdd6779e66fe58e846bed2891e4",
+          "encoding": "JPEG bytes from CDP capture; filename .png"
+        }
+      ]
+    },
+    "success": {
+      "scenario": "success",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 9,
+      "report": "artifacts/team-ui/gui-EVvui9/report.json",
+      "reportSha256": "d2f0a816ad0c71cd59ada08a8e0c2873594fb4cae221875270652d9bfcf9e761",
+      "command": {
+        "exit": 0,
+        "seconds": 44.37,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "success"
+        ]
+      },
+      "normalExitEvidence": "verifier requires child.exitCode === 0 after closing QA window"
+    },
+    "blocked": {
+      "scenario": "blocked",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "downstreamBlockerDetails": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 8,
+      "report": "artifacts/team-ui/gui-kC5LYl/report.json",
+      "reportSha256": "c88e5445a01fed7d32a27e53c5264e00b37eccf59141502a909086d5346be44e",
+      "command": {
+        "exit": 0,
+        "seconds": 44.49,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "blocked"
+        ]
+      },
+      "normalExitEvidence": "verifier requires child.exitCode === 0 after closing QA window"
+    },
+    "stop": {
+      "scenario": "stop",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 4,
+      "report": "artifacts/team-ui/gui-Njw9T4/report.json",
+      "reportSha256": "6cc88c4fdae79b1ec344ac4789c40fc9cb8e6d229a51a2f33a77d6e8221704d2",
+      "command": {
+        "exit": 0,
+        "seconds": 43.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop"
+        ]
+      },
+      "normalExitEvidence": "verifier requires child.exitCode === 0 after closing QA window"
+    },
+    "retry": {
+      "scenario": "retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "status": "passed",
+      "requests": 17,
+      "report": "artifacts/team-ui/gui-c2Mqja/report.json",
+      "reportSha256": "0f1206cd17c41eceab3dd56a34ae0f4cc2135a4047450be4d7b653de6b0a1162",
+      "command": {
+        "exit": 0,
+        "seconds": 44.9,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "retry"
+        ]
+      },
+      "normalExitEvidence": "verifier requires child.exitCode === 0 after closing QA window"
+    }
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-39USi2/沐码.app",
+    "version": "0.1.49",
+    "reusedExistingCandidate": true,
+    "rebuilt": false,
+    "installed": false,
+    "includesPiFixture": false,
+    "sourceMatches": true,
+    "clientArchiveSourceMatches": true,
+    "sourceHashes": {
+      "apps/electron/pi-turn.mjs": "55d52db295e75a21dcf524ee8b06dc2a276b7e0db6f33135e321a07b544e94e8",
+      "packages/pi-runtime/team-runtime.mjs": "528afcc5d6289f6632b111fa038ff07d446aa26422065010e6e9830eef952d71",
+      "apps/electron/plugin/client.js": "96aafcf00e0d0b68d3b7371b4fdce6015795a585ba572b91318bfa14b1ca6103"
+    },
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 5.34,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        ".generated/moos-electron/build-39USi2/沐码.app"
+      ]
+    }
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 6.15,
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/pi-team-client.test.mjs",
+          "apps/electron/pi-uploads.test.mjs",
+          "apps/electron/pi-tasks.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 5.34,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          ".generated/moos-electron/build-39USi2/沐码.app"
+        ]
+      },
+      "attachments": {
+        "exit": 0,
+        "seconds": 43.41,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "attachments"
+        ]
+      },
+      "success": {
+        "exit": 0,
+        "seconds": 44.37,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "success"
+        ]
+      },
+      "blocked": {
+        "exit": 0,
+        "seconds": 44.49,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "blocked"
+        ]
+      },
+      "stop": {
+        "exit": 0,
+        "seconds": 43.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "stop"
+        ]
+      },
+      "retry": {
+        "exit": 0,
+        "seconds": 44.9,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          ".generated/moos-electron/build-39USi2/沐码.app",
+          "retry"
+        ]
+      },
+      "core": {
+        "exit": 0,
+        "seconds": 56.33,
+        "command": [
+          "npm",
+          "test"
+        ]
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 19.35,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 27.78,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.19,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ]
+      }
+    },
+    "counts": {
+      "targeted": {
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 5966.661333
+      },
+      "core": {
+        "tests": 277,
+        "pass": 277,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 55920.476459
+      },
+      "electron": {
+        "tests": 127,
+        "pass": 117,
+        "fail": 0,
+        "skipped": 10,
+        "durationMs": 18659.042375
+      },
+      "packaged": {
+        "tests": 127,
+        "pass": 126,
+        "fail": 0,
+        "skipped": 1,
+        "durationMs": 27168.910458
+      }
+    },
+    "allRegressionsGreen": false,
+    "blockers": [
+      "offline cargo missing tauri exit101; no downloads or toolchain changes",
+      "reviewed skin-center0.4.16/Maid materials missing: source10skip/package1skip"
+    ],
+    "environment": "clean Node24/Rust PATH, unset Electron/Node/Moos/DSH inherited overrides; TMPDIR=/private/tmp/; sequential scenarios then regressions",
+    "documentation": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "tests": 137,
+      "pass": 137,
+      "fail": 0,
+      "seconds": 0.177,
+      "log": "artifacts/team-attachments/docs-initial.log",
+      "diffCheck": "git diff --check passed; recheck after final metadata"
+    }
+  },
+  "preliminaryRuns": [
+    {
+      "log": "artifacts/team-attachments/initial.log",
+      "report": "artifacts/team-ui/gui-HkxzjH/report.json",
+      "status": "passed",
+      "scope": "upload/queue path before adding over-limit admission case"
+    },
+    {
+      "log": "artifacts/team-attachments/rejection.log",
+      "report": "artifacts/team-ui/gui-XQQzeo/report.json",
+      "status": "passed",
+      "scope": "added real nine-file admission rejection before final cleanup/assertions"
+    }
+  ],
+  "limits": [
+    "Browser-created synthetic text files via real input change event; no native file picker, drag/drop, physical clipboard or OS-file mention acceptance",
+    "No image attachment/model-vision acceptance in this checkpoint",
+    "Nine-file route rejection is after successful upload; not upload-network failure/retry/removal/abort acceptance",
+    "Queue snapshot tested through actual UI/session/Host/SQLite; steer and reload recovery remain pending",
+    "Only copied hidden QA/CDP and local synthetic model, not normal GUI, external model or production acceptance",
+    "No guarantee of deduplicated external side effects or atomic upload rollback",
+    "Existing generic error notice is visible in screenshot but skin-wide error contrast is not accepted here"
+  ],
+  "pending": {
+    "nativeFilePickerAndLocalPathMention": true,
+    "imageLifecycle": true,
+    "uploadNetworkFailureRetryRemovalAbort": true,
+    "steerLifecycle": true,
+    "normalGUI": true,
+    "externalModel": true,
+    "memberMessagesAndArtifacts": true,
+    "stoppedInterruptedRetryGUI": true,
+    "captainCorrelationAndRecovery": true,
+    "nativeAndSkinGates": true,
+    "deployment": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false,
+    "desktopSafeguardsChanged": false
+  },
+  "documentationUtilityObservation": "Ignored evidence-generation helper initially failed before executing with missing UTF-8 declaration; added explicit coding header and reran successfully. No application or acceptance failure."
+}

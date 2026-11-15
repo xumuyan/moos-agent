@@ -146,3 +146,12 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 执行过程→团队协作→“节点 · 成员结果与验收”展开角色、状态、依赖、工具记录计数及验收分类。执行成员只标轮次结束，不代表验收通过；验证成员区分已提交通过且有成功检查、明确未通过、缺少结论、存在工具失败。计数是tool_end记录数（含协调工具），不是去重动作数/测试个数，也不证明任意业务目标正确。凭据采用v1/固定枚举/0–10000有界计数，只在本父节点角色attempt的running→done→终态完整关联后输出；旧或损坏凭据不补造。明确blocked依赖可传递给仍queued的下游，显示实际阻塞ID；其他任务取消/异常不猜测原因。成员正文、verdict.summary、私有推理与工具载荷不进入新详情；这不是已实现通用文本脱敏或完整成员消息/产物链接/用量面板。
 
 首轮四场景业务断言虽通过，截图显示通用action-list flex将详情挤列且背景干扰，视觉未验收；加团队专属单列grid、不透明Canvas/CanvasText底色与DOM几何断言后重建。最终build-39USi2签名通过、无fixture/源码匹配；success/blocked/stop/retry的复制隐藏QA/CDP/本地模型复验均通过（不是正常GUI/原生键鼠或外部模型）。blocked计划增加依赖check的final节点，实际check验收未过、final未执行并显示来源check；Stop无伪造通过凭据；retry新父有通过详情、输入框普通不变。核心277/277、专项31/31、包内126通过1skip；Rust/皮肤仍受阻，不宣称全仓全绿。证据`docs/evidence/desktop/agent-teams-member-details.json`，包含初始断言与视觉问题、最终命令/报告及源码哈希。复验 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' [success|blocked|stop|retry]`。正式应用/真实数据未动，安装仍需另获授权。
+
+
+### 7.11 文件附件与排队的实际上传链路（2026-11-15，隔离验收）
+
+运行 `node scripts/verify-electron-team.mjs '.generated/moos-electron/build-39USi2/沐码.app' attachments`。脚本通过原生HTML file input的change事件加入浏览器File，真实执行后台上传与receipt服务，不替换上传API；浏览器生成文件无OS路径，因此走上传链路。17B小文本进目标，154016B文本超过128KiB预算落盘.moos-uploads；队长和执行成员实际read上传文件，再write answer.txt=42，独立验证成员实际read/提交结论，落盘上传原字节核对一致。
+
+运行中退出团队模式，再上传20B文本并点“排队发送”；在队长请求仍挂起时把未来输入模式切回team。解除本地模型测试门后，团队先交付，排队任务保持ordinary且模型读到它自己的文本附件；数据库team/ordinary和succeeded/succeeded，输入框保持team。门是测试服务协调，不是产品审批。另先上传9文件并实际发送，路由显示最多8附件错误，零PI任务/零模型请求，随后有效附件发送成功；不据此宣称上传网络故障/重试/取消或原子回滚通过。
+
+仅QA脚本/测试/证据变化，既有build-39USi2重新验签、runtime及shell归档源码核对，未重构建或安装。最终附件场景11请求/13项检查全真，另外success/blocked/stop/retry通过；专项11/11、核心277/277，源码117通过10skip、包内126通过1skip，Rust离线/皮肤门仍阻塞。证据`docs/evidence/desktop/agent-teams-attachment-queue.json`。这是隐藏复制QA包/CDP/本地模型/合成文本文件；原生文件选择器/拖放/OS路径引用、图片、steer、上传网络故障/重试/删除/取消、正常GUI与外部模型均待验收。截图中通用错误提示可见，但皮肤下整体错误对比度未在本轮验收。正式应用和用户数据未动。

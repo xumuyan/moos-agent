@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 import { readFile } from 'node:fs/promises';
 
 test('team renderer acceptance refuses production bundle before creating or launching QA copy', async () => {
-  for (const scenario of ['success', 'blocked', 'stop', 'retry', 'unsupported']) {
+  for (const scenario of ['success', 'blocked', 'stop', 'retry', 'attachments', 'unsupported']) {
     await assert.rejects(promisify(execFile)(process.execPath, ['scripts/verify-electron-team.mjs', '/Applications/沐码.app', scenario], {
       timeout: 10000, env: { ...process.env, NODE_OPTIONS: '' },
     }), error => error.code === 1 && /AssertionError/.test(error.stderr));
@@ -17,5 +17,7 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',
     'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
+    'actualUploadsAndQueueAdmission', 'uploadBytesAndCaptainMemberReads', 'queuedModeImmutableAfterFutureSelection',
+    'attachmentAdmissionFailureNoTask', 'invalid attachment submission must not reach model',
     "Promise.race([call('Page.close'), closed])", "assert.equal(child.exitCode, 0"]) assert.ok(source.includes(condition));
 });
