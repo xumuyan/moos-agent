@@ -2,6 +2,11 @@
 
 ## 范围与状态
 
+### M01/P06.3a｜PI RPC 关闭顺序修正候选（2026-11-15，非完整验收）
+
+- [ ] PI RPC 取消清理剩余回归：适配器先发SIGTERM，等待700ms后才关闭stdin，再保留700ms及SIGKILL兜底。PI 1.5.0的EOF关闭会先移除信号处理器，旧顺序可能绕过detached子进程信号清理；只修此风险，不声称解决全部残留。确定性旧实现1通过/2失败；最终关闭测试4/4（含真实detached子进程ESRCH）、bash取消1/1、队列/事务24/24通过。中间完整核心仍重现bash残留；最终完整核心420s中止、无汇总，SDK/异步收尾/helper/几何断言未通过。Electron113项101通过/2失败/1取消/9跳过；Rust离线缺tauri。正式隔离构建首次240s中止，显式复核build-GJbx0m通过、严格验签及包内adapter字节一致、无fixture；未启动/安装。证据 `docs/evidence/desktop/pi-rpc-signal-shutdown.json`，详见operatelog；M01/M06/P06.3a/P06.6/N01不因专项通过而完成。解除条件：定位残留与强杀收尾、完成同状态全部回归及授权实机验收；不部署、不重启现用沐码、不改真实聊天或配置。
+  - 同源码显式复核（2026-11-15下午）：adapter+关闭19/19、完整核心265/265、默认Electron104通过/9跳过；使用build-GJbx0m的DSH CLI后112通过/0失败/1跳过，含包内helper只读/Host启动重启与生命管道关闭/临时目录升级保留验收；Host回环TLS/真实PI SDK通过。文档129/129。唯一皮肤hook验收缺skin-center0.4.16及reviewed Maid材料，未读取正式皮肤补测；Rust离线缺tauri、正常GUI/手机/真实输入仍未验收。以上不覆盖前轮失败，不能证明高负载是唯一原因或全后代清理保证。
+
 ### 本地存储维护（2026-11-15）
 
 - 用户授权只清不需要的产物：已删除35份旧桌面构建（保留最新0.1.49）及collapse-turn-tail内38份Moos.app；保留7,761个非应用证据/测试数据文件且前后内容与权限一致。两处du占用减少50,528,960 KiB（约48.19 GiB），不是APFS物理释放承诺；原位历史二进制已移除，复现需按对应提交重建。正式应用/用户数据/安装备份/签名及NSH工具链未动。证据 `docs/evidence/desktop/storage-cleanup-20261115.json`；自动回归结果见operatelog，不改变N01或其他功能验收状态。

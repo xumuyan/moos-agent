@@ -8,6 +8,30 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class PiRpcSignalShutdownTests(unittest.TestCase):
+    def test_candidate_preserves_partial_results_and_signal_before_eof(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/pi-rpc-signal-shutdown.json').read_text())
+        self.assertEqual(e['observations']['finalStopCheckpoint']['passed'], 4)
+        self.assertEqual(e['observations']['finalBashCheckpoint']['passed'], 1)
+        self.assertTrue(e['regression']['next-core-final']['timedOut'])
+        self.assertEqual(e['observations']['electron']['failed'], 2)
+        self.assertEqual(e['finalRecheck']['core']['passed'], 265)
+        self.assertEqual(e['finalRecheck']['packagedElectron']['passed'], 112)
+        self.assertEqual(e['finalRecheck']['packagedElectron']['skipped'], 1)
+        self.assertFalse(e['limits']['allTestsPassed'])
+        self.assertFalse(e['limits']['fullCancellationVerified'])
+        self.assertFalse(e['limits']['deployed'])
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesignExit'], 0)
+        source = (ROOT / 'packages/pi-adapter/index.mjs').read_text().split('export async function stopPiProcess(child) {', 1)[1].split('/** Run one real PI RPC task.', 1)[0]
+        self.assertLess(source.index("child.kill('SIGTERM')"), source.index('child.stdin.end()'))
+        self.assertLess(source.index('child.stdin.end()'), source.index("child.kill('SIGKILL')"))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('PI RPC 关闭顺序修正候选', plan)
+        self.assertIn('- [ ] PI RPC 取消清理剩余回归', plan)
+        self.assertIn('中间完整核心仍重现bash残留', plan)
+
+
 class M06CancellationHandoffTests(unittest.TestCase):
     def test_plan_preserves_historical_evidence_and_new_handoff_boundary(self):
         plan = (ROOT / 'PLAN.md').read_text()

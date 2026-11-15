@@ -221,13 +221,16 @@ function processRun(child, signal, emit, message) {
   void drive().catch(doneReject);
   return done.finally(() => signal.removeEventListener('abort', onAbort));
 }
-async function stop(child) {
+export async function stopPiProcess(child) {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
   const exited = new Promise(r => child.once('exit', r));
   const wait = ms => { let timer; return Promise.race([exited.then(() => true), new Promise(r => { timer = setTimeout(() => r(false), ms); })]).finally(() => clearTimeout(timer)); };
-  child.stdin.end();
-  if (await wait(700)) return;
+  // PI's EOF path removes signal handlers before async disposal. Signal first
+  // while its detached-shell cleanup handler is still installed; EOF first can
+  // leave bash children alive when a later TERM terminates only the PI process.
   child.kill('SIGTERM');
+  if (await wait(700)) return;
+  child.stdin.end();
   if (await wait(700)) return;
   child.kill('SIGKILL'); await exited;
 }
@@ -276,7 +279,7 @@ export async function runPi({ task, project, conversation, signal, emit = () => 
     // The host owns these children; graceful host exit cannot leave them alive.
     const onExit = () => child.kill('SIGKILL'); process.once('exit', onExit);
     try { return await processRun(child, controller.signal, emit, message); }
-    finally { await stop(child); process.removeListener('exit', onExit); }
+    finally { await stopPiProcess(child); process.removeListener('exit', onExit); }
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', abort);
     if (proxy) await proxy.close();
