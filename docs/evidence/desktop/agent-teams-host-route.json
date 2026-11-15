@@ -1,0 +1,97 @@
+{
+  "status": "host-routed-mode-snapshot-candidate-no-ui",
+  "recordedAt": "2026-11-15T18:48:37+08:00",
+  "workspace": {
+    "baseCommit": "6cebca8fcf6b1d7bf8ebffd59ab24051188314e2",
+    "state": "precommit workspace; application sources fixed before final targeted/Electron/build acceptance; documentation added afterward",
+    "platform": "arm64 macOS 27.0.1 (26A434)",
+    "node": "24.15.0"
+  },
+  "implementation": {
+    "entry": "apps/electron/plugin/pi-submission.js",
+    "protocol": "moos-pi-mode:v1:<ordinary|team>:<UUID-shaped suffix> in exact accepted user message source.rpcId",
+    "hostDispatch": true,
+    "taskSubmissionTransaction": true,
+    "queuedModeImmutable": true,
+    "retryRetainsPersistedMode": true,
+    "legacyMode": "ordinary",
+    "reservedInvalidMode": "reject",
+    "restart": "interrupt without replay; explicit retry uses original goal and persisted mode",
+    "recoveryLimits": "Fresh task-owned sessions; planning guidance to inspect existing artifacts; no node resume, exactly-once or transactional external effects",
+    "requestIdIsAuthorization": false
+  },
+  "acceptance": {
+    "command": "node --test apps/electron/pi-submission.test.mjs apps/electron/pi-tasks.test.mjs apps/electron/team-host.test.mjs packages/pi-runtime/team-runtime.test.mjs",
+    "pass": 19,
+    "exitCode": 0,
+    "milliseconds": 7165.911125,
+    "sourceHostChain": "actual production Host.apply -> PI route -> Scheduler -> runPiTeam -> real SDK -> local SSE fixture -> write answer.txt=42 newline -> independent read/verdict -> captain final; ordinary submission independently uses runPiSdk",
+    "packageHostChain": "same test imports fresh packaged Host, staged adapter and bundled SDK; synthetic credentials and temporary data; actual file plus 3 team session directories externally checked",
+    "queuedRetryRestart": "queued mode unaffected by future input mutation; DB reopen no replay; failed/interrupted explicit retry retains goal and team; unsupported stored versions rejected"
+  },
+  "regression": {
+    "core": {
+      "command": "npm test",
+      "pass": 275,
+      "exitCode": 0,
+      "seconds": 54.41
+    },
+    "electron": {
+      "command": "npm run test:electron",
+      "pass": 110,
+      "skip": 9,
+      "exitCode": 0,
+      "seconds": 18.97
+    },
+    "packaged": {
+      "command": "MOOS_ELECTRON_TEST_DSH_CLI=<build-D7oaW7>/Contents/Resources/host-runtime/bin/dsh npm run test:electron",
+      "pass": 118,
+      "skip": 1,
+      "exitCode": 0,
+      "seconds": 26.53,
+      "skipReason": "reviewed skin-center 0.4.16 / Maid materials unavailable"
+    },
+    "native": {
+      "command": "cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "exitCode": 101,
+      "reason": "offline tauri package absent; no dependency download/toolchain changes"
+    },
+    "allRegressionsGreen": false,
+    "historicalFailuresRetained": true
+  },
+  "build": {
+    "command": "npm run build:app",
+    "exitCode": 0,
+    "seconds": 42.34,
+    "path": ".generated/moos-electron/build-D7oaW7/沐码.app",
+    "version": "0.1.49 candidate (not installed)",
+    "includesPiFixture": false,
+    "dshVersion": "0.2.2-rc.1",
+    "strictCodesignExitCode": 0,
+    "protocolHelperInBothLocationsMatchesSource": true,
+    "hostAndTeamRuntimeMatchSource": true,
+    "logicalFileBytesExcludingSymlinks": 616384779,
+    "duKiB": 691720,
+    "installerArchiveProduced": false,
+    "runtimeDownloadBytes": null,
+    "runtimeDownloadNote": "no separately measured first-install runtime download; build caches reused, not a distribution-size claim",
+    "firstLaunch": "not launched as GUI or installed"
+  },
+  "pending": {
+    "clientSubmissionIdentityHook": true,
+    "modeMenuAndTag": true,
+    "teamProgressPanel": true,
+    "externalModel": true,
+    "guiAcceptance": true,
+    "nodeRecovery": true,
+    "deployment": true
+  },
+  "protection": {
+    "productionApplicationModified": false,
+    "productionDataModified": false,
+    "productionStoppedOrRestarted": false,
+    "upstreamExecutorsEnabled": false,
+    "upstreamPluginInstalled": false
+  },
+  "logs": "artifacts/team-route/ (ignored; synthetic isolated tests only)"
+}

@@ -1,5 +1,6 @@
 import { realpath } from 'node:fs/promises';
 import { isAbsolute, relative, sep } from 'node:path';
+import { checkedTaskMode, previousTaskMode } from './pi-submission.js';
 import { withWorkspaceChanges } from './pi-workspace-changes.js';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled']);
@@ -49,10 +50,11 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
   }
 
   async function open({ sessionId, turnStartSeq, cwd, input, messageId, fork, retryOf, signal, permissions, provider, backup,
-    imageRefs, images }) {
+    imageRefs, images, mode }) {
     if (typeof sessionId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(sessionId)
       || (!retryOf && (typeof input !== 'string' || !input.trim() || Buffer.byteLength(input) > 100000
       || fixtureRoot && !fixtureInput.test(input)))) throw new Error('Invalid PI task');
+    checkedTaskMode(mode);
     const canonical = await verifyWorkspace(cwd);
     signal.throwIfAborted();
     if (closing || store.countActiveTasks() >= 128) throw new Error('PI scheduler unavailable');
@@ -75,6 +77,7 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
       return conversation.id;
     });
     const previous = retryOf && retryTask(sessionId, retryOf);
+    const submittedMode = previous ? previousTaskMode(store, previous.id) : checkedTaskMode(mode);
     let origin;
     if (fork?.checkpoint) {
       const sourceId = store.getSetting('dsh-message:' + fork.checkpoint);
@@ -93,9 +96,10 @@ export function createPiTasks({ store, Scheduler, run, fixtureRoot, dataRoot }) 
       }
       if (captureCheckpoint) store.setSetting('dsh-message:' + messageId, created.id);
       if (imageRefs?.length) store.setSetting('dsh-image:' + created.id, JSON.stringify(imageRefs));
+      store.appendEvent(created.id, 'task_submission', { version: 1, mode: submittedMode });
       if (previous) store.appendEvent(created.id, 'task_retry', { previousTaskId: previous.id });
     } });
-    contextByTask.set(task.id, { permissions, provider, backup, images, retry: Boolean(previous), captureCheckpoint,
+    contextByTask.set(task.id, { mode: submittedMode, permissions, provider, backup, images, retry: Boolean(previous), captureCheckpoint,
       fork: fork && { origin, history: fork.history } });
     const pending = [];
     const settled = Promise.withResolvers();

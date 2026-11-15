@@ -246,7 +246,7 @@ function stageDshRuntime(resources, destination) {
   // The Host and the registry must use the same adapter factory instance.
   const adapterDir = join(dsh, 'moos-pi');
   fs.mkdirSync(adapterDir);
-  for (const file of ['pi-route.js', 'pi-fork.js']) {
+  for (const file of ['pi-route.js', 'pi-fork.js', 'pi-submission.js']) {
     fs.copyFileSync(join(__dirname, 'plugin', file), join(adapterDir, file));
   }
   const llm = 'dsh-llm';

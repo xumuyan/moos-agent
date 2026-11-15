@@ -297,3 +297,107 @@ test('DSH forks give PI exactly the selected history, with text fallback for old
   assert.ok(restored.some(message => message.role === 'assistant' && JSON.stringify(message.content).includes('Old visible reply')));
   assert.ok(restored.every(message => message.role !== 'tool'));
 });
+
+test('submission mode is immutable in queues and explicit retry retains the persisted mode after reopening', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-mode-snapshot-')));
+  const dbPath = join(root, 'test.sqlite');
+  let store = new Store({ dbPath });
+  let tasks;
+  t.after(async () => { await tasks?.close(); await rm(root, { recursive: true, force: true }); });
+  const entered = Promise.withResolvers(), release = Promise.withResolvers();
+  const runs = [];
+  tasks = createPiTasks({ store, Scheduler, async run(options) {
+    runs.push({ mode: options.mode, message: options.task.text, retry: options.retry });
+    if (runs.length === 1) { entered.resolve(); await release.promise; }
+    if (options.mode === 'team') throw new Error('network fixture failure');
+    return { text: 'ordinary done' };
+  } });
+  const signal = new AbortController().signal;
+  const input = { sessionId: 'snapshots', cwd: root, input: 'goal', signal };
+  const first = await tasks.open({ ...input, mode: 'ordinary' });
+  await entered.promise;
+  const queuedInput = { ...input, mode: 'team' };
+  const second = await tasks.open(queuedInput);
+  queuedInput.mode = 'ordinary'; // changing future selection must not affect queued work
+  const queued = store.listTasks()[0];
+  assert.equal(queued.status, 'queued');
+  assert.deepEqual(store.lastTaskEvent(queued.id, 'task_submission'), { version: 1, mode: 'team' });
+  release.resolve();
+  await Promise.all([collect(first.events()), collect(second.events())]);
+  assert.deepEqual(runs.map(item => item.mode), ['ordinary', 'team']);
+  assert.equal(store.getTask(queued.id).status, 'failed');
+  await tasks.close();
+  store = new Store({ dbPath });
+  tasks = createPiTasks({ store, Scheduler, async run(options) {
+    runs.push({ mode: options.mode, message: options.task.text, retry: options.retry });
+    return { text: 'retry done' };
+  } });
+  assert.equal(runs.length, 2, 'reopening does not replay side effects');
+  const resumed = await tasks.open({ ...input, input: 'not the original goal', mode: 'ordinary', retryOf: queued.id });
+  await collect(resumed.events());
+  assert.deepEqual(runs.at(-1), { mode: 'team', message: 'goal', retry: true });
+  const retried = store.listTasks()[0];
+  assert.deepEqual(store.lastTaskEvent(retried.id, 'task_submission'), { version: 1, mode: 'team' });
+  const count = store.listTasks().length;
+  await assert.rejects(tasks.open({ ...input, mode: 'unsupported' }), /Unsupported PI task mode/);
+  assert.equal(store.listTasks().length, count);
+});
+
+test('PI route reads each persisted request mode, rejects unsupported versions before attachments, and defaults legacy submissions to ordinary', async () => {
+  const opens = [];
+  let attachmentReads = 0;
+  const adapter = createPiAdapter({ getSession: () => ({ header: { cwd: '/isolated-project' } }),
+    readFile: async function* () { attachmentReads++; yield Buffer.from('x'); },
+    tasks: { async open(options) {
+      opens.push(options);
+      return { async *events() { yield { type: 'task_state', payload: { status: 'succeeded' } }; }, async stop() {} };
+    } },
+  });
+  const request = rpcId => ({ sessionId: 'modes', messages: [{ role: 'user', source: { kind: 'user', rpcId },
+    content: [{ type: 'text', text: 'goal' }] }] });
+  const first = request('moos-pi-mode:v1:team:' + randomUUID());
+  const second = request('moos-pi-mode:v1:ordinary:' + randomUUID());
+  for (const item of [first, second, first, request(randomUUID())]) {
+    assert.equal((await collect(adapter.stream(item))).at(-1).reason.kind, 'stop');
+  }
+  assert.deepEqual(opens.map(item => item.mode), ['team', 'ordinary', 'team', 'ordinary']);
+  for (const mode of ['v2:team', 'v1:unknown', 'v1:team:bad', '']) {
+    const invalid = request('moos-pi-mode:' + mode);
+    invalid.messages[0].content.push({ type: 'file', attachment: { name: 'input.txt', bytes: 1 } });
+    assert.equal((await collect(adapter.stream(invalid))).at(-1).reason.failure.code, 'INVALID_REQUEST');
+  }
+  assert.equal(attachmentReads, 0);
+  assert.equal(opens.length, 4);
+});
+
+test('interrupted team snapshots require explicit retry and malformed saved modes never silently downgrade', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-mode-interruption-')));
+  const dbPath = join(root, 'test.sqlite');
+  let store = new Store({ dbPath });
+  const project = await store.addProject(root);
+  const conversation = store.createConversation(project.id);
+  store.setSetting('dsh-session:interrupted-team', conversation.id);
+  const original = store.createTask({ conversationId: conversation.id, message: 'inspect existing work before continuing' });
+  store.appendEvent(original.id, 'task_submission', { version: 1, mode: 'team' });
+  store.close();
+  store = new Store({ dbPath });
+  assert.equal(store.interruptUnfinished(), 1);
+  const runs = [];
+  const tasks = createPiTasks({ store, Scheduler, async run(options) { runs.push(options); return { text: 'done' }; } });
+  t.after(async () => { await tasks.close(); await rm(root, { recursive: true, force: true }); });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(runs.length, 0);
+  const input = { sessionId: 'interrupted-team', cwd: root, input: 'retry', retryOf: original.id,
+    signal: new AbortController().signal };
+  // Corrupt/future persisted metadata is not treated as an ordinary task.
+  store.appendEvent(original.id, 'task_submission', { version: 2, mode: 'team' });
+  await assert.rejects(tasks.open(input), /Unsupported PI submission snapshot/);
+  assert.equal(store.listTasks().length, 1);
+  store.appendEvent(original.id, 'task_submission', { version: 1, mode: 'team' });
+  const retry = await tasks.open(input);
+  await collect(retry.events());
+  assert.equal(runs.length, 1);
+  assert.equal(runs[0].mode, 'team');
+  assert.equal(runs[0].retry, true);
+  assert.equal(runs[0].task.text, original.message);
+});

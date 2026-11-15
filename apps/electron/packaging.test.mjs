@@ -180,3 +180,12 @@ test('candidate plugin resolves and executes the packaged native helper from its
   const { SHARED_QUEUE } = await import(pathToFileURL(join(resources, 'pi-runtime/packages/pi-runtime/desktop-tools.mjs')).href);
   assert.equal(SHARED_QUEUE.status().locked, false);
 });
+
+test('submission protocol helper ships with both the profile Host and staged PI adapter', async () => {
+  const pkg = JSON.parse(await readFile(join(here, 'plugin/package.json'), 'utf8'));
+  assert.ok(pkg.files.includes('pi-submission.js'));
+  const stage = await readFile(join(here, 'stage-dsh-runtime.cjs'), 'utf8');
+  assert.ok(stage.includes("['pi-route.js', 'pi-fork.js', 'pi-submission.js']"));
+  const host = await readFile(join(here, 'plugin/host.js'), 'utf8');
+  assert.ok(host.includes("options.mode === 'team' ? runPiTeam : runPiSdk"));
+});

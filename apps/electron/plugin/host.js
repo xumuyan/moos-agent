@@ -46,9 +46,9 @@ export async function apply(ctx) {
     }
   }, { global: true });
   const load = path => import(pathToFileURL(join(runtime, path)).href);
-  const [{ Store }, { Scheduler }, { runPiSdk }, { privateDir, checkedProvider }] = await Promise.all([
+  const [{ Store }, { Scheduler }, { runPiSdk }, { runPiTeam }, { privateDir, checkedProvider }] = await Promise.all([
     load('services/agent/store.mjs'), load('services/agent/scheduler.mjs'),
-    load('packages/pi-runtime/sdk-runtime.mjs'), load('packages/pi-adapter/index.mjs'),
+    load('packages/pi-runtime/sdk-runtime.mjs'), load('packages/pi-runtime/team-runtime.mjs'), load('packages/pi-adapter/index.mjs'),
   ]);
   const fixtureMode = process.env.MOOS_ELECTRON_PI_FIXTURE_MODE === '1';
   const workspace = process.env.MOOS_ELECTRON_WORKSPACE_ROOT;
@@ -99,7 +99,8 @@ export async function apply(ctx) {
         const key = await models.credential(options.backup.provider).catch(() => undefined);
         if (key) backup = { ...options.backup, apiKey: key };
       }
-      return runPiSdk({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
+      const execute = options.mode === 'team' ? runPiTeam : runPiSdk;
+      return execute({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
         // M06 桌面工具：包内 Resources/bin 的 Swift helper；开发检出不打包时文件不存在，工具自动不挂载。
         desktop: { helperPath: desktopHelperPath(runtime) },
         // 设置页图片服务配置优先；未配置时 sdk-runtime 回退读 private/image-gen.json（无则不挂载工具）。

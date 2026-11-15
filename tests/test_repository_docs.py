@@ -216,6 +216,28 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, plan)
         self.assertNotIn('- [x] P03.14.', plan)
 
+    def test_agent_teams_host_route_keeps_sender_ui_and_installation_pending(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-host-route.json').read_text())
+        self.assertEqual(e['status'], 'host-routed-mode-snapshot-candidate-no-ui')
+        for key in ('hostDispatch', 'taskSubmissionTransaction', 'queuedModeImmutable', 'retryRetainsPersistedMode'):
+            self.assertTrue(e['implementation'][key])
+        self.assertFalse(e['implementation']['requestIdIsAuthorization'])
+        self.assertEqual(e['acceptance']['pass'], 19)
+        self.assertEqual(e['regression']['core']['pass'], 275)
+        self.assertEqual(e['regression']['packaged']['pass'], 118)
+        self.assertEqual(e['regression']['native']['exitCode'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertTrue(all(e['pending'].values()))
+        self.assertTrue(all(value is False for value in e['protection'].values()))
+        self.assertFalse(e['build']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesignExitCode'], 0)
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('客户端生成模式请求ID的钩子仍未接', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        guide = (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text()
+        self.assertIn('7.6 Host路由与提交模式快照候选', guide)
+        self.assertIn('不能充当外部副作用去重保证', guide)
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

@@ -221,3 +221,16 @@ test('team deadline cancels the current member and awaits cleanup before returni
   drained.resolve();
   await assert.rejects(execution, error => error.code === 'timeout');
 });
+
+test('explicit team retry starts fresh owned sessions with existing-work inspection guidance, not automatic replay', async () => {
+  const prompts = [];
+  await runPiTeam({ ...base(), retry: true }, async options => {
+    prompts.push(options);
+    return fakeRun()(options);
+  });
+  assert.match(prompts[0].task.text, /用户显式重试.*前次可能已有副作用/);
+  assert.match(prompts[0].task.text, /禁止盲目重复安装、提交、发送或部署/);
+  assert.ok(prompts.every(item => item.retry === false && item.fork === undefined));
+  // This is guidance plus fresh task-scoped ownership, not transactional
+  // exactly-once side effects or a resumable-node recovery protocol.
+});

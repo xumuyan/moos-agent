@@ -1,3 +1,4 @@
+import { submissionMode } from './pi-submission.js';
 import { forkPrefix } from './pi-fork.js';
 
 export const route = 'moos-pi';
@@ -142,6 +143,12 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       return;
     }
     const retryOf = /^moos-pi-retry:([a-f0-9-]{36}):[a-f0-9-]{36}$/.exec(user.source.rpcId ?? '')?.[1];
+    let mode;
+    try { mode = submissionMode(user.source.rpcId); } catch {
+      yield { type: 'finish', reason: { kind: 'error',
+        failure: { code: 'INVALID_REQUEST', message: '不支持该任务模式，请更新客户端后重新提交。' } } };
+      return;
+    }
     const imageParts = user.content.filter(part => part.type === 'image');
     let imageRefs;
     let images;
@@ -207,7 +214,7 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
       const session = getSession(sessionId);
       task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
         input: input || (images?.length ? '请查看我附带的图片。' : ''), imageRefs, images,
-        messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
+        mode, messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '无法启动 PI 任务，请检查工作区和会话状态' } } } : rejected;

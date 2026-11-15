@@ -122,12 +122,13 @@ export async function runPiTeam(options, run = runPiSdk) {
   try {
     check();
     publish('planning');
+    const recovery = options.retry ? '\n这是用户显式重试的团队任务；前次可能已有副作用。先用read/ls检查现有产物，在计划中要求成员核对已有工作，禁止盲目重复安装、提交、发送或部署。不能确认可安全继续时报告阻塞。' : '';
     const submitPlan = tool('team_plan', '提交自动执行的任务DAG，最后必须有依赖全部工作的验证任务。仅规划，不执行。',
       Type.Object({ tasks: Type.Array(taskSchema, { minItems: 2, maxItems: TEAM_LIMITS.nodes }) }), input => {
         if (plan) throw new Error('Team plan already submitted');
         plan = validateTeamPlan(input);
       });
-    await turn('captain', `用户目标：\n${task.text}\n\n你是队长。先用read/ls了解项目，调用team_plan自动拆成2–6项任务。` +
+    await turn('captain', `用户目标：\n${task.text}${recovery}\n\n你是队长。先用read/ls了解项目，调用team_plan自动拆成2–6项任务。` +
       'implementer负责真实产物，verifier负责独立工具验证。最终验证必须依赖全部任务。不要请求用户分工或批准，不得自己实施。',
     { tools: [submitPlan], allowedTools: ['read', 'ls', 'team_plan'], readonly: true });
     if (!plan) throw new TaskFailure('protocol');
