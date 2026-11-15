@@ -2398,3 +2398,12 @@
 - 验证结果：macOS27.0.1/26A434 arm64、Node24.15.0；对应提交前工作区，全部功能源码在最终专项/Electron/隔离构建验收前固定（team-host测试随后增加新包导入分支，最终Electron两轮覆盖）。专项19/19 exit0、7165.91ms，含真实PI、本地模型、队列快照、失败/中断重试、重开无重放、无效版本/模式/换行拒绝。npm test 275/275 exit0、54.41s，team新增重试用例通过；默认Electron初轮110通过9skip exit0、17.39s，最终同命令110通过9skip exit0、18.97s。npm run build:app exit0、42.34s，隔离build-D7oaW7/沐码.app 0.1.49、moos-runtime includesPiFixture=false、DSH0.2.2-rc.1；codesign --verify --deep --strict exit0，两份pi-submission及Host/team-runtime逐字节与源码一致。指定新包MOOS_ELECTRON_TEST_DSH_CLI后npm run test:electron 118通过1skip exit0、26.53s，含真实包内Host→团队工具闭环及隔离升级测试；唯一skip缺reviewed skin-center0.4.16/Maid材料，未读真实皮肤补测。cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml exit101、0.21s，缺tauri，无下载/重装。独立app逻辑文件616384779字节（不计符号链接）、du691720KiB，不是压缩安装包或APFS独占物理量；未生成安装归档/未测首次运行下载量/未GUI首启。Python文档132/132 exit0、0.211s，git diff --check通过，最终日志后再复核。忽略日志artifacts/team-route/；历史默认helper失败保留，不被本轮通过抹去。
 - 遗留问题：本次只交Host路由候选检查点，不是完整团队模式。客户端发送身份钩子/＋菜单/团队协作×标签/实际团队进度面板/成员消息展示/线上模型/正常GUI/节点级恢复仍待做，P03.14.1–6不勾。全仓有Rust/皮肤受阻，解除需可用依赖缓存及明确验收材料；不得以文档或本地模型冒充全部验收。不安装、不退出或重启正式沐码，不改真实聊天、密钥、配置、插件、皮肤或手机；本轮代码提交不是应用部署，CPU问题未解决。
 - 对应 Git 提交：唯一说明 `feat(P03.14): persist submitted modes and route Host team tasks`；查询 `git log --all --oneline --grep='persist submitted modes and route Host team tasks'`。提交后推送并核对GitHub main与HEAD，本条不提前声称推送成功或已部署。
+
+## 2026-11-15 18:53:37 +08:00｜P03.14 当前验收边界文档更正
+
+- 修改或新增内容：补充PLAN末尾“当前测试/阻塞”段落，区分已经验证的隔离Host/本地模型闭环与尚缺的发送钩子/界面/线上模型/GUI，避免历史“尚未执行”措辞被误读成当前状态；保留历史检查点。
+- 遇到的难题：首次用内联Python替换中文段落时发生Non-UTF-8 SyntaxError；后续shell仍继续跑文档检查并创建d299936，因此该段更正未进入首次提交。
+- 处理方式：使用精确文本编辑补入PLAN；单独记录此文档修正，应用源码无变化，不重复构建或声称新增功能。
+- 验证结果：首次提交前文档132/132 exit0（0.210s）；PLAN更正后首轮131通过1失败（0.211s），旧文档断言要求“未实施”一词，与当前具体未接界面边界不符；将该断言更新为“客户端生成模式请求ID的钩子仍未接”，仍要求P03.14六项全部未勾选，再跑全部Python文档检查及git diff --check。应用测试沿用d299936对应工作区证据，不把文档检查冒充GUI或全仓全绿。
+- 遗留问题：团队模式客户端/GUI及Rust/皮肤阻塞仍在；无部署、不改真实应用或用户数据。
+- 对应 Git 提交：功能提交d299936；本次唯一说明 `docs(P03.14): clarify current Host acceptance boundaries`，查询 `git log --all --oneline --grep='clarify current Host acceptance boundaries'`。两提交推送后核对远程HEAD，不提前声称已推送或已部署。

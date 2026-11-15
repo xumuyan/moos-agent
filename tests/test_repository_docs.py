@@ -164,7 +164,7 @@ class RepositoryDocsTests(unittest.TestCase):
         guide = (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text()
         url = 'https://mp.weixin.qq.com/s/QMGPqxxe0m5g8BSzYDNpRw'
         for text in (stage, guide):
-            for required in (url, '环境异常', '正文', '仓库', '许可证', '未实现' if text == guide else '未实施',
+            for required in (url, '环境异常', '正文', '仓库', '许可证', '未实现' if text == guide else '客户端生成模式请求ID的钩子仍未接',
                              'PI', 'customTools', 'resourceLoader', 'P06.3a', 'P06.5a', 'P06.6',
                              '凭据', '停止', '正式', 'E84', '授权'):
                 self.assertIn(required, text)
