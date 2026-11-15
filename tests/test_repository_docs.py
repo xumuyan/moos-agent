@@ -158,7 +158,7 @@ class ForkRestartRecoveryTests(unittest.TestCase):
 
 
 class RepositoryDocsTests(unittest.TestCase):
-    def test_requested_wechat_plugin_plan_keeps_unknown_source_and_acceptance_explicit(self):
+    def test_requested_wechat_plugin_plan_keeps_source_history_and_acceptance_explicit(self):
         plan = (ROOT / 'PLAN.md').read_text()
         stage = plan.split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
         guide = (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text()
@@ -180,6 +180,28 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertIn(term, guide)
         for path in re.findall(r'`((?:apps|packages|services)/[^`]+)`', guide):
             self.assertTrue((ROOT / path).is_file(), path)
+
+    def test_agent_teams_source_review_and_mode_design_are_not_runtime_acceptance(self):
+        evidence = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-source-review.json').read_text())
+        self.assertEqual(evidence['status'], 'source-reviewed-design-only')
+        self.assertEqual(evidence['upstream']['commit'], '4354b0f6a793b75c1904c0ee85eef4043a37c733')
+        self.assertEqual(evidence['upstream']['license'], 'MIT')
+        for digest in evidence['upstream']['sourceHashes'].values():
+            self.assertRegex(digest, r'^[0-9a-f]{64}$')
+        self.assertEqual(evidence['observations']['captainTools'], 14)
+        self.assertEqual(evidence['observations']['memberTools'], 4)
+        self.assertTrue(all(value is False for value in evidence['limits'].values()))
+        self.assertTrue(evidence['proposed']['submissionSnapshotsMode'])
+        self.assertTrue(evidence['proposed']['noNestedSchedulerDeadlock'])
+        guide = (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text().split('## 7.', 1)[1]
+        for term in ('commandUi.register', 'conversation.input.left', '团队协作 ×',
+                     'approval: automatic', '快照', '自锁', '同目录', 'attempt',
+                     '事件增量', '一队长＋两成员', '未实现', 'E84'):
+            self.assertIn(term, guide)
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('来源已识别', plan)
+        self.assertIn('历史微信来源阻塞已解除', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
 
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())

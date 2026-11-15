@@ -1,0 +1,97 @@
+{
+  "status": "source-reviewed-design-only",
+  "upstream": {
+    "repository": "https://github.com/NanmiCoder/dsh-agent-teams",
+    "commit": "4354b0f6a793b75c1904c0ee85eef4043a37c733",
+    "package": "@nanmicoder/dsh-agent-teams",
+    "declaredVersion": "0.1.30",
+    "license": "MIT",
+    "sourceHashes": {
+      "LICENSE": "e4e722cd6f8bb374affe13b571a262e0e03d68407da555abf1b046eb7889d4ea",
+      "README_ZH.md": "126797d4196891620232f6e87dfba9acd1d42ed260aa79cc46a96249a4a00ef4",
+      "compatibility.json": "4759b6b67ec6a057f6f572b7c3c2b4be9317b501ab0973ffc5704442b4b42950",
+      "src/client/index.tsx": "ad452f6ef08a109f0b34e5de913f9a94df3095b59fed92b7ccf337fbee45cad4",
+      "src/index.ts": "d2db9bfd57ecdc2dac182f7e434e5bf34336dc398799119d4c2cf36e008d5ade",
+      "src/members.ts": "fea9a13f4be15b371ba4e83ce9d365a8d605728b8c66a874afdafa7cd61df3b2",
+      "src/scheduler.ts": "3b9d50602d4190795c804fd4e559d0f1dc3841e83b0892f7aa73f04ea548f726",
+      "src/tool-names.ts": "caaedc24879fecb4bbf4720e7632cd9692ab6c9b37f330a5f92c2deda54c9691",
+      "src/tool-policies.ts": "5322a8e28ba2900b9ae123299822db728c6207bc94c07c1f7b31d07ef2c30b5f",
+      "src/tools.ts": "263666f3c8e680a155ac047d95a99a90b30610255be0b2d562af9f7b9b114a7e"
+    }
+  },
+  "observations": {
+    "memberBackend": "DSH continuable subagent provider via ctx.subagents; defaults to spawn",
+    "missingProviderFails": true,
+    "captainTools": 14,
+    "memberTools": 4,
+    "stateDirectory": "<workspace>/.agent-teams/",
+    "upstreamDefaultApproval": "required",
+    "upstreamAutomaticApprovalSupported": true,
+    "idleMembersDoNotCallModel": true,
+    "supportedHostClaimIncludes": "0.2.2-rc.1"
+  },
+  "local": {
+    "disabledProviders": [
+      "subagent-spawn-in-process",
+      "subagent-fork-in-process"
+    ],
+    "toolsOwnedByPi": true,
+    "menuService": "commandUi.register",
+    "modeSlot": "conversation.input.left",
+    "sameCanonicalDirectorySerialized": true
+  },
+  "proposed": {
+    "entry": "composer plus menu → 团队协作",
+    "selectedLabel": "plus button right → 团队协作 ×",
+    "modes": [
+      "normal",
+      "team"
+    ],
+    "submissionSnapshotsMode": true,
+    "automaticStart": true,
+    "runtime": "Host → PI customTools + independent PI member sessions",
+    "noNestedSchedulerDeadlock": true,
+    "noUnsafeSharedDirectoryParallelWrites": true,
+    "eventDrivenUpdates": true
+  },
+  "limits": {
+    "runtimeImplemented": false,
+    "pluginInstalled": false,
+    "guiVerified": false,
+    "onlineModelTested": false,
+    "upstreamTestsRun": false,
+    "productionDataModified": false,
+    "deployed": false
+  },
+  "checks": {
+    "docs": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "passed": 130,
+      "exit": 0
+    },
+    "core": {
+      "command": "npm test",
+      "passed": 265,
+      "failed": 0,
+      "exit": 0
+    },
+    "electron": {
+      "command": "npm run test:electron",
+      "passed": 104,
+      "skipped": 9,
+      "exit": 0
+    },
+    "packagedElectron": {
+      "command": "MOOS_ELECTRON_TEST_DSH_CLI=<isolated build-GJbx0m>/Resources/host-runtime/bin/dsh npm run test:electron",
+      "passed": 112,
+      "skipped": 1,
+      "exit": 0,
+      "note": "reviewed skin material unavailable; not plugin or production GUI acceptance"
+    },
+    "native": {
+      "command": "cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "exit": 101,
+      "blocker": "offline tauri crate unavailable"
+    }
+  }
+}
