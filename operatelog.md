@@ -2671,3 +2671,10 @@
 - 验证结果：新包 codesign --verify --deep --strict 通过、Identifier dev.moos.agent.electron、includesPiFixture:false、team-runtime.mjs 在包内；主进程单实例 pid 42058 路径 /Applications/沐码.app/Contents/MacOS/MuMa；四项受保护配置文件与停机备份字节一致；SQLite messages 1288→1290、tasks 677→679、conversations 10→10、events 485219→485428（仅正常增长，无丢失）；无新增崩溃报告。结果文件 artifacts/installed-update-0.1.49-nRahNV/result.json。备份与旧包待用户在新版确认聊天记录和模型配置可读后按规则清理。
 - 遗留问题：本次脚本 launch 步的中文路径检测缺陷已记录（一次性脚本不修复复用）；打包严格退出故障、核心回归 3 失败等已知问题随版本保留；本次更新未改变版本号（同为 0.1.49，build 标识不同）。
 - 对应 Git 提交：本次唯一提交，说明含 "nRahNV"，可用 `git log --oneline --grep=nRahNV` 查询。
+
+## 2026-11-16 20:24:50 +08:00 — E140 备份与旧包清理
+
+- 修改或新增内容：经用户确认新版正常后，按规则删除本次更新生成的停机备份 ~/.muma-update-backup-0.1.49-nRahNV（约1.6G）、旧程序包 /Applications/.muma-old-3v6RdT（约675M）及暂存目录 .muma-stage-nRahNV。
+- 验证结果：三处目录均已确认不存在；新版应用单实例正常运行中（主进程路径 /Applications/沐码.app/Contents/MacOS/MuMa）。
+- 遗留问题：无新增；既有已知问题（严格退出、核心3失败）随版本保留。
+- 对应 Git 提交：随本日志唯一提交，说明含 "E140 cleanup"。
