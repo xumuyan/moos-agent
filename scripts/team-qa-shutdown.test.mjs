@@ -82,13 +82,80 @@ Total number in stack (recursive counted multiple, when >=5):
 
 test('native sample whitelist binds PID and main thread without leaking paths, symbols or metadata', () => {
   const result = summarizeQaSample(syntheticSample, 123);
-  assert.deepEqual(result, { mainThread: { appKitRunLoop: true, coreFoundationRunLoop: true,
+  assert.deepEqual(result, { boundary: Object.fromEntries(boundaryKeys.map(key => [key, false])), mainThread: { appKitRunLoop: true, coreFoundationRunLoop: true,
     machMessageWait: true, keventWait: false, mutexWait: false, semaphoreWait: false } });
   assert.doesNotMatch(JSON.stringify(result), /private|secret|Process|Path|Thread_1|NSApplication/);
   for (const text of ['', syntheticSample.replace('[123]', '[124]'), syntheticSample.replace('com.apple.main-thread', 'worker'), 'x'.repeat(2 * 1024 * 1024 + 1)]) {
     assert.equal(summarizeQaSample(text, 123), undefined);
   }
   assert.throws(() => summarizeQaSample(syntheticSample, 1), /Invalid QA root/);
+});
+
+const boundaryKeys = ['idleLoop', 'singletonCleanup', 'nodeTeardown', 'browserContextTeardown',
+  'chromiumShutdown', 'launchServicesCheckOut', 'synchronousXpc', 'processExit'];
+
+function frameSample(frames) {
+  return syntheticSample.replace('    + 77 -[NSApplication run] (in AppKit)', frames.map(frame => `    +   ! 77 ${frame} (in synthetic) + 0 [0x123]`).join('\n'));
+}
+
+test('native boundary whitelist recognizes only main-thread function frames and exports booleans', () => {
+  const cases = {
+    idleLoop: ['base::RunLoop::Run(base::Location const&)', 'base::MessagePumpNSApplication::Run(base::MessagePump::Delegate*)'],
+    singletonCleanup: ['ProcessSingleton::Cleanup()', 'ProcessSingleton::~ProcessSingleton()'],
+    nodeTeardown: ['node::Stop(node::Environment*)', 'node::Environment::RunCleanup()', 'node::Environment::~Environment()'],
+    browserContextTeardown: ['electron::ElectronBrowserContext::DestroyAllContexts()'],
+    chromiumShutdown: ['electron::ElectronBrowserMainParts::PostMainMessageLoopRun()', 'content::BrowserMainLoop::ShutdownThreadsAndCleanUp()'],
+    launchServicesCheckOut: ['_LSApplicationCheckOut'],
+    synchronousXpc: ['xpc_connection_send_message_with_reply_sync', '_xpc_pipe_routine'],
+    processExit: ['exit', '_exit', '__cxa_finalize'],
+  };
+  for (const [key, symbols] of Object.entries(cases)) for (const symbol of symbols) {
+    const summary = summarizeQaSample(frameSample([symbol]), 123);
+    assert.deepEqual(summary.boundary, Object.fromEntries(boundaryKeys.map(k => [k, k === key])), symbol);
+    assert.ok(Object.values(summary.boundary).every(value => typeof value === 'boolean'));
+    assert.doesNotMatch(JSON.stringify(summary), /synthetic|0x123|ProcessSingleton|Environment|Location/);
+  }
+  const all = summarizeQaSample(frameSample(Object.values(cases).map(symbols => symbols[0])), 123);
+  assert.ok(Object.values(all.boundary).every(Boolean)); // co-occurrence is not precedence or cause
+});
+
+test('native boundary classification ignores metadata, other threads, unknown symbols and near names', () => {
+  const text = syntheticSample.replace('Path: /private/user/secret', 'Path: /private/node::Stop exit ProcessSingleton::Cleanup')
+    .replace('    + 77 __psynch_mutexwait', '    + 77 ProcessSingleton::Cleanup() (in synthetic)')
+    .replace('    + 77 -[NSApplication run] (in AppKit)', '    + 77 ??? (in /private/node::Stop)');
+  assert.ok(Object.values(summarizeQaSample(text, 123).boundary).every(v => !v));
+  const near = frameSample(['myexit', 'exitSomething', 'node::Stopping()', '_LSApplicationCheckOutLater',
+    'xpc_pipe_routine_async', 'OtherProcessSingleton::Cleanup()', 'ProcessSingleton::CleanupLater()']);
+  assert.ok(Object.values(summarizeQaSample(near, 123).boundary).every(v => !v));
+});
+
+test('sampling callback is awaited without blocking the event loop and boundary survives private-file cleanup', async () => {
+  const child = { pid: 123, exitCode: null, signalCode: null }; let release, entered;
+  const ready = new Promise(resolve => { entered = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  let file;
+  const observed = sampleQaProcess(child, async (_command, args) => {
+    file = args[4]; entered(); await gate;
+    await writeFile(file, frameSample(['ProcessSingleton::Cleanup()']));
+  });
+  await ready;
+  await new Promise(resolve => setImmediate(resolve)); // runner can observe child/timers while command pending
+  release(); const result = await observed;
+  assert.equal(result.status, 'observed'); assert.equal(result.boundary.singletonCleanup, true);
+  await assert.rejects(readFile(file), { code: 'ENOENT' });
+});
+
+test('actual owned Node sample uses asynchronous command and exports only bounded booleans', { timeout: 15000 }, async () => {
+  const child = spawn(process.execPath, ['-e', 'console.log("ready");setInterval(()=>{},1000)'], { stdio: ['ignore', 'pipe', 'ignore'] });
+  const closed = once(child, 'exit');
+  try {
+    await once(child.stdout, 'data');
+    const result = await sampleQaProcess(child);
+    assert.equal(result.status, 'observed');
+    assert.deepEqual(Object.keys(result.boundary), boundaryKeys);
+    assert.ok(Object.values(result.boundary).every(v => typeof v === 'boolean'));
+    assert.doesNotMatch(JSON.stringify(result), /0x|Path|Process:|Thread_|node::|private/);
+  } finally { child.kill('SIGKILL'); await closed; }
 });
 
 test('native sample uses exact live QA PID, bounded command and private transient file deleted on all outcomes', async () => {

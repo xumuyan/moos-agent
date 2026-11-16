@@ -64,7 +64,21 @@ export function summarizeQaSample(text, rootPid) {
   const graph = text.split('Call graph:\n')[1]?.split('\nTotal number in stack')[0];
   const main = graph?.match(/(?:^|\n)    \d+ Thread_[^\n]*com\.apple\.main-thread[^\n]*\n([\s\S]*?)(?=\n    \d+ Thread_|$)/)?.[1];
   if (!main) return undefined;
-  return { mainThread: {
+  // Match only actual main-thread function frames, never image/path metadata or
+  // worker threads. Missing/stripped symbols leave false (not ruled out).
+  const frames = [...main.matchAll(/^\s*[+!:| ]*\d+\s+(.+?)\s+\(in [^)\n]+\)/gm)].map(match => match[1]);
+  const has = pattern => frames.some(frame => pattern.test(frame));
+  const boundary = {
+    idleLoop: has(/\b(?:base::RunLoop::Run|base::MessagePump(?:CFRunLoop|NSApplication)::Run)\b/),
+    singletonCleanup: has(/\bProcessSingleton::(?:Cleanup|~ProcessSingleton)\b/),
+    nodeTeardown: has(/\bnode::(?:Stop|FreeEnvironment|Environment::(?:RunCleanup|CleanupHandles|~Environment))\b/),
+    browserContextTeardown: has(/\bElectronBrowserContext::(?:DestroyAllContexts|~ElectronBrowserContext)\b/),
+    chromiumShutdown: has(/\b(?:BrowserMainLoop::ShutdownThreadsAndCleanUp|BrowserMainRunnerImpl::Shutdown|ElectronBrowserMainParts::PostMainMessageLoopRun)\b/),
+    launchServicesCheckOut: has(/^_?LSApplicationCheckOut\b/),
+    synchronousXpc: has(/^_?(?:xpc_connection_send_message_with_reply_sync|xpc_pipe_routine)\b/),
+    processExit: has(/^(?:exit|_exit|__exit|__cxa_finalize)(?:\s|$)/),
+  };
+  return { boundary, mainThread: {
     appKitRunLoop: main.includes('-[NSApplication run]'),
     coreFoundationRunLoop: main.includes('__CFRunLoopRun'),
     machMessageWait: main.includes('mach_msg2_trap'),

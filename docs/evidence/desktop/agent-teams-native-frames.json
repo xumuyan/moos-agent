@@ -1,0 +1,631 @@
+{
+  "status": "isolated-qa-native-frame-diagnostic-tested-root-unresolved-not-installed",
+  "recordedAt": "2026-11-16T14:59:19+08:00",
+  "baseCommit": "785c0c601a06ecdc6dabbc8366d08f8a414392d8",
+  "workspaceState": "QA helper/parser and tests final; docs/checkpoint added after targeted, two scoped copied-QA runs and full regression attempts; no product runtime changes",
+  "runtimeModified": false,
+  "rebuilt": false,
+  "installed": false,
+  "rootCauseConfirmed": false,
+  "rootCauseRepaired": false,
+  "overallP0314Complete": false,
+  "implementation": {
+    "sourceSha256": {
+      "scripts/team-qa-shutdown.mjs": "7cee113c10ce492dcc330f850b493e6a7250ad4bf5e7f6035df0fa8db1701a57",
+      "scripts/team-qa-shutdown.test.mjs": "bdc1a152505d966035e45d88deeab279218081fdde57429b35b92912adfc1ef5",
+      "scripts/verify-electron-team.mjs": "a62ec5f8b9b064f8181e6dc4f14499a47add561bc0a9b2bb43f961b06cfc1905",
+      "scripts/verify-electron-team.test.mjs": "68fa0e160cc2ff77d0e618349a2e6dde440b4933c43fff504bcf52a470662719"
+    },
+    "boundaryKeys": [
+      "idleLoop",
+      "singletonCleanup",
+      "nodeTeardown",
+      "browserContextTeardown",
+      "chromiumShutdown",
+      "launchServicesCheckOut",
+      "synchronousXpc",
+      "processExit"
+    ],
+    "exitDeadlineMs": 10000,
+    "normalExitCode": 0,
+    "sampleTimeoutMs": 3000,
+    "sampleDurationSeconds": 1,
+    "sampleIntervalMs": 10,
+    "maxBytes": 2097152,
+    "synchronousSampling": false,
+    "postFailureOnly": true,
+    "privateTransientFileDeleted": true,
+    "privateDirectoryMode": "0700",
+    "privateFileMode": "0600",
+    "runnerEntryModified": false,
+    "summary": "Add eight boolean frame-family detections to existing six wait/runloop booleans. Only main-thread function frames before (in image) are considered for boundary; reject foreign PID/oversize/missing main graph. No new sample command, no raw symbol/path output, no synchronous exploratory wrapper.",
+    "limits": [
+      "True means a matching frame occurred in aggregate sampled main-thread graph, not a causal wait, chronological order, exclusive phase, liveness or deadlock.",
+      "False means no matching recognized symbol, not proof phase absent; stripped/version-specific/aliased symbols and sample formats can miss.",
+      "Main-thread aggregate is not whole-thread/process-tree coverage. Some frames can co-occur; no derived phase verdict.",
+      "The existing six mainThread booleans retain their original matching semantics; new boundary uses function frames only.",
+      "Child identity validation remains exact spawned child handle/live check; does not add PID reuse or reparented descendants immunity.",
+      "Production/framework unchanged. Node actual sample tests validate async bounded command and private cleanup; actual OS timeout/cleanup failure was not induced."
+    ]
+  },
+  "acceptance": {
+    "injected": {
+      "path": "artifacts/team-ui/gui-WQNQOr/report.json",
+      "sha256": "7769f3e5758b0c3df6d74fde3ae9157703562c223cb9e16350ed0c996c2c6263",
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 52.16,
+        "summary": {}
+      },
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": true,
+          "requestedAt": 1794812033968,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794812034009
+            },
+            {
+              "event": "window-closed",
+              "at": 1794812034010
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794812034010
+            },
+            {
+              "event": "before-quit",
+              "at": 1794812034010
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794812034010
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794812034225
+            },
+            {
+              "event": "before-quit",
+              "at": 1794812034225
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 28056,
+                "ppid": 26680,
+                "state": "S"
+              },
+              {
+                "pid": 28078,
+                "ppid": 28056,
+                "state": "S"
+              },
+              {
+                "pid": 28079,
+                "ppid": 28056,
+                "state": "S"
+              },
+              {
+                "pid": 28081,
+                "ppid": 28056,
+                "state": "Ss"
+              },
+              {
+                "pid": 28284,
+                "ppid": 28056,
+                "state": "S"
+              }
+            ]
+          },
+          "closeDispatchedAt": 1794812034005,
+          "observedAt": 1794812044008,
+          "exitCode": null,
+          "failureAt": 1794812044009,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 28056,
+                "ppid": 26680,
+                "state": "S"
+              },
+              {
+                "pid": 28078,
+                "ppid": 28056,
+                "state": "S"
+              },
+              {
+                "pid": 28079,
+                "ppid": 28056,
+                "state": "S"
+              }
+            ]
+          },
+          "failureSample": {
+            "status": "observed",
+            "boundary": {
+              "idleLoop": false,
+              "singletonCleanup": false,
+              "nodeTeardown": false,
+              "browserContextTeardown": false,
+              "chromiumShutdown": false,
+              "launchServicesCheckOut": false,
+              "synchronousXpc": false,
+              "processExit": false
+            },
+            "mainThread": {
+              "appKitRunLoop": true,
+              "coreFoundationRunLoop": true,
+              "machMessageWait": true,
+              "keventWait": false,
+              "mutexWait": false,
+              "semaphoreWait": false
+            }
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n",
+        "cleanup": {
+          "status": "exited-after-cleanup",
+          "termSent": true,
+          "killSent": true
+        }
+      },
+      "elapsedFromDispatchMs": 10003
+    },
+    "natural": {
+      "path": "artifacts/team-ui/gui-aXOBDN/report.json",
+      "sha256": "1bf0c4a690e4ba5668051fadd9775cae4f5a3f4a5f30a796532c6c6c5eeaeb6d",
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 46.28,
+        "summary": {}
+      },
+      "report": {
+        "scenario": "interrupt-retry",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "abruptOwnedQAFaultAndColdRunning": true,
+          "restartMarksInterruptedWithoutReplay": true,
+          "restartPreservesEventPrefixAndArtifact": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "stoppedPartialArtifactNoAutoReplay": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "retriedReadOnlyMemberHasNoInventedFiles": true,
+          "structuredMemberDetails": true,
+          "faultClosesModelConnection": true,
+          "noFalseDeliveryOrDownstream": true,
+          "stoppedTaskHistoryUnchanged": true,
+          "retryRetainsModeAndGoal": true,
+          "freshParentAndRoleContexts": true,
+          "artifactInspectedNotRewritten": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 14,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794812097394,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794812097433
+            },
+            {
+              "event": "window-closed",
+              "at": 1794812097434
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794812097435
+            },
+            {
+              "event": "before-quit",
+              "at": 1794812097435
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794812097435
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794812097610
+            },
+            {
+              "event": "before-quit",
+              "at": 1794812097610
+            },
+            {
+              "event": "will-quit",
+              "at": 1794812097610
+            },
+            {
+              "event": "quit",
+              "at": 1794812097610
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 31932,
+                "ppid": 29895,
+                "state": "S"
+              },
+              {
+                "pid": 31950,
+                "ppid": 31932,
+                "state": "S"
+              },
+              {
+                "pid": 31951,
+                "ppid": 31932,
+                "state": "S"
+              },
+              {
+                "pid": 31954,
+                "ppid": 31932,
+                "state": "Ss"
+              },
+              {
+                "pid": 32155,
+                "ppid": 31932,
+                "state": "S"
+              }
+            ]
+          },
+          "closeDispatchedAt": 1794812097428,
+          "observedAt": 1794812097691,
+          "exitCode": 0
+        },
+        "cleanup": {
+          "status": "already-exited",
+          "termSent": false,
+          "killSent": false
+        }
+      },
+      "elapsedFromDispatchMs": 263
+    }
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "command": [
+          "node",
+          "--test",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 2.01,
+        "summary": {
+          "tests": 20,
+          "pass": 20,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "signature": {
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 5.95,
+        "summary": {}
+      },
+      "injected": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 52.16,
+        "summary": {}
+      },
+      "natural": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 46.28,
+        "summary": {}
+      },
+      "core": {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 62.6,
+        "summary": {
+          "tests": 297,
+          "pass": 296,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "core-serial": {
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 132.61,
+        "summary": {
+          "tests": 297,
+          "pass": 297,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "electron": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 20.8,
+        "summary": {
+          "tests": 136,
+          "pass": 126,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 10
+        }
+      },
+      "packaged": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 31.25,
+        "summary": {
+          "tests": 136,
+          "pass": 135,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1
+        }
+      },
+      "native": {
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "env": {},
+        "exit": 101,
+        "seconds": 0.18,
+        "summary": {}
+      }
+    },
+    "allRegressionsGreen": false,
+    "scope": "Full existing default core and original inventory serial supplemental, source/package Electron, offline Rust attempted. QA-only change reuses signed QWEhD0; inherited archive match not newly measured.",
+    "defaultFailure": "packages/pi-runtime/desktop-tools.test.mjs:507 geometry drift expects DESKTOP_FOCUS_CHANGED, actual helper TimeoutError; no guard or timeout changes.",
+    "nativeBlocker": "Offline tauri unavailable; no dependency download.",
+    "skips": "Source Electron 10 unavailable-skin/material skips; package 1 skip, not full acceptance."
+  },
+  "findings": [
+    "Injection gui-WQNQOr intentionally prevents quit, is not reproduction of natural failure. Business checks true, original exit null retained after 10003ms, AppKit/CF/Mach flags true; eight boundary flags false. No phase is ruled out from false. Cleanup TERM+KILL separate from acceptance.",
+    "Uninjected interrupt-retry gui-aXOBDN has 20 business checks true and actual exit0 after 263ms; no sample triggered. This pass cannot repair gui-lS0geG/gui-nex2zX/gui-aprEHG.",
+    "Actual positive native-boundary family matches are covered with synthetic frames only; injected report demonstrates live schema/private sampling, not real positive singleton/Node/XPC/exit matching on natural fault.",
+    "No repeated natural scenario for green. No root cause localized this round; this is reusable tested instrumentation, not a runtime quit fix."
+  ],
+  "system": {
+    "platform": "arm64/macOS27.0.1",
+    "node": "24.15.0",
+    "TMPDIR": "/private/tmp/",
+    "environmentCleaned": true
+  },
+  "build": {
+    "candidate": ".generated/moos-electron/build-QWEhD0/沐码.app",
+    "version": "0.1.49",
+    "framework": "44.7.0",
+    "signatureCommand": {
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 5.95,
+      "summary": {}
+    },
+    "newArchiveComparison": false
+  },
+  "protection": {
+    "productionTouched": false,
+    "productionQuitOrRestarted": false,
+    "realDataModified": false,
+    "rawSampleExported": false,
+    "desktopGuardsChanged": false,
+    "hostStopQuitOrderChanged": false,
+    "deadlineRelaxed": false
+  },
+  "logs": {
+    "artifacts/team-native-frames/targeted-initial.log": "8ad9eb54532b618c6890eecc139a2aec9ec65fd78f91a88f71f57527b5a641c3",
+    "artifacts/team-native-frames/core.log": "a01e88a399d6184237df8817751558c89cdec69728ff0779b19f04bf56e24fa2",
+    "artifacts/team-native-frames/signature.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/team-native-frames/electron.log": "2b1df6b6c68bde3f71e843620e254f08be8a24cfdaff8487578805da417f1804",
+    "artifacts/team-native-frames/packaged.log": "989bacc087a572835875fb5f2c1b0a0467bd2fe26800fde3ea27727baff91554",
+    "artifacts/team-native-frames/targeted.log": "abeb2197efff321a4320f82a7deb9a3224a0b7fe541720e393e1ee39dc452035",
+    "artifacts/team-native-frames/injected.log": "0a15c295f2c220e6c6ef157de64a20cb3854f71bf1d6b77d1ef6cfbf546163f4",
+    "artifacts/team-native-frames/native.log": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49",
+    "artifacts/team-native-frames/natural.log": "566dee34fd341d1f41b1b9e94df12387335255a4e60952f6995dcda64f3478a9",
+    "artifacts/team-native-frames/core-serial.log": "8f0ff69e77639c5eaa6790fe13498a49fd635f28ab22c2532001f31ce8b2f290"
+  },
+  "nextStep": "Use tested diagnostic on a genuinely necessary new acceptance failure; do not repeat for green. Natural failure with matching phase evidence is required before causal runtime change. Keep P03.14.1–6 unchecked.",
+  "documentationVerification": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-v"
+    ],
+    "tests": 153,
+    "pass": 153,
+    "seconds": 1.02,
+    "log": "artifacts/team-native-frames/docs-initial.log",
+    "logSha256": "4f3a5b0fafba671e8fcee60a8858568f71cc5ad98ab2c55a30aacee53c884474"
+  },
+  "finalTargeted": {
+    "command": [
+      "node",
+      "--test",
+      "scripts/team-qa-shutdown.test.mjs",
+      "scripts/verify-electron-team.test.mjs"
+    ],
+    "tests": 20,
+    "pass": 20,
+    "durationMs": 1760.65075,
+    "log": "artifacts/team-native-frames/targeted-final.log",
+    "sha256": "c921cff1b74a93e6475bced653ae6dafcedd34b5c410c4e7b3ba6738f1c8dca0"
+  },
+  "finalDocumentation": {
+    "tests": 153,
+    "pass": 153,
+    "seconds": 0.961,
+    "log": "artifacts/team-native-frames/docs-final.log",
+    "sha256": "50eaea3214123af5f06b4fd4a16bd1e04c9639ba7c2e4fe105793276aab56d26"
+  }
+}

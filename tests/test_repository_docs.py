@@ -9,6 +9,50 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaNativeFramesTests(unittest.TestCase):
+    def test_native_frame_diagnostic_is_bounded_private_and_not_a_root_cause_claim(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-frames.json').read_text())
+        for path, digest in e['implementation']['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertEqual(len(e['implementation']['boundaryKeys']), 8)
+        self.assertEqual((e['implementation']['exitDeadlineMs'], e['implementation']['normalExitCode']), (10000, 0))
+        self.assertEqual((e['implementation']['sampleTimeoutMs'], e['implementation']['maxBytes']), (3000, 2097152))
+        self.assertFalse(e['implementation']['synchronousSampling'])
+        self.assertTrue(e['implementation']['postFailureOnly'])
+        self.assertTrue(e['implementation']['privateTransientFileDeleted'])
+        for k in ('runtimeModified', 'rebuilt', 'installed', 'rootCauseConfirmed', 'rootCauseRepaired', 'overallP0314Complete'):
+            self.assertFalse(e[k])
+        for name, a in e['acceptance'].items():
+            r = json.loads((ROOT / a['path']).read_bytes())
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+            self.assertTrue(all(r['checks'].values()))
+            self.assertFalse(r['productionTouched'])
+            self.assertFalse(r['normalGUI'])
+            self.assertFalse(r['externalModel'])
+            if name == 'injected':
+                self.assertEqual(a['command']['exit'], 1)
+                self.assertIsNone(r['shutdown']['exitCode'])
+                sample = r['shutdown']['failureSample']
+                self.assertEqual(sample['status'], 'observed')
+                self.assertEqual(list(sample['boundary']), e['implementation']['boundaryKeys'])
+                self.assertTrue(all(isinstance(v, bool) for v in sample['boundary'].values()))
+                self.assertTrue(sample['mainThread']['machMessageWait'])
+                self.assertTrue(r['cleanup']['killSent'])
+                self.assertIn('normal QA quit', r['error'])
+            else:
+                self.assertEqual((a['command']['exit'], r['shutdown']['exitCode']), (0, 0))
+                self.assertNotIn('failureSample', r['shutdown'])
+        self.assertEqual(e['regression']['commands']['targeted']['summary']['pass'], 20)
+        for path, digest in e['logs'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertTrue(all(v is False for v in e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('原生主线程分类检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.27 原生主线程白名单分类', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamQaNativeBoundaryReviewTests(unittest.TestCase):
     def test_native_quit_source_review_keeps_failure_and_unobserved_hook_unknown(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-boundary-review.json').read_text())
@@ -56,7 +100,8 @@ class TeamQaExitDeadlineTests(unittest.TestCase):
         self.assertFalse(e['runtimeModified'])
         i = e['implementation']
         for path, digest in i['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = subprocess.check_output(['git', 'show', 'f054c14:' + path], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         self.assertEqual((i['deadlineMs'], i['normalExitCode']), (10000, 0))
         self.assertTrue(i['armedBeforeRequestClose'])
         self.assertFalse(i['cdpAcknowledgementExtendsDeadline'])

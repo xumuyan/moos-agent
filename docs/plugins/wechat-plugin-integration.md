@@ -258,3 +258,12 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 一次带新分类探索的隐藏复制QA interrupt-retry（gui-ShhyRe）20项业务真，实际exit0、关闭派发后267ms；未触发失败采样，未取得新分类结果。探索hook未交付或验收，原六布尔采样实现不变，也不宣称各候选等待已排除。保留gui-nex2zX/gui-aprEHG/gui-lS0geG原失败；这次正常退出不是修复证据，不再重复刷绿。证据 `docs/evidence/desktop/agent-teams-native-boundary-review.json`。
 
 仅文档与契约更新，无runtime重建/安装或正式应用重启；10000ms/实际exit0、先失败再采样/清理及Host顺序保持。下一步须在真实失败中以经过测试的有界、非阻塞、白名单诊断区分原生阶段，再谈因果修复；完整团队界面/可见GUI/外部模型、全仓回归及P03.14整体仍未通过。
+
+
+### 7.27 原生主线程白名单分类
+
+隔离QA现有异步sample增加8个boundary布尔：idleLoop、singletonCleanup、nodeTeardown、browserContextTeardown、chromiumShutdown、launchServicesCheckOut、synchronousXpc、processExit。只匹配主线程函数帧的符号部分，不匹配镜像路径/worker元数据；既有六等待布尔保留。仍先10000ms/actual exit0判失败，冻结原exitCode后才采样；1秒/10ms采样、3秒命令上限、2MiB上限、临时目录0700/文件0600、finally删除；不引入同步sample或生产进程查找。
+
+true仅为聚合样本中的函数族出现，不代表具体等待根因、排他阶段、先后或死锁；false不代表排除（符号剥离/别名/版本或格式可能漏识别）。合成测试逐类阳性，真实自有Node采样验证私有异步链路，实际注入复制QA报告只验证schema：gui-WQNQOr故意阻退出仍exit1/null，10003ms后失败，AppKit/CF/Mach真且八类false，清理TERM+KILL不是通过。一次无注入gui-aXOBDN 20项业务真/exit0/263ms，没有故障采样，不消除三个历史自然失败。
+
+专项20/20；其他全量回归结果及默认helper失败/Rust离线依赖/皮肤skip如实保留于 `docs/evidence/desktop/agent-teams-native-frames.json`。仅QA helper/tests改动，候选QWEhD0重新验签，未重建/安装、不动main/Host或用户数据；自然退出根因/全仓/完整P03.14仍受阻，后续实需验收中遇自然失败才使用新诊断，不重复跑场景刷绿。

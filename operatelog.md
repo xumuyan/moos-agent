@@ -2606,3 +2606,17 @@
 - 对应 Git 提交：唯一说明 `docs(P03.14): bound native quit source review conclusions`；查询 `git log --all --oneline --grep='bound native quit source review conclusions'`。诊断文档检查点，不是修复或部署；提交推送后核对远程main等于HEAD。
 
 本轮验证补记（2026-11-16 14:42:19 +08:00，同唯一提交说明）：实际完整原清单串行293/293、183.69s（不是默认并发修复），源码Electron126通过10skip/31.51s，包内135通过1skip/44.38s，Rust离线exit101/0.25s缺tauri；python3 -m unittest discover -s tests -v 新增契约后152/152、1.306s，证据文档元数据补齐后再次检查。专项16/16、1668.344666ms。源码/QA及历史失败未改，仍不宣称全仓通过或部署。
+
+
+## 2026-11-16 14:59:19 +08:00｜P03.14 原生主线程白名单诊断（非根因修复、未安装）
+
+- 修改或新增内容：QA summarizeQaSample增加boundary八类布尔，只取主线程函数帧；沿用原异步sample/精确自有子进程/3秒2MiB/0700/0600/finally清理，原六等待布尔不变。增加逐类阳性/近名与元数据及worker阴性/混合/异步等待/真实自有Node采样测试；历史deadline哈希改git show f054c14核对，旧证据不变。同步PLAN/指南7.27/新证据/文档契约。
+- 遇到的难题：仅Mach等待不足定位阶段；上轮探索同步包装未经失败触发，不能交付；本轮分类有符号剥离/版本漏识别和聚合样本非因果的限制。初递归查找父目录AGENTS命令15秒超时，改只查拟改scripts/tests/docs，无子级规则；未把截断输出当完整结果。
+- 处理方式：生产main/Host及QA runner不改，只扩现有受测异步函数的固定投影，函数帧与镜像信息分离，白名单不输出符号路径。只执行一次明确故障注入验证采样链路，再一次无注入interrupt-retry验收，不复跑刷绿。原strict失败后采样和TERM/KILL cleanup顺序、10000ms/实际exit0保持；分类true不推断根因，false不排除阶段。
+- 验证结果：提交前最终QA helper/tests工作区，arm64/macOS27.0.1/Node24.15.0/TMPDIR=/private/tmp/、清继承环境。node --test scripts/team-qa-shutdown.test.mjs scripts/verify-electron-team.test.mjs首20/20 1922.262084ms，driver专项20/20 1907.787166ms；真实自有Node异步sample成功/仅布尔/临时文件清除，测试后只清理自有子进程。候选codesign --verify --deep --strict exit0/5.95s。MOOS_QA_BLOCK_QUIT=1 node scripts/verify-electron-team.mjs <QWEhD0> stop gui-WQNQOr预期exit1/52.16s，8业务项真/exitnull/10003ms后失败，failureSample observed且8新分类全false/AppKit-CF-Mach真，cleanup TERM+KILL单列，非自然故障复现；无注入同脚本interrupt-retry gui-aXOBDN exit0/46.28s、20项真/派发后263ms，无失败采样、不当修复。完整npm test/原清单--test-concurrency=1、源码和指定候选DSH的npm run test:electron、离线cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml实际命令/结果/时长和hash见新证据及artifacts/team-native-frames/results.json；默认helper超时与串行成功分列，全仓不称通过。文档落盘后检查另记，不用旧152冒充新增契约结果。
+- 遗留问题：没有新自然失败阶段证据或根因修复，实际分类阳性只有合成符号用例，不外推实际native调用栈准确覆盖；自然历史三失败仍保留，默认helper超时/离线tauri/皮肤材料及完整GUI/外部模型未验收。P03.14.1–6未勾，未重建/安装/退出或重启正式应用，真实聊天配置未动；解除需真实失败阶段及因果回归。
+- 对应 Git 提交：唯一说明 `test(P03.14): classify sanitized native QA frame boundaries`；查询 `git log --all --oneline --grep='classify sanitized native QA frame boundaries'`。仅QA诊断改进和受阻验收，不是部署或退出修复，推送后远程main核对HEAD。
+
+本轮验证补记（2026-11-16 14:59:38 +08:00，同唯一提交说明）：默认核心296通过/1失败/297、62.60s，仍是geometry drift实际helper超时；完整原清单串行297/297、132.61s，不当并发修复。源码Electron126通过10skip/20.80s；指定候选包内135通过1skip/31.25s；Rust离线exit101/0.18s缺tauri。新增文档契约后python3 -m unittest discover -s tests -v 153/153、1.020s；元数据补齐后再次检查。全仓未全绿，相关诊断测试和故障注入链路限定通过，不声称应用根因修复/部署。
+
+最终核对（2026-11-16 14:59:58 +08:00，同唯一提交说明）：同专项20/20、1760.650750ms，文档153/153、0.961s，git diff --check通过。元数据仅补记已执行结果，提交前再运行文档检查及暂存差异检查；源码推送非部署。
