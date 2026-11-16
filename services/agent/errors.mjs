@@ -6,6 +6,8 @@ const messages = Object.freeze({
   model_capability: '当前模型或端点不支持此任务所需能力。',
   context_limit: '上下文已满且自动压缩未能完成，请新建对话继续（历史保留不会丢失）。',
   tool_error: '本地工具执行失败，请查看任务轨迹。',
+  verification_rejected: '团队独立验证未通过，详见成员验收明细。',
+  verification_incomplete: '独立验证成员未提交验收结论，详见成员验收明细。',
   permission: '系统或项目权限不足，请按提示授权后重试。',
   cancelled: '任务已由用户停止。',
   timeout: '任务达到设置的运行时长上限，已停止。',

@@ -19,14 +19,14 @@ const submit = async (options, name, args) => {
   return tool.execute('call', args, options.signal);
 };
 const evidence = options => options.emit('tool_end', { toolCallId: 'read', toolName: 'read', isError: false, result: {} });
-function fakeRun(trace = [], { failed = false, noEvidence = false } = {}) {
+function fakeRun(trace = [], { failed = false, noEvidence = false, rejected = false, noVerdict = false } = {}) {
   return async options => {
     trace.push(options.conversation.id);
     options.sessionPolicy.beforeRequest();
     if (options.task.text.includes('你是队长。')) await submit(options, 'team_plan', plan);
     else if (options.sessionPolicy.customTools?.some(tool => tool.name === 'team_verdict')) {
       if (!noEvidence) evidence(options);
-      await submit(options, 'team_verdict', { passed: !failed, summary: failed ? 'wrong' : 'checked actual file' });
+      if (!noVerdict) await submit(options, 'team_verdict', { passed: !failed && !rejected, summary: failed || rejected ? 'wrong' : 'checked actual file' });
     }
     return { text: 'real member result' };
   };
@@ -65,10 +65,12 @@ test('independent bounded PI turns run sequentially and only final summary is em
     && event.payload.nodeId === payload.nodeId && event.payload.attemptId === payload.attemptId));
 });
 
-test('failed or unsubstantiated verifier never becomes success and cannot release downstream', async () => {
+  test('failed or unsubstantiated verifier never becomes success and cannot release downstream', async () => {
   for (const settings of [{ failed: true }, { noEvidence: true }]) {
     const trace = [], events = [];
-    await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, fakeRun(trace, settings)));
+    await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, fakeRun(trace, settings)),
+      error => settings.failed && settings.noEvidence !== true
+        ? error.code === 'verification_rejected' : true);
     assert.equal(trace.length, 3, 'summary not started after failed verification');
     assert.ok(!events.some(event => event.payload.phase === 'succeeded'));
     if (settings.failed) {
@@ -77,6 +79,15 @@ test('failed or unsubstantiated verifier never becomes success and cannot releas
       assert.equal(blocked.attemptId, started.attemptId);
       assert.equal(blocked.nodeId, started.nodeId);
     }
+  }
+});
+
+test('rejected verdict throws verification_rejected, missing verdict throws verification_incomplete', async () => {
+  for (const [settings, expected] of [[{ rejected: true }, 'verification_rejected'], [{ noVerdict: true }, 'verification_incomplete']]) {
+    const trace = [], events = [];
+    await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, fakeRun(trace, settings)),
+      error => error.code === expected);
+    assert.ok(!events.some(event => event.payload.phase === 'succeeded'));
   }
 });
 
@@ -265,7 +276,9 @@ test('public node receipts distinguish failed tools, missing verdict and explici
       else if (options.sessionPolicy.customTools?.some(tool => tool.name === 'team_verdict')) {
         evidence(options);
         if (kind === 'tool_failure') options.emit('tool_end', { toolName: 'bash', isError: true, result: {} });
-        if (kind !== 'missing_verdict') await submit(options, 'team_verdict', { passed: kind === 'verified', summary: 'private verdict sk-secret' });
+        // tool_failure is reachable only without a submitted verdict; a passed=true verdict
+        // with failed tool evidence is rejected by the verdict guard itself.
+        if (kind !== 'missing_verdict' && kind !== 'tool_failure') await submit(options, 'team_verdict', { passed: kind === 'verified', summary: 'private verdict sk-secret' });
       }
       return { text: 'private member response' };
     };
@@ -276,6 +289,7 @@ test('public node receipts distinguish failed tools, missing verdict and explici
     assert.equal(node.outcome.toolsSucceeded, 1);
     assert.equal(node.outcome.evidenceCount, 1);
     assert.equal(node.outcome.toolsFailed, kind === 'tool_failure' ? 1 : 0);
+    // An explicit passed=false verdict is a rejection even when a probe tool errored.
     assert.doesNotMatch(JSON.stringify(node.outcome), /private|secret/);
     assert.equal(events.some(event => event.payload.phase === 'succeeded'), kind === 'verified');
   }

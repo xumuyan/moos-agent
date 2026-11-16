@@ -23,3 +23,14 @@ test('task failures use stable safe codes without returning upstream text', () =
   assert.equal(classifyTaskError(new TaskFailure('timeout')).code, 'timeout');
   assert.equal(classifyTaskError(new Error('unmatched SECRET')).code, 'internal');
 });
+
+test('verification rejection and incomplete verdict get distinct truthful codes', () => {
+  const rejected = classifyTaskError(new TaskFailure('verification_rejected'));
+  assert.equal(rejected.code, 'verification_rejected');
+  assert.ok(rejected.message.includes('独立验证未通过'));
+  const incomplete = classifyTaskError(new TaskFailure('verification_incomplete'));
+  assert.equal(incomplete.code, 'verification_incomplete');
+  assert.ok(incomplete.message.includes('未提交验收结论'));
+  assert.equal(classifyTaskError(new TaskFailure('tool_error')).message.includes('本地工具'), true);
+  assert.throws(() => new TaskFailure('verification_rejected_extra'), /Invalid task failure code/);
+});

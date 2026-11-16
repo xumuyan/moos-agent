@@ -2653,3 +2653,12 @@
 - 验证结果：`validate.mjs` 12 项通过（事件流不被后续重试改写、attempt 不复用、单项目、产物 sha256）；首次 Page.close 后进程 430ms 消失，但 `shutdown.json` 无 `exitCode`（`waitQaExit` 返回 void 的收据缺陷），`normalExitConfirmed:false`；发现缺陷：成员详情显示"验收阻塞/未通过"但外层汇总仍是笼统"PI 任务执行失败 INTERNAL"，本轮未改代码。回归：核心 299 中 4 失败（2 个几何辅助本轮新波动 + 2 个已知采样 `team-qa-shutdown.test.mjs:154`），Electron 源码 127 过/10 跳/0 败，打包 136 过/1 跳/0 败，codesign 通过，Rust 离线仍缺 `tauri`（101）；文档契约 156 项（含新测试）通过。
 - 遗留问题：退出收据缺陷与打包严格退出失败均未修复；核心 4 个失败待归因；外层失败文案待改进；P03.14.1–6 保持未勾选；未安装、未部署，等待用户明确授权。
 - 对应 Git 提交：本次唯一提交，说明含 "E139 visible-window live model team acceptance"，可用 `git log --oneline --grep=E139` 查询。
+
+## 2026-11-16 18:13:40 +08:00 — 团队验收失败文案修复与真实模型复测
+
+- 修改或新增内容：services/agent/errors.mjs 新增 verification_rejected/verification_incomplete 安全码与中文文案；packages/pi-runtime/team-runtime.mjs 验证拒绝/未提交结论分别抛对应码，显式 passed=false 优先于工具失败计入 rejected；apps/electron/plugin/pi-route.js 映射三码；team-runtime.test.mjs 更正 tool_failure 可达性并新增两码断言；errors.test.mjs、team-host.test.mjs 新增检查；PLAN.md、本日志同步。
+- 遇到的难题：E139 实测发现验收被拒时外层显示笼统"PI 任务执行失败 INTERNAL"；进一步实测发现验证成员显式 passed=false 但有失败工具时落入 tool_error 分支；测试更正过程中发现 tool_failure 语义仅在"无结论+失败工具"时可达（提交 passed=true 且工具失败被 verdict 守卫拒绝）。
+- 处理方式：按真实语义区分三种终态文案；重建 build-nRahNV（严格验签通过，errors.mjs/team-runtime.mjs/pi-route.js 与包内字节一致）；隔离 0700 临时目录页面驱动真实 GLM 复测不可满足场景。
+- 验证结果：team-runtime 13/13、errors/team-host 新检查通过；实测外层显示"团队独立验证未通过，详见成员验收明细 VERIFICATION_REJECTED"，截图 docs/evidence/desktop/agent-teams-live/wording-rejected.png（sha256 bb9e5503cd73ff1425f05d6d12c7f7c273d7c7f5244c99d41b3c4a23d1482592）；本次正常退出收据含 exitCode 0、passed true；隔离实例退出后临时目录已清理，生产数据未动。回归：核心 301 中 3 失败（2 已知采样 team-qa-shutdown.test.mjs:154 + 1 几何辅助波动，另一几何本轮通过，失败如实保留）、源码 Electron 127过/10跳/0败、文档 156/156。
+- 遗留问题：核心 3 个失败待归因；打包严格退出故障未修；仍非原生键鼠验收；未安装、未部署；P03.14.1–6 保持未勾选。
+- 对应 Git 提交：本次唯一提交，说明含 "team verification failure wording"，可用 `git log --oneline --grep=wording` 查询。

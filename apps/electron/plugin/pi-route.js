@@ -26,6 +26,9 @@ const errors = {
   quota: { code: 'QUOTA', message: '模型服务额度不足' },
   network: { code: 'NETWORK', message: '无法连接模型服务' },
   timeout: { code: 'TIMEOUT', message: 'PI 任务超时' },
+  verification_rejected: { code: 'VERIFICATION_REJECTED', message: '团队独立验证未通过，详见成员验收明细' },
+  verification_incomplete: { code: 'VERIFICATION_INCOMPLETE', message: '独立验证成员未提交验收结论，详见成员验收明细' },
+  tool_error: { code: 'TOOL_ERROR', message: '本地工具执行失败，请查看任务轨迹' },
 };
 const stop = { type: 'finish', reason: { kind: 'stop' } };
 const aborted = { type: 'finish', reason: { kind: 'aborted', failure: { code: 'CANCELLED', message: 'PI 任务已停止' } } };

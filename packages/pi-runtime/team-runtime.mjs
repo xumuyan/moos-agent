@@ -171,11 +171,12 @@ export async function runPiTeam(options, run = runPiSdk) {
       // A bounded public receipt, never member prose/tool content or reasoning.
       // Tool evidence is not semantic proof that an arbitrary user goal is met.
       const outcome = { version: 1, toolsSucceeded, toolsFailed, evidenceCount,
-        code: report ? failedCheck ? 'tool_failure' : !verdict ? 'missing_verdict'
-          : verdict.passed ? 'verified' : 'rejected' : 'member_finished' };
+        code: report ? !verdict ? failedCheck ? 'tool_failure' : 'missing_verdict'
+          : !verdict.passed ? 'rejected' : failedCheck ? 'tool_failure' : 'verified' : 'member_finished' };
       if (report && (!verdict || !verdict.passed || failedCheck)) {
         publish('blocked', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, outcome, reason: verdict?.summary ?? '验证成员未提交验收结论' });
-        throw new TaskFailure('tool_error');
+        throw new TaskFailure(outcome.code === 'rejected' ? 'verification_rejected'
+          : outcome.code === 'missing_verdict' ? 'verification_incomplete' : 'tool_error');
       }
       results.set(node.id, report ? `${actual.text}\n独立验收结论：${verdict.summary}` : actual.text);
       publish('completed', { nodeId: node.id, member: node.role, attemptId: actual.attemptId, outcome });
