@@ -25,6 +25,8 @@ assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).st
 const blockQuit = process.env.MOOS_QA_BLOCK_QUIT === '1';
 const historyReload = process.env.MOOS_QA_HISTORY_RELOAD === '1';
 assert.ok(!historyReload || ['success', 'blocked'].includes(scenario), 'History reload QA requires success or blocked');
+const activeReload = process.env.MOOS_QA_ACTIVE_RELOAD === '1';
+assert.ok(!activeReload || ['stop', 'shell-stop'].includes(scenario), 'Active reload QA requires stop or shell-stop');
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
 const app = join(scratch, 'QA.app');
 execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
@@ -244,6 +246,51 @@ try {
       assert.ok(active.prepare('SELECT payload FROM events WHERE taskId = ? AND type = ?').all(owner.id, 'tool_start').some(row => { const p = JSON.parse(row.payload); return p.member === 'implementer' && p.toolName === 'bash'; }));
       report.checks.actualOwnedShellAndChildRunning = true;
     } finally { active.close(); }
+  }
+  if (activeReload) {
+    if (!shellStop) await until(() => heldRequest, 'held request before active reload');
+    const activeDb = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      const snapshot = () => ({
+        tasks: activeDb.prepare('SELECT id, status, message FROM tasks ORDER BY rowid').all(),
+        events: activeDb.prepare('SELECT id, taskId, type, payload FROM events ORDER BY id').all(),
+      });
+      const before = snapshot(), count = requests.length, pid = child.pid;
+      assert.equal(before.tasks.length, 1);
+      assert.equal(before.tasks[0].status, 'running');
+      const projection = () => evaluate(`(() => {
+        document.querySelectorAll('[data-moos-pi-process], [data-moos-team-node-details]').forEach(el => el.setAttribute('open', ''));
+        return [...document.querySelectorAll('[data-moos-team-progress]')].map(el => el.innerText);
+      })()`);
+      const original = await until(async () => {
+        const current = await projection();
+        return current.length === 1 && current[0].includes('build') && current;
+      }, 'live build node before reload');
+      await call('Page.reload', { ignoreCache: true });
+      await until(() => evaluate(`(() => { const el = [...document.querySelectorAll('*')].find(el => el.children.length === 0 && el.textContent.startsWith('Create answer.txt with 42')); el?.click(); return !!el; })()`), 'active saved conversation after reload');
+      await until(async () => JSON.stringify(await projection()) === JSON.stringify(original), 'identical active team projection');
+      await until(() => evaluate(`!!document.querySelector('button[aria-label="停止生成"]:not(:disabled)')`), 'restored active Stop');
+      assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false);
+      assert.equal(await evaluate(`!!document.querySelector('[data-moos-pi-retry] button')`), false);
+      await sleep(1000);
+      assert.deepEqual(snapshot(), before, 'active reload must not mutate tasks/events');
+      assert.equal(requests.length, count, 'active reload must not duplicate model requests');
+      assert.equal(child.pid, pid); assert.equal(child.exitCode, null);
+      if (!shellStop) assert.equal(heldRequestClosed, false, 'reload must not close active model response');
+      else {
+        for (const pid of shellPids) process.kill(pid, 0);
+        const parent = Number(execFileSync('/bin/ps', ['-p', String(shellPids[1]), '-o', 'ppid='], { encoding: 'utf8' }).trim());
+        assert.equal(parent, shellPids[0], 'original shell and direct child survive reload');
+      }
+      report.checks.activeReloadProjectionAndControls = true;
+      report.checks.activeReloadNoReplayOrEventMutation = true;
+      report.checks.activeReloadOriginalWorkSurvives = true;
+      report.activeReload = { observationMs: 1000, taskCount: before.tasks.length,
+        eventCount: before.events.length, modelRequestsBefore: count, modelRequestsAfter: requests.length,
+        projectionEqual: true, tasksAndEventsEqual: true, appRelaunched: false,
+        work: shellStop ? 'owned-shell-and-direct-sleep' : 'held-implementer-response' };
+      await capture('team-active-reloaded');
+    } finally { activeDb.close(); }
   }
   if (stopping) {
     if (!shellStop) await until(() => heldRequest, 'active implementer model request');

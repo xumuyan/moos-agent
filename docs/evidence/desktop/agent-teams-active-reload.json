@@ -1,0 +1,867 @@
+{
+  "status": "isolated-active-team-renderer-reload-acceptance-not-installed",
+  "recordedAt": "2026-11-16T10:55:04+08:00",
+  "baseCommit": "3850730508ed6416c269278a00c73a99569b7ada",
+  "workspaceState": "precommit QA/tests/docs only; runtime unchanged",
+  "runtimeModified": false,
+  "environment": "arm64 macOS27.0.1(26A434), Node24.15.0; TMPDIR=/private/tmp/; inherited Electron/DSH/MOOS test flags cleaned",
+  "implementation": {
+    "optIn": "MOOS_QA_ACTIVE_RELOAD=1",
+    "allowedScenarios": [
+      "stop",
+      "shell-stop"
+    ],
+    "guardBeforeCopy": true,
+    "method": "same app/Host CDP Page.reload ignoreCache; reopen saved running conversation; exact rendered team text equality",
+    "snapshot": "read-only all tasks id/status/message; all events id/taskId/type/payload, ordered exact equality",
+    "observationMs": 1000,
+    "controls": "ordinary composer, no false retry, enabled Stop; actual Stop cancels original work, then ordinary succeeds",
+    "sourceSha256": {
+      "scripts/verify-electron-team.mjs": "2cb079b6394acb26927241c84c19063302b7d107b6cedfc752fa299e90496255",
+      "scripts/verify-electron-team.test.mjs": "039d1e5b4dab178c898b87e916086878884086e8789965e2e292832a1c1f77d9"
+    }
+  },
+  "acceptance": {
+    "stop": {
+      "path": "artifacts/team-ui/gui-vJpqme/report.json",
+      "sha256": "ed543c2da4421d3dc003f20eabc2836375b434492fc081b67fe2d4a7cb1bfb81",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "activeReloadProjectionAndControls": true,
+          "activeReloadNoReplayOrEventMutation": true,
+          "activeReloadOriginalWorkSurvives": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "activeReload": {
+          "observationMs": 1000,
+          "taskCount": 1,
+          "eventCount": 11,
+          "modelRequestsBefore": 3,
+          "modelRequestsAfter": 3,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false,
+          "work": "held-implementer-response"
+        },
+        "status": "passed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794797298643,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794797298697
+            },
+            {
+              "event": "window-closed",
+              "at": 1794797298701
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794797298703
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797298703
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794797298703
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794797298897
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797298897
+            },
+            {
+              "event": "will-quit",
+              "at": 1794797298897
+            },
+            {
+              "event": "quit",
+              "at": 1794797298897
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 51549,
+                "ppid": 50198,
+                "state": "S"
+              },
+              {
+                "pid": 51571,
+                "ppid": 51549,
+                "state": "R"
+              },
+              {
+                "pid": 51572,
+                "ppid": 51549,
+                "state": "S"
+              },
+              {
+                "pid": 51574,
+                "ppid": 51549,
+                "state": "Ss"
+              },
+              {
+                "pid": 51796,
+                "ppid": 51549,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794797299977,
+          "exitCode": 0
+        }
+      },
+      "command": {
+        "exit": 0,
+        "seconds": 53.44,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "stop"
+        ]
+      },
+      "env": {
+        "MOOS_QA_ACTIVE_RELOAD": "1"
+      }
+    },
+    "shell-stop": {
+      "path": "artifacts/team-ui/gui-RMC3Fl/report.json",
+      "sha256": "3dcc5a84c8ec869210fb8476b41d210864dbf7cf3b460101608af5b850a6dd20",
+      "report": {
+        "scenario": "shell-stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "actualOwnedShellAndChildRunning": true,
+          "activeReloadProjectionAndControls": true,
+          "activeReloadNoReplayOrEventMutation": true,
+          "activeReloadOriginalWorkSurvives": true,
+          "shellAndChildExitedAfterStop": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "noPostStopShellWrite": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "activeReload": {
+          "observationMs": 1000,
+          "taskCount": 1,
+          "eventCount": 13,
+          "modelRequestsBefore": 3,
+          "modelRequestsAfter": 3,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false,
+          "work": "owned-shell-and-direct-sleep"
+        },
+        "status": "passed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794797354332,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794797354373
+            },
+            {
+              "event": "window-closed",
+              "at": 1794797354374
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794797354375
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797354375
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794797354375
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794797354566
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797354566
+            },
+            {
+              "event": "will-quit",
+              "at": 1794797354566
+            },
+            {
+              "event": "quit",
+              "at": 1794797354566
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 54719,
+                "ppid": 53321,
+                "state": "S"
+              },
+              {
+                "pid": 54740,
+                "ppid": 54719,
+                "state": "S"
+              },
+              {
+                "pid": 54741,
+                "ppid": 54719,
+                "state": "S"
+              },
+              {
+                "pid": 54744,
+                "ppid": 54719,
+                "state": "Ss"
+              },
+              {
+                "pid": 54976,
+                "ppid": 54719,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794797354907,
+          "exitCode": 0
+        }
+      },
+      "command": {
+        "exit": 0,
+        "seconds": 50.65,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "shell-stop"
+        ]
+      },
+      "env": {
+        "MOOS_QA_ACTIVE_RELOAD": "1"
+      }
+    }
+  },
+  "preservedFailures": [
+    {
+      "name": "reload-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 40.53,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "stop"
+        ]
+      },
+      "log": "artifacts/team-active-reload/initial/reload-stop.log",
+      "sha256": "22364e8efddfe93c204a1a18dbcfddd5c1622ddaa4079bf391156404caf31b7a",
+      "reportPath": "artifacts/team-ui/gui-uYmi0v/report.json",
+      "reportSha256": "95beffa8244c67addc09ff35d9fdf1e90d86d1e507f340be75b18b26a9dd59e4",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "error": "The expression evaluated to a falsy value:\n\n  assert.ok(original[0].includes('build'))\n"
+      }
+    },
+    {
+      "name": "reload-shell-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 41.22,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "shell-stop"
+        ]
+      },
+      "log": "artifacts/team-active-reload/initial/reload-shell-stop.log",
+      "sha256": "4173c3994e9360a792149154f36c8657e514b856fcb306caa62e693898311546",
+      "reportPath": "artifacts/team-ui/gui-H2jvcZ/report.json",
+      "reportSha256": "897dc1f8bc8a9f903a64472d5997a865b73b7e05146104ef14c6a9bcc33b8603",
+      "report": {
+        "scenario": "shell-stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "actualOwnedShellAndChildRunning": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "error": "The expression evaluated to a falsy value:\n\n  assert.ok(original[0].includes('build'))\n"
+      }
+    },
+    {
+      "name": "core",
+      "command": {
+        "exit": 1,
+        "seconds": 71.92,
+        "command": [
+          "npm",
+          "test"
+        ]
+      },
+      "log": "artifacts/team-active-reload/initial/core.log",
+      "sha256": "32137711adaf02ce2bf59d54ba1d85a328c4919e2dd516f36d3cbfa4f7b9449a",
+      "reason": "existing geometry-drift desktop helper timeout; serial pass is not root-cause repair"
+    },
+    {
+      "name": "reload-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 54.12,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "stop"
+        ]
+      },
+      "log": "artifacts/team-active-reload/second/reload-stop.log",
+      "sha256": "8d622089f4df297a61541e07c400d029d33f2cd72d57aa5cf4708acb37ac98fa",
+      "reportPath": "artifacts/team-ui/gui-lj0aBh/report.json",
+      "reportSha256": "c1a212f2a08e011cdafa646fdd639992090952743c6e946ad9c7bb2f089190eb",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "activeReloadProjectionAndControls": true,
+          "activeReloadNoReplayOrEventMutation": true,
+          "activeReloadOriginalWorkSurvives": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "activeReload": {
+          "observationMs": 1000,
+          "taskCount": 1,
+          "eventCount": 11,
+          "modelRequestsBefore": 3,
+          "modelRequestsAfter": 3,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false,
+          "work": "held-implementer-response"
+        },
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794797034699,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794797034740
+            },
+            {
+              "event": "window-closed",
+              "at": 1794797034741
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794797034742
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797034742
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794797034742
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794797034919
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797034919
+            },
+            {
+              "event": "will-quit",
+              "at": 1794797034919
+            },
+            {
+              "event": "quit",
+              "at": 1794797034919
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 35565,
+                "ppid": 34212,
+                "state": "R"
+              },
+              {
+                "pid": 35580,
+                "ppid": 35565,
+                "state": "R"
+              },
+              {
+                "pid": 35581,
+                "ppid": 35565,
+                "state": "R"
+              },
+              {
+                "pid": 35585,
+                "ppid": 35565,
+                "state": "Rs"
+              },
+              {
+                "pid": 35789,
+                "ppid": 35565,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794797044741,
+          "exitCode": null,
+          "failureAt": 1794797044742,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 35565,
+                "ppid": 34212,
+                "state": "R"
+              },
+              {
+                "pid": 35580,
+                "ppid": 35565,
+                "state": "R"
+              },
+              {
+                "pid": 35581,
+                "ppid": 35565,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    {
+      "name": "reload-shell-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 55.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "shell-stop"
+        ]
+      },
+      "log": "artifacts/team-active-reload/second/reload-shell-stop.log",
+      "sha256": "076c34abce242931bcb28e5e94cafc04f106bd17d24d2092f02b14093c6b802c",
+      "reportPath": "artifacts/team-ui/gui-iVgEu9/report.json",
+      "reportSha256": "e38cc60d287c9eb030d78a5c8088726aec98d7e354e0167183f8f06772ad95a2",
+      "report": {
+        "scenario": "shell-stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "actualOwnedShellAndChildRunning": true,
+          "activeReloadProjectionAndControls": true,
+          "activeReloadNoReplayOrEventMutation": true,
+          "activeReloadOriginalWorkSurvives": true,
+          "shellAndChildExitedAfterStop": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "noPostStopShellWrite": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "activeReload": {
+          "observationMs": 1000,
+          "taskCount": 1,
+          "eventCount": 13,
+          "modelRequestsBefore": 3,
+          "modelRequestsAfter": 3,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false,
+          "work": "owned-shell-and-direct-sleep"
+        },
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794797089828,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794797089866
+            },
+            {
+              "event": "window-closed",
+              "at": 1794797089867
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794797089868
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797089868
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794797089868
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794797090052
+            },
+            {
+              "event": "before-quit",
+              "at": 1794797090052
+            },
+            {
+              "event": "will-quit",
+              "at": 1794797090052
+            },
+            {
+              "event": "quit",
+              "at": 1794797090052
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 38633,
+                "ppid": 37259,
+                "state": "R"
+              },
+              {
+                "pid": 38655,
+                "ppid": 38633,
+                "state": "R"
+              },
+              {
+                "pid": 38656,
+                "ppid": 38633,
+                "state": "R"
+              },
+              {
+                "pid": 38658,
+                "ppid": 38633,
+                "state": "Rs"
+              },
+              {
+                "pid": 38848,
+                "ppid": 38633,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794797099867,
+          "exitCode": null,
+          "failureAt": 1794797099868,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 38633,
+                "ppid": 37259,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    }
+  ],
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 2.25,
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/pi-turn.test.mjs",
+          "apps/electron/client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 6.5,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app"
+        ]
+      },
+      "reload-stop": {
+        "exit": 0,
+        "seconds": 53.44,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "stop"
+        ]
+      },
+      "reload-shell-stop": {
+        "exit": 0,
+        "seconds": 50.65,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "shell-stop"
+        ]
+      },
+      "core": {
+        "exit": 0,
+        "seconds": 154.45,
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 24.71,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 37.45,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.2,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ]
+      }
+    },
+    "counts": {
+      "targeted": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "skipped": 0
+      },
+      "core": {
+        "tests": 284,
+        "pass": 284,
+        "fail": 0,
+        "skipped": 0
+      },
+      "electron": {
+        "tests": 133,
+        "pass": 123,
+        "fail": 0,
+        "skipped": 10
+      },
+      "packaged": {
+        "tests": 133,
+        "pass": 132,
+        "fail": 0,
+        "skipped": 1
+      }
+    },
+    "allRegressionsGreen": false,
+    "blockers": [
+      "offline Rust tauri missing exit101",
+      "reviewed skin materials absent: source 10/package 1 skips"
+    ],
+    "coreNote": "default npm test fails existing helper; unchanged full file inventory --test-concurrency=1 passes; no timeout/guard/package-command changes"
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-unpYE2/沐码.app",
+    "reused": true,
+    "rebuilt": false,
+    "installed": false,
+    "version": "0.1.49",
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 6.5,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app"
+      ]
+    },
+    "sourceArchiveMatches": {
+      "apps/electron/pi-turn.mjs": "268cb8cba9a0cb30ede350720b3a05e51f1cf76f6e34beb23a3e76cc5da0b95f",
+      "packages/pi-runtime/team-runtime.mjs": "528afcc5d6289f6632b111fa038ff07d446aa26422065010e6e9830eef952d71",
+      "apps/electron/plugin/host.js": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+      "apps/electron/plugin/pi-tasks.js": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+      "apps/electron/plugin/pi-route.js": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+      "apps/electron/plugin/client.js": "49b4e34a71436d70edc117be36c6f056146ba5276171d948911ad124f6a22dc8"
+    }
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/team-ui/gui-lj0aBh/team-active-reloaded.png",
+      "sha256": "beae54ee02f229a3460bad69c187bd9e528d3942da386ab3b0806e8e4d9c0eb5",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "running member projection and Stop in viewport; this run failed strict normal quit, not acceptance success"
+    },
+    {
+      "path": "artifacts/team-ui/gui-iVgEu9/team-active-reloaded.png",
+      "sha256": "c459358ce1104e68a754c5c2ebd92099c606782f715db48c7b8000dce1ca6eff",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "running member projection and Stop in viewport; this run failed strict normal quit, not acceptance success"
+    },
+    {
+      "path": "artifacts/team-ui/gui-vJpqme/team-active-reloaded.png",
+      "sha256": "8139e7e97f8a42dd77e968b8d226b39e8fe9df1d4f67d0550ca04ea4bc455ea0",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "final passed run; running member panel and Stop visible"
+    },
+    {
+      "path": "artifacts/team-ui/gui-RMC3Fl/team-active-reloaded.png",
+      "sha256": "71dd4a4c13968d86ebd34dc8c2433a6c1a6a41dbc4bfc4d1fcfb24c37d98e07f",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "final passed run; running member panel and Stop visible"
+    }
+  ],
+  "limits": [
+    "same live app/Host renderer reload only, not cold startup/crash/OS restart/node recovery",
+    "held implementer model response or one owned bash/direct sleep; not arbitrary process topology, desktop operations or N-project isolation",
+    "one-second observation plus identical task/event fields is not permanent replay prevention or exactly-once effects",
+    "hidden copied QA/CDP/local synthetic model, not visible GUI/native-input/external-model acceptance",
+    "queued uploads/steer/attachment refresh and full member side panel remain unverified",
+    "historical QA quit/helper/ps timing roots unresolved; all failed attempts preserved",
+    "file index only historical tool navigation, not current file opening or preview",
+    "P03.14.1–6 remain unchecked"
+  ],
+  "protection": {
+    "productionTouched": false,
+    "productionDataChanged": false,
+    "productionRestarted": false,
+    "desktopGuardsChanged": false,
+    "legacyExecutorsEnabled": false
+  }
+}

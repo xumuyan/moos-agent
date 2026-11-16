@@ -44,3 +44,20 @@ test('history reload opt-in is bounded to settled success/blocked before QA copy
   assert.ok(source.indexOf(guard) < source.indexOf('const scratch ='));
   assert.ok(source.includes('tasksAndEventsEqual: true, appRelaunched: false'));
 });
+
+
+test('active reload opt-in rejects unsupported scenarios before copying QA', async () => {
+  const source = await readFile(new URL('./verify-electron-team.mjs', import.meta.url), 'utf8');
+  const guard = source.match(/assert\.ok\(!activeReload[^\n]+/)[0];
+  const { runInNewContext } = await import('node:vm');
+  for (const scenario of ['stop', 'shell-stop']) assert.doesNotThrow(() => runInNewContext(guard, { assert, activeReload: true, scenario }));
+  for (const scenario of ['success', 'blocked', 'retry', 'attachments', 'stop-retry', 'interrupt-retry']) {
+    assert.throws(() => runInNewContext(guard, { assert, activeReload: true, scenario }), /Active reload QA/);
+    assert.doesNotThrow(() => runInNewContext(guard, { assert, activeReload: false, scenario }));
+  }
+  assert.ok(source.indexOf(guard) < source.indexOf('const scratch ='));
+  for (const check of ['activeReloadProjectionAndControls', 'activeReloadNoReplayOrEventMutation',
+    'activeReloadOriginalWorkSurvives', 'original shell and direct child survive reload',
+    'reload must not close active model response', 'active reload must not mutate tasks/events',
+    'active reload must not duplicate model requests']) assert.ok(source.includes(check));
+});

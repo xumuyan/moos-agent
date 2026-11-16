@@ -319,6 +319,42 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.9 显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_active_team_reload_keeps_original_work_and_stop_without_replay_claim(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-active-reload.json').read_text())
+        self.assertEqual(e['status'], 'isolated-active-team-renderer-reload-acceptance-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        self.assertEqual(e['implementation']['allowedScenarios'], ['stop', 'shell-stop'])
+        self.assertTrue(e['implementation']['guardBeforeCopy'])
+        for path, digest in e['implementation']['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        for name, events in [('stop', 11), ('shell-stop', 13)]:
+            a = e['acceptance'][name]
+            self.assertEqual(a['command']['exit'], 0)
+            self.assertEqual(a['env']['MOOS_QA_ACTIVE_RELOAD'], '1')
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+            r = a['report']
+            self.assertEqual(r['status'], 'passed')
+            self.assertEqual(r['shutdown']['exitCode'], 0)
+            self.assertTrue(all(r['checks'].values()))
+            state = r['activeReload']
+            self.assertEqual(state['observationMs'], 1000)
+            self.assertEqual(state['taskCount'], 1)
+            self.assertEqual(state['eventCount'], events)
+            self.assertEqual(state['modelRequestsBefore'], 3)
+            self.assertEqual(state['modelRequestsAfter'], 3)
+            self.assertTrue(state['tasksAndEventsEqual'])
+            self.assertFalse(state['appRelaunched'])
+        self.assertEqual(len(e['preservedFailures']), 5)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['counts']['core']['pass'], 284)
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        for shot in e['screenshots']:
+            content = (ROOT / shot['path']).read_bytes()
+            self.assertTrue(content.startswith(b'\x89PNG'))
+            self.assertEqual(hashlib.sha256(content).hexdigest(), shot['sha256'])
+        self.assertFalse(e['protection']['productionTouched'])
+        self.assertIn('7.21 执行中团队', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_settled_team_history_reload_does_not_replay_or_claim_cold_recovery(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-history-reload.json').read_text())
         self.assertEqual(e['status'], 'isolated-settled-team-history-reload-acceptance-not-installed')
@@ -327,7 +363,8 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['implementation']['observationMs'], 1000)
         self.assertTrue(e['implementation']['guardBeforeCopy'])
         for path, digest in e['implementation']['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = subprocess.check_output(['git', 'show', '3850730:' + path], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         for name, requests, events in [('success', 9, 37), ('blocked', 8, 33)]:
             item = e['acceptance'][name]
             self.assertEqual(hashlib.sha256((ROOT / item['path']).read_bytes()).hexdigest(), item['sha256'])
