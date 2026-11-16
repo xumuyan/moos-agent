@@ -244,3 +244,8 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 ### 7.24 QA失败后有界清理（2026-11-16，非自然退出根因修复）
 
 2026-11-16 QA失败后清理检查点（仅测试脚本修复、自然退出根因未确认、未安装）：一次隔离Stop再次业务8检查全真但10秒normal QA quit失败，采样命令unavailable；当时系统load345.98/100进程running/CPU无空闲/压缩约7.5GB，仅观测不归因为根因。只读查到四个旧故障注入QA仍存活，旧脚本SIGTERM后等5秒即返回、不核退出/不升级，确认独立清理缺陷。新增cleanupQaChild只接受本次spawn子进程句柄，先写原失败证据后TERM等5秒、仍活KILL再等5秒，记录固定status/termSent/killSent，不把强制清理当正常成功、不覆盖strict exitCode。测试覆盖已经退出/TERM退出/KILL/仍活/异常以及真实忽略TERM子进程ESRCH；专项14/14。历史注入PID逐一以旧report快照及精确QA.app路径核实后清除，遇身份变化停止且保留两次脚本失败，最终12个历史观测PID均不在；不碰正式应用。新实际注入仍exit1/null，后cleanup killSent真且本次观测主/后代PID全ESRCH；普通八场景均正常exit0，这次通过不抹旧退出失败/不称自然退出根因修复。默认核心290/291既有helper超时，完整原清单串行291/291；源码Electron126通过10skip、包内135通过1skip、Rust离线缺tauri exit101，全仓仍未全绿。复用build-QWEhD0严格验签，不重建/安装/runtime不改；历史native证据源码hash按git show d7cf54a核对、旧JSON不改。证据`docs/evidence/desktop/agent-teams-qa-cleanup.json`。仅当前复制QA子进程，非任意后代树/永久隔离/可见GUI/外部模型或生产退出验收；P03.14.1–6不勾，正式应用/真实聊天配置未动。
+
+
+### 7.25 QA关闭请求计时（2026-11-16，非原生退出根因修复）
+
+2026-11-16 QA关闭请求计时检查点（仅验收脚本纠偏、原生退出根因未确认、未安装）：代码审查确认旧算法先等Page.close回复或实际退出，再另等10秒，CDP回复延迟可能延长实际观测窗口。因此历史文案‘严格10秒’不精确：旧exit0要求仍在，但不能把旧结果追认为新截止通过；历史JSON/失败不改。新增waitQaExit先启动10000ms可取消定时器再发关闭请求，CDP ack不能单独算退出或重开窗口，actual exit或截止结束等待，最后仍检查exitCode0；请求错误直接失败，finally撤销定时器，不改Host/main和失败后采样/清理。专项16/16含受控时钟丢失/迟到ack、无退出ack、实际退出、错误及真实自有Node子进程无ack退出。隔离故障注入仍exit1/null，关闭请求后10002ms观察失败、随后自有QA清理KILL；普通8场景7个exit0，中断后重试20项业务检查全真但关闭后10004ms仍exitnull失败，sample仅Mach等待、清理前已自行退出；不复跑刷绿，仅本轮通过，不宣称修复历史自然退出。默认核心292通过/1失败/0取消，共293；完整原清单串行293/293（不当默认修复）；源码Electron126通过10skip、包内135通过1skip、Rust离线exit101缺tauri，全仓未全绿。复用build-QWEhD0验签、未重建/安装、真实数据未动。证据`docs/evidence/desktop/agent-teams-qa-exit-deadline.json`。Node定时器非硬实时，不能据此归因Mach等待或系统负载；P03.14.1–6不勾，正常GUI/外部模型/完整成员界面继续待验。

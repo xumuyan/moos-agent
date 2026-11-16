@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
 import { EventEmitter } from 'node:events';
-import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses, summarizeQaSample, sampleQaProcess, cleanupQaChild } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses, summarizeQaSample, sampleQaProcess, cleanupQaChild, waitQaExit } from './team-qa-shutdown.mjs';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
@@ -155,5 +155,47 @@ test('actual owned SIGTERM-ignoring child is reaped by post-evidence cleanup, no
     assert.deepEqual(result, { status: 'exited-after-cleanup', termSent: true, killSent: true });
     assert.equal(child.exitCode, null); assert.equal(child.signalCode, 'SIGKILL');
     assert.throws(() => process.kill(child.pid, 0), { code: 'ESRCH' });
+  } finally { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); }
+});
+
+test('QA normal-exit deadline is armed before close dispatch, never extended by a late or lost CDP reply', async () => {
+  for (const mode of ['lost-reply', 'late-reply', 'ack-without-exit', 'normal-exit', 'request-error']) {
+    const order = []; let deadline, exit, ack, signal;
+    const closed = new Promise(r => { exit = r; });
+    const reply = new Promise(r => { ack = r; });
+    let done = false;
+    const observed = waitQaExit(closed, () => {
+      order.push('request');
+      if (mode === 'request-error') throw new Error('CDP failed');
+      return reply;
+    }, (ms, s) => {
+      assert.equal(ms, 10000); signal = s; order.push('deadline');
+      return new Promise(r => { deadline = r; });
+    });
+    const settled = observed.then(() => { done = true; }, error => { done = error.message; });
+    await new Promise(r => setImmediate(r));
+    assert.deepEqual(order, ['deadline', 'request']);
+    if (mode === 'request-error') {
+      await settled; assert.equal(done, 'CDP failed');
+    } else if (mode === 'normal-exit') {
+      exit(); await settled; assert.equal(done, true); // lost reply doesn't delay exit
+    } else {
+      if (mode === 'ack-without-exit') { ack(); await new Promise(r => setImmediate(r)); assert.equal(done, false); }
+      deadline(); await settled; assert.equal(done, true);
+      // Reply or actual exit after the original deadline cannot restart observation.
+      ack(); exit(); await new Promise(r => setImmediate(r));
+      assert.deepEqual(order, ['deadline', 'request']);
+    }
+    assert.equal(signal.aborted, true);
+  }
+  await assert.rejects(waitQaExit(null, () => {}), /Invalid QA exit observation/);
+});
+
+test('actual owned child normal exit does not require any CDP acknowledgement', { timeout: 10000 }, async () => {
+  const child = spawn(process.execPath, ['-e', 'setTimeout(()=>{},30)'], { stdio: 'ignore' });
+  const closed = once(child, 'exit');
+  try {
+    await waitQaExit(closed, () => new Promise(() => {}));
+    assert.equal(child.exitCode, 0);
   } finally { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); }
 });

@@ -101,6 +101,22 @@ export async function sampleQaProcess(child, run = promisify(execFile)) {
   }
 }
 
+// Arm the exit deadline before dispatching CDP close. A delayed/missing CDP
+// acknowledgement must never extend the normal-process-exit observation window.
+export async function waitQaExit(closed, requestClose,
+  wait = (ms, signal) => sleep(ms, undefined, { signal })) {
+  if (!closed || typeof closed.then !== 'function' || typeof requestClose !== 'function') {
+    throw new Error('Invalid QA exit observation');
+  }
+  const controller = new AbortController();
+  try {
+    const deadline = wait(10000, controller.signal);
+    await Promise.race([closed, Promise.resolve().then(requestClose).then(() => closed), deadline]);
+  } finally {
+    controller.abort();
+  }
+}
+
 // Post-evidence teardown only, never an application quit-success criterion.
 // Accept the exact spawned child, not PIDs discovered by global enumeration.
 export async function cleanupQaChild(child, closed, wait = sleep) {

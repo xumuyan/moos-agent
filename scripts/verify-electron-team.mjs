@@ -1,6 +1,6 @@
 // Isolated hidden-window renderer/Host/PI acceptance. Not normal desktop-input QA.
 import assert from 'node:assert/strict';
-import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses, sampleQaProcess, cleanupQaChild } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses, sampleQaProcess, cleanupQaChild, waitQaExit } from './team-qa-shutdown.mjs';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
@@ -612,8 +612,8 @@ try {
   // Page.close. A normal child exit is authoritative, not a lost CDP reply.
   report.shutdown = { injectedQuitBlock: blockQuit, requestedAt: Date.now(), events: shutdownEvents,
     beforeClose: await snapshotQaProcesses(child.pid) };
-  await Promise.race([call('Page.close'), closed]);
-  await Promise.race([closed, sleep(10000)]);
+  report.shutdown.closeDispatchedAt = Date.now();
+  await waitQaExit(closed, () => call('Page.close'));
   report.shutdown.observedAt = Date.now();
   report.shutdown.exitCode = child.exitCode;
   assert.equal(child.exitCode, 0, 'normal QA quit');

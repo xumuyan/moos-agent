@@ -9,6 +9,57 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaExitDeadlineTests(unittest.TestCase):
+    def test_close_dispatch_deadline_does_not_wait_for_ack_or_erase_history(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-exit-deadline.json').read_text())
+        self.assertFalse(e['runtimeModified'])
+        i = e['implementation']
+        for path, digest in i['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertEqual((i['deadlineMs'], i['normalExitCode']), (10000, 0))
+        self.assertTrue(i['armedBeforeRequestClose'])
+        self.assertFalse(i['cdpAcknowledgementExtendsDeadline'])
+        self.assertTrue(i['timerCancelledOnSettlement'])
+        self.assertTrue(i['samplingAndCleanupAfterStrictFailure'])
+        self.assertEqual(e['tests']['targeted']['pass'], 16)
+        self.assertEqual(len(e['acceptance']), 9)
+        for n, a in e['acceptance'].items():
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+            r = a['report']
+            self.assertTrue(all(r['checks'].values()))
+            self.assertFalse(r['productionTouched'])
+            self.assertFalse(r['normalGUI'])
+            self.assertFalse(r['externalModel'])
+            self.assertEqual(a['observedElapsedFromCloseDispatchMs'], r['shutdown']['observedAt'] - r['shutdown']['closeDispatchedAt'])
+            if n in ('injected', 'interrupt-retry'):
+                self.assertEqual(a['command']['exit'], 1)
+                self.assertIsNone(r['shutdown']['exitCode'])
+                self.assertIn('normal QA quit', r['error'])
+                if n == 'injected':
+                    self.assertTrue(r['cleanup']['killSent'])
+                else:
+                    self.assertEqual(r['cleanup']['status'], 'already-exited')
+                    self.assertTrue(r['shutdown']['failureSample']['mainThread']['machMessageWait'])
+                    self.assertEqual(len(r['checks']), 20)
+                self.assertGreaterEqual(a['observedElapsedFromCloseDispatchMs'], 10000)
+            else:
+                self.assertEqual((a['command']['exit'], r['shutdown']['exitCode']), (0, 0))
+        for key in ('nativeExitRootCauseConfirmed', 'nativeExitRootCauseRepaired', 'normalStopPassIsRepair', 'overallP0314Complete', 'previousEvidenceInvalidated'):
+            self.assertFalse(e['findings'][key])
+        self.assertTrue(e['findings']['qaDeadlineLoopholeCorrected'])
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['rebuilt'])
+        self.assertTrue(all(v is False for v in e['protection'].values()))
+        for path, digest in e['logs'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('QA关闭请求计时检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.25 QA关闭请求计时', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamQaCleanupTests(unittest.TestCase):
     def test_qa_cleanup_preserves_strict_failure_and_reaps_only_owned_child(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-cleanup.json').read_text())
@@ -16,7 +67,8 @@ class TeamQaCleanupTests(unittest.TestCase):
         self.assertFalse(e['build']['installed'])
         self.assertFalse(e['build']['rebuilt'])
         for path, digest in e['implementation']['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = subprocess.check_output(['git', 'show', '5a5bd67:' + path], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         i = e['implementation']
         self.assertEqual((i['termWaitMs'], i['killWaitMs'], i['normalQuitMs'], i['normalQuitCode']), (5000, 5000, 10000, 0))
         self.assertTrue(i['postEvidenceOnly'])

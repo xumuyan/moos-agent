@@ -18,7 +18,7 @@ test('team renderer acceptance refuses production bundle before creating or laun
   assert.ok(failure.indexOf('failureSample =') < failure.indexOf('cleanupQaChild(child, closed)'));
   assert.ok(failure.indexOf("writeFile(join(scratch, 'report.json')") < failure.indexOf('cleanupQaChild(child, closed)'));
   for (const condition of ['realpath(inputApp)', 'normalGUI: false', 'externalModel: false',
-    'instrumentQaShutdown(main, { blockQuit })', 'parseQaShutdown(line)', 'report.shutdown', 'snapshotQaProcesses(child.pid)', 'failureProcesses', 'failureSample = await sampleQaProcess(child)', 'sleep(10000)',
+    'instrumentQaShutdown(main, { blockQuit })', 'parseQaShutdown(line)', 'report.shutdown', 'snapshotQaProcesses(child.pid)', 'failureProcesses', 'failureSample = await sampleQaProcess(child)', "waitQaExit(closed, () => call('Page.close'))",
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',
@@ -34,7 +34,7 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'shell must belong to this exact copied QA instance',
     'stoppedPartialArtifactNoAutoReplay', 'stoppedTaskHistoryUnchanged',
     'attachmentAdmissionFailureNoTask', 'invalid attachment submission must not reach model',
-    "Promise.race([call('Page.close'), closed])", "assert.equal(child.exitCode, 0"]) assert.ok(source.includes(condition));
+    "assert.equal(child.exitCode, 0"]) assert.ok(source.includes(condition));
 });
 
 test('history reload opt-in is bounded to settled success/blocked before QA copy', async () => {
