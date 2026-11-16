@@ -578,6 +578,57 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.15 跨项目团队停止隔离', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_dual_shell_isolation_preserves_original_other_project_processes(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-dual-shell-isolation.json').read_text())
+        self.assertEqual(e['status'], 'isolated-cross-project-active-shell-survival-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        self.assertEqual(e['case']['modes'], ['team', 'team', 'ordinary'])
+        self.assertEqual(e['case']['statuses'], ['cancelled', 'succeeded', 'succeeded'])
+        for run in e['hostAcceptance'].values():
+            self.assertEqual(run['command']['exit'], 0)
+            self.assertEqual(run['requests'], 12)
+            self.assertEqual(len(run['checks']), 11)
+            self.assertTrue(all(run['checks'].values()))
+            for key in ('bActualOwnedShellAndChildRunning', 'bOriginalProcessesSurviveAStop',
+                        'bToolAndEventsUnaffected', 'bNaturalExitAfterDataRelease'):
+                self.assertTrue(run['checks'][key])
+            self.assertEqual(run['otherProjectActivity'], 'actual bash and direct cat FIFO reader')
+            self.assertEqual(run['postAbortObservationMs'], 1000)
+            for key in ('normalGUI', 'externalModel', 'productionTouched'):
+                self.assertFalse(run[key])
+            self.assertRegex(run['logSha256'], r'^[0-9a-f]{64}$')
+        self.assertFalse(e['hostAcceptance']['source']['packagedRuntime'])
+        self.assertTrue(e['hostAcceptance']['packaged']['packagedRuntime'])
+        self.assertIn('O_WRONLY|O_NONBLOCK', e['case']['release'])
+        self.assertIn('module parse failed', e['scriptFailure']['execution'])
+        self.assertEqual({f['scenario'] for f in e['preservedFailures']},
+                         {'shell-stop', 'stop-retry', 'attachments'})
+        for failure in e['preservedFailures']:
+            self.assertTrue(failure['businessChecksAllTrue'])
+            self.assertEqual(failure['firstCommand']['exit'], 1)
+            self.assertEqual(failure['unchangedSerialRerun']['exit'], 0)
+            self.assertFalse(failure['rootCauseConfirmed'])
+            self.assertFalse(failure['exitGuardChanged'])
+        self.assertEqual(len(e['rendererRegression']), 8)
+        for report in e['rendererRegression'].values():
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertEqual(report['status'], 'passed')
+            self.assertTrue(all(report['checks'].values()))
+        for key in ('sourceMatches', 'clientArchiveSourceMatches', 'reusedExistingCandidate'):
+            self.assertTrue(e['build'][key])
+        for key in ('rebuilt', 'installed', 'includesPiFixture'):
+            self.assertFalse(e['build'][key])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertTrue(all(e['pending'].values()))
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('双项目活跃shell停止隔离检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.16 双项目活跃 shell 停止隔离',
+                      (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

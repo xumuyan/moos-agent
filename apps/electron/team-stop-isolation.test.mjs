@@ -9,12 +9,13 @@ import { fileURLToPath } from 'node:url';
 
 // Run the real Host in a separate Node process: Host runtime/data environment
 // must not leak into other concurrently loaded Electron test files.
-async function verify({ runtime, plugin, data }) {
+async function verify({ runtime, plugin, data, otherShell }) {
   const { default: assert } = await import('node:assert/strict');
   const { randomUUID } = await import('node:crypto');
   const { createServer } = await import('node:http');
   const { execFileSync } = await import('node:child_process');
-  const { mkdir, readFile } = await import('node:fs/promises');
+  const { mkdir, readFile, open } = await import('node:fs/promises');
+  const { constants } = await import('node:fs');
   const { join } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
   const { setTimeout: delay } = await import('node:timers/promises');
@@ -30,6 +31,7 @@ async function verify({ runtime, plugin, data }) {
     for (let i = 0; i < 300; i++) { const value = await check(); if (value) return value; await delay(25); }
     assert.fail(message);
   }
+  if (otherShell) execFileSync('/usr/bin/mkfifo', [join(paths.B, 'release.fifo')]);
   const checks = {}, errors = [], requests = [];
   let heldResponse, heldClosed = false;
   const respond = (res, name, args, content) => {
@@ -75,6 +77,8 @@ async function verify({ runtime, plugin, data }) {
         if (owner === 'A') {
           assert.equal(latest, undefined, 'A shell must not reach another model request after cancellation');
           name = 'bash'; args = { command: `printf 'A_ONLY_42\\n' > answer.txt; printf '%s\\n' "$$" > shell.pid; /bin/sleep 120 & worker=$!; printf '%s\\n' "$worker" > child.pid; wait "$worker"; printf 'UNEXPECTED_LATE_WRITE\\n' > late.txt`, timeout: 150 };
+        } else if (!latest && otherShell) {
+          name = 'bash'; args = { command: `printf '%s\\n' "$$" > shell.pid; /bin/cat release.fifo > release.txt & worker=$!; printf '%s\\n' "$worker" > child.pid; wait "$worker" && test "$(cat release.txt)" = 'RELEASE_B' && printf 'B_ONLY_42\\n' > answer.txt`, timeout: 150 };
         } else if (!latest) {
           assert.equal(heldResponse, undefined, 'only one B model response is held');
           heldResponse = res; res.once('close', () => { heldClosed = true; }); return;
@@ -118,20 +122,29 @@ async function verify({ runtime, plugin, data }) {
       return { controller, done, events };
     }
     const a = start('A', 'team');
-    const pids = await until(async () => {
-      try {
-        const rows = await Promise.all(['shell.pid', 'child.pid'].map(file => readFile(join(paths.A, file), 'utf8').then(Number)));
-        return rows.every(pid => Number.isSafeInteger(pid) && pid > 1) && rows;
-      } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
-    }, 'A actual shell PID files');
-    assert.notEqual(pids[0], pids[1]);
     const parent = pid => Number(execFileSync('/bin/ps', ['-p', String(pid), '-o', 'ppid='], { encoding: 'utf8' }).trim());
-    assert.equal(parent(pids[1]), pids[0], 'sleep is a direct child of actual A shell');
-    let ancestor = pids[0]; const seen = new Set();
-    while (ancestor !== process.pid && ancestor > 1 && !seen.has(ancestor)) { seen.add(ancestor); ancestor = parent(ancestor); }
-    assert.equal(ancestor, process.pid, 'shell belongs to this exact isolated Host process');
+    async function ownedPids(owner) {
+      const pids = await until(async () => {
+        try {
+          const rows = await Promise.all(['shell.pid', 'child.pid'].map(file => readFile(join(paths[owner], file), 'utf8').then(Number)));
+          return rows.every(pid => Number.isSafeInteger(pid) && pid > 1) && rows;
+        } catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+      }, owner + ' actual shell PID files');
+      assert.notEqual(pids[0], pids[1]);
+      assert.equal(parent(pids[1]), pids[0], owner + ' direct child of actual shell');
+      let ancestor = pids[0]; const seen = new Set();
+      while (ancestor !== process.pid && ancestor > 1 && !seen.has(ancestor)) { seen.add(ancestor); ancestor = parent(ancestor); }
+      assert.equal(ancestor, process.pid, owner + ' shell belongs to this exact isolated Host process');
+      return pids;
+    }
+    const pids = await ownedPids('A');
     const b = start('B', 'team');
-    await until(() => heldResponse, 'B active implementer model request');
+    const betaPids = otherShell ? await ownedPids('B') : undefined;
+    if (!otherShell) await until(() => heldResponse, 'B active implementer model request');
+    if (otherShell) {
+      assert.equal(new Set([...pids, ...betaPids]).size, 4, 'separate real tool processes');
+      checks.bActualOwnedShellAndChildRunning = true;
+    }
     const tasks = store.listTasks(); assert.equal(tasks.length, 2);
     const alpha = tasks.find(task => task.message.includes('PROJECT_A'));
     const beta = tasks.find(task => task.message.includes('PROJECT_B'));
@@ -142,6 +155,7 @@ async function verify({ runtime, plugin, data }) {
     assert.equal(store.getProject(beta.projectId).path, paths.B);
     assert.ok(tasks.every(task => task.status === 'running'));
     assert.ok(store.listEvents(alpha.id).some(event => event.type === 'tool_start' && event.payload.member === 'implementer' && event.payload.toolName === 'bash'));
+    if (otherShell) assert.ok(store.listEvents(beta.id).some(event => event.type === 'tool_start' && event.payload.member === 'implementer' && event.payload.toolName === 'bash'));
     checks.bothProjectsActuallyRunning = true;
     checks.actualOwnedShellAndChild = true;
     const betaBefore = store.listEvents(beta.id);
@@ -154,16 +168,25 @@ async function verify({ runtime, plugin, data }) {
     }, 'A actual shell and child exited');
     checks.onlyAProcessesExitAfterAbort = true;
     await delay(1000);
-    assert.equal(heldClosed, false, 'A abort must not close B live model response');
+    if (otherShell) {
+      for (const pid of betaPids) process.kill(pid, 0);
+      assert.equal(parent(betaPids[1]), betaPids[0], 'B original direct child survives A cancellation');
+      checks.bOriginalProcessesSurviveAStop = true;
+    } else assert.equal(heldClosed, false, 'A abort must not close B live model response');
     assert.equal(b.controller.signal.aborted, false);
     assert.equal(store.getTask(beta.id).status, 'running');
     assert.deepEqual(store.listEvents(beta.id), betaBefore, 'A cancellation must not append or mutate B events');
     await assert.rejects(readFile(join(paths.A, 'late.txt')), { code: 'ENOENT' });
     await assert.rejects(readFile(join(paths.B, 'answer.txt')), { code: 'ENOENT' });
-    checks.bConnectionAndEventsUnaffected = true;
+    checks[otherShell ? 'bToolAndEventsUnaffected' : 'bConnectionAndEventsUnaffected'] = true;
     const aFrozen = store.listEvents(alpha.id);
     assert.ok(!aFrozen.some(event => event.payload.member === 'verifier' || event.type === 'team_state' && event.payload.phase === 'summarizing'));
-    respond(heldResponse, 'write', { path: 'answer.txt', content: 'B_ONLY_42\n' });
+    if (otherShell) {
+      // Nonblocking open fails promptly if the original FIFO reader disappeared.
+      // Send data only: never signal/kill either B tool process to complete it.
+      const fifo = await open(join(paths.B, 'release.fifo'), constants.O_WRONLY | constants.O_NONBLOCK);
+      try { await fifo.writeFile('RELEASE_B\n'); } finally { await fifo.close(); }
+    } else respond(heldResponse, 'write', { path: 'answer.txt', content: 'B_ONLY_42\n' });
     const bEvents = await b.done;
     assert.equal(bEvents.at(-1).reason.kind, 'stop');
     assert.ok(bEvents.some(event => event.text?.includes('PROJECT_B_DELIVERED')));
@@ -173,13 +196,20 @@ async function verify({ runtime, plugin, data }) {
     assert.equal(await readFile(join(paths.B, 'answer.txt'), 'utf8'), 'B_ONLY_42\n');
     await assert.rejects(readFile(join(paths.A, 'late.txt')), { code: 'ENOENT' });
     const betaEvents = store.listEvents(beta.id);
-    for (const [member, toolName] of [['implementer', 'write'], ['verifier', 'read']]) {
+    for (const [member, toolName] of [['implementer', otherShell ? 'bash' : 'write'], ['verifier', 'read']]) {
       assert.ok(betaEvents.some(event => event.type === 'tool_end' && event.payload.member === member && event.payload.toolName === toolName && event.payload.isError === false));
     }
     assert.ok(betaEvents.some(event => event.type === 'team_state' && event.payload.phase === 'completed' && event.payload.outcome?.code === 'verified'));
     for (const task of [alpha, beta]) for (const event of store.listEvents(task.id)) {
       assert.equal(event.taskId, task.id); assert.equal(event.projectId, task.projectId); assert.equal(event.conversationId, task.conversationId);
       if (event.payload.teamId) assert.equal(event.payload.teamId, task.id);
+    }
+    if (otherShell) {
+      assert.equal(await readFile(join(paths.B, 'release.txt'), 'utf8'), 'RELEASE_B\n');
+      for (const pid of betaPids) await until(() => {
+        try { process.kill(pid, 0); return false; } catch (error) { if (error.code === 'ESRCH') return true; throw error; }
+      }, 'B original processes exited naturally after FIFO release');
+      checks.bNaturalExitAfterDataRelease = true;
     }
     checks.bIndependentVerificationAndDelivery = true;
     checks.separateArtifactsAndEventOwnership = true;
@@ -193,6 +223,7 @@ async function verify({ runtime, plugin, data }) {
     assert.deepEqual(saved.map(task => store.lastTaskEvent(task.id, 'task_submission').mode), ['team', 'team', 'ordinary']);
     return { scope: 'actual Host.apply -> PI adapter -> Scheduler -> real SDK; isolated synthetic data/model; no renderer or installed application',
       checks, requests: requests.length, statuses: saved.map(task => task.status), modes: ['team', 'team', 'ordinary'],
+      otherProjectActivity: otherShell ? 'actual bash and direct cat FIFO reader' : 'held model response',
       postAbortObservationMs: 1000, childSleepSeconds: 120, normalGUI: false, externalModel: false, productionTouched: false };
   } finally {
     controllers.forEach(controller => controller.abort());
@@ -201,7 +232,7 @@ async function verify({ runtime, plugin, data }) {
   }
 }
 
-test('stopping a real team shell leaves another project model request and independent delivery intact', { timeout: 45000 }, async t => {
+for (const otherShell of [false, true]) test(`stopping a real team shell leaves another project ${otherShell ? 'actual shell and direct child' : 'model request'} and independent delivery intact`, { timeout: 45000 }, async t => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'muma-team-stop-isolation-')));
   t.after(() => rm(root, { recursive: true, force: true }));
   const repo = fileURLToPath(new URL('../../', import.meta.url));
@@ -216,10 +247,10 @@ test('stopping a real team shell leaves another project model request and indepe
   const data = join(root, 'profile'); await mkdir(join(data, 'workspace'), { recursive: true });
   const env = { ...process.env, MOOS_ELECTRON_PI_RUNTIME: runtime, MOOS_ELECTRON_WORKSPACE_ROOT: join(data, 'workspace') };
   for (const key of ['MOOS_ELECTRON_PI_FIXTURE_MODE', 'MOOS_DESKTOP_HELPER', 'NODE_OPTIONS', 'NODE_PATH', 'ELECTRON_RUN_AS_NODE']) delete env[key];
-  const script = `const result = await (${verify.toString()})(${JSON.stringify({ runtime, plugin, data })}); console.log('TEAM_STOP_ISOLATION_RESULT ' + JSON.stringify(result));`;
+  const script = `const result = await (${verify.toString()})(${JSON.stringify({ runtime, plugin, data, otherShell })}); console.log('TEAM_STOP_ISOLATION_RESULT ' + JSON.stringify(result));`;
   const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '-e', script], { env, timeout: 40000 });
   const result = JSON.parse(stdout.split('\n').find(line => line.startsWith('TEAM_STOP_ISOLATION_RESULT ')).slice('TEAM_STOP_ISOLATION_RESULT '.length));
   assert.ok(Object.values(result.checks).every(value => value === true));
-  assert.equal(Object.keys(result.checks).length, 8);
+  assert.equal(Object.keys(result.checks).length, otherShell ? 11 : 8);
   t.diagnostic('TEAM_STOP_ISOLATION_RESULT ' + JSON.stringify({ ...result, packagedRuntime: Boolean(resources) }));
 });
