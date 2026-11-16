@@ -584,3 +584,26 @@ test('member details show structured receipts and blockers without inventing pro
   assert.match(harness.source, /\[data-moos-team-progress\] li \{ display: grid; grid-template-columns: minmax\(0, 1fr\)/);
   assert.equal(harness.effects.at(-1).dependencies[2], false);
 });
+
+test('member file button locates only an existing action in its own process card', async () => {
+  const harness = await loadClient({ moosTurn: async () => ({ status: 'succeeded', actions: [], team: {
+    phase: 'succeeded', nodes: [{ id: 'build', role: 'implementer', state: 'completed', dependsOn: [],
+      files: [{ path: 'answer.txt', actionIndex: 2 }], filesLimited: true }] } }) });
+  harness.render({ sessionId: 'files', startSeq: 1, live: false });
+  harness.effects.splice(0).forEach(effect => effect.callback()); await flush();
+  const tree = harness.render({ sessionId: 'files', startSeq: 1, live: false });
+  const walk = node => !node || typeof node !== 'object' ? [] : [node, ...(Array.isArray(node) ? node : node.children ?? []).flatMap(walk)];
+  const button = walk(tree).find(node => node.props?.['data-moos-team-file'] === 'answer.txt');
+  assert.ok(button); let scrolled = 0, focused = 0;
+  button.props.onClick({ currentTarget: { closest(selector) {
+    assert.equal(selector, '[data-moos-pi-process]'); return { querySelector(target) {
+      assert.equal(target, '[data-moos-action-index="2"]'); return {
+        scrollIntoView() { scrolled++; }, focus(options) { assert.equal(options.preventScroll, true); focused++; } };
+    } };
+  } } });
+  assert.equal(scrolled, 1); assert.equal(focused, 1);
+  button.props.onClick({ currentTarget: { closest: () => null } });
+  const text = JSON.stringify(tree);
+  assert.match(text, /不代表当前文件仍存在或验收通过/); assert.match(text, /文件索引展示已达上限/);
+  assert.doesNotMatch(text, /file:\/\/|href|private contents/);
+});

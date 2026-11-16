@@ -463,3 +463,102 @@ test('node result details require correlated terminal receipts and expose bounde
   assert.equal(nodes[1].waitingOn, undefined);
   assert.deepEqual(nodes[2].waitingOn, ['check']); assert.deepEqual(nodes[3].waitingOn, ['check']);
 });
+
+test('member file index requires unique ordered successful tool endpoints inside the owned attempt', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-files-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'private goal' });
+  store.setSetting('dsh-session:files', conversation.id); store.setSetting('dsh-turn:files:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  const attemptId = '00000000-0000-0000-0000-000000000001';
+  const own = { teamId: task.id, member: 'implementer', attemptId };
+  const state = phase => store.appendEvent(task.id, 'team_state', { ...own, nodeId: 'build', phase });
+  store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planned', tasks: [
+    { id: 'build', role: 'implementer', dependsOn: [] }, { id: 'check', role: 'verifier', dependsOn: ['build'] }] });
+  function tool(id, path, extra = {}, name = 'write', endExtra = {}) {
+    const start = { ...own, toolCallId: id, toolName: name, args: { path, content: 'private contents' }, ...extra };
+    const end = { ...own, toolCallId: id, toolName: name, isError: false, result: { private: 'private output' }, ...extra, ...endExtra };
+    store.appendEvent(task.id, 'tool_start', start); store.appendEvent(task.id, 'tool_end', end);
+    return { start, end };
+  }
+  tool('early', 'early.txt'); state('running');
+  tool('ok', join(root, 'answer.txt'));
+  tool('edit', './answer.txt', {}, 'edit');
+  tool('outside', '../secret'); tool('absolute', '/private/secret'); tool('control', 'bad\nname');
+  tool('cache', 'node_modules/private.js'); tool('foreign', 'foreign.txt', { teamId: 'other' });
+  tool('stale', 'stale.txt', { attemptId: '00000000-0000-0000-0000-000000000002' });
+  tool('role', 'role.txt', { member: 'verifier' });
+  tool('failed', 'failed.txt', {}, 'write', { isError: true });
+  tool('nested-error', 'error.txt', {}, 'write', { result: { isError: true } });
+  tool('name', 'mismatch.txt', {}, 'write', { toolName: 'read' });
+  tool('read', 'read.txt', {}, 'read'); tool('bash', 'bash.txt', {}, 'bash');
+  const duplicate = tool('duplicate', 'duplicate.txt'); store.appendEvent(task.id, 'tool_end', duplicate.end);
+  store.appendEvent(task.id, 'tool_end', { ...own, toolCallId: 'reversed', toolName: 'write', isError: false });
+  store.appendEvent(task.id, 'tool_start', { ...own, toolCallId: 'reversed', toolName: 'write', args: { path: 'reversed.txt' } });
+  const files = () => reader.read('files', 1).team.nodes[0];
+  assert.deepEqual(files().files.map(file => file.path), ['answer.txt']);
+  const action = reader.read('files', 1).actions[files().files[0].actionIndex];
+  assert.equal(action.path, 'answer.txt'); assert.equal(action.state, 'done');
+  state('done'); state('completed'); tool('late', 'late.txt');
+  assert.deepEqual(files().files.map(file => file.path), ['answer.txt']);
+  assert.doesNotMatch(JSON.stringify(reader.read('files', 1).team), /private|attemptId|toolCallId/);
+  // No file I/O: this is an event index, not an arbitrary read or existence claim.
+  assert.equal(files().filesLimited, false);
+  for (let i = 0; i < 131; i++) store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planning' });
+  assert.equal(files().filesLimited, true);
+});
+
+
+test('member file index has a twelve-path cap and exposes truncated event coverage', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-file-cap-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'synthetic' });
+  store.setSetting('dsh-session:cap', conversation.id); store.setSetting('dsh-turn:cap:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planned', tasks: [
+    { id: 'build', role: 'implementer', dependsOn: [] }] });
+  const own = { teamId: task.id, member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' };
+  store.appendEvent(task.id, 'team_state', { ...own, nodeId: 'build', phase: 'running' });
+  for (let i = 0; i < 13; i++) {
+    const tool = { ...own, toolCallId: 'write-' + i, toolName: 'write' };
+    store.appendEvent(task.id, 'tool_start', { ...tool, args: { path: i + '.txt' } });
+    store.appendEvent(task.id, 'tool_end', { ...tool, isError: false });
+  }
+  const node = () => reader.read('cap', 1).team.nodes[0];
+  assert.equal(node().files.length, 12); assert.equal(node().filesLimited, true);
+  for (let i = 0; i < 400; i++) store.appendEvent(task.id, 'tool_start', { toolCallId: 'extra-' + i });
+  assert.equal(node().files.length, 12); assert.equal(node().filesLimited, true);
+});
+
+test('same-role nodes keep separate file indexes even when PI role history is shared', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-node-files-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'synthetic' });
+  store.setSetting('dsh-session:nodes', conversation.id); store.setSetting('dsh-turn:nodes:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planned', tasks: [
+    { id: 'first', role: 'implementer', dependsOn: [] }, { id: 'second', role: 'implementer', dependsOn: ['first'] }] });
+  for (const [index, nodeId] of ['first', 'second'].entries()) {
+    const own = { teamId: task.id, member: 'implementer', attemptId: '00000000-0000-0000-0000-00000000000' + (index + 1) };
+    store.appendEvent(task.id, 'team_state', { ...own, nodeId, phase: 'running' });
+    const tool = { ...own, toolCallId: nodeId, toolName: 'write' };
+    store.appendEvent(task.id, 'tool_start', { ...tool, args: { path: nodeId + '.txt' } });
+    store.appendEvent(task.id, 'tool_end', { ...tool, isError: false });
+    store.appendEvent(task.id, 'team_state', { ...own, nodeId, phase: 'done' });
+    store.appendEvent(task.id, 'team_state', { ...own, nodeId, phase: 'completed' });
+  }
+  const projected = reader.read('nodes', 1).team.nodes;
+  assert.deepEqual(projected.map(node => node.files.map(file => file.path)), [['first.txt'], ['second.txt']]);
+  const other = store.createConversation(project.id); store.setSetting('dsh-session:other', other.id);
+  store.setSetting('dsh-turn:other:1', task.id);
+  assert.equal(reader.read('other', 1), null, 'index cannot bypass conversation ownership');
+});

@@ -375,6 +375,17 @@ window.__ModuleLoader__.load({
         createElement('p', null, '成员：', teamRoles[node.role], '；状态：', teamPhases[node.state] ?? '状态未知'),
         node.dependsOn.length ? createElement('p', null, '依赖节点：', node.dependsOn.join('、')) : null,
         node.waitingOn?.length ? createElement('p', { 'data-moos-team-blocker': '' }, '未执行：依赖验收阻塞于 ', node.waitingOn.join('、')) : null,
+        createElement('div', { 'data-moos-team-files': '' },
+          createElement('p', null, '已记录文件写入（不代表当前文件仍存在或验收通过）'),
+          node.files?.length ? createElement('ul', null, node.files.map(file => createElement('li', { key: file.path },
+            createElement('button', { type: 'button', 'data-moos-team-file': file.path,
+              onClick: event => {
+                const row = event.currentTarget.closest('[data-moos-pi-process]')
+                  ?.querySelector('[data-moos-action-index="' + file.actionIndex + '"]');
+                row?.scrollIntoView({ block: 'nearest' }); row?.focus({ preventScroll: true });
+              } }, file.path, ' · 定位工具记录'))))
+            : createElement('p', null, '暂无可关联的成功 write/edit 记录；命令产物不在此推断。'),
+          node.filesLimited ? createElement('small', null, '文件索引展示已达上限，可能不完整。') : null),
         outcome && teamOutcomes[outcome.code]
           ? createElement('div', { 'data-moos-team-outcome': outcome.code },
             createElement('p', null, teamOutcomes[outcome.code]),
@@ -435,7 +446,7 @@ window.__ModuleLoader__.load({
         data.shots?.length ? createElement('div', { 'data-moos-desktop-shots': '' },
           data.shots.map(shot => createElement(DesktopShot, { key: shot.id, sessionId, shot }))) : null,
         createElement('ul', null, data.actions.map((action, index) =>
-          createElement('li', { key: index },
+          createElement('li', { key: index, 'data-moos-action-index': index, tabIndex: -1 },
             createElement('span', null, action.label),
             action.path || action.command ? createElement('span', { className: 'moos-action-subject' }, action.path || action.command) : null,
             createElement('small', null, actionStates[action.state])))),
@@ -650,6 +661,9 @@ window.__ModuleLoader__.load({
         [data-moos-team-node-details] summary { font-weight: 600; }
         [data-moos-team-node-details] p { margin: 6px 0; }
         [data-moos-team-node-details] small { display: block; }
+        [data-moos-team-files] button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: start; color: inherit; font: inherit; cursor: pointer; }
+        [data-moos-action-index]:focus { outline: 2px solid currentColor; outline-offset: 2px; }
+
         .moos-action-subject { min-width: 0; overflow-wrap: anywhere; }
         [data-turn-tail]:has([data-changed-files]) [data-moos-file-fallback] { display: none; }
         [data-chat-flow-kind="assistant-step"] :is(.md-code-block, pre) { display: none; }

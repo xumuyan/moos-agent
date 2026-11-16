@@ -17,7 +17,7 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',
-    'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
+    'memberFileIndexNavigation', 'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
     'actualUploadsAndQueueAdmission', 'uploadBytesAndCaptainMemberReads', 'queuedModeImmutableAfterFutureSelection',
     'abruptOwnedQAFaultAndColdRunning', 'restartMarksInterruptedWithoutReplay', 'restartPreservesEventPrefixAndArtifact', 'uniquely bind copied QA Host before fault',
     'abrupt fault leaves nonterminal task for startup reconciliation', 'startup preserves prior event prefix',

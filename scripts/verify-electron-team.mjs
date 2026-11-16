@@ -318,7 +318,7 @@ try {
   if (successful) await until(() => evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), 'team delivery');
   await until(() => evaluate(`[...document.querySelectorAll('[data-moos-team-progress]')].some(el => el.textContent.includes(${JSON.stringify(terminalLabel)}))`), 'terminal team progress');
   if (!successful) assert.equal(await evaluate(`document.body.innerText.includes('TEAM_GUI_DELIVERED_42')`), false);
-  const nodeText = await evaluate(`[...document.querySelectorAll('[data-moos-team-progress] li')].map(el => el.textContent)`);
+  const nodeText = await evaluate(`[...document.querySelectorAll('[data-moos-team-progress] > ul > li')].map(el => el.textContent)`);
   if (successful) assert.equal(nodeText.filter(text => text.includes('节点已完成')).length, 2);
   if (['blocked', 'retry'].includes(scenario)) assert.ok(nodeText.some(text => text.includes('check') && text.includes('验收阻塞')));
   report.checks.nodeProjection = true;
@@ -344,6 +344,30 @@ try {
     })()`);
     assert.ok(Object.values(layout).every(Boolean), 'readable team panel layout: ' + JSON.stringify(layout));
     report.checks.readableMemberLayout = true;
+    const fileIndex = await evaluate(`(() => {
+      const panel = [...document.querySelectorAll('[data-moos-team-node-details="build"]')].at(-1);
+      if (${retrying && code === 'verified'}) return !panel?.querySelector('[data-moos-team-file]')
+        && panel?.innerText.includes('暂无可关联的成功 write/edit 记录');
+      const button = panel?.querySelector('[data-moos-team-file="answer.txt"]');
+      if (!button) return false;
+      button.click();
+      const row = document.activeElement;
+      return row?.hasAttribute('data-moos-action-index')
+        && row.closest('[data-moos-pi-process]') === panel.closest('[data-moos-pi-process]')
+        && row.innerText.includes('answer.txt') && row.innerText.includes('已完成');
+    })()`);
+    assert.equal(fileIndex, true, 'member file button focuses its own successful write action');
+    report.checks[retrying && code === 'verified' ? 'retriedReadOnlyMemberHasNoInventedFiles' : 'memberFileIndexNavigation'] = true;
+    // Dedicated panel image: the navigation screenshot may scroll its heading offscreen.
+    if (scenario === 'success') {
+      const clip = await evaluate(`(() => {
+        const panel = [...document.querySelectorAll('[data-moos-team-progress]')].at(-1);
+        panel.scrollIntoView({ block: 'start' });
+        const b = panel.getBoundingClientRect();
+        return { x: b.x + scrollX, y: b.y + scrollY, width: b.width, height: b.height, scale: 1 };
+      })()`);
+      await writeFile(join(scratch, 'team-file-panel.png'), Buffer.from((await call('Page.captureScreenshot', { clip, captureBeyondViewport: true })).data, 'base64'));
+    }
     report.checks.structuredMemberDetails = true;
   }
   if (!partial) await checkDetails(successful ? 'verified' : 'rejected');

@@ -318,6 +318,61 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.9 显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_member_file_index_is_owned_event_navigation_not_arbitrary_file_access(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-files.json').read_text())
+        self.assertEqual(e['status'], 'isolated-member-file-event-index-candidate-not-installed')
+        self.assertEqual(e['implementation']['toolNames'], ['write', 'edit'])
+        self.assertEqual(e['implementation']['maxPathsPerNode'], 12)
+        self.assertEqual(e['implementation']['maxToolEvents'], 400)
+        self.assertEqual(e['implementation']['maxTeamStates'], 128)
+        self.assertTrue(e['runtimeModified'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['runtime']['includesPiFixture'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertTrue(e['build']['sourceArchiveMatched'])
+        self.assertEqual(e['regression']['counts']['targeted']['pass'], 24)
+        self.assertEqual(e['regression']['counts']['core']['pass'], 282)
+        self.assertEqual(e['regression']['counts']['electron']['pass'], 123)
+        self.assertEqual(e['regression']['counts']['packaged']['pass'], 132)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertTrue(e['acceptance']['success']['checks']['memberFileIndexNavigation'])
+        for name in ['retry', 'stop-retry', 'interrupt-retry']:
+            self.assertTrue(e['acceptance'][name]['checks']['retriedReadOnlyMemberHasNoInventedFiles'])
+        self.assertEqual(len(e['acceptance']), 8)
+        for report in e['acceptance'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['shutdown']['exitCode'], 0)
+            self.assertFalse(report['productionTouched'])
+            self.assertFalse(report['normalGUI'])
+            self.assertFalse(report['externalModel'])
+            path = ROOT / report['path']
+            self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), report['sha256'])
+        self.assertEqual(len(e['preservedFailures']), 6)
+        self.assertEqual(sum(item['name'] == 'core' for item in e['preservedFailures']), 2)
+        for item in e['preservedFailures']:
+            self.assertEqual(item['command']['exit'], 1)
+            self.assertFalse(item['rootCauseConfirmed'])
+            self.assertFalse(item['guardChanged'])
+            self.assertEqual(hashlib.sha256((ROOT / item['log']).read_bytes()).hexdigest(), item['sha256'])
+        for path, digest in e['implementation']['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        for item in e['screenshots'].values():
+            self.assertEqual(item['encoding'], 'PNG')
+            self.assertTrue(item['visuallyReviewed'])
+            self.assertTrue((ROOT / item['path']).read_bytes().startswith(b'\x89PNG'))
+        source = (ROOT / 'apps/electron/plugin/client.js').read_text()
+        self.assertIn('data-moos-team-file', source)
+        self.assertIn('不代表当前文件仍存在或验收通过', source)
+        self.assertIn('命令产物不在此推断', source)
+        self.assertIn("closest('[data-moos-pi-process]')", source)
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('成员文件索引检查点', plan)
+        for number in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{number}', plan)
+        for value in e['protection'].values():
+            self.assertFalse(value)
+
     def test_team_member_details_are_structured_and_keep_unverified_gates_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-details.json').read_text())
         self.assertEqual(e['status'], 'isolated-member-details-candidate-not-installed')

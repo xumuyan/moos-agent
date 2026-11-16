@@ -90,12 +90,16 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
       // Select only presentation inputs. Source code and tool output never
       // enter the read model or the workbench IPC response.
       const events = db.prepare(`
-        SELECT type,
+        SELECT events.id AS eventId, type,
           json_extract(payload, '$.toolCallId') AS id,
           json_extract(payload, '$.toolName') AS name,
           substr(json_extract(payload, '$.args.path'), 1, 2049) AS path,
           substr(json_extract(payload, '$.args.command'), 1, 4096) AS command,
-          json_extract(payload, '$.isError') AS failed
+          json_extract(payload, '$.isError') AS failed,
+          json_extract(payload, '$.result.isError') AS resultFailed,
+          json_extract(payload, '$.teamId') AS teamId,
+          json_extract(payload, '$.member') AS member,
+          json_extract(payload, '$.attemptId') AS attemptId
         FROM events WHERE taskId = ? AND type IN ('tool_start', 'tool_end')
         ORDER BY events.id LIMIT 401
       `).all(task.id);
@@ -150,12 +154,13 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
         ? { phase: desktopEvent.phase, label: desktopEvent.label, queueAhead: desktopEvent.queueAhead }
         : undefined;
       // Only finite enums, IDs and DAG edges cross IPC. User goals, raw
-      // member output, model verdict prose and arbitrary paths never do.
+      // member output and model verdict prose never do. Member file records below
+      // expose only workspace-relative paths already admitted to action presentation.
       const submission = db.prepare(`SELECT json_extract(payload, '$.mode') AS mode
         FROM events WHERE taskId = ? AND type = 'task_submission' ORDER BY id DESC LIMIT 1`).get(task.id);
       let team;
       if (submission?.mode === 'team') {
-        const states = db.prepare(`SELECT payload FROM events
+        const states = db.prepare(`SELECT id AS eventId, payload FROM events
           WHERE taskId = ? AND type = 'team_state' ORDER BY id LIMIT 129`).all(task.id);
         const nodes = new Map(), attempts = new Map();
         const phases = new Set(['planning', 'planned', 'queued', 'running', 'done', 'blocked', 'completed', 'summarizing', 'succeeded', 'failed']);
@@ -176,13 +181,14 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
               // a new parent task. Never replace an accepted attempt in-place.
               if (attempt || typeof state.attemptId !== 'string' || state.attemptId.length !== 36
                 || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(state.attemptId)) continue;
-              attempts.set(node.id, { id: state.attemptId, done: false });
+              attempts.set(node.id, { id: state.attemptId, done: false, start: row.eventId });
               node.state = 'running';
             } else if (['done', 'completed', 'blocked'].includes(state.phase)) {
               if (!attempt || attempt.id !== state.attemptId || node.state !== 'running') continue;
               if (state.phase === 'done') {
                 if (attempt.done) continue;
                 attempt.done = true;
+                attempt.end = row.eventId;
               } else {
                 if (!attempt.done) continue;
                 node.state = state.phase;
@@ -221,6 +227,33 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
           if (node.state !== 'queued') continue;
           const ancestors = [...new Set(node.dependsOn.flatMap(id => blockedBy.get(id) ?? []))];
           if (ancestors.length) blockedBy.set(node.id, ancestors);
+        }
+        // Historical write/edit records, not current file existence or model claims.
+        // Correlate both endpoints inside the accepted attempt's event interval.
+        const starts = new Map(), ends = new Map();
+        const actionIndices = new Map([...actions.keys()].map((key, index) => [key, index]));
+        for (const event of events.slice(0, 400)) {
+          const target = event.type === 'tool_start' ? starts : ends;
+          const rows = target.get(event.id) ?? []; rows.push(event); target.set(event.id, rows);
+        }
+        for (const node of nodes.values()) {
+          const attempt = attempts.get(node.id), paths = new Map();
+          for (const [toolId, rows] of starts) {
+            const endRows = ends.get(toolId) ?? [];
+            if (!attempt || rows.length !== 1 || endRows.length !== 1) continue;
+            const [start] = rows, [end] = endRows;
+            if (![start, end].every(event => event.teamId === task.id && event.member === node.role
+              && event.attemptId === attempt.id) || start.eventId <= attempt.start || end.eventId <= start.eventId
+              || attempt.end !== undefined && end.eventId >= attempt.end
+              || !['write', 'edit'].includes(start.name) || end.name !== start.name
+              || end.failed !== 0 || end.resultFailed) continue;
+            const path = workspacePath(task.path, start.path);
+            if (!path || path === '.' || !isWorkspaceChangeVisible(path)) continue;
+            const actionIndex = actionIndices.get(toolId);
+            if (actionIndex !== undefined) paths.set(path, { path, actionIndex });
+          }
+          node.files = [...paths.values()].slice(0, 12);
+          node.filesLimited = paths.size > 12 || events.length > 400 || states.length > 128;
         }
         team = { phase, member, nodes: [...nodes.values()].map(node => ({ ...node,
           ...(node.state === 'queued' && blockedBy.has(node.id) && { waitingOn: blockedBy.get(node.id) }) })), limited: states.length > 128 };
