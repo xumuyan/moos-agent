@@ -1,0 +1,9 @@
+Evidence directory: <workspace>/artifacts/nsh-validation/desktop-native/run-ik19Xz
+{"passed":true,"nativeChecks":63,"platform":"macOS Foundation private pipes"}
+✓ built artifacts/nsh-validation/desktop-native/run-ik19Xz/good-src/App.tsx into artifacts/nsh-validation/desktop-native/run-ik19Xz/good (3.4 KB js, 3.9 KB bytecode, 279ms)
+✓ built artifacts/nsh-validation/desktop-native/run-ik19Xz/denied-src/App.tsx into artifacts/nsh-validation/desktop-native/run-ik19Xz/denied (3.4 KB js, 3.9 KB bytecode, 22ms)
+✓ built artifacts/nsh-validation/desktop-native/run-ik19Xz/timeout-src/App.tsx into artifacts/nsh-validation/desktop-native/run-ik19Xz/timeout (3.4 KB js, 3.9 KB bytecode, 90ms)
+2026-11-17 00:36:34.917 xcodebuild[50895:52399307] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+<workspace>/artifacts/nsh-validation/desktop-native/run-ik19Xz/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app: replacing existing signature
+{"forced":false,"maxPending":[2,0,1],"normalChildExit":true,"passed":true,"phoneInstalled":false,"platform":"Mac Catalyst NSH 0.5.0","productionData":false,"reports":{"denied":{"checks":6,"passed":true},"good":{"checks":41,"passed":true},"timeout":{"checks":5,"passed":true}},"stderrBytes":[0,0,0]}
+{"ownerNormalExit":{"forced":false,"maxPending":[2],"normalChildExit":true,"passed":true,"phoneInstalled":false,"platform":"Mac Catalyst NSH 0.5.0","productionData":false,"reports":{},"stderrBytes":[0]}}

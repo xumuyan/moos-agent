@@ -1,0 +1,26 @@
+Evidence directory: <workspace>/artifacts/nsh-validation/desktop-native/run-Xi3hNC
+{"passed":true,"nativeChecks":61,"platform":"macOS Foundation private pipes"}
+✓ built artifacts/nsh-validation/desktop-native/run-Xi3hNC/good-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Xi3hNC/good (3.4 KB js, 3.9 KB bytecode, 47ms)
+✓ built artifacts/nsh-validation/desktop-native/run-Xi3hNC/denied-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Xi3hNC/denied (3.4 KB js, 3.9 KB bytecode, 14ms)
+✓ built artifacts/nsh-validation/desktop-native/run-Xi3hNC/timeout-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Xi3hNC/timeout (3.4 KB js, 3.9 KB bytecode, 8ms)
+2026-11-17 00:11:01.338 xcodebuild[59566:51816723] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+<workspace>/artifacts/nsh-validation/desktop-native/run-Xi3hNC/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app: replacing existing signature
+{"forced":false,"maxPending":[2,0,1],"normalChildExit":true,"passed":true,"phoneInstalled":false,"platform":"Mac Catalyst NSH 0.5.0","productionData":false,"reports":{"denied":{"checks":6,"passed":true},"good":{"checks":42,"passed":true},"timeout":{"checks":5,"passed":true}},"stderrBytes":[0,0,0]}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/probes/nsh-validation/verify-desktop-native.mjs:108:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0

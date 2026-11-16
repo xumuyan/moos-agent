@@ -1,0 +1,8 @@
+Evidence directory: <workspace>/artifacts/nsh-validation/desktop-native/run-Kv2fUM
+{"passed":true,"nativeChecks":61,"platform":"macOS Foundation private pipes"}
+✓ built artifacts/nsh-validation/desktop-native/run-Kv2fUM/good-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Kv2fUM/good (3.4 KB js, 3.9 KB bytecode, 68ms)
+✓ built artifacts/nsh-validation/desktop-native/run-Kv2fUM/denied-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Kv2fUM/denied (3.4 KB js, 3.9 KB bytecode, 27ms)
+✓ built artifacts/nsh-validation/desktop-native/run-Kv2fUM/timeout-src/App.tsx into artifacts/nsh-validation/desktop-native/run-Kv2fUM/timeout (3.4 KB js, 3.9 KB bytecode, 17ms)
+2026-11-17 00:19:50.595 xcodebuild[94669:52034120] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+<workspace>/artifacts/nsh-validation/desktop-native/run-Kv2fUM/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app: replacing existing signature
+{"built":true,"app":"<workspace>/artifacts/nsh-validation/desktop-native/run-Kv2fUM/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app","installed":false,"executed":false,"platform":"Mac Catalyst"}

@@ -1,0 +1,15 @@
+warn the status bar is not granted: add `"statusBar": true` to capabilities in nsh.json
+✓ probes/nsh-validation/App.test.tsx › fixture rejects empty/duplicate starts and stale events after stop (1ms)
+✓ bundled probes/nsh-validation/App.tsx (7937 B in 5.5 ms)
+warn the status bar is not granted: add `"statusBar": true` to capabilities in nsh.json
+✓ probes/nsh-validation/App.test.tsx › native chat streams Chinese and renders Markdown (4.5s)
+warn the status bar is not granted: add `"statusBar": true` to capabilities in nsh.json
+✓ probes/nsh-validation/App.test.tsx › stop freezes response and switching sessions keeps independent state (1.1s)
+warn the status bar is not granted: add `"statusBar": true` to capabilities in nsh.json
+✓ probes/nsh-validation/App.test.tsx › 1000 fixture rows recycle and scroll without creating 1000 views (1.9s)
+warn the status bar is not granted: add `"statusBar": true` to capabilities in nsh.json
+✓ probes/nsh-validation/TaskClient.test.tsx › task client limits endpoints and input before any network request (3ms)
+✓ probes/nsh-validation/TaskClient.test.tsx › task client uses one attempt, no redirects, safe errors and explicit identical-id retry (4ms)
+✓ probes/nsh-validation/TaskClient.test.tsx › task client validates version, event ownership/order, terminal and cursor before advancing (1ms)
+✓ probes/nsh-validation/TaskClient.test.tsx › task client bounds response bytes and rejects non-JSON responses (6ms)
+✓ 8 tests: 8 passed, 0 failed (7.7s)

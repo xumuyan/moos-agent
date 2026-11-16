@@ -1,0 +1,194 @@
+
+> moos-agent@0.1.0 test:electron
+> npm --prefix apps/electron test
+
+
+> moos-electron@0.1.50 test
+> node --test
+
+✔ desktop screenshots render restricted thumbnails through the cached IPC bridge (547.990209ms)
+✔ the DSH client extension registers the MuMa brand and model services in the original settings section (67.187708ms)
+✔ the settings page exposes an image generation card wired to the moosImageGen bridge (39.243917ms)
+✔ the settings page exposes an execution policy card wired to the moosExecutionPolicy bridge (51.536375ms)
+✔ queued turns render a queue-position card without actions; empty running turns stay hidden (374.703042ms)
+✔ team menu and removable tag change only future submissions without prompting or cancelling (20.637375ms)
+✔ team process renders real node states without inventing verdict or completing interrupted work (99.679666ms)
+✔ member details show structured receipts and blockers without inventing prose or retry controls (67.066208ms)
+✔ member file button locates only an existing action in its own process card (39.723875ms)
+✔ member usage shows reported reply and compaction totals while missing data stays unknown (45.1625ms)
+✔ long team receipts have a bounded keyboard-focusable scrolling region without new polling (26.395083ms)
+✔ desktop helper compiles and reports version and permissions (419.910375ms)
+✔ desktop helper enumerates displays with top-left global frames (280.676916ms)
+✔ desktop helper lists on-screen normal-layer windows (165.0475ms)
+✔ desktop helper refuses input commands with structured blocked output (exit 3) (738.693542ms)
+✔ desktop helper rejects unknown modes and bad arguments without side effects (487.355125ms)
+✔ desktop helper source stays free of probe-only scenario remnants (27.76525ms)
+✔ Quartz click plans preserve signed global coordinates and generate real double-click pairs without posting (387.436916ms)
+✔ native malformed capture, key and scroll arguments fail before permissions or input (453.322833ms)
+✔ native focus predicate rejects changed process, window, element path, bounds and non-editable fields without posting (827.559792ms)
+✔ focus query is read-only and denied permissions do not fabricate a focus snapshot (487.244667ms)
+✔ Dock full-display surface is only a live AX hit-test candidate; no blanket Dock/overlay bypass (849.815666ms)
+✔ Unicode dispatch retains a bounded helper lifetime after paired posts without claiming receipt (4.8715ms)
+✔ a fork displays only inherited completed PI processes without creating tasks or replaying messages (147.969167ms)
+✔ nested forks inherit only the selected prefix and prefer their own later task mappings (126.158167ms)
+✔ cross-workspace, incomplete, mismatched-message and unknown-parent prefixes do not expose tasks (82.72625ms)
+✔ ordinary DSH forks without parentSession resolve their trusted inherited message IDs (84.290167ms)
+✔ unavailable or tampered inherited references stay hidden and do not become live tasks (109.944ms)
+✔ turns outside the 1600-event inherited window are never examined and gain no process (117.200167ms)
+✔ forkPrefix reads only the final 1600-event window and keeps the 48-message budget (2.396875ms)
+✔ accepts only the local authenticated workbench bootstrap (4.178417ms)
+✔ runs the host on loopback and waits for its actual shutdown (389.896334ms)
+✔ the opt-in fixture runs inside the existing host with its own model overlay (312.151375ms)
+✔ the shell never exposes or dispatches upstream model tool calls (621.397292ms)
+﹣ the packaged Host starts and restarts with only loopback sockets and no account or model configured (0.248917ms) # Requires the pinned macOS Moos package
+﹣ the packaged Host stops when its desktop lifetime pipe closes (0.365125ms) # Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI
+﹣ the shipped DSH overlay disables optional built-ins and keeps the package installer (0.074209ms) # Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned DSH CLI
+✔ rejects a host that exits before announcing a usable URL (231.7745ms)
+✔ desktop helper is resolved from packaged runtime, never the installed plugin directory (4.10275ms)
+✔ chat links to other local servers open in the system browser (0.853916ms)
+✔ localhost and LAN http/https links open externally (0.117ms)
+✔ same-origin navigation stays inside the workspace window (0.063125ms)
+✔ different port is a different origin and opens externally (0.076458ms)
+✔ dangerous or unknown schemes are denied, never opened (0.492083ms)
+✔ malformed targets are denied (5.3785ms)
+✔ main.mjs wires both window-open and navigation to the classifier + shell (40.594666ms)
+✔ prepare-local bundles every local module imported by the packaged pi-runtime entrypoints (195.820208ms)
+✔ MuMa display branding keeps the existing application and user data identity (47.526708ms)
+✔ every local module imported by main.mjs is listed in the packaging manifest (30.239416ms)
+✔ desktop helper is compiled into Resources/bin and smoke-checked at build time (135.8565ms)
+✔ MuMa app and sidebar icons are the approved family assets with a complete ICNS container (149.06825ms)
+﹣ candidate plugin resolves and executes the packaged native helper from its actual profile location (0.176125ms) # Requires a current helper-bearing isolated build
+✔ submission protocol helper ships with both the profile Host and staged PI adapter (12.414042ms)
+✔ model settings test drafts safely without saving or forwarding a saved key to another address (1003.040292ms)
+✔ one connection shares a credential across models and retains legacy model IDs (1045.068333ms)
+[scheduler] task 14f209e7-e722-452a-be20-1721f8f21f7b failed with internal: TaskFailure: 任务因内部错误失败，请使用错误码排查。
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+[scheduler] task 66fde35f-0a3d-4482-8b80-adf73af972db failed with internal: TaskFailure: 任务因内部错误失败，请使用错误码排查。
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+✔ a configured desktop profile runs arbitrary workspace text through PI with native High (8819.955625ms)
+✔ image input survives unrelated group edits but is not inferred or transferred to another model or endpoint (511.999459ms)
+✔ GLM Responses groups save, reopen and run diagnostics without changing service or protocol (1368.922791ms)
+✔ GLM profiles accept the official max effort and tolerate legacy levels (144.749041ms)
+✔ image generation settings round-trip through private storage without leaking the key (465.170042ms)
+✔ execution policy round-trips through private storage and rejects unknown modes (44.944125ms)
+✔ PI switches provider and protocol at most once and keeps repairs in the same context (5944.605875ms)
+✔ repair escalation ignores repeated tests without repairs, new errors, and missing dependencies (0.409958ms)
+✔ versioned submission modes fail closed and legacy task snapshots remain ordinary (51.258542ms)
+✔ the PI route inlines small UTF-8 text and hands larger or binary uploads to the workspace (321.902875ms)
+[scheduler] [synthetic authentication diagnostic redacted]
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+[scheduler] task 1fb6d366-027c-4e20-9f5e-4f722ce242b7 failed with rate_limit: TaskFailure: 模型服务限流，请稍后重试。
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+[scheduler] task 1f128b7b-ec15-42dd-ab46-a56ae3264763 failed with rate_limit: TaskFailure: 模型服务限流，请稍后重试。
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+✔ Electron PI tasks serialize directory aliases, run other projects and stop only the targeted process (6880.04025ms)
+[scheduler] task 5a1983e8-292b-4fae-a5b5-96d68d59f6e1 failed with network: TaskFailure: 模型服务网络连接失败，请检查地址和网络。
+    at runPiSdk (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/packages/pi-runtime/sdk-runtime.mjs:345:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:12)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+✔ Electron retry resumes PI after a tool and accepts only the latest eligible task in that session (1409.232083ms)
+✔ DSH forks give PI exactly the selected history, with text fallback for older turns (4121.661791ms)
+[scheduler] task c033db1a-7302-4ca9-8263-b4916625f03f failed with network: Error: network fixture failure
+    at run (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/pi-tasks.test.mjs:312:40)
+    at file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-tasks.js:36:79
+    at withWorkspaceChanges (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/apps/electron/plugin/pi-workspace-changes.js:91:18)
+    at async #execute (file://<user>/Documents/%E5%BE%90%E9%83%AD%E9%B9%8F%E9%A1%B9%E7%9B%AE/%E5%BE%90-moos-agent/services/agent/scheduler.mjs:102:22)
+✔ submission mode is immutable in queues and explicit retry retains the persisted mode after reopening (573.534917ms)
+✔ PI route reads each persisted request mode, rejects unsupported versions before attachments, and defaults legacy submissions to ordinary (2.267708ms)
+✔ interrupted team snapshots require explicit retry and malformed saved modes never silently downgrade (300.565958ms)
+✔ client mode is per-session, snapshots at minting, and listeners do not execute or stop work (5.228625ms)
+﹣ pinned client beginSubmission preserves echo/admission/upload identity across mode changes (0.081166ms) # Requires isolated packaged DSH client
+✔ confined macOS shells can run npm tests and Git without exposing adjacent files (3098.23275ms)
+✔ PI file tools honor live permission, deny outside links and support project writes (318.081ms)
+✔ macOS confines PI bash and releases only explicitly approved commands (1369.996875ms)
+✔ PI turn summaries keep verified actions and workspace paths while excluding tool inputs and outputs (225.808ms)
+✔ desktop screenshots expose only ids to the read model and are read back through the restricted bridge (362.667458ms)
+✔ the workspace summary detects command changes without including pre-existing dirty files or changing the index (4367.6205ms)
+✔ the background panel reads live PI work across projects and excludes finished or unmapped tasks (143.173916ms)
+✔ cache visibility filters known generated paths, not ordinary hidden configuration or source (0.448958ms)
+✔ desktop queue state surfaces only while queued or running (M06 P06.5) (164.854042ms)
+✔ queued turns report the number of tasks waiting ahead; settled turns do not (85.110375ms)
+✔ queue positions never cross projects; other projects do not delay a project queue (37.8025ms)
+✔ team progress is parent-owned, bounded and strips goals, verdict prose and foreign parents (135.224833ms)
+✔ team node projection accepts only its first owned attempt and ordered terminal event (72.028166ms)
+✔ node result details require correlated terminal receipts and expose bounded enums and counts only (205.917ms)
+✔ member file index requires unique ordered successful tool endpoints inside the owned attempt (199.258167ms)
+✔ member file index has a twelve-path cap and exposes truncated event coverage (251.085875ms)
+✔ same-role nodes keep separate file indexes even when PI role history is shared (58.781959ms)
+✔ member usage sums only owned in-interval reported counters and separates compaction without private fields (188.322125ms)
+✔ member usage scan and counters are bounded while a reported zero remains a real record (266.636916ms)
+✔ workspace uploads land in cwd/.moos-uploads with a digest prefix and safe names (303.34175ms)
+✔ usage totals include every recorded request while context follows only the latest request in its session (117.807625ms)
+✔ package initialization and database reopen preserve completed chat, turn mappings, actions and preferences (309.018167ms)
+✔ first launch seeds profiles; updating the package and restarting preserves user files byte for byte (883.487125ms)
+▶ missing profiles with existing chat or settings stops instead of silently reseeding
+  ✔ dsh/sessions/history.jsonl (96.416ms)
+  ✔ providers.json (25.559541ms)
+  ✔ private/credentials.json (67.180958ms)
+  ✔ pi/moos.sqlite (87.638667ms)
+  ✔ pi-fixture/moos.sqlite (7.841792ms)
+  ✔ workspace/project/source.txt (341.280333ms)
+✔ missing profiles with existing chat or settings stops instead of silently reseeding (636.472958ms)
+✔ empty default workspace is compatible with a genuinely new profile (278.977041ms)
+▶ invalid or linked profile directories are rejected without overwriting their targets
+  ✔ file (40.753167ms)
+  ✔ profile-link (26.128208ms)
+  ✔ home-link (8.0105ms)
+  ✔ missing-web (8.901417ms)
+  ✔ web-link (53.759958ms)
+✔ invalid or linked profile directories are rejected without overwriting their targets (139.397917ms)
+✔ failed initial copy leaves no published profiles or staging directory (312.453416ms)
+✔ the startup guard is wired before plugin upgrades and included in the application bundle (33.2455ms)
+✔ same version never invokes the installer or rewrites user metadata (425.975167ms)
+✔ an isolated package upgrade and restart keep chat and configuration bytes while updating only shell metadata (505.689458ms)
+▶ missing or corrupt installed metadata cannot silently trigger reinstallation
+  ✔ missing (140.94525ms)
+  ✔ invalid-json (33.241667ms)
+  ✔ wrong-package (209.937375ms)
+  ✔ invalid-version (125.105417ms)
+✔ missing or corrupt installed metadata cannot silently trigger reinstallation (511.933666ms)
+▶ downgrades, invalid bundled metadata and missing archives are rejected before user files change
+  ✔ downgrade (74.816084ms)
+  ✔ missing-archive (158.899542ms)
+  ✔ invalid-template (280.13075ms)
+✔ downgrades, invalid bundled metadata and missing archives are rejected before user files change (514.5815ms)
+✔ installer failure stops startup without exposing raw installer output (505.317541ms)
+✔ installer success without the expected shell version is rejected (433.770792ms)
+✔ startup loads the guarded updater before the Host and bundles its module (7.079625ms)
+﹣ the updated skin center accepts the matching Maid Atelier release and rejects changed hooks (0.48675ms) # Requires skin center 0.4.16 and its reviewed Maid Atelier files
+✔ model menus group by saved site ID, preserving PI routes and exact model IDs (1.011625ms)
+✔ the carried Host drops optional packages and their inventory entries, but keeps plugin installation (1350.113916ms)
+﹣ the packaged Host keeps a verified upload intact until the PI adapter reads it (0.135583ms) # Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI
+﹣ the packaged plugin inventory lists the skin and omits uninstalled catalog offers (0.051625ms) # Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI
+﹣ the packaged DSH registry accepts PI and rejects lookalike adapters and other routes (0.038167ms) # Set MOOS_ELECTRON_TEST_DSH_CLI to the pinned Moos DSH CLI
+✔ production Host dispatches mode snapshots to real PI team sessions without restoring DSH executors (11493.684791ms)
+✔ stopping a real team shell leaves another project model request and independent delivery intact (13043.619125ms)
+ℹ TEAM_STOP_ISOLATION_RESULT {"scope":"actual Host.apply -> PI adapter -> Scheduler -> real SDK; isolated synthetic data/model; no renderer or installed application","checks":{"legacyExecutorDisabled":true,"bothProjectsActuallyRunning":true,"actualOwnedShellAndChild":true,"onlyAProcessesExitAfterAbort":true,"bConnectionAndEventsUnaffected":true,"bIndependentVerificationAndDelivery":true,"separateArtifactsAndEventOwnership":true,"aLeaseReusable":true},"requests":12,"statuses":["cancelled","succeeded","succeeded"],"modes":["team","team","ordinary"],"otherProjectActivity":"held model response","postAbortObservationMs":1000,"childSleepSeconds":120,"normalGUI":false,"externalModel":false,"productionTouched":false,"packagedRuntime":false}
+✔ stopping a real team shell leaves another project actual shell and direct child and independent delivery intact (10330.300958ms)
+ℹ TEAM_STOP_ISOLATION_RESULT {"scope":"actual Host.apply -> PI adapter -> Scheduler -> real SDK; isolated synthetic data/model; no renderer or installed application","checks":{"legacyExecutorDisabled":true,"bActualOwnedShellAndChildRunning":true,"bothProjectsActuallyRunning":true,"actualOwnedShellAndChild":true,"onlyAProcessesExitAfterAbort":true,"bOriginalProcessesSurviveAStop":true,"bToolAndEventsUnaffected":true,"bNaturalExitAfterDataRelease":true,"bIndependentVerificationAndDelivery":true,"separateArtifactsAndEventOwnership":true,"aLeaseReusable":true},"requests":12,"statuses":["cancelled","succeeded","succeeded"],"modes":["team","team","ordinary"],"otherProjectActivity":"actual bash and direct cat FIFO reader","postAbortObservationMs":1000,"childSleepSeconds":120,"normalGUI":false,"externalModel":false,"productionTouched":false,"packagedRuntime":false}
+﹣ the real packaged installer upgrades an isolated older shell without resetting chat, models, skins or user plugins (0.424834ms) # Requires MOOS_ELECTRON_TEST_DSH_CLI from the current isolated build
+✔ the workbench gets the macOS layout even when fullscreen arrives before the DOM (9.451709ms)
+ℹ tests 137
+ℹ suites 0
+ℹ pass 127
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 10
+ℹ todo 0
+ℹ duration_ms 62254.09775

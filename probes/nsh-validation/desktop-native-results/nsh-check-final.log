@@ -1,0 +1,5 @@
+probes/nsh-validation/desktop-native-check.tsx(20,11): error TS7022: 'page' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+probes/nsh-validation/desktop-native-check.tsx(49,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(49,64): error TS7006: Parameter 'e' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(53,66): error TS7006: Parameter 'e' implicitly has an 'any' type.
+error type check failed (exit status: 1)

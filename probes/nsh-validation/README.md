@@ -8,6 +8,10 @@
 
 桌面当前是**模拟UI与独立Host分别通过部分验证，尚未接通NSH桌面UI→真实PI任务**。接下来按根计划 N01-D1→D2→D3：本机受限桥/Host生命周期及提交、事件、停止闭环→独立历史/模型配置/项目隔离与恢复→完整桌面交互和同负载性能对照。手机配对不阻塞本机桌面闭环，不开放LAN；正式应用仍为Electron，不安装或替换正式应用，不读写正式聊天/配置。N01继续未完成。
 
+### 桌面原生桥检查点（2026-11-17）
+
+新增隔离 **Mac Catalyst** 验收宿主，真实NSH host.call→Swift六方法受限桥→固定Node私有管道→真实PI SDK/本地认证夹具已运行；不是原聊天UI交付，也不是AppKit产品完成。普通macOS原生管道专项及可信正常退出/桥销毁见 [DESKTOP-NATIVE-BRIDGE.md](./DESKTOP-NATIVE-BRIDGE.md)，入口 `node probes/nsh-validation/verify-desktop-native.mjs`（`--native-only`/`--build-only`）。无LAN、不构建安装手机、不改正式应用/真实数据。前述“尚未接通”描述原交互UI；本新增自动验收TSX已接桥，但N01-D1仍未完成。
+
 ## 准备与运行
 
 以下命令从仓库根目录运行；工具链/产物均在 Git 忽略的 `artifacts/`，类型生成在本目录忽略的 `.nsh/`。不会全局安装 NSH。

@@ -1,0 +1,353 @@
+{
+  "task": "N01-D1 desktop-native-bridge",
+  "baseline": "453751e903387ace7456bc644f2238f22f0cdcff",
+  "state": "Pre-commit working tree for the unique commit subject; source hashes below. Historical Host evidence unchanged.",
+  "commitSubject": "feat(N01-D1): add isolated native desktop bridge and private Host lifecycle",
+  "environment": {
+    "os": "macOS 27.0.1 (26A434)",
+    "arch": "arm64",
+    "swift": "6.4",
+    "node": "24.15.0",
+    "piSdk": "1.5.0",
+    "nsh": "0.5.0 (f4d68f7)"
+  },
+  "platform": "Mac Catalyst for NSH runtime; ordinary macOS Foundation for native pipe checks",
+  "sourceSha256": {
+    "probes/nsh-validation/DesktopPipe.swift": "a70c595ab6c4e69fafbaba276030742f6fa780aa7b7794d24a51c5e8deb3f5d1",
+    "probes/nsh-validation/DesktopNativeBridge.swift": "b2c080676bd9b6fc3e0005e8e629532545d013186249a8ea1d289422c2515612",
+    "probes/nsh-validation/DesktopPipeCheck.swift": "79aaf0223f3c2198800f2ff65abcd1731ff1550cc18e30984b12e6589012eb25",
+    "probes/nsh-validation/DesktopBridgeCheck.swift": "49c55d6c0b618ede8911668526f2692ee27175e5e3828fe74c161806ff56edeb",
+    "probes/nsh-validation/desktop-native-check.tsx": "f0e1f40a3abaf91d76177859f0e29a1c688502858518503d53fbdcb1f3979dca",
+    "probes/nsh-validation/desktop-native.test.mjs": "6453493b1058fbf92ccf8c00abe2f5b2e30c0e7585950985f60dd6521b6e7a53",
+    "probes/nsh-validation/verify-desktop-native.mjs": "6869428e40e78d46b3c858531711488ab2f4e20ee39e5aa93b50ecb459f36321"
+  },
+  "native": {
+    "assertions": 63,
+    "passed": true,
+    "command": "node probes/nsh-validation/verify-desktop-native.mjs --native-only"
+  },
+  "acceptance": {
+    "forced": false,
+    "maxPending": [
+      2,
+      0,
+      1
+    ],
+    "normalChildExit": true,
+    "passed": true,
+    "phoneInstalled": false,
+    "platform": "Mac Catalyst NSH 0.5.0",
+    "productionData": false,
+    "reports": {
+      "denied": {
+        "checks": 6,
+        "passed": true
+      },
+      "good": {
+        "checks": 41,
+        "passed": true
+      },
+      "timeout": {
+        "checks": 5,
+        "passed": true
+      }
+    },
+    "stderrBytes": [
+      0,
+      0,
+      0
+    ]
+  },
+  "ownerNormalExit": {
+    "forced": false,
+    "maxPending": [
+      2
+    ],
+    "normalChildExit": true,
+    "passed": true,
+    "phoneInstalled": false,
+    "platform": "Mac Catalyst NSH 0.5.0",
+    "productionData": false,
+    "reports": {},
+    "stderrBytes": [
+      0
+    ]
+  },
+  "runDirectory": "artifacts/nsh-validation/desktop-native/run-ik19Xz",
+  "buildOnly": {
+    "passed": true,
+    "command": "node probes/nsh-validation/verify-desktop-native.mjs --build-only",
+    "installed": false,
+    "appExecuted": false,
+    "directory": "artifacts/nsh-validation/desktop-native/run-4YPTWk"
+  },
+  "commands": {
+    "actual": "node probes/nsh-validation/verify-desktop-native.mjs",
+    "core": "npm test",
+    "serial": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
+    "electron": "npm run test:electron",
+    "rust": "cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+    "docs": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+    "nsh": [
+      "bash probes/nsh-validation/nsh.sh check",
+      "bash probes/nsh-validation/nsh.sh test",
+      "bash probes/nsh-validation/nsh.sh test --target macos"
+    ]
+  },
+  "regression": {
+    "defaultFirst": {
+      "tests": 317,
+      "pass": 317,
+      "fail": 0,
+      "cancelled": 0
+    },
+    "defaultSecond": {
+      "tests": 317,
+      "pass": 314,
+      "fail": 2,
+      "cancelled": 1
+    },
+    "defaultThird": {
+      "tests": 317,
+      "pass": 314,
+      "fail": 3,
+      "cancelled": 0
+    },
+    "serial": {
+      "tests": 317,
+      "pass": 317,
+      "fail": 0,
+      "cancelled": 0
+    },
+    "electron": {
+      "tests": 137,
+      "pass": 127,
+      "skip": 10,
+      "fail": 0
+    },
+    "rust": {
+      "exit": 101,
+      "blocked": "offline registry lacks tauri"
+    },
+    "nsh": {
+      "typecheckExit": 0,
+      "headless": 8,
+      "appkitSimulation": 8
+    }
+  },
+  "finalMixedWorkspaceRegression": {
+    "tests": 319,
+    "pass": 319,
+    "fail": 0,
+    "durationSeconds": 187.939,
+    "warning": "Other member Electron/team-runtime uncommitted changes appeared during this run. Not part of this bridge commit; prior task-owned serial snapshot was 317/317."
+  },
+  "ownedFinalRegression": {
+    "core": {
+      "tests": 317,
+      "pass": 317,
+      "durationSeconds": 182.497
+    },
+    "electron": {
+      "tests": 137,
+      "pass": 127,
+      "skip": 10,
+      "fail": 0
+    },
+    "state": "git archive 453751e plus only this task files; existing artifacts and node_modules reused by symlink; source code is isolated from other member edits"
+  },
+  "documents": {
+    "tests": 160,
+    "pass": 160,
+    "initialFailure": "new log entry lacked required audit labels; fixed labels, retained failed output"
+  },
+  "logs": {
+    "npm-test.log": {
+      "log": "probes/nsh-validation/desktop-native-results/npm-test.log",
+      "sha256": "7b116cc4d53bb1111fe2fc3ae3959c00cc1768ab6d0c96973fcecdf03297c646",
+      "rawSha256": "690f77061cddd5482b35763e5c5b408bfc3b8fdfe9ac37de7fc2235ba4077095"
+    },
+    "npm-test-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/npm-test-final.log",
+      "sha256": "865768d6155faf0f894fc5d63eab00a2d9867779953d6280263f69e671dae3ef",
+      "rawSha256": "f95bafd711f5ebf502556c88c60c1a389515f3b0c2ab3b3808643fd712dec9d5"
+    },
+    "npm-test-delivery.log": {
+      "log": "probes/nsh-validation/desktop-native-results/npm-test-delivery.log",
+      "sha256": "b1e2da9b10fe9566ed226bae42dbc4c356f98291d956d3a670a18dd982d319cf",
+      "rawSha256": "df9a0091b9a6455b546cd705dc1ffa9e24ee16d553dd26ec74d957cb666b17c3"
+    },
+    "core-serial.log": {
+      "log": "probes/nsh-validation/desktop-native-results/core-serial.log",
+      "sha256": "07bd788b4deb49ff911320772b696de81aba0652f45e20597025392ae7f5026d",
+      "rawSha256": "64456e3cfef6ecb6a6f85b14325023562ad21d391828722db48b4e4527d9d86e"
+    },
+    "electron.log": {
+      "log": "probes/nsh-validation/desktop-native-results/electron.log",
+      "sha256": "e0dd84f8c6ec571241eb054d1562e36fe26403fd3e434eedd2fbc22399577ef0",
+      "rawSha256": "62ef2675007f18bd221ab7f17eafa2a00a90a56558ed752274ddcd6df4afbe31"
+    },
+    "rust.log": {
+      "log": "probes/nsh-validation/desktop-native-results/rust.log",
+      "sha256": "3168795fbf7ecc190baab57c9399b09d9e5e3662c58027889bc7a632d3074655",
+      "rawSha256": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49"
+    },
+    "nsh-check.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-check.log",
+      "sha256": "8f57efef2eefb339f93a4d1624d63fb6e7e40edb8fe426e6ca45e720b6974001",
+      "rawSha256": "8f57efef2eefb339f93a4d1624d63fb6e7e40edb8fe426e6ca45e720b6974001"
+    },
+    "nsh-check-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-check-final.log",
+      "sha256": "dae493deb9fac9c068d8d87d61fbc5291874373127c2d137de4267a7e0050867",
+      "rawSha256": "dae493deb9fac9c068d8d87d61fbc5291874373127c2d137de4267a7e0050867"
+    },
+    "nsh-check-fixed.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-check-fixed.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nsh-check-latest.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-check-latest.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nsh-headless.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-headless.log",
+      "sha256": "142caadac5ba4cf020c480402fafec5af31572ee7938524434c08042104fb01b",
+      "rawSha256": "142caadac5ba4cf020c480402fafec5af31572ee7938524434c08042104fb01b"
+    },
+    "nsh-appkit.log": {
+      "log": "probes/nsh-validation/desktop-native-results/nsh-appkit.log",
+      "sha256": "6aa775db753c86bc887d3df85bd9a7b881f45ed7892d26096c55b998a84dccda",
+      "rawSha256": "6aa775db753c86bc887d3df85bd9a7b881f45ed7892d26096c55b998a84dccda"
+    },
+    "acceptance-owner-exit.log": {
+      "log": "probes/nsh-validation/desktop-native-results/acceptance-owner-exit.log",
+      "sha256": "da9170c6f32498b00ec65a897348bcbfec86ffad4a6cabbec86a040014df2f2b",
+      "rawSha256": "16f96a7139c884e3b7e290eb0b7aa597f13a190a566dd05525b4d3a5a399c4cd"
+    },
+    "acceptance-owner-second.log": {
+      "log": "probes/nsh-validation/desktop-native-results/acceptance-owner-second.log",
+      "sha256": "01301d2119d79b87ed7899c2cefeda154cea62c8e592a9224a8c4c7b74bae7d9",
+      "rawSha256": "37dafb2765b76fe7a7f1c7d2ff76e8dac562fb61dffb14dd99f8d7a63dc98135"
+    },
+    "acceptance-delivery.log": {
+      "log": "probes/nsh-validation/desktop-native-results/acceptance-delivery.log",
+      "sha256": "64d9ca1f575657df856c459ad6d1530c3a5e857a4449622c6bf7b2055d718518",
+      "rawSha256": "1fd8019e3a723d45a26b3a746cd62c4c1ba4a9e289be401b2b306dd65099df15"
+    },
+    "build-only.log": {
+      "log": "probes/nsh-validation/desktop-native-results/build-only.log",
+      "sha256": "c306a35afadfeb4d7dea60662d033310061757b5659d72fb20680f48e67462dd",
+      "rawSha256": "417f8cfdf08d1556856568d965ffb64ced896e5d34ae3fc4527601cfc4c7562f"
+    },
+    "full-initial.log": {
+      "log": "probes/nsh-validation/desktop-native-results/full-initial.log",
+      "sha256": "626b77d5904cf60f326a6e80748d17839fc536c32e8f2c0feda2798737fc7b5a",
+      "rawSha256": "80221ce0fe37c4a0b17aa44c0c1a5738149da6f534bf8f12a5e9fe2d8df89f1b"
+    },
+    "initial.log": {
+      "log": "probes/nsh-validation/desktop-native-results/initial.log",
+      "sha256": "1cae8f0e711be3520bba9b60840753a4398635553c1a61603887fc2373f08a05",
+      "rawSha256": "1cae8f0e711be3520bba9b60840753a4398635553c1a61603887fc2373f08a05"
+    },
+    "second.log": {
+      "log": "probes/nsh-validation/desktop-native-results/second.log",
+      "sha256": "a7357b07301e2904d905bd995b694e91249a93ed74b4ef1b377d14be2413265e",
+      "rawSha256": "4a6e1b434ea34eb8dc0c112ddbf75288164f1cca50e64fce8ed80a81cdfe4f98"
+    },
+    "core-serial-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/core-serial-final.log",
+      "sha256": "b18bb23367bccd38648476bf91a6749a18bf63d2937acba39d9dbd59db8a17f6",
+      "rawSha256": "9c5aa570e9540be51be3b33a0d53b51932657957012970171f2e16b3c593b8d9"
+    },
+    "docs.log": {
+      "log": "probes/nsh-validation/desktop-native-results/docs.log",
+      "sha256": "9c3ba8b5e9c9e01af4131aa3646a39db1c8ec5d55284f5309e30f60cf0763932",
+      "rawSha256": "ca901e5602af0f02eeceb7396541348473b5ab4114142de122a5fd193e053bd1"
+    },
+    "docs-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/docs-final.log",
+      "sha256": "016c4130e9dc351e756dbf88bc37e706b5aacf138f9edd136e234748c02e51a4",
+      "rawSha256": "016c4130e9dc351e756dbf88bc37e706b5aacf138f9edd136e234748c02e51a4"
+    },
+    "docs-delivery.log": {
+      "log": "probes/nsh-validation/desktop-native-results/docs-delivery.log",
+      "sha256": "4390b60bfc9b33f65e9e260be6bdb709931969dda475d6f81e747c5228865151",
+      "rawSha256": "646fab336bf83c4e29495d8d3d23b755fa35e1357db46d5163fd303b856a7874"
+    },
+    "docs-owned-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/docs-owned-final.log",
+      "sha256": "149cc5b3263cbec5bfe9ef94db6fc5b8e6fe7a67673ea2986755aca67636a0d6",
+      "rawSha256": "149cc5b3263cbec5bfe9ef94db6fc5b8e6fe7a67673ea2986755aca67636a0d6"
+    },
+    "acceptance-reap-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/acceptance-reap-final.log",
+      "sha256": "daa621a3ef1440fbc27fe471790d74b3fd7111be9f97b3f12f4e317d445de660",
+      "rawSha256": "d984e70c515fc4a19a8d795283cdca3e40ef147b46d4bccd62f52cefc22dd124"
+    },
+    "build-only-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/build-only-final.log",
+      "sha256": "a1281206f0f0a652692807deda521d20f13b73555b2ec0aabc8adb9b16031072",
+      "rawSha256": "091fb5d4f2fa9d4b368ebae32b4ceddf250c4263890da550d3b2c1060fd24375"
+    },
+    "core-owned-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/core-owned-final.log",
+      "sha256": "748845acebfeaa30234808647c1fc2123fd1d73f5caaa34fb4ab5a255fbaeae9",
+      "rawSha256": "e95837388e7969e55bbaf03890fca1e0300dee6332058b67a82f93d58e652860"
+    },
+    "electron-owned-final.log": {
+      "log": "probes/nsh-validation/desktop-native-results/electron-owned-final.log",
+      "sha256": "1bf944364e0a646ad791af0bbf8092b839fa8747cf081e1849c74f08e0f4891e",
+      "rawSha256": "40eba1e2a48d946fed6c19acea1c941fd5b136458b0b2b84c2240d23cce7586d"
+    },
+    "docs-owned-delivery.log": {
+      "log": "probes/nsh-validation/desktop-native-results/docs-owned-delivery.log",
+      "sha256": "f6eed2364004fefa45e3004a439bfaa82176d39faee9e65a267356b9d3dc7ffa",
+      "rawSha256": "f6eed2364004fefa45e3004a439bfaa82176d39faee9e65a267356b9d3dc7ffa"
+    },
+    "orphan-cleanup.json": {
+      "log": "probes/nsh-validation/desktop-native-results/orphan-cleanup.json",
+      "sha256": "f600028c56f65762306d6c80b15b64849487c53d57a4ef4a101ee92c1293e9d9",
+      "rawSha256": "f600028c56f65762306d6c80b15b64849487c53d57a4ef4a101ee92c1293e9d9"
+    }
+  },
+  "orphanCleanup": {
+    "kind": "earlier isolated fixture orphan; not final acceptance process",
+    "pid": 28246,
+    "parentWasLaunchd": true,
+    "sigtermTimedOut": true,
+    "forcedOwnedPidCleanup": true,
+    "processGone": true,
+    "temporaryStatePreserved": true,
+    "rootCause": "unknown; abnormal parent loss cleanup not accepted"
+  },
+  "failureHistory": [
+    "Node missing from default shell PATH; explicit installed Node path used",
+    "Swift literal inferred C pointer array; split String environment array",
+    "unzip native archive exceeded 20 MiB output limit; compute archive entry hash in Python",
+    "TSX typecheck failed twice; fixed contract generics and explicit page type",
+    "SIGTERM owner handoff failed twice; not accepted or shipped as a verified shutdown path; explicit awaited normal owner exit passed",
+    "Default core regression intermittently fails SDK resume/geometry/sample; serial passes, no claim these defects fixed"
+  ],
+  "overallN01D1Complete": false,
+  "defaultParallelStable": false,
+  "protection": {
+    "productionCodeChanged": false,
+    "productionDataTouched": false,
+    "productionAppStoppedOrReplaced": false,
+    "installed": false,
+    "phoneBuiltOrInstalled": false,
+    "lanOpened": false,
+    "systemTrustChanged": false
+  },
+  "notClaimed": {
+    "appkitNshBridgeComplete": false,
+    "humanGuiAcceptance": false,
+    "productionDistributionVerified": false,
+    "arbitraryDescendantCleanup": false,
+    "crashRecovery": false,
+    "allSystemExitPathsVerified": false
+  }
+}

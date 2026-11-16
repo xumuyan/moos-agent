@@ -1,0 +1,8 @@
+Evidence directory: <workspace>/artifacts/nsh-validation/desktop-native/run-4YPTWk
+{"passed":true,"nativeChecks":63,"platform":"macOS Foundation private pipes"}
+✓ built artifacts/nsh-validation/desktop-native/run-4YPTWk/good-src/App.tsx into artifacts/nsh-validation/desktop-native/run-4YPTWk/good (3.4 KB js, 3.9 KB bytecode, 103ms)
+✓ built artifacts/nsh-validation/desktop-native/run-4YPTWk/denied-src/App.tsx into artifacts/nsh-validation/desktop-native/run-4YPTWk/denied (3.4 KB js, 3.9 KB bytecode, 41ms)
+✓ built artifacts/nsh-validation/desktop-native/run-4YPTWk/timeout-src/App.tsx into artifacts/nsh-validation/desktop-native/run-4YPTWk/timeout (3.4 KB js, 3.9 KB bytecode, 42ms)
+2026-11-17 00:41:57.503 xcodebuild[70053:52523268] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+<workspace>/artifacts/nsh-validation/desktop-native/run-4YPTWk/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app: replacing existing signature
+{"built":true,"app":"<workspace>/artifacts/nsh-validation/desktop-native/run-4YPTWk/DerivedData/Build/Products/Release-maccatalyst/DesktopNativeCheck.app","installed":false,"executed":false,"platform":"Mac Catalyst"}

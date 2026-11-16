@@ -1,0 +1,10 @@
+{
+  "kind": "earlier isolated fixture orphan; not final acceptance process",
+  "pid": 28246,
+  "parentWasLaunchd": true,
+  "sigtermTimedOut": true,
+  "forcedOwnedPidCleanup": true,
+  "processGone": true,
+  "temporaryStatePreserved": true,
+  "rootCause": "unknown; abnormal parent loss cleanup not accepted"
+}

@@ -1,0 +1,39 @@
+probes/nsh-validation/desktop-native-check.tsx(4,16): error TS7006: Parameter 'value' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(5,23): error TS7006: Parameter 'method' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(5,31): error TS7006: Parameter 'params' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(6,66): error TS18046: 'error' is of type 'unknown'.
+probes/nsh-validation/desktop-native-check.tsx(9,21): error TS7006: Parameter 'method' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(11,9): error TS18047: 'response' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(11,18): error TS2339: Property 'version' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'version' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(11,35): error TS18047: 'response' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(11,44): error TS2339: Property 'ok' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'ok' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(12,10): error TS18047: 'response' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(12,19): error TS2339: Property 'result' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'result' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(14,21): error TS7006: Parameter 'scope' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(14,28): error TS7006: Parameter 'taskId' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(40,34): error TS7006: Parameter 's' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(42,66): error TS18047: 'r' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(42,68): error TS2339: Property 'ok' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'ok' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(42,74): error TS18047: 'r' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(42,76): error TS2339: Property 'error' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'error' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(48,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(48,64): error TS7006: Parameter 'e' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(52,66): error TS7006: Parameter 'e' implicitly has an 'any' type.
+probes/nsh-validation/desktop-native-check.tsx(55,12): error TS18047: 'deniedScope' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(55,24): error TS2339: Property 'ok' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'ok' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(55,30): error TS18047: 'deniedScope' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(55,42): error TS2339: Property 'error' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'error' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(63,63): error TS18047: 'destroyed' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(63,73): error TS2339: Property 'clean' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'clean' does not exist on type 'string'.
+probes/nsh-validation/desktop-native-check.tsx(63,83): error TS18047: 'destroyed' is possibly 'null'.
+probes/nsh-validation/desktop-native-check.tsx(63,93): error TS2339: Property 'forced' does not exist on type 'string | number | boolean | HostValue[] | { [key: string]: HostValue; }'.
+  Property 'forced' does not exist on type 'string'.
+error type check failed (exit status: 1)
