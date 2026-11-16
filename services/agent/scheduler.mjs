@@ -133,6 +133,8 @@ export class Scheduler {
       }
       else {
         const failure = classifyTaskError(error);
+        // 保留原始错误供归因；不再只记录清洗后的中文文案。
+        console.error(`[scheduler] task ${task.id} failed with ${failure.code}:`, error?.stack || String(error));
         this.#state(task.id, 'failed', { errorCode: failure.code, error: failure.message, stage: 'failed' });
       }
     } finally { open = false; clearInterval(heartbeat); }

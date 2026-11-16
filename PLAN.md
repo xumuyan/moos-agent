@@ -891,3 +891,9 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - E112 `docs/evidence/desktop/p03-muyan-icon-v2.json`。
 
 2026-11-16 已授权安装（E140）：按 E84 流程将 /Applications/沐码.app 更新为含团队验收文案修复的 build-nRahNV（版本号仍 0.1.49，build 标识不同）。独立分离进程执行、正常退出旧实例、停机完整备份（~/.muma-update-backup-0.1.49-nRahNV，0700/0600）并字节核对、同卷换包、旧包保留 .muma-old-3v6RdT、数据目录零改动。启动曾被 com.apple.quarantine 拦截，清除后正常：单实例 pid 42058、验签通过、includesPiFixture:false；受保护配置字节一致，SQLite 仅正常增长（1288→1290/677→679/10→10）。脚本三次被检查点守卫拦截修正（祖先误判/ditto 路径/表名），launch 步因 pgrep 中文路径误报，实际已启动。备份与旧包待新版确认可读后清理。P03.14.1–6 保持未勾选；严格退出故障、核心 3 失败随版本保留。证据：artifacts/installed-update-0.1.49-nRahNV/result.json。
+
+### 团队协作入口修复与模型流中断误报修正（0.1.50，入口已安装；流中断修复候选未安装）
+
+- 团队协作入口缺失根因：数据目录旧壳 moos-electron-shell 0.1.49 与模板同版本号，shell-update 相等即跳过；应用与壳同步升 0.1.50（commit 930fc66），build-ZBZ6Xm 经 E84 流程安装（2026-11-16 20:38），安装后数据目录壳 0.1.50、含团队协作入口。停机备份 ~/.muma-update-backup-0.1.49-ZBZ6Xm 与旧包 .muma-old-0.1.49-nRahNV 待用户确认后清理。
+- 用户报告团队任务「本地工具执行失败」误报：生产 jsonl 实证为模型流中断（stream ended before a terminal response event），非本地工具故障。修复（候选 build-eUCp8Q，未安装）：sdk-runtime 区分进程取消与 PI 会话自身 abort（带原始错误按真实归类）；errors.mjs 流中断文本→network；team-runtime 成员回合 network 有界重试一次；scheduler 失败落原始错误栈。
+- 验证：electron 127/10skip/0fail、docs OK、npm test 297/302（1 负载偶发单独重跑过 + 3 既有已知）；候选包验签通过且包内含两处修复。

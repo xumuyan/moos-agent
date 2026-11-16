@@ -306,7 +306,16 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
         }
         await session.prompt(prompt, images?.length ? { images } : undefined);
         await session.waitForIdle();
-        if (controller.signal.aborted || last?.stopReason === 'aborted') throw aborted();
+        // P03.14.7：PI 会话自身的中止必须区分两类——本进程取消（controller 已中止）与
+        // 模型服务流中断（stopReason aborted 且带原始错误，例如中转站
+        // "OpenAI Responses stream ended before a terminal response event"）。后者不能
+        // 误报为用户停止或本地工具失败，按真实错误归类（多为可重试的 network）。
+        if (controller.signal.aborted) throw aborted();
+        if (last?.stopReason === 'aborted') {
+          const raw = String(last?.errorMessage ?? '');
+          if (raw) throw new TaskFailure(classifyTaskError(new Error(raw)).code);
+          throw aborted();
+        }
         if (last?.stopReason === 'stop') {
           if (captureCheckpoint) {
             const leaf = sessionManager.getBranch().findLast(entry => entry.type === 'message')?.id;

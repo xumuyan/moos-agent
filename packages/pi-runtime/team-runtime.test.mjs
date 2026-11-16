@@ -7,6 +7,7 @@ import { createServer } from 'node:http';
 import { validateTeamPlan, runPiTeam, TEAM_LIMITS } from './team-runtime.mjs';
 import { Store } from '../../services/agent/store.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
+import { TaskFailure } from '../../services/agent/errors.mjs';
 
 const plan = { tasks: [
   { id: 'build', role: 'implementer', goal: 'Write answer.txt containing 42', dependsOn: [] },
@@ -317,4 +318,39 @@ test('usage preserves reported fields and stamps the owning live role attempt in
   assert.equal(new Set(usages.map(event => event.payload.attemptId)).size, 4);
   late(); assert.equal(events.filter(event => event.type === 'usage').length, 8);
   assert.ok(reports.every(report => report.teamId === 'forged'), 'input payloads are not mutated');
+});
+
+test('member turn retries once on model-side network stream drop, not on other failures', async () => {
+  const trace = [], events = [];
+  let memberCalls = 0;
+  const flakyRun = async options => {
+    options.sessionPolicy.beforeRequest();
+    if (options.task.text.includes('你是队长。')) { await submit(options, 'team_plan', plan); return { text: 'planned' }; }
+    if (options.task.text.includes('独立成员已执行并提交验收结果')) return { text: 'verified' };
+    if (options.task.text.includes('独立验证')) {
+      evidence(options);
+      await submit(options, 'team_verdict', { passed: true, summary: 'checked actual file' });
+      return { text: 'verified' };
+    }
+    memberCalls += 1;
+    if (memberCalls === 1) throw new TaskFailure('network');
+    return { text: 'implementer done' };
+  };
+  const result = await runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, flakyRun);
+  assert.equal(result.text, 'verified');
+  assert.equal(memberCalls, 2);
+  assert.ok(events.some(event => event.type === 'team_state' && event.payload.phase === 'running' && event.payload.retried === true));
+
+  memberCalls = 0;
+  const twiceRun = async options => {
+    options.sessionPolicy.beforeRequest();
+    if (options.task.text.includes('你是队长。')) { await submit(options, 'team_plan', plan); return { text: 'planned' }; }
+    memberCalls += 1;
+    throw new TaskFailure('network');
+  };
+  await assert.rejects(
+    () => runPiTeam({ ...base(), emit: () => {} }, twiceRun),
+    error => error instanceof TaskFailure && error.code === 'network',
+  );
+  assert.equal(memberCalls, 2, 'only one bounded retry');
 });

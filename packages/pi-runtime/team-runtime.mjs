@@ -86,7 +86,7 @@ export async function runPiTeam(options, run = runPiSdk) {
     publish('running', { member, attemptId, ...(nodeId && { nodeId }) });
     let live = true;
     try {
-      const result = await run({ ...options, signal: controller.signal,
+      const attempt = () => run({ ...options, signal: controller.signal,
         conversation: { id: `team-${prefix}-${member}` },
         task: { ...task, text: prompt },
         // Separate histories. Parent fork/retry/images must not leak into every member.
@@ -113,6 +113,15 @@ export async function runPiTeam(options, run = runPiSdk) {
           }
         },
       });
+      // 团队成员回合对模型侧网络中断做一次有界重试；其余错误（含取消/超时/预算）不重试。
+      let result;
+      try { result = await attempt(); }
+      catch (error) {
+        if (!(error instanceof TaskFailure) || error.code !== 'network' || controller.signal.aborted) throw error;
+        check();
+        publish('running', { member, attemptId, retried: true, reason: 'network' });
+        result = await attempt();
+      }
       check();
       if (!result || typeof result.text !== 'string') throw new TaskFailure('protocol');
       publish('done', { member, attemptId, ...(nodeId && { nodeId }) });

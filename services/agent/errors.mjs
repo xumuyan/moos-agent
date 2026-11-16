@@ -46,6 +46,7 @@ export function classifyTaskError(error) {
   if (/insufficient[_ -]?quota|quota exceeded|余额|额度/.test(text)) code = 'quota';
   else if (/\b401\b|\b403\b|invalid[_ -]?(api[_ -]?)?key|unauthori[sz]ed|authentication|authorization|bearer/.test(text)) code = 'auth';
   else if (/\b429\b|rate[_ -]?limit|too many requests/.test(text)) code = 'rate_limit';
+  else if (/stream ended before|stream terminated|incomplete stream|response stream (ended|closed)|empty stream response/.test(text)) code = 'network';
   else if (/context.{0,24}(limit|length|window)|maximum context|too many tokens|context[- ]?overflow|compact(?:ion)?[- ]?and[- ]?retry recovery failed|truncated response recovery failed/.test(text)
     || /上下文.{0,12}(超限|溢出|已满|过长)/.test(text)) code = 'context_limit';
   else if (/unsupported|not support|capabilit|model not found|endpoint/.test(text)) code = 'model_capability';

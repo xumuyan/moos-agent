@@ -11,6 +11,8 @@ const matrix = [
   ['fetch failed ECONNRESET SECRET', 'network'], ['tool execution failed SECRET', 'tool_error'],
   ['operation not permitted SECRET', 'permission'], ['request timed out SECRET', 'timeout'],
   ['runtime process exited SECRET', 'runtime_exit'], ['invalid response protocol SECRET', 'protocol'],
+  ['OpenAI Responses stream ended before a terminal response event SECRET', 'network'],
+  ['response stream closed mid-turn SECRET', 'network'],
 ];
 
 test('task failures use stable safe codes without returning upstream text', () => {

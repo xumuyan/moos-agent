@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-16 21:15:00 +08:00｜0.1.50 团队入口修复安装 + 团队任务误报工具失败归因与流中断修复（未安装本轮代码修复）
+
+- 修改或新增内容：① 根因确认：团队协作入口缺失不是代码缺 UI，而是数据目录里的旧壳 moos-electron-shell 停在 0.1.49，与打包模板同版本号导致 shell-update 比较相等跳过升级；应用与壳版本号同步升 0.1.50（commit 930fc66），按 E84 流程重新打包 build-ZBZ6Xm 并一次性更新（脚本预清源包 quarantine、换包后再清一次），安装后数据目录壳已为 0.1.50 且含团队协作；停机备份 ~/.muma-update-backup-0.1.49-ZBZ6Xm 与旧包 /Applications/.muma-old-0.1.49-nRahNV 保留待用户确认后清理。② 20:37 一次正在运行的团队任务随安装重启被取消（如实记录，属安装副作用）。③ 用户报告团队协作报错，只读诊断生产 SQLite/会话 jsonl：20:46 任务 5c454def 在执行成员回合失败，jsonl 实证模型流被中转站中断（OpenAI Responses stream ended before a terminal response event），却被分类为 tool_error「本地工具执行失败」，文案误导；20:47 任务 6064e099（用户停止）的成员亦遇同款流中断。
+- 遇到的难题：失败时原始错误未落日志导致归因困难；PI 会话把流中断记为 stopReason aborted，与用户取消同形难区分；本机环境变量（MOOS_ELECTRON_* 等）bash unset 不支持通配符，需逐项 env -u。
+- 处理方式（本轮代码修复，未安装）：sdk-runtime.mjs 区分本进程取消（controller 已中止→cancelled）与会话自身 abort 且带原始错误（按 classifyTaskError 真实归类）；errors.mjs 新增流中断类文本→network（可重试模型侧错误，有备份路由时 sdk 现有切换逻辑可接管）；team-runtime.mjs 成员回合对 TaskFailure network 做一次有界重试（其余错误不重试）；scheduler.mjs 失败时 console.error 输出原始错误栈供归因。
+- 验证结果：errors/team-runtime/scheduler/desktop-sdk/team-host 全过；npm run test:electron 127 过 10 跳 0 败；python 文档检查 OK；npm test 297/302，4 败中调度器并发用例为负载偶发（单文件重跑 12/12 过），其余 3 为既有已知（2 采样+1 几何）；候选 build-eUCp8Q（0.1.50）codesign 严格通过，包内 team-runtime 含 retried 标记、sdk-runtime 含流中断区分逻辑。
+- 遗留问题：build-eUCp8Q 待用户明确授权后才可安装；20:37 被取消的团队任务需用户在界面重试；0.1.50 安装的停机备份/旧包待新版确认后清理；严格退出故障与既有 3 失败随版本保留。
+- 对应 Git 提交：壳版本修复 930fc66（已推送）；本轮流中断修复为唯一提交，说明含 stream misclassification；查询 `git log --oneline --grep='stream'`。
+
 ## 2026-11-13 11:08:27 +08:00｜P03.13.21 图片压缩进上下文 + 413 请求体超限自救（E137，未安装）
 
 - 修改或新增内容：生产徐-moss-hotal 会话 b94f034a 任务 feaa6f9e 因历史多图反复「API error (413): Input exceeds the context window or request size limit」（jsonl L2697）。只读诊断定位：PI 默认单图限制 4.5MB base64，≤2000px 图原样透传，多图累积触发中转站请求体上限，PI 溢出恢复压缩只减 token 不清尾部图片字节，压缩后重试仍 413 死锁（P03.13.18/P03.13.20 均不覆盖）。用户批准三步方案：A 救会话（已完成：备份 ~/.moos-rescue/b94f034a-20261113-full.jsonl 后，8 张投影大图 c0fd32b5/af90576e/fe638060/21127edf/a6485397/9e70cfac/c026b8c1/5b3d826d 经官方 appendContextEdit 替换为文本占位，投影 8.9MB→0.16MB，47 对 toolResult 完好，隔离冒烟通过）；B 图片预算+413 兑底（本任务）；C 安装新版（待用户后续明确执行）。B 实现：新增 packages/pi-runtime/image-policy.mjs（IMAGE_RESIZE_PROFILE 1568px/512KB/JPEG80、阈值 384KB、超时 15s、modelInputLimits() 注入 images.resize 供 PI read 消费、createImageCompressor best-effort：小图/无函数/失败/超时/无收益一律透传原图）；desktop-tools.mjs 三处截图进上下文前压缩并向模型附坐标换算文本，落盘保持原图；sdk-runtime.mjs 模型定义注入 inputLimits、desktop 工具挂 compressor，context_limit 且错误含 (413)/request size 时 removeLargestContextImage 扫最大图片 toolResult 以官方 context_edit 替换为文本占位（跳过已替换 id），emit context_relief 后重建会话重试，每任务上限 2 轮，无可清图保持原终止语义；prepare-local.mjs 打包清单补 image-policy.mjs；E132 证据 runtimeSha256 同步 desktop-tools.mjs 新哈希并加 runtimeEvolution 注记（E132 验收事实不变）。新增证据 docs/evidence/desktop/p03-image-budget-relief.json（E137）、PLAN P03.13.21 条目与证据表、tests 任务号连续性 range 上界 20→21。
