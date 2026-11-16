@@ -2662,3 +2662,12 @@
 - 验证结果：team-runtime 13/13、errors/team-host 新检查通过；实测外层显示"团队独立验证未通过，详见成员验收明细 VERIFICATION_REJECTED"，截图 docs/evidence/desktop/agent-teams-live/wording-rejected.png（sha256 bb9e5503cd73ff1425f05d6d12c7f7c273d7c7f5244c99d41b3c4a23d1482592）；本次正常退出收据含 exitCode 0、passed true；隔离实例退出后临时目录已清理，生产数据未动。回归：核心 301 中 3 失败（2 已知采样 team-qa-shutdown.test.mjs:154 + 1 几何辅助波动，另一几何本轮通过，失败如实保留）、源码 Electron 127过/10跳/0败、文档 156/156。
 - 遗留问题：核心 3 个失败待归因；打包严格退出故障未修；仍非原生键鼠验收；未安装、未部署；P03.14.1–6 保持未勾选。
 - 对应 Git 提交：本次唯一提交，说明含 "team verification failure wording"，可用 `git log --oneline --grep=wording` 查询。
+
+## 2026-11-16 20:17:28 +08:00 — 已授权更新安装 0.1.49 build-3v6RdT → build-nRahNV（E140）
+
+- 修改或新增内容：/Applications/沐码.app 程序包替换为含团队验收文案修复的 build-nRahNV；新增一次性独立更新脚本 artifacts/installed-update-0.1.49-nRahNV/{update.mjs,launch.cjs} 及 result.json/update-progress.json；PLAN.md、本日志同步。
+- 遇到的难题：脚本三次受检查点守卫安全拦截后修正——(1) 祖先守卫按命令行误判仓库路径，改为按可执行路径匹配；(2) 本机 ditto 在 /usr/bin 而非 /usr/sbin；(3) 校验表名写错（无 sessions 表，实为 conversations）。换包后启动被 Gatekeeper 静默拦截：新包继承 com.apple.quarantine，xattr 清除后正常；脚本 launch 步因 pgrep 匹配不到中文路径误报失败，实际应用已启动。
+- 处理方式：严格按 E84 流程——独立分离进程执行（祖先守卫通过）、正常退出旧实例（未强杀）、停机后 ditto 完整备份 1.6G 数据目录至 ~/.muma-update-backup-0.1.49-nRahNV（0700/敏感文件 0600）并核对 providers.json/credentials.json/execution-policy/image-gen-settings 字节一致、SQLite integrity ok；同卷重命名换包，旧包保留于 /Applications/.muma-old-3v6RdT；只换程序不换数据，未触碰聊天/模型配置/插件。
+- 验证结果：新包 codesign --verify --deep --strict 通过、Identifier dev.moos.agent.electron、includesPiFixture:false、team-runtime.mjs 在包内；主进程单实例 pid 42058 路径 /Applications/沐码.app/Contents/MacOS/MuMa；四项受保护配置文件与停机备份字节一致；SQLite messages 1288→1290、tasks 677→679、conversations 10→10、events 485219→485428（仅正常增长，无丢失）；无新增崩溃报告。结果文件 artifacts/installed-update-0.1.49-nRahNV/result.json。备份与旧包待用户在新版确认聊天记录和模型配置可读后按规则清理。
+- 遗留问题：本次脚本 launch 步的中文路径检测缺陷已记录（一次性脚本不修复复用）；打包严格退出故障、核心回归 3 失败等已知问题随版本保留；本次更新未改变版本号（同为 0.1.49，build 标识不同）。
+- 对应 Git 提交：本次唯一提交，说明含 "nRahNV"，可用 `git log --oneline --grep=nRahNV` 查询。

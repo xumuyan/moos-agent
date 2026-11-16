@@ -889,3 +889,5 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 用户要求「把沐言的应用图标也处理一下」。沿用沐码 v2 家族语言重绘沐言：珊瑚 #F76B5B（E107 渐变 #FE9859→#F66477 的纯平中间值）、符号为对话气泡 + 三根语音波形竖条（延续 v1 识别度），PIL 4x 超采样程序化几何绘制，非 AI 位图放大；候选 B（气泡+双引号胶囊）保留未集成。
 - 打包 `artifacts/family-icons/muyan_v2_package.py` 重建 E107 家族包沐言目录（37 文件）：12 档透明 PNG、ICNS（16-64 反色/128+ 白底，同 E111 决策，iconutil 往返 10 图）、Windows ICO 7 分辨率、web favicon/apple-touch/PWA、iOS 全出血 appiconset、checksums.json、README；zip sha256 8c3b813a…；Play 512 变体安全区断言 worst=118.7 ≤ 148.6。同步替换 Downloads/MOOS系列图标-20261110 沐言目录与 zip。沐宿/沐序仍为 E107 v1 未动；未集成任何应用、未上传商店。
 - E112 `docs/evidence/desktop/p03-muyan-icon-v2.json`。
+
+2026-11-16 已授权安装（E140）：按 E84 流程将 /Applications/沐码.app 更新为含团队验收文案修复的 build-nRahNV（版本号仍 0.1.49，build 标识不同）。独立分离进程执行、正常退出旧实例、停机完整备份（~/.muma-update-backup-0.1.49-nRahNV，0700/0600）并字节核对、同卷换包、旧包保留 .muma-old-3v6RdT、数据目录零改动。启动曾被 com.apple.quarantine 拦截，清除后正常：单实例 pid 42058、验签通过、includesPiFixture:false；受保护配置字节一致，SQLite 仅正常增长（1288→1290/677→679/10→10）。脚本三次被检查点守卫拦截修正（祖先误判/ditto 路径/表名），launch 步因 pgrep 中文路径误报，实际已启动。备份与旧包待新版确认可读后清理。P03.14.1–6 保持未勾选；严格退出故障、核心 3 失败随版本保留。证据：artifacts/installed-update-0.1.49-nRahNV/result.json。
