@@ -23,6 +23,8 @@ const successful = ['success', 'attachments'].includes(scenario);
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
 const blockQuit = process.env.MOOS_QA_BLOCK_QUIT === '1';
+const historyReload = process.env.MOOS_QA_HISTORY_RELOAD === '1';
+assert.ok(!historyReload || ['success', 'blocked'].includes(scenario), 'History reload QA requires success or blocked');
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
 const app = join(scratch, 'QA.app');
 execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
@@ -490,6 +492,56 @@ try {
     report.checks.persistedTerminalState = true;
     report.checks.ordinaryAfterClear = true;
   } finally { db.close(); }
+  if (historyReload) {
+    const historyDb = new DatabaseSync(join(data, 'pi/moos.sqlite'), { readOnly: true });
+    try {
+      const snapshot = () => ({
+        tasks: historyDb.prepare('SELECT id, status, message FROM tasks ORDER BY rowid').all(),
+        events: historyDb.prepare('SELECT id, taskId, type, payload FROM events ORDER BY id').all(),
+      });
+      const before = snapshot(), count = requests.length;
+      const projection = async () => evaluate(`(() => {
+        document.querySelectorAll('[data-moos-pi-process], [data-moos-team-node-details]').forEach(el => el.setAttribute('open', ''));
+        return [...document.querySelectorAll('[data-moos-team-progress]')].map(el => ({
+          text: el.innerText,
+          files: [...el.querySelectorAll('[data-moos-team-file]')].map(file => file.getAttribute('data-moos-team-file')),
+          outcomes: [...el.querySelectorAll('[data-moos-team-outcome]')].map(receipt => receipt.getAttribute('data-moos-team-outcome')),
+          blockers: [...el.querySelectorAll('[data-moos-team-blocker]')].map(blocker => blocker.textContent),
+        }));
+      })()`);
+      const original = await projection();
+      assert.equal(original.length, 1, 'bind one completed team panel before reload');
+      assert.deepEqual(original[0].files, ['answer.txt']);
+      await call('Page.reload', { ignoreCache: true });
+      // The same CDP target survives renderer reload; no application quit/relaunch.
+      await until(() => evaluate(`(() => { const el = [...document.querySelectorAll('*')].find(el => el.children.length === 0 && el.textContent.startsWith('Create answer.txt with 42')); el?.click(); return !!el; })()`), 'reloaded saved team conversation');
+      await until(async () => JSON.stringify(await projection()) === JSON.stringify(original), 'restored identical member projection');
+      await checkDetails(successful ? 'verified' : 'rejected');
+      assert.equal(await evaluate(`!!document.querySelector('[data-moos-team-mode]')`), false, 'historical team must not select future team mode');
+      const restoreRetry = await evaluate(`!!document.querySelector('[data-moos-pi-retry] button')`);
+      assert.equal(restoreRetry, false, 'latest ordinary success must not manufacture a retry control');
+      await sleep(1000);
+      assert.deepEqual(snapshot(), before, 'renderer reload must not append or mutate settled tasks/events');
+      assert.equal(requests.length, count, 'renderer reload must not replay model requests');
+      const project = historyDb.prepare('SELECT projects.path FROM projects JOIN tasks ON tasks.projectId = projects.id ORDER BY tasks.rowid LIMIT 1').get();
+      assert.equal(await readFile(join(project.path, 'answer.txt'), 'utf8'), '42\n');
+      report.checks.historyReloadRestoresMemberProjection = true;
+      report.checks.historyReloadFileNavigation = true;
+      report.checks.historyReloadNoModelReplayOrEventMutation = true;
+      report.checks.historyReloadDoesNotRestoreComposerMode = true;
+      report.historyReload = { observationMs: 1000, taskCount: before.tasks.length, eventCount: before.events.length,
+        modelRequestsBefore: count, modelRequestsAfter: requests.length, projectionEqual: true,
+        tasksAndEventsEqual: true, appRelaunched: false };
+      await capture('team-history-reloaded');
+      const clip = await evaluate(`(() => {
+        const panel = document.querySelector('[data-moos-team-progress]');
+        panel.scrollIntoView({ block: 'start' });
+        const b = panel.getBoundingClientRect();
+        return { x: b.x + scrollX, y: b.y + scrollY, width: b.width, height: b.height, scale: 1 };
+      })()`);
+      await writeFile(join(scratch, 'team-history-panel.png'), Buffer.from((await call('Page.captureScreenshot', { clip, captureBeyondViewport: true })).data, 'base64'));
+    } finally { historyDb.close(); }
+  }
   assert.deepEqual(errors, []);
   report.status = 'passed'; report.requests = requests.length;
   // Closing the last window can terminate Electron before CDP acknowledges

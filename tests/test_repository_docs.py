@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import json
 import hashlib
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -318,6 +319,59 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.9 显式重试', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_settled_team_history_reload_does_not_replay_or_claim_cold_recovery(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-history-reload.json').read_text())
+        self.assertEqual(e['status'], 'isolated-settled-team-history-reload-acceptance-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        self.assertEqual(e['implementation']['allowedScenarios'], ['success', 'blocked'])
+        self.assertEqual(e['implementation']['observationMs'], 1000)
+        self.assertTrue(e['implementation']['guardBeforeCopy'])
+        for path, digest in e['implementation']['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        for name, requests, events in [('success', 9, 37), ('blocked', 8, 33)]:
+            item = e['acceptance'][name]
+            self.assertEqual(hashlib.sha256((ROOT / item['path']).read_bytes()).hexdigest(), item['sha256'])
+            r = item['report']
+            self.assertEqual(item['env']['MOOS_QA_HISTORY_RELOAD'], '1')
+            self.assertEqual(item['command']['exit'], 0)
+            self.assertEqual(r['status'], 'passed')
+            self.assertTrue(all(r['checks'].values()))
+            self.assertEqual(r['shutdown']['exitCode'], 0)
+            h = r['historyReload']
+            self.assertEqual((h['taskCount'], h['eventCount']), (2, events))
+            self.assertEqual(h['modelRequestsBefore'], requests)
+            self.assertEqual(h['modelRequestsAfter'], requests)
+            self.assertTrue(h['projectionEqual'] and h['tasksAndEventsEqual'])
+            self.assertFalse(h['appRelaunched'])
+            self.assertFalse(any(r[key] for key in ['productionTouched', 'normalGUI', 'externalModel']))
+            for shot in e['screenshots'][name]:
+                content = (ROOT / shot['path']).read_bytes()
+                self.assertTrue(content.startswith(b'\x89PNG'))
+                self.assertEqual(hashlib.sha256(content).hexdigest(), shot['sha256'])
+                self.assertEqual(shot['encoding'], 'PNG')
+                self.assertTrue(shot['visuallyReviewed'])
+        self.assertTrue(e['build']['reused'])
+        self.assertFalse(e['build']['installed'] or e['build']['rebuilt'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertEqual(len(e['build']['sourceArchiveMatches']), 6)
+        for name, passed in [('targeted', 25), ('core', 283), ('electron', 123), ('packaged', 132)]:
+            self.assertEqual(e['regression']['counts'][name]['pass'], passed)
+            self.assertEqual(e['regression']['counts'][name]['fail'], 0)
+        failure = e['regression']['coreDefault']
+        self.assertEqual(failure['command']['exit'], 1)
+        self.assertEqual(failure['failed'], 1)
+        self.assertFalse(failure['rootCauseRepaired'] or failure['guardChanged'])
+        self.assertEqual(hashlib.sha256((ROOT / failure['log']).read_bytes()).hexdigest(), failure['sha256'])
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(any(e['protection'].values()))
+        self.assertTrue(any('not full cold restart' in x for x in e['limits']))
+        self.assertTrue(any('partly covered' in x for x in e['limits']))
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('历史团队刷新恢复检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.20 已结束团队', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_member_file_index_is_owned_event_navigation_not_arbitrary_file_access(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-files.json').read_text())
         self.assertEqual(e['status'], 'isolated-member-file-event-index-candidate-not-installed')
@@ -355,8 +409,12 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertFalse(item['rootCauseConfirmed'])
             self.assertFalse(item['guardChanged'])
             self.assertEqual(hashlib.sha256((ROOT / item['log']).read_bytes()).hexdigest(), item['sha256'])
+        # Runtime is unchanged; evolving QA scripts are checked at their evidence commit,
+        # rather than rewriting the historical accepted source hashes.
         for path, digest in e['implementation']['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = (subprocess.check_output(['git', 'show', '5b9bf8e:' + path], cwd=ROOT)
+                       if path.startswith('scripts/') else (ROOT / path).read_bytes())
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         for item in e['screenshots'].values():
             self.assertEqual(item['encoding'], 'PNG')
             self.assertTrue(item['visuallyReviewed'])

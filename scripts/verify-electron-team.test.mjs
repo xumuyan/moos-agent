@@ -17,7 +17,10 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',
-    'memberFileIndexNavigation', 'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
+    'historyReloadRestoresMemberProjection', 'historyReloadFileNavigation',
+    'historyReloadNoModelReplayOrEventMutation', 'historyReloadDoesNotRestoreComposerMode',
+    'renderer reload must not replay model requests', 'renderer reload must not append or mutate settled tasks/events',
+    'Page.reload', 'memberFileIndexNavigation', 'structuredMemberDetails', 'downstreamBlockerDetails', 'noInventedStoppedReceipt', 'readableMemberLayout',
     'actualUploadsAndQueueAdmission', 'uploadBytesAndCaptainMemberReads', 'queuedModeImmutableAfterFutureSelection',
     'abruptOwnedQAFaultAndColdRunning', 'restartMarksInterruptedWithoutReplay', 'restartPreservesEventPrefixAndArtifact', 'uniquely bind copied QA Host before fault',
     'abrupt fault leaves nonterminal task for startup reconciliation', 'startup preserves prior event prefix',
@@ -27,4 +30,17 @@ test('team renderer acceptance refuses production bundle before creating or laun
     'stoppedPartialArtifactNoAutoReplay', 'stoppedTaskHistoryUnchanged',
     'attachmentAdmissionFailureNoTask', 'invalid attachment submission must not reach model',
     "Promise.race([call('Page.close'), closed])", "assert.equal(child.exitCode, 0"]) assert.ok(source.includes(condition));
+});
+
+test('history reload opt-in is bounded to settled success/blocked before QA copy', async () => {
+  const source = await readFile(new URL('./verify-electron-team.mjs', import.meta.url), 'utf8');
+  const guard = source.match(/assert\.ok\(!historyReload[^\n]+/)[0];
+  const { runInNewContext } = await import('node:vm');
+  for (const scenario of ['success', 'blocked']) assert.doesNotThrow(() => runInNewContext(guard, { assert, historyReload: true, scenario }));
+  for (const scenario of ['stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry', 'shell-stop']) {
+    assert.throws(() => runInNewContext(guard, { assert, historyReload: true, scenario }), /History reload QA/);
+    assert.doesNotThrow(() => runInNewContext(guard, { assert, historyReload: false, scenario }));
+  }
+  assert.ok(source.indexOf(guard) < source.indexOf('const scratch ='));
+  assert.ok(source.includes('tasksAndEventsEqual: true, appRelaunched: false'));
 });

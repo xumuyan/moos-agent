@@ -1,0 +1,583 @@
+{
+  "status": "isolated-settled-team-history-reload-acceptance-not-installed",
+  "recordedAt": "2026-11-16T10:26:55+08:00",
+  "baseCommit": "5b9bf8e9ad26fdfd0b31f4cb656eeb53891439fb",
+  "workspaceState": "precommit QA script/tests/docs only; production runtime unchanged",
+  "environment": "arm64 macOS27.0.1(26A434), Node24.15.0; clean inherited DSH/MOOS/Electron flags, TMPDIR=/private/tmp/",
+  "runtimeModified": false,
+  "implementation": {
+    "optIn": "MOOS_QA_HISTORY_RELOAD=1",
+    "allowedScenarios": [
+      "success",
+      "blocked"
+    ],
+    "guardBeforeCopy": true,
+    "method": "Page.reload ignoreCache; same CDP target and copied app process; open saved conversation",
+    "snapshot": "all tasks id/status/message and all events id/taskId/type/payload, read-only SQLite, exact before/after equality",
+    "projection": "rendered team text, file-button paths, outcome codes and blocker text identical after opening details",
+    "navigation": "actual answer.txt button click focuses completed action within same process card after reload",
+    "observationMs": 1000,
+    "latestTask": "following ordinary succeeded; no retry button; historical team does not change ordinary composer",
+    "sourceSha256": {
+      "scripts/verify-electron-team.mjs": "34e7fe86d58b84ee73973eb2aa6c83878123c4fa0f85e9a4a9a5d5a8d88c7a26",
+      "scripts/verify-electron-team.test.mjs": "81e2d997159788a5b6fe61302246541ce053388886deda15f0d8042266357646"
+    }
+  },
+  "acceptance": {
+    "success": {
+      "report": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 37,
+          "modelRequestsBefore": 9,
+          "modelRequestsAfter": 9,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "passed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794795360990,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794795361036
+            },
+            {
+              "event": "window-closed",
+              "at": 1794795361040
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794795361041
+            },
+            {
+              "event": "before-quit",
+              "at": 1794795361041
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794795361041
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794795361235
+            },
+            {
+              "event": "before-quit",
+              "at": 1794795361235
+            },
+            {
+              "event": "will-quit",
+              "at": 1794795361235
+            },
+            {
+              "event": "quit",
+              "at": 1794795361235
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 20976,
+                "ppid": 19502,
+                "state": "S"
+              },
+              {
+                "pid": 20995,
+                "ppid": 20976,
+                "state": "S"
+              },
+              {
+                "pid": 20996,
+                "ppid": 20976,
+                "state": "S"
+              },
+              {
+                "pid": 21000,
+                "ppid": 20976,
+                "state": "Ss"
+              },
+              {
+                "pid": 21224,
+                "ppid": 20976,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794795361353,
+          "exitCode": 0
+        }
+      },
+      "path": "artifacts/team-ui/gui-hyk3qn/report.json",
+      "sha256": "34a17e20e341533e8c73d94ac3cde49a51acb10287ac87b357c7691fc2c5078c",
+      "command": {
+        "exit": 0,
+        "seconds": 48.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "success"
+        ]
+      },
+      "env": {
+        "MOOS_QA_HISTORY_RELOAD": "1"
+      }
+    },
+    "blocked": {
+      "report": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 33,
+          "modelRequestsBefore": 8,
+          "modelRequestsAfter": 8,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "passed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794795410198,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794795410369
+            },
+            {
+              "event": "window-closed",
+              "at": 1794795410374
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794795410375
+            },
+            {
+              "event": "before-quit",
+              "at": 1794795410375
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794795410375
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794795410589
+            },
+            {
+              "event": "before-quit",
+              "at": 1794795410589
+            },
+            {
+              "event": "will-quit",
+              "at": 1794795410589
+            },
+            {
+              "event": "quit",
+              "at": 1794795410589
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 23877,
+                "ppid": 22400,
+                "state": "S"
+              },
+              {
+                "pid": 23895,
+                "ppid": 23877,
+                "state": "S"
+              },
+              {
+                "pid": 23896,
+                "ppid": 23877,
+                "state": "S"
+              },
+              {
+                "pid": 23899,
+                "ppid": 23877,
+                "state": "Ss"
+              },
+              {
+                "pid": 24123,
+                "ppid": 23877,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794795410998,
+          "exitCode": 0
+        }
+      },
+      "path": "artifacts/team-ui/gui-OLx4VW/report.json",
+      "sha256": "35127d6e633f9f4dad939234c3cb7c849b7cc67da792780d7066c440592ac964",
+      "command": {
+        "exit": 0,
+        "seconds": 49.34,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "blocked"
+        ]
+      },
+      "env": {
+        "MOOS_QA_HISTORY_RELOAD": "1"
+      }
+    }
+  },
+  "screenshots": {
+    "success": [
+      {
+        "path": "artifacts/team-ui/gui-hyk3qn/team-history-panel.png",
+        "sha256": "2fe72dc7f1c8fe70c61b1d7a7802ad423bbd5864a9a2ca48e8dfd63588ac7ac7",
+        "encoding": "PNG",
+        "visuallyReviewed": true,
+        "scope": "post-reload viewport / successful bounded member panel"
+      },
+      {
+        "path": "artifacts/team-ui/gui-hyk3qn/team-history-reloaded.png",
+        "sha256": "418543e876e135703345431f590d6a06af4bf9c79ab20bdf8c6e622c163accf0",
+        "encoding": "PNG",
+        "visuallyReviewed": true,
+        "scope": "post-reload viewport / successful bounded member panel"
+      }
+    ],
+    "blocked": [
+      {
+        "path": "artifacts/team-ui/gui-OLx4VW/team-history-panel.png",
+        "sha256": "b61579baa88d2413b3ec2e73f3314a1db7685d96ad62ce979b2b166303e50513",
+        "encoding": "PNG",
+        "visuallyReviewed": true,
+        "scope": "panel top/receipts; blocked panel bottom partly covered by fixed composer"
+      },
+      {
+        "path": "artifacts/team-ui/gui-OLx4VW/team-history-reloaded.png",
+        "sha256": "4de8b99c186f9bb1e3ed493035f41d5efd0fe66256d5e781ad013523c63030f7",
+        "encoding": "PNG",
+        "visuallyReviewed": true,
+        "scope": "post-reload viewport / successful bounded member panel"
+      }
+    ]
+  },
+  "preliminaryAcceptance": {
+    "success": {
+      "command": {
+        "exit": 0,
+        "seconds": 47.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "success"
+        ]
+      },
+      "reportPath": "artifacts/team-ui/gui-0VZuX8/report.json",
+      "note": "passed before dedicated panel clip; final same logic adds screenshot only"
+    },
+    "blocked": {
+      "command": {
+        "exit": 0,
+        "seconds": 49.43,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "blocked"
+        ]
+      },
+      "reportPath": "artifacts/team-ui/gui-pjUg6l/report.json",
+      "note": "passed before dedicated panel clip; final same logic adds screenshot only"
+    }
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 2.39,
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/pi-turn.test.mjs",
+          "apps/electron/client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 6.22,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app"
+        ]
+      },
+      "reload-success": {
+        "exit": 0,
+        "seconds": 48.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "success"
+        ]
+      },
+      "reload-blocked": {
+        "exit": 0,
+        "seconds": 49.34,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app",
+          "blocked"
+        ]
+      },
+      "core": {
+        "exit": 0,
+        "seconds": 154.8,
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ]
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 23.98,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 36.53,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ]
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.19,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ]
+      }
+    },
+    "counts": {
+      "targeted": {
+        "tests": 25,
+        "pass": 25,
+        "fail": 0,
+        "skipped": 0
+      },
+      "core": {
+        "tests": 283,
+        "pass": 283,
+        "fail": 0,
+        "skipped": 0
+      },
+      "electron": {
+        "tests": 133,
+        "pass": 123,
+        "fail": 0,
+        "skipped": 10
+      },
+      "packaged": {
+        "tests": 133,
+        "pass": 132,
+        "fail": 0,
+        "skipped": 1
+      }
+    },
+    "coreDefault": {
+      "command": {
+        "exit": 1,
+        "seconds": 65.69,
+        "command": [
+          "npm",
+          "test"
+        ]
+      },
+      "log": "artifacts/team-history-reload/initial/core.log",
+      "sha256": "7f17322c79206c7827e172c00d75245b54c0d4b861b9199371e01c55fd56e49a",
+      "tests": 283,
+      "passed": 282,
+      "failed": 1,
+      "test": "post-click AX element geometry drift between refresh and capture stops without replay even in the same window",
+      "expectedCode": "DESKTOP_FOCUS_CHANGED",
+      "actual": "TimeoutError: 桌面 helper 执行超时",
+      "rootCauseRepaired": false,
+      "guardChanged": false
+    },
+    "allRegressionsGreen": false,
+    "blockers": [
+      "offline Rust tauri missing exit101",
+      "source ten/package one skips: reviewed skin materials absent"
+    ],
+    "preliminaryDocs": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "tests": 145,
+      "passed": 144,
+      "failed": 1,
+      "reason": "historical 5b9bf8e evidence script hashes compared with newly edited QA source",
+      "resolution": "historical scripts verified via git show 5b9bf8e:path, historical hashes unchanged; new script hashes belong to this new evidence",
+      "transitionPassed": 145,
+      "transitionSeconds": 0.479
+    },
+    "note": "default npm test failed; full identical inventory --test-concurrency=1 succeeds, not default test or helper timing repair",
+    "documentation": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "tests": 146,
+      "passed": 146,
+      "failed": 0,
+      "seconds": 0.393,
+      "workspaceState": "precommit QA/docs/tests with this evidence; not committed application runtime"
+    }
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-unpYE2/沐码.app",
+    "reused": true,
+    "rebuilt": false,
+    "version": "0.1.49",
+    "includesPiFixture": false,
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 6.22,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-unpYE2/沐码.app"
+      ]
+    },
+    "sourceArchiveMatches": {
+      "apps/electron/pi-turn.mjs": "268cb8cba9a0cb30ede350720b3a05e51f1cf76f6e34beb23a3e76cc5da0b95f",
+      "packages/pi-runtime/team-runtime.mjs": "528afcc5d6289f6632b111fa038ff07d446aa26422065010e6e9830eef952d71",
+      "apps/electron/plugin/host.js": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+      "apps/electron/plugin/pi-tasks.js": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+      "apps/electron/plugin/pi-route.js": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+      "apps/electron/plugin/client.js": "49b4e34a71436d70edc117be36c6f056146ba5276171d948911ad124f6a22dc8"
+    },
+    "installed": false
+  },
+  "limits": [
+    "same app/Host renderer refresh, not full cold restart, OS reboot, power loss or crash recovery",
+    "only settled success/blocked plus subsequent ordinary success; active-task reload, queued/steer/reload attachments remain unverified",
+    "no model requests in one-second observation plus unchanged events does not establish permanent non-replay or exactly-once effects",
+    "hidden copied QA with local synthetic model, real Host and PI SDK; not visible GUI/native input/external-model/production acceptance",
+    "event-file index locates write record only, not opening/reading current file or checking symlink containment",
+    "blocked panel clip partly covered by fixed composer; companion full viewport shows blocker, not general long-panel visual acceptance",
+    "no root-cause repair for prior QA quit/helper/ps timeouts; default core failure retained",
+    "P03.14.1–6 stay unchecked; full member side panel and recovery still pending"
+  ],
+  "protection": {
+    "productionTouched": false,
+    "productionDataChanged": false,
+    "productionRestarted": false,
+    "desktopGuardsChanged": false,
+    "legacyExecutorsEnabled": false
+  }
+}
