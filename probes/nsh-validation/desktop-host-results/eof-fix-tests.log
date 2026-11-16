@@ -1,0 +1,14 @@
+✔ N01-D1 exact versioned allowlist, trusted registry, selection and resource ownership (64.35425ms)
+✔ N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap (1271.957792ms)
+✔ N01-D1 admission budget and terminal duplicate at limit (54.911958ms)
+✔ N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation and active close (678.150292ms)
+✔ N01-D1 actual child private pipe acceptance exits zero (including Unicode checkout path) (2263.306375ms)
+✔ N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup (3.579667ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5477.237625

@@ -1,0 +1,24 @@
+✔ N01-D1 exact versioned allowlist, trusted registry, selection and resource ownership (723.354166ms)
+✔ N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap (4985.364916ms)
+✔ N01-D1 admission budget and terminal duplicate at limit (108.433416ms)
+✔ N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation and active close (3660.321125ms)
+✔ N01-D1 actual child private pipe acceptance exits zero (including Unicode checkout path) (11342.936458ms)
+✔ N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup (5.081667ms)
+✔ N01-D1 fragmented UTF-8 frames, invalid UTF-8 and per-frame byte boundary (117.684042ms)
+✔ N01-D1 pipe serial backpressure, stalled reader, EPIPE/close, input error and oversized output (444.476625ms)
+✔ N01-D1 pipe startup parent loss and cleanup failure do not admit requests (16.191292ms)
+✔ N01-D1 real PI is drained on malformed frame, output loss and reader stall (2741.789ms)
+✔ N01-D1 sessions, byte limits and public payload whitelist remain bounded (145.642541ms)
+✔ N01-D1 fixture binds loopback only, authenticates model calls and closes its listener (19.416417ms)
+[scheduler] task f83d063f-aec7-4984-84b7-4dc7bdac87c0 failed with internal: TaskFailure: 任务因内部错误失败，请使用错误码排查。
+    at Scheduler.run (file://<workspace>/probes/nsh-validation/desktop-host.mjs:62:21)
+    at async #execute (file://<workspace>/services/agent/scheduler.mjs:102:22)
+✔ N01-D1 private runner failures expose only generic task code and public state (208.871333ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34917.471291

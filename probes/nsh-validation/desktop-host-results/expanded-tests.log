@@ -1,0 +1,33 @@
+✔ N01-D1 exact versioned allowlist, trusted registry, selection and resource ownership (275.5325ms)
+✔ N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap (5995.237542ms)
+✔ N01-D1 admission budget and terminal duplicate at limit (131.356334ms)
+✔ N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation and active close (2917.409791ms)
+✔ N01-D1 actual child private pipe acceptance exits zero (including Unicode checkout path) (8162.512166ms)
+✔ N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup (8.283833ms)
+✔ N01-D1 fragmented UTF-8 frames, invalid UTF-8 and per-frame byte boundary (111.113625ms)
+✖ N01-D1 pipe serial backpressure, stalled reader, EPIPE/close, input error and oversized output (76.826208ms)
+✔ N01-D1 pipe startup parent loss and cleanup failure do not admit requests (9.201875ms)
+✔ N01-D1 real PI is drained on malformed frame, output loss and reader stall (2418.237542ms)
+✔ N01-D1 sessions, byte limits and public payload whitelist remain bounded (222.358875ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26360.349334
+
+✖ failing tests:
+
+test at probes/nsh-validation/desktop-host.test.mjs:183:1
+✖ N01-D1 pipe serial backpressure, stalled reader, EPIPE/close, input error and oversized output (76.826208ms)
+  Error [ERR_MULTIPLE_CALLBACK]: Callback called multiple times
+      at onwrite (node:internal/streams/writable:617:28)
+      at WritableState.onwrite (node:internal/streams/writable:350:26)
+      at TestContext.<anonymous> (file://<workspace>/probes/nsh-validation/desktop-host.test.mjs:208:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'ERR_MULTIPLE_CALLBACK'
+  }

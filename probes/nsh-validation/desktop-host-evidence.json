@@ -1,0 +1,206 @@
+{
+  "task": "N01-D1 desktop-host",
+  "status": "host-subtask-accepted-overall-desktop-bridge-and-full-regression-blocked-not-deployed",
+  "recordedAt": "2026-11-16T23:43:50.518609+08:00",
+  "workspaceBase": "4a80f2fdb5890fa94390fdf1f78c62bd4e61d3c9",
+  "environment": {
+    "os": "macOS 27.0.1 (26A434)",
+    "arch": "arm64",
+    "node": "24.15.0",
+    "piSdk": "1.5.0"
+  },
+  "initialFiles": "All six protocol/Node files existed untracked before this task; reviewed/adopted, not newly invented this round.",
+  "baselineSha256": {
+    "probes/nsh-validation/desktop-contract.ts": "5b45e0438efd93a9d2addc0a213c882c912de2d9cf727f8ca3f6315c3f1f33e8",
+    "probes/nsh-validation/desktop-host-stdio.mjs": "a5dc95ed8af2dee02f7d71d3a7a93a39dd49f583a7350d34b1ad8605012cf685",
+    "probes/nsh-validation/desktop-host.mjs": "bea6396e88a3823927f03233a795c2b3d7c714e60b8389073adb9eeee7e5253b",
+    "probes/nsh-validation/desktop-host.test.mjs": "17cc1b9bade2b79a45fffb250607d2a9b73497208d398aff09586d01541b3d7b",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "6e780f14561559f87c7db4ede43f78f623ebcf4579dde96120c0b1c3fd3669d2",
+    "probes/nsh-validation/verify-desktop-host.mjs": "9d5c0609cacc4ec2b67ed11eb47c50efea0b32449da111d8074f4ae4de02f236"
+  },
+  "sourceSha256": {
+    "probes/nsh-validation/desktop-contract.ts": "055a4e0aafd9a79b2dc3ced3d4cb8c6730a7e7f5b2b8609a22ef772be81c135b",
+    "probes/nsh-validation/desktop-host.mjs": "bea6396e88a3823927f03233a795c2b3d7c714e60b8389073adb9eeee7e5253b",
+    "probes/nsh-validation/desktop-host-stdio.mjs": "3860772afd2e76bb357464594721079860de09be36d5c5ff896a00abb63ca802",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "6e780f14561559f87c7db4ede43f78f623ebcf4579dde96120c0b1c3fd3669d2",
+    "probes/nsh-validation/desktop-host.test.mjs": "b453f5d2be939cb93f636bc3af5b36c34a2e97ab4b40001c6a5546a6a533ddbb",
+    "probes/nsh-validation/verify-desktop-host.mjs": "b655a73acba90b599fbe5ae1420baddd59865836f346088de73bb4c73f3f5622"
+  },
+  "actualChanges": [
+    "Incremental byte-bounded fatal UTF-8 NDJSON parser; bounded response and one write in flight",
+    "Output close/error, input error, startup parent loss, 5s write deadline trigger same Host close; destroy failed streams",
+    "Contract documentation with bridge limits, cancellation semantics, privacy and lifecycle boundaries",
+    "13 tests total, up from six pre-existing; real PI EOF/failure registered-command PID and temp directory cleanup",
+    "Independent verifier waits for actual bash tool_start instead of fixed sleep; bounded failure cleanup of owned Host",
+    "Real-PI tests require terminal && !hasMore, not terminal alone"
+  ],
+  "regression": {
+    "targeted-final.log": {
+      "command": "node --test probes/nsh-validation/desktop-host.test.mjs",
+      "log": "probes/nsh-validation/desktop-host-results/targeted-final.log",
+      "sha256": "fafa55239bfe9ca3728d9433b82004c1b5b2dac330c61a871e5496357e8b9fa7",
+      "exit": 0,
+      "summary": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "originalLogSha256": "5b103d2622aa466fe8c409289f067b15d9d8c3ff86e028c647e620a7cd05d4f1"
+    },
+    "acceptance.json": {
+      "command": "node probes/nsh-validation/verify-desktop-host.mjs",
+      "log": "probes/nsh-validation/desktop-host-results/acceptance.json",
+      "sha256": "ff2255998abcf1fbc081e4411626d86e08b628a4f9b09399ac2e36c80e5fd7c1",
+      "exit": 0,
+      "summary": {
+        "status": "passed",
+        "checks": 9,
+        "stderrBytes": 0,
+        "nativeGUI": false,
+        "externalModel": false,
+        "productionData": false,
+        "deployed": false
+      },
+      "originalLogSha256": "ff2255998abcf1fbc081e4411626d86e08b628a4f9b09399ac2e36c80e5fd7c1"
+    },
+    "core.log": {
+      "command": "npm test",
+      "log": "probes/nsh-validation/desktop-host-results/core.log",
+      "sha256": "ff13eff3d992617371bb0fe53d3fc99c134888d0716cc6126e6e9899d2b87ad0",
+      "exit": 1,
+      "summary": {
+        "tests": 314,
+        "pass": 310,
+        "fail": 3,
+        "cancelled": 1,
+        "skipped": 0
+      },
+      "originalLogSha256": "3eb0dd933940795d575367fb20bfa7254e9d5336bcbaad1af81edd478c3f594c"
+    },
+    "core-final.log": {
+      "command": "npm test",
+      "log": "probes/nsh-validation/desktop-host-results/core-final.log",
+      "sha256": "1c072154194f77918d41c14c490ef3f8fb265618780f63109cceae30a786bd2c",
+      "exit": 1,
+      "summary": {
+        "tests": 315,
+        "pass": 310,
+        "fail": 3,
+        "cancelled": 2,
+        "skipped": 0
+      },
+      "originalLogSha256": "420ad1d7b9cfb560e058d0ddfc28dd601e6ec1b5ed47057dc2faaa9bee11877c"
+    },
+    "core-final-13.log": {
+      "command": "npm test",
+      "log": "probes/nsh-validation/desktop-host-results/core-final-13.log",
+      "sha256": "e4ac9a86ed31f4a049e7cde6cec2e1b1eef3aa7eb2c7e7fb040fd22303a4e62e",
+      "exit": 1,
+      "summary": {
+        "tests": 316,
+        "pass": 314,
+        "fail": 1,
+        "cancelled": 1,
+        "skipped": 0
+      },
+      "originalLogSha256": "94ec0c65d841ba4ca8a818fb8f140cfd54fa49f5a221fa728d82a7c724533ee9"
+    },
+    "core-serial.log": {
+      "command": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
+      "log": "probes/nsh-validation/desktop-host-results/core-serial.log",
+      "sha256": "646cd8582910452b80f834bd7cf98ada42f6d9f7f3a779b2db30010d6ff44e9f",
+      "exit": null,
+      "summary": {
+        "status": "tool timeout at 240 seconds; no final summary; not passed"
+      },
+      "originalLogSha256": "b620fbb768930f2030128a3d933c3c5fd057f752e04c03530a585b1f3ba14751"
+    },
+    "electron.log": {
+      "command": "npm run test:electron",
+      "log": "probes/nsh-validation/desktop-host-results/electron.log",
+      "sha256": "6acdb86d83c4c6b774bdd3905b7eec47bcc583c490a38086aae25b5c488ba852",
+      "exit": 0,
+      "summary": {
+        "tests": 137,
+        "pass": 127,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 10
+      },
+      "originalLogSha256": "651b1ced44874e2cb80bc94dded807a07c4cadd3dd9f0887cee9953014054aa9"
+    },
+    "native.log": {
+      "command": "cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "log": "probes/nsh-validation/desktop-host-results/native.log",
+      "sha256": "3168795fbf7ecc190baab57c9399b09d9e5e3662c58027889bc7a632d3074655",
+      "exit": 101,
+      "summary": {
+        "status": "offline missing tauri; blocked"
+      },
+      "originalLogSha256": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49"
+    }
+  },
+  "failuresRetained": [
+    "First stdio rewrite EOF callback interruption misclassified a malformed JSON response as failed (5/6); corrected EOF error distinction",
+    "Expanded test accidentally invoked completed writable callback twice (10/11); corrected test callback ownership",
+    "Buffered EOF behind a stalled write timed out (10/11); expectation corrected to report failed timeout, no false normal-EOF guarantee",
+    "Full core final: sdk session-resume test cancelled by parent and desktop geometry test failed; earlier sample/calibration and SDK concurrency failures also retained",
+    "Full serial run exceeded 240s without summary; no pass claimed; no product timeouts or guards relaxed"
+  ],
+  "acceptedScope": {
+    "sixMethods": true,
+    "strictResourceOwnership": true,
+    "sessionScopedIdempotency": true,
+    "terminalAndNoMoreRequired": true,
+    "loopbackFixtureOnly": true,
+    "realPiSdk": true,
+    "sdkInProcess": true,
+    "registeredToolCleanup": true,
+    "privateChildNormalEofExit": true
+  },
+  "notClaimed": {
+    "nativeBridgeIntegrated": false,
+    "nativeGUIValidated": false,
+    "crashRecovery": false,
+    "arbitraryDescendantCleanup": false,
+    "osSandboxGuarantee": false,
+    "fullDiskQuota": false,
+    "restartPersistence": false,
+    "externalModelValidated": false
+  },
+  "protection": {
+    "formalElectronModified": false,
+    "mobileModified": false,
+    "realUserDataReadOrWritten": false,
+    "installedOrRestartedFormalApp": false,
+    "lanListenerOpened": false,
+    "deployed": false
+  },
+  "overallN01D1Complete": false,
+  "allRegressionsGreen": false,
+  "commitSubject": "fix(N01-D1): harden reviewed desktop Host private pipe lifecycle",
+  "remaining": [
+    "Native bridge/UI and trusted binary distribution/call authorization need independent integration and actual desktop acceptance",
+    "Default core failures and incomplete serial run prevent full repository acceptance; fix in appropriate owner scope, no retries to erase failures",
+    "Rust tauri offline dependencies unavailable; Electron ten build-dependent skips remain; no formal build/install performed"
+  ],
+  "regressionLogPolicy": "Tracked logs preserve test names, assertions and counts; workspace stack prefixes and synthetic auth diagnostic redacted. Original logs remain ignored with originalLogSha256. Trailing whitespace removed only in tracked copies for git diff --check.",
+  "developmentFailureLogs": [
+    "probes/nsh-validation/desktop-host-results/first-tests.log",
+    "probes/nsh-validation/desktop-host-results/expanded-tests.log",
+    "probes/nsh-validation/desktop-host-results/expanded-fixed.log",
+    "probes/nsh-validation/desktop-host-results/eof-fix-tests.log"
+  ],
+  "documentationCheck": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+    "tests": 158,
+    "pass": 158,
+    "fail": 0,
+    "durationSeconds": 3.078,
+    "log": "probes/nsh-validation/desktop-host-results/docs.log",
+    "scope": "before final result metadata; rerun before commit",
+    "sha256": "5deb68a908498940b1b94f825f4b0797f3699d625e6cae38bfeba09e428b4df7"
+  }
+}

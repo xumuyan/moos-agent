@@ -1,0 +1,34 @@
+✔ N01-D1 exact versioned allowlist, trusted registry, selection and resource ownership (44.535792ms)
+✔ N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap (1217.393916ms)
+✔ N01-D1 admission budget and terminal duplicate at limit (62.479583ms)
+✔ N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation and active close (808.568625ms)
+✔ N01-D1 actual child private pipe acceptance exits zero (including Unicode checkout path) (2434.7035ms)
+✖ N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup (2.41125ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5990.752125
+
+✖ failing tests:
+
+test at probes/nsh-validation/desktop-host.test.mjs:149:1
+✖ N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup (2.41125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at TestContext.<anonymous> (file://<workspace>/probes/nsh-validation/desktop-host.test.mjs:158:37)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -2730,3 +2730,16 @@
 - 验证结果：python3 -m unittest discover -s tests -v 首次156通过/1失败，格式更正后157/157通过（1.835s）；git diff --check通过。人工核对PLAN/README的暂停范围、历史保留及D1→D2→D3一致。此轮仅文档与文档测试，未执行npm核心/Electron/NSH运行或构建及GUI验收，不代表应用回归全绿；既有采样/几何/严格退出问题仍保留，未修复。记录对应本次提交前文档工作区。
 - 遗留问题：N01未完成；NSH桌面UI→真实PI的提交/流式/工具/停止闭环、历史与恢复、模型配置、功能兼容和同负载资源测量均待实现或实际验收。手机恢复须用户重新指定。当前仍非正式迁移/安装交付，本条不表示已执行D1。
 - 对应 Git 提交：唯一说明 `docs(N01): prioritize NSH desktop and pause mobile work`；查询 `git log --all --oneline --grep='prioritize NSH desktop and pause mobile work'`；提交后推送并核对远程HEAD，源码推送不等于部署。
+
+## 2026-11-16 23:46:45 +08:00｜N01-D1 desktop-host 复核与私有管道检查点（非完整闭环、未部署）
+
+- 修改或新增内容：先核对规则、PLAN/日志与Git归属，初始仅六个目标文件未跟踪，保存SHA-256及副本到artifacts/nsh-validation/desktop-host-review；接管已有受限六方法/可信临时项目会话/资源校验/幂等分页/真实PI夹具实现，不冒称从零新增。实际补desktop-host-stdio逐帧字节限额/fatal UTF-8/512KiB响应上限/单写背压/5秒写期限/输出关闭或异常/输入异常及启动丢父管道统一close，异常销毁流；测试从6项扩至13项，真实PI等待terminal且hasMore=false；独立验收器等真实bash tool_start而非固定sleep，失败仅清理自有Host。新增稳定契约说明DESKTOP-HOST.md、desktop-host-evidence.json及Python文档契约，PLAN同步未勾D1。
+- 遇到的难题：首次EOF中断写回调误判失败（5/6），扩展测试又重复调用已完成Writable回调（10/11），积压请求后的EOF实际受背压先超时（10/11）；全仓并发出现SDK超时取消、几何read次数及系统sample不可用，串行运行240秒工具超时无汇总；Rust离线缺tauri。初次父目录递归查规则20秒超时，后改目标层级检查，无嵌套规则。
+- 处理方式：保留失败日志，区分EOF与故障原因、write回调单次settle，修正测试回调归属，文档明确积压EOF不保证响应全部送达；未放宽产品超时/桌面守卫、未把sample波动或串行未完成当通过。Host仍默认真实SDK+127.0.0.1认证夹具；无LAN控制服务、无渲染路径/命令/provider/凭据接口。仅证实已登记固定工具PID收尾，不声称任意后代/OS沙箱/崩溃恢复；SDK同进程，无单独PI子进程可冒报退出。
+- 验证结果：arm64/macOS27.0.1(26A434)/Node24.15.0/PI1.5.0，证据对应基础4a80f2f上的本次提交前工作区，六源码hash和初始hash见desktop-host-evidence.json。node --test probes/nsh-validation/desktop-host.test.mjs 最终13/13，独立node probes/nsh-validation/verify-desktop-host.mjs 9项passed、stderrBytes0、真实child EOF正常exit0；真实PI故障/EOF各检查登记命令PID消失和临时目录删除。npm test最后316项314过/1失败/1取消（SDK session resume取消、geometry drift失败），此前314项310过/3败/1取消及315项310过/3败/2取消保留；完整原清单--test-concurrency=1在240秒工具超时无汇总，不计通过。npm run test:electron 137项127过/10跳/0败；cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml exit101缺tauri。具体命令、日志hash与结果见证据；Python新增契约后检查在下方补记，不以旧157项冒充。
+- 遗留问题：全仓未全绿，仅Host子项限定验收；NSH原生桥/UI、可信二进制分发/生产目录绑定/调用权限及GUI实测由后续推进，N01-D1/D2/D3不勾。未改正式Electron/手机/真实数据，未构建/安装/退出或重启正式应用，未外部模型验收或部署。不得将此检查点当完整功能交付；全仓问题须相应范围修复并重新验收。
+- 对应 Git 提交：唯一说明 `fix(N01-D1): harden reviewed desktop Host private pipe lifecycle`；查询 `git log --all --oneline --grep='harden reviewed desktop Host private pipe lifecycle'`。本地检查点提交与GitHub推送非应用部署；全仓受阻如实保留，提交后核对远程与HEAD，不提前声称推送成功。
+
+验证补记（2026-11-16 23:46:45 +08:00，同唯一提交说明）：新增文档契约后158/158通过（3.078s），git diff --check通过；已将测试结果脱敏并纳入probes/nsh-validation/desktop-host-results，原始日志仅留忽略目录，源hash未变。desktop-host.mjs和desktop-model-fixture.mjs与初始副本cmp完全一致，实际修正限定stdio/契约/专项测试/验收器及配套文档。最终元数据后再次执行文档检查，结果另在最终交付报告中给出；不因全仓失败而勾选功能完成。
+
+暂存检查补记（2026-11-16 23:47:11 +08:00，同唯一提交说明）：最终文档158/158、1.237s；首次git diff --cached --check发现导出测试日志的空白行含尾空格，已仅去除脱敏副本尾空格并重算hash，原始日志不改，随后重跑文档和暂存检查；不改变任何测试结果。
