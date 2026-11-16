@@ -2594,3 +2594,15 @@
 - 验证结果：提交前QA helper/runner/tests工作区，arm64/macOS27.0.1/Node24.15.0/TMPDIR=/private/tmp/，清理继承环境。node --test scripts/team-qa-shutdown.test.mjs scripts/verify-electron-team.test.mjs专项16/16、1399.714375ms；codesign --verify --deep --strict隔离包exit0/7.37s；MOOS_QA_BLOCK_QUIT=1 node scripts/verify-electron-team.mjs <generated-app> stop预期exit1，8业务检查全真/exitnull、closeDispatchedAt后10002ms、TERM+KILL只为清理；普通八场景七个正常exit0，中断后重试20项业务检查全真但strict退出失败，保持exitnull、sample Mach等待且清理前自行退出；不复跑刷绿，具体命令/时长/报告及hash见新证据与artifacts/team-exit-deadline。默认核心292通过/1失败/0取消，共293；完整原清单串行293/293（不当默认修复）；源码Electron126通过10skip、包内135通过1skip、Rust离线exit101缺tauri，全仓未全绿。完整命令npm test、npm run test:electron及指定包入口、cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml均记录。过渡python3 -m unittest discover -s tests -v 150/150、1.432s；新增契约后151/151、1.681s，证据元数据后再核对；最终专项16/16、2506.266208ms。git diff --check通过。仅QA改动复用旧候选，无runtime重建；旧源码/归档比对继承不冒充本次新测。
 - 遗留问题：验收计时漏洞限定修复，不是应用原生退出根因修复；自然退出/helper/default并发/离线tauri/皮肤材料仍阻全仓，完整成员界面/可见GUI/外部模型未完成。解除条件为可验证根因修复及原门限实测、补齐材料/依赖；P03.14.1–6未勾。未安装/退出/重启正式应用、未改真实数据。
 - 对应 Git 提交：唯一说明 `fix(P03.14): start QA exit deadline before CDP close`；查询 `git log --all --oneline --grep='start QA exit deadline before CDP close'`。限定QA纠偏与受阻证据提交推送，远程main对齐HEAD后核对；源码推送非部署。
+
+
+## 2026-11-16 14:42:00 +08:00｜P03.14 原生退出源码边界复核（诊断、未安装）
+
+- 修改或新增内容：新增固定Electron44.7.0上游源码顺序复核证据、历史失败hash及一次未触发采样的探索记录；PLAN/指南7.26/文档契约同步。只改文档和文档测试，不改runtime/QA源码。
+- 遇到的难题：历史自然失败Host settled与quit后实际exit仍null，Mach布尔不足区分原生调用；本次一次新仪器探索正常退出，不能取得新分类或排除候选。
+- 处理方式：先读三个原失败及main/Host，私有探索仅失败后可采样；本轮未触发hook，不把未经触发的同步sample包装/分类器交付或记为验收。只对固定上游源码核对Emit quit之后的singleton/主循环/Node/BrowserContext边界，不认定二进制构建标志、条件profiling或具体阻塞；原失败不改、不复跑刷绿，不更改Host顺序/10000ms/actual exit0或用app.exit。
+- 验证结果：提交前文档工作区、arm64/macOS27.0.1/Node24.15.0/独立TMPDIR，清继承环境；python3 artifacts/team-native-boundary/explore.py一次interrupt-retry gui-ShhyRe exit0/64.31s，20项业务真，关闭派发后267ms，sampleHookReached=false；未取得根因证据。git ls-remote上游v44.7.0 tag对象794670e、解引用61f55c4，三个源码tag与commit抓取字节相同。node --test scripts/team-qa-shutdown.test.mjs scripts/verify-electron-team.test.mjs 16/16；候选codesign严格验签exit0/6.78s。完整npm test、原清单串行、源码及指定候选DSH的npm run test:electron、离线cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml实际命令/结果/时长及日志hash见新证据regression；默认核心292通过1失败/293，geometry-drift实际helper超时，不改守卫。文档检查在落盘后单独运行，结果以本轮后续验证条目为准，不能用旧151项冒充。
+- 遗留问题：无自然退出根因或修复，探索正常退出不抹历史失败，分类hook未到；默认并发helper时序/离线缺tauri/皮肤材料仍阻全仓，完整成员界面/可见GUI/外部模型未验收。P03.14.1–6不勾，未安装/退出/重启正式应用或改真实数据。下一步需经过测试的有界非阻塞诊断在真实失败区分原生阶段，不能凭源码存在归因。
+- 对应 Git 提交：唯一说明 `docs(P03.14): bound native quit source review conclusions`；查询 `git log --all --oneline --grep='bound native quit source review conclusions'`。诊断文档检查点，不是修复或部署；提交推送后核对远程main等于HEAD。
+
+本轮验证补记（2026-11-16 14:42:19 +08:00，同唯一提交说明）：实际完整原清单串行293/293、183.69s（不是默认并发修复），源码Electron126通过10skip/31.51s，包内135通过1skip/44.38s，Rust离线exit101/0.25s缺tauri；python3 -m unittest discover -s tests -v 新增契约后152/152、1.306s，证据文档元数据补齐后再次检查。专项16/16、1668.344666ms。源码/QA及历史失败未改，仍不宣称全仓通过或部署。

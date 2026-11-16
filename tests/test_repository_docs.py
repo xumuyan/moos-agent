@@ -9,6 +9,47 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaNativeBoundaryReviewTests(unittest.TestCase):
+    def test_native_quit_source_review_keeps_failure_and_unobserved_hook_unknown(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-boundary-review.json').read_text())
+        self.assertEqual(e['electron']['frameworkVersion'], '44.7.0')
+        self.assertEqual(e['electron']['sourceCommit'], '61f55c4ce540416b3e43f75f6c0f125d22e5e908')
+        for s in e['sourceReview']:
+            b = (ROOT / s['localEvidencePath']).read_bytes()
+            self.assertEqual(hashlib.sha256(b).hexdigest(), s['sha256'])
+            text = b.decode()
+            for a, z in s['orderedAnchors']:
+                self.assertLess(text.index(a), text.index(z))
+        for h in e['historicalFailures']:
+            b = (ROOT / h['path']).read_bytes()
+            self.assertEqual(hashlib.sha256(b).hexdigest(), h['sha256'])
+            r = json.loads(b)
+            self.assertIsNone(r['shutdown']['exitCode'])
+            self.assertIn('normal QA quit', r['error'])
+        a = e['experiment']
+        r = json.loads((ROOT / a['reportPath']).read_bytes())
+        self.assertEqual(hashlib.sha256((ROOT / a['reportPath']).read_bytes()).hexdigest(), a['reportSha256'])
+        self.assertEqual(a['command']['exit'], 0)
+        self.assertTrue(all(r['checks'].values()))
+        self.assertEqual(len(r['checks']), 20)
+        self.assertEqual(r['shutdown']['exitCode'], 0)
+        self.assertLess(r['shutdown']['observedAt'] - r['shutdown']['closeDispatchedAt'], 10000)
+        self.assertNotIn('failureSample', r['shutdown'])
+        for k in ('sampleHookReached', 'classifierDelivered', 'repairedHistoricalFailure'):
+            self.assertFalse(a[k])
+        for k in ('runtimeModified', 'rebuilt', 'installed', 'nativeRootConfirmed', 'nativeRootRepaired', 'overallP0314Complete'):
+            self.assertFalse(e[k])
+        self.assertTrue(all(v is False for v in e['protection'].values()))
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        for path, digest in e['logs'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('原生退出源码边界检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.26 原生退出源码边界', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamQaExitDeadlineTests(unittest.TestCase):
     def test_close_dispatch_deadline_does_not_wait_for_ack_or_erase_history(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-exit-deadline.json').read_text())

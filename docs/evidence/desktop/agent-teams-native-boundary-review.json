@@ -1,0 +1,492 @@
+{
+  "status": "native-quit-upstream-source-boundary-review-no-causal-fix-not-installed",
+  "recordedAt": "2026-11-16T14:42:00+08:00",
+  "baseCommit": "f054c14f5535030dd675d50972539c1211d03abc",
+  "workspaceState": "QA/runtime unchanged at base; documentation and documentation test added after one ignored exploratory runner experiment; regressions before checkpoint documentation",
+  "runtimeModified": false,
+  "rebuilt": false,
+  "installed": false,
+  "nativeRootConfirmed": false,
+  "nativeRootRepaired": false,
+  "overallP0314Complete": false,
+  "system": {
+    "platform": "arm64 macOS 27.0.1",
+    "node": "24.15.0",
+    "TMPDIR": "/private/tmp/",
+    "inheritedEnvironmentCleared": true
+  },
+  "electron": {
+    "frameworkVersion": "44.7.0",
+    "frameworkPlist": ".generated/moos-electron/build-QWEhD0/沐码.app/Contents/Frameworks/Electron Framework.framework/Resources/Info.plist",
+    "versionField": "CFBundleVersion",
+    "sourceTag": "v44.7.0",
+    "sourceTagObject": "794670e0659c5818dd56b6211be64e5f409ca91a",
+    "sourceCommit": "61f55c4ce540416b3e43f75f6c0f125d22e5e908",
+    "tagCommand": "git -c http.proxy=http://127.0.0.1:7897 ls-remote https://github.com/electron/electron.git refs/tags/v44.7.0*",
+    "binaryBuildFlagsOrSourceEquivalenceProved": false
+  },
+  "sourceReview": [
+    {
+      "path": "shell/browser/browser.cc",
+      "url": "https://raw.githubusercontent.com/electron/electron/61f55c4ce540416b3e43f75f6c0f125d22e5e908/shell/browser/browser.cc",
+      "sha256": "7cd27b2685e9fcd1832e4232eba2e2b92fef69858757317d21c31d1d922d7e06",
+      "localEvidencePath": "artifacts/team-native-boundary/browser.cc",
+      "orderedAnchors": [
+        [
+          "void Browser::Shutdown()",
+          "observers_.Notify(&BrowserObserver::OnQuit)"
+        ],
+        [
+          "observers_.Notify(&BrowserObserver::OnQuit)",
+          "RunQuitClosure(std::move(quit_main_message_loop_))"
+        ]
+      ],
+      "tag": "v44.7.0",
+      "verifiedTagBytesEqualPinnedCommit": true
+    },
+    {
+      "path": "shell/browser/api/electron_api_app.cc",
+      "url": "https://raw.githubusercontent.com/electron/electron/61f55c4ce540416b3e43f75f6c0f125d22e5e908/shell/browser/api/electron_api_app.cc",
+      "sha256": "7e5184cfd5d8cbc5b38ff185cf3580f7a97f14d7c695bd3970c4a3aea793ea61",
+      "localEvidencePath": "artifacts/team-native-boundary/electron_api_app.cc",
+      "orderedAnchors": [
+        [
+          "void App::OnQuit()",
+          "Emit(\"quit\", exitCode)"
+        ],
+        [
+          "Emit(\"quit\", exitCode)",
+          "process_singleton_->Cleanup()"
+        ]
+      ],
+      "tag": "v44.7.0",
+      "verifiedTagBytesEqualPinnedCommit": true
+    },
+    {
+      "path": "shell/browser/electron_browser_main_parts.cc",
+      "url": "https://raw.githubusercontent.com/electron/electron/61f55c4ce540416b3e43f75f6c0f125d22e5e908/shell/browser/electron_browser_main_parts.cc",
+      "sha256": "a98dca5d63bb89a2904fcb3318590b9f52d885a390c95e2a6c1ce183938ff846",
+      "localEvidencePath": "artifacts/team-native-boundary/electron_browser_main_parts.cc",
+      "orderedAnchors": [
+        [
+          "void ElectronBrowserMainParts::WillRunMainMessageLoop(",
+          "run_loop->QuitWhenIdleClosure()"
+        ],
+        [
+          "void ElectronBrowserMainParts::PostMainMessageLoopRun()",
+          "node::Stop(node_env_.get()"
+        ],
+        [
+          "node::Stop(node_env_.get()",
+          "ElectronBrowserContext::DestroyAllContexts()"
+        ]
+      ],
+      "tag": "v44.7.0",
+      "verifiedTagBytesEqualPinnedCommit": true
+    }
+  ],
+  "findings": [
+    "Upstream App::OnQuit emits quit before optional process_singleton cleanup; Browser::Shutdown notifies OnQuit before posting main-loop quit closure. Neither event proves actual OS process exit.",
+    "Upstream WillRunMainMessageLoop supplies QuitWhenIdleClosure. PostMainMessageLoopRun includes utility shutdown, Node environment stop/reset and BrowserContext destruction. These are possible later boundaries, not observed blocked calls in natural reports.",
+    "The profiling wait is compile-conditional; no evidence current binary enables it. Do not attribute failure to it.",
+    "Historic Mach wait booleans cannot distinguish singleton cleanup, idle-loop wait, context teardown, AppKit, XPC, LaunchServices, or process termination. No causal call site established.",
+    "No changes to main/Host/normal-close deadline, no app.exit workaround, no new shipped classifier. One normal new exit does not repair prior failure."
+  ],
+  "historicalFailures": [
+    {
+      "path": "artifacts/team-ui/gui-nex2zX/report.json",
+      "sha256": "4a4538686d36acdf775055231abcd53e7a6257d861c10307ff075ff41bed265d",
+      "exitCode": null,
+      "sample": {
+        "status": "observed",
+        "mainThread": {
+          "appKitRunLoop": false,
+          "coreFoundationRunLoop": false,
+          "machMessageWait": true,
+          "keventWait": false,
+          "mutexWait": false,
+          "semaphoreWait": false
+        }
+      },
+      "correctedDispatchDeadlinePresent": false
+    },
+    {
+      "path": "artifacts/team-ui/gui-aprEHG/report.json",
+      "sha256": "3522d0d5d79833e6aba7445bb0698634342e9fd4b171bf7bc12008dc4d039d1c",
+      "exitCode": null,
+      "sample": {
+        "status": "unavailable",
+        "reason": "command"
+      },
+      "correctedDispatchDeadlinePresent": false
+    },
+    {
+      "path": "artifacts/team-ui/gui-lS0geG/report.json",
+      "sha256": "6610186f6f8993b735cd0c2e4d865b1dc8f502185a73dbf631f30c028b62bc54",
+      "exitCode": null,
+      "sample": {
+        "status": "observed",
+        "mainThread": {
+          "appKitRunLoop": false,
+          "coreFoundationRunLoop": false,
+          "machMessageWait": true,
+          "keventWait": false,
+          "mutexWait": false,
+          "semaphoreWait": false
+        }
+      },
+      "correctedDispatchDeadlinePresent": true
+    }
+  ],
+  "experiment": {
+    "command": {
+      "command": [
+        "node",
+        "artifacts/team-native-boundary/explore.mjs",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+        "interrupt-retry"
+      ],
+      "exit": 0,
+      "seconds": 64.31
+    },
+    "runnerPath": "artifacts/team-native-boundary/explore.mjs",
+    "runnerSha256": "9483093f6e680128ac03cc1d6d6562220c4665d8e6740da37d010ce53a2d2914",
+    "reportPath": "artifacts/team-ui/gui-ShhyRe/report.json",
+    "reportSha256": "9accb3b0c5ce6949da484f25a11f15f8151bbbfcc92516ea3386f3c49684b2aa",
+    "report": {
+      "scenario": "interrupt-retry",
+      "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "abruptOwnedQAFaultAndColdRunning": true,
+        "restartMarksInterruptedWithoutReplay": true,
+        "restartPreservesEventPrefixAndArtifact": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "stoppedPartialArtifactNoAutoReplay": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "retriedReadOnlyMemberHasNoInventedFiles": true,
+        "structuredMemberDetails": true,
+        "faultClosesModelConnection": true,
+        "noFalseDeliveryOrDownstream": true,
+        "stoppedTaskHistoryUnchanged": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false,
+      "memberUsage": {
+        "providerReported": false,
+        "nodes": [
+          {
+            "id": "build",
+            "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+          },
+          {
+            "id": "check",
+            "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+          },
+          {
+            "id": "build",
+            "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+          },
+          {
+            "id": "check",
+            "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+          }
+        ]
+      },
+      "status": "passed",
+      "requests": 14,
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794810326450,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794810326486
+          },
+          {
+            "event": "window-closed",
+            "at": 1794810326487
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794810326488
+          },
+          {
+            "event": "before-quit",
+            "at": 1794810326488
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794810326488
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794810326661
+          },
+          {
+            "event": "before-quit",
+            "at": 1794810326661
+          },
+          {
+            "event": "will-quit",
+            "at": 1794810326661
+          },
+          {
+            "event": "quit",
+            "at": 1794810326661
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 20923,
+              "ppid": 18074,
+              "state": "S"
+            },
+            {
+              "pid": 20940,
+              "ppid": 20923,
+              "state": "S"
+            },
+            {
+              "pid": 20941,
+              "ppid": 20923,
+              "state": "S"
+            },
+            {
+              "pid": 20944,
+              "ppid": 20923,
+              "state": "Ss"
+            },
+            {
+              "pid": 21175,
+              "ppid": 20923,
+              "state": "S"
+            }
+          ]
+        },
+        "closeDispatchedAt": 1794810326483,
+        "observedAt": 1794810326750,
+        "exitCode": 0
+      },
+      "cleanup": {
+        "status": "already-exited",
+        "termSent": false,
+        "killSent": false
+      }
+    },
+    "elapsedFromDispatchMs": 267,
+    "sampleHookReached": false,
+    "classifierDelivered": false,
+    "repairedHistoricalFailure": false,
+    "limit": "One fresh instrumented interrupt-retry experiment; no uninjected failure occurred. No second attempt to obtain green or diagnostic classification. Private exploratory callback would invoke synchronous sample if reached; never reached and not delivered/accepted as runtime or QA feature."
+  },
+  "regression": {
+    "commands": {
+      "targeted": {
+        "command": [
+          "node",
+          "--test",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 1.74,
+        "summary": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "signature": {
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 6.78,
+        "summary": {}
+      },
+      "core": {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 75.76,
+        "summary": {
+          "tests": 293,
+          "pass": 292,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "core-serial": {
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 183.69,
+        "summary": {
+          "tests": 293,
+          "pass": 293,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      "electron": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 31.51,
+        "summary": {
+          "tests": 136,
+          "pass": 126,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 10
+        }
+      },
+      "packaged": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 44.38,
+        "summary": {
+          "tests": 136,
+          "pass": 135,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1
+        }
+      },
+      "native": {
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "env": {},
+        "exit": 101,
+        "seconds": 0.25,
+        "summary": {}
+      }
+    },
+    "allRegressionsGreen": false,
+    "scope": "Full existing core inventory plus source/package Electron and offline Rust attempted. Serial supplemental only if default failed; document test run separately after writing. No runtime rebuild needed; candidate signature rechecked, not new archive comparison.",
+    "failures": [
+      "Default core geometry-drift fake helper expected DESKTOP_FOCUS_CHANGED but timed out; runtime safeguards unchanged.",
+      "Offline Rust missing tauri; no dependency download.",
+      "Skin source tests skip 10 and package skips 1 for unavailable materials; not all acceptance complete."
+    ]
+  },
+  "protection": {
+    "productionAppChanged": false,
+    "productionQuitOrRestarted": false,
+    "realUserDataModified": false,
+    "rawSamplesRetainedOrExported": false,
+    "secretsExported": false,
+    "quitDeadlineRelaxed": false
+  },
+  "nextStep": "A fresh bounded diagnostic must distinguish native phase on an actual failure with tested sanitized parser and nonblocking bounded sampling; no rerun only for green and no change of production quit order without causal evidence. P03.14.1–6 remain unchecked.",
+  "logs": {
+    "artifacts/team-native-boundary/explore.log": "cbdd718ecb833ca7344db175c110df9fba5446193ad939cfd408e34c82a449e0",
+    "artifacts/team-native-boundary/core.log": "2ce677479cd3c09f195a939ae1ffc724a0e03aa9d7fd3262638242af50afee48",
+    "artifacts/team-native-boundary/signature.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/team-native-boundary/electron.log": "0d0bd4aaf78f9a8574a620348d130e56ed8a7d2c004f5941cb1e9a426c628d0f",
+    "artifacts/team-native-boundary/packaged.log": "be5661d586fbda440c956f1828b8de193a9d98bf94b2f9ab70cc600fba9a031f",
+    "artifacts/team-native-boundary/targeted.log": "64318064e3b335ffadf05a1a6bf7129ae9a09e3d8a8591c88a5a9bb3e20eaa45",
+    "artifacts/team-native-boundary/native.log": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49",
+    "artifacts/team-native-boundary/core-serial.log": "69057469db685fe935a8829ca5bfe8df0ca7e17f9f81ed35f2f23981a41b52b8"
+  },
+  "documentationVerification": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-v"
+    ],
+    "tests": 152,
+    "pass": 152,
+    "seconds": 1.306,
+    "log": "artifacts/team-native-boundary/docs.log",
+    "logSha256": "480212f5b6fbe65a60e0c30a85e9e79f38c8d19499a9f56a3fd11e1a7a567c3d"
+  }
+}

@@ -249,3 +249,12 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 ### 7.25 QA关闭请求计时（2026-11-16，非原生退出根因修复）
 
 2026-11-16 QA关闭请求计时检查点（仅验收脚本纠偏、原生退出根因未确认、未安装）：代码审查确认旧算法先等Page.close回复或实际退出，再另等10秒，CDP回复延迟可能延长实际观测窗口。因此历史文案‘严格10秒’不精确：旧exit0要求仍在，但不能把旧结果追认为新截止通过；历史JSON/失败不改。新增waitQaExit先启动10000ms可取消定时器再发关闭请求，CDP ack不能单独算退出或重开窗口，actual exit或截止结束等待，最后仍检查exitCode0；请求错误直接失败，finally撤销定时器，不改Host/main和失败后采样/清理。专项16/16含受控时钟丢失/迟到ack、无退出ack、实际退出、错误及真实自有Node子进程无ack退出。隔离故障注入仍exit1/null，关闭请求后10002ms观察失败、随后自有QA清理KILL；普通8场景7个exit0，中断后重试20项业务检查全真但关闭后10004ms仍exitnull失败，sample仅Mach等待、清理前已自行退出；不复跑刷绿，仅本轮通过，不宣称修复历史自然退出。默认核心292通过/1失败/0取消，共293；完整原清单串行293/293（不当默认修复）；源码Electron126通过10skip、包内135通过1skip、Rust离线exit101缺tauri，全仓未全绿。复用build-QWEhD0验签、未重建/安装、真实数据未动。证据`docs/evidence/desktop/agent-teams-qa-exit-deadline.json`。Node定时器非硬实时，不能据此归因Mach等待或系统负载；P03.14.1–6不勾，正常GUI/外部模型/完整成员界面继续待验。
+
+
+### 7.26 原生退出源码边界
+
+候选Framework版本44.7.0；对照上游v44.7.0固定提交61f55c4ce540416b3e43f75f6c0f125d22e5e908及三个源码SHA-256（不是当前二进制完整源码/构建标志等价证明）。App::OnQuit在可选singleton清理前发quit；Browser::Shutdown在主循环退出派发前通知OnQuit，主循环使用QuitWhenIdleClosure；循环退出后还包括utility、Node和BrowserContext清理。以上只是可能的后续边界，不是自然故障调用栈或根因归属；条件编译的profiling等待不可据源码存在就判启用。
+
+一次带新分类探索的隐藏复制QA interrupt-retry（gui-ShhyRe）20项业务真，实际exit0、关闭派发后267ms；未触发失败采样，未取得新分类结果。探索hook未交付或验收，原六布尔采样实现不变，也不宣称各候选等待已排除。保留gui-nex2zX/gui-aprEHG/gui-lS0geG原失败；这次正常退出不是修复证据，不再重复刷绿。证据 `docs/evidence/desktop/agent-teams-native-boundary-review.json`。
+
+仅文档与契约更新，无runtime重建/安装或正式应用重启；10000ms/实际exit0、先失败再采样/清理及Host顺序保持。下一步须在真实失败中以经过测试的有界、非阻塞、白名单诊断区分原生阶段，再谈因果修复；完整团队界面/可见GUI/外部模型、全仓回归及P03.14整体仍未通过。
