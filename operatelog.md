@@ -2760,3 +2760,16 @@
 最终生命周期/隔离补记（2026-11-17 00:43:00 +08:00，同唯一提交说明）：交付前复核补ECHILD边界：若其他原生回收器已回收本次子PID，则退出码记未知255并停止计时/信号，不把可复用PID当仍有所有权；测试额外模拟外部waitpid并验证拒绝成功。原生专项由61增至63，最终真实NSH run-ik19Xz good41/denied6/timeout5及可信owner退出均通过、exit0/forced=false/stderr0；build-only run-4YPTWk通过未运行该App。全部源码hash重算。混合工作区最后文档160项1失败来自其他成员client.js与历史panel证据哈希不符，不修改其源或证据。创建git archive基础453751e+仅本任务文件的临时隔离树（既有artifacts和node_modules只读复用；最初未关联既有忽略证据/Git时检查报缺文件，补关联后运行），最终本任务源码全核心317/317通过182.497s、Electron127过10跳/137项；文档隔离160/160通过5.467s，补本条后再跑。相关命令及脱敏输出纳入desktop-native-results。此记录时间为执行后补记，实际命令时序见原始文件，不伪称逐条实时记录。保留其他成员改动，不纳入提交。
 
 异常清理补记（2026-11-17 00:47:00 +08:00，同唯一提交说明）：进程检查发现00:29旧测试孤儿Host PID28246、PPID1，精确Node/本仓库stdio入口及独立fixture数据库核实，已无另一端管道owner；不是最终run-ik19Xz实例。单PID SIGTERM等待10秒仍不退出，随后仅该精确自有测试PID SIGKILL并核对消失；原独立临时SQLite状态保留，不恢复/删除任何正式数据。原因为何未响应EOF/SIGTERM尚未知，记录orphan-cleanup.json，不冒称异常父丢失路径已全部通过，也不以最终正常验收覆盖。此处strong cleanup属于人工受限清理，不是产品正常退出能力，后续需定位异常父退出与Node忙循环；D1不勾。最终本任务隔离文档160/160、1.958s；本补记及证据追加后再次核对。
+
+
+## 2026-11-17 01:02:09 +08:00｜P03.14.9 团队断流与上下文修复
+
+- 修改或新增内容：工具开始后网络断流不再自动重跑成员；工具前仅一次有界重试。各任务成员独立PI会话接收有上限的当前轮前公开历史及本轮图片，不继承父工具状态。补回归与真实SDK模型请求验证，新增team-recovery-context-images证据及PLAN子项。
+- 遇到的难题：原实现retry=false仍被外层network重跑；父fork被清空、图片仅队长接收。早期测试并发负载出现大量超时，初轮隔离渲染器流程后正常退出超时；图片回归初用无效1px测试PNG被PI压缩器移除，替换为CRC正确的16px测试图后通过，未放宽图片断言。
+- 处理方式：工具事件/自定义工具建立保守重放边界；利用当前轮startSeq取历史，按原上限种入每个任务自有角色历史；所有角色传入已校验图片。改用串行复测，保留此前失败，不触碰NSH源码或正式应用。
+- 验证结果：macOS27.0.1 arm64/Node24.15.0/PI1.5.0；提交前混合工作区（还含另行提交的客户端资源优化）：`node --test apps/electron/client.test.mjs apps/electron/fork-process.test.mjs packages/pi-runtime/team-runtime.test.mjs`38/38；核心`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs`319/319（329.986s）；带最终build-CG8JHg/沐码.app/Contents/Resources/host-runtime/bin/dsh及已审皮肤环境变量的`node --test --test-concurrency=1 apps/electron/*.test.mjs`140/140（100.443s）；`npm run test:docs`160/160。`npm run build:app`及`codesign --verify --deep --strict`成功；`MOOS_QA_REPORTED_USAGE=1 node scripts/verify-electron-team.mjs '.generated/moos-electron/build-CG8JHg/沐码.app' success`真实本地模型/文件/独立读取/9请求/用量/正常退出exit0通过，报告artifacts/team-ui/gui-SjSc8I/report.json。隐藏渲染器CDP，不是正常GUI或外部模型。
+- 历史失败：初轮`npm test`319项303通过7失败9取消，初轮Electron124通过4失败10跳过；前轮核心串行317通过2取消，后独立adapter15/15、最终完整核心319/319。较早build-dDhImq界面团队检查通过而退出CDP超时，报告gui-VNzhOy保留并仅清理本次QA。Rust独立M01 `RUST_TEST_THREADS=1 CARGO_NET_OFFLINE=true npm run test:desktop-native`因stable-aarch64-apple-darwin缺manifest退出1，未宣称通过。
+- 遗留问题：不宣称事务性exactly-once、自动节点恢复、团队整体或正式GUI完成。0.1.51已构建但未安装；当前真实数据与正在运行任务不变；CPU/内存效果另项验证，不能据此宣称无需重构。NSH同时开发文件未加入本提交。
+- 对应 Git 提交：唯一说明 `fix(P03.14.9): preserve team context and prevent post-tool replay`；查询 `git log --oneline --grep='preserve team context and prevent post-tool replay'`。验证来源为本条所述提交前工作区；推送后核对远程HEAD与本地提交一致。
+
+文档补记（2026-11-17 01:04:00 +08:00，同P03.14.9唯一提交说明）：新增条目首次因ISO时间格式不符审计规则失败；已改为北京时间空格格式。增加证据边界检查，并将旧长面板验收源码哈希核对到原验收提交8624533，不把历史证据改成新源码哈希；最终`npm run test:docs`161/161通过。

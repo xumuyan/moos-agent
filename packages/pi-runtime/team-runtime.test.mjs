@@ -196,10 +196,16 @@ test('real SDK team creates an artifact, independently reads it and resumes capt
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(async () => { server.closeAllConnections(); server.close(); await rm(home, { recursive: true, force: true }); });
   const result = await runPiTeam({ ...base(), project: { path: cwd }, dataDir: join(home, 'sessions'), imageGen: null,
+    fork: { history: [{ role: 'user', text: 'APPROVED_PARENT_PLAN_BLUE', timestamp: 1 },
+      { role: 'assistant', text: 'APPROVED_PARENT_REPLY_BLUE', timestamp: 2 }] },
+    images: [{ type: 'image', mimeType: 'image/png', data: 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGUlEQVR4nGP4z8DwnxLMMGrAqAGjBgwXAwAwxP4QHCfkAAAAAABJRU5ErkJggg==' }],
     apiKey: 'synthetic-local-only', permissions: { getMode: () => 'workspace-write' },
     emit: (type, payload) => events.push({ type, payload }),
-    provider: { id: 'fixture', name: 'Local team fixture', model: 'fixture-model', api: 'openai-completions',
+    provider: { id: 'fixture', name: 'Local team fixture', model: 'fixture-model', api: 'openai-completions', imageInput: true,
       baseUrl: `http://127.0.0.1:${server.address().port}/v1`, contextWindow: 128000, maxTokens: 2048 } });
+  assert.ok(requests.every(body => JSON.stringify(body.messages).includes('APPROVED_PARENT_PLAN_BLUE')
+    && JSON.stringify(body.messages).includes('APPROVED_PARENT_REPLY_BLUE')), 'real provider receives parent text for every role');
+  assert.ok(requests.every(body => JSON.stringify(body.messages).includes('image_url')), 'real provider receives original image for every role: ' + JSON.stringify(requests.map(body => ({ tools: body.tools?.map(x => x.function.name), types: body.messages.filter(x => x.role === 'user').map(x => Array.isArray(x.content) ? x.content.map(p => p.type) : typeof x.content) }))));
   const usage = events.filter(event => event.type === 'usage');
   assert.equal(usage.length, requests.length, 'real SDK emits each reported local provider usage');
   assert.ok(usage.every(event => event.payload.inputTokens === 10 && event.payload.outputTokens === 2
@@ -369,4 +375,34 @@ test('member turn retries once on model-side network stream drop, not on other f
     error => error instanceof TaskFailure && error.code === 'network',
   );
   assert.equal(memberCalls, 2, 'only one bounded retry');
+});
+
+
+test('network failure after any tool starts never automatically replays side effects', async () => {
+  let calls = 0;
+  await assert.rejects(() => runPiTeam(base(), async options => {
+    if (options.task.text.includes('你是队长。')) {
+      await submit(options, 'team_plan', plan); return { text: 'plan' };
+    }
+    calls++;
+    options.emit('tool_start', { toolName: 'bash', toolCallId: 'write-once' });
+    throw new TaskFailure('network');
+  }), error => error.code === 'network');
+  assert.equal(calls, 1, 'execution may have changed files even without tool_end');
+});
+
+test('every member receives bounded parent text and original images in its own session', async () => {
+  const calls = [];
+  const history = [{ role: 'user', text: 'Use the agreed blue design', timestamp: 1 },
+    { role: 'assistant', text: 'The approved plan is blue', timestamp: 2 }];
+  const images = [{ type: 'image', mimeType: 'image/png', data: 'test-image' }];
+  await runPiTeam({ ...base(), fork: { history, origin: { conversationId: 'parent' } }, images }, async options => {
+    calls.push(options); return fakeRun()(options);
+  });
+  assert.equal(calls.length, 4);
+  for (const call of calls) {
+    assert.deepEqual(call.fork, { history });
+    assert.deepEqual(call.images, images);
+    assert.notEqual(call.conversation.id, 'chat-a');
+  }
 });

@@ -216,9 +216,10 @@ export function createPiAdapter({ tasks, getSession, getTurnStart, getPermission
     let task;
     try {
       const session = getSession(sessionId);
-      task = await tasks.open({ sessionId, turnStartSeq: getTurnStart?.(session), cwd: session?.header?.cwd,
+      const turnStartSeq = getTurnStart?.(session);
+      task = await tasks.open({ sessionId, turnStartSeq, cwd: session?.header?.cwd,
         input: input || (images?.length ? '请查看我附带的图片。' : ''), imageRefs, images,
-        mode, messageId: user.id, fork: forkPrefix(session), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
+        mode, messageId: user.id, fork: forkPrefix(session, mode === 'team' || retryOf ? turnStartSeq : undefined), retryOf, signal, permissions: getPermissions?.(sessionId), ...plan });
     } catch {
       yield signal.aborted ? aborted : models ? { type: 'finish', reason: { kind: 'error',
         failure: { code: 'INVALID_REQUEST', message: '无法启动 PI 任务，请检查工作区和会话状态' } } } : rejected;

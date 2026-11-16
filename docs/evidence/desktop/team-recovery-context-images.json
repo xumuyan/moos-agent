@@ -1,0 +1,171 @@
+{
+  "recordedAt": "2026-11-17T01:02:09+08:00",
+  "task": "P03.14.9",
+  "status": "team-recovery-history-images-fixed-isolated-accepted-not-installed",
+  "baseCommit": "c7711d8",
+  "sourceSha256": {
+    "packages/pi-runtime/team-runtime.mjs": "c7c90fc62ee44908bd455e7046fbdfcd36ffbb058d4dbb772960496bf676d27b",
+    "packages/pi-runtime/team-runtime.test.mjs": "b7c1f0e62eeeba2b20535fe441d52aeddb70a9e14dc7e34f82270b3fa627139a",
+    "apps/electron/plugin/pi-route.js": "568926c8dd6b4849be2c8cb36c7b691ef86879746d0b9fede75ecdb03e4fca38",
+    "apps/electron/plugin/pi-fork.js": "c58d6fa50cb9c06a9480f351f5b44a481c68cdea7f082b89dffd7c253645f16f",
+    "apps/electron/fork-process.test.mjs": "97d2516e4c03cb8f193678245bb002ac9f9e16143a0cf9b8074f57a7662d2730"
+  },
+  "changes": [
+    "No automatic member retry after any tool starts, including coordinator tools",
+    "Seed bounded public parent text before the current turn into task-owned role histories; do not clone parent PI tool state",
+    "Pass original submitted images to captain, implementer and verifier"
+  ],
+  "tests": {
+    "targeted": {
+      "command": "node --test apps/electron/client.test.mjs apps/electron/fork-process.test.mjs packages/pi-runtime/team-runtime.test.mjs",
+      "passed": 38
+    },
+    "coreSerial": {
+      "passed": 319,
+      "failed": 0,
+      "cancelled": 0,
+      "seconds": 329.986
+    },
+    "electronPackagedSerial": {
+      "passed": 140,
+      "skipped": 0,
+      "failed": 0,
+      "seconds": 100.443
+    },
+    "docs": {
+      "passed": 161
+    },
+    "rustProbe": "blocked: stable-aarch64-apple-darwin toolchain missing manifest; unrelated M01 probe, not passed"
+  },
+  "regressionProof": "New replay/history/image cases fail on the original source; real SDK loopback fixture verifies every request contains parent plan and image, writes answer.txt and independently reads 42. Invalid synthetic PNG was corrected before final green run.",
+  "acceptance": {
+    "scenario": "success",
+    "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+    "checks": {
+      "menuAndTag": true,
+      "liveProgress": true,
+      "nodeProjection": true,
+      "readableMemberLayout": true,
+      "reportedMemberUsageOrExplicitUnknown": true,
+      "memberFileIndexNavigation": true,
+      "structuredMemberDetails": true,
+      "independentReadAndArtifact": true,
+      "modeClearDoesNotCancel": true,
+      "persistedTerminalState": true,
+      "ordinaryAfterClear": true
+    },
+    "productionTouched": false,
+    "normalGUI": false,
+    "externalModel": false,
+    "memberUsage": {
+      "providerReported": true,
+      "nodes": [
+        {
+          "id": "build",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+        },
+        {
+          "id": "check",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+        }
+      ]
+    },
+    "status": "passed",
+    "requests": 9,
+    "shutdown": {
+      "injectedQuitBlock": false,
+      "requestedAt": 1794848397005,
+      "events": [
+        {
+          "event": "webcontents-destroyed",
+          "at": 1794848397028
+        },
+        {
+          "event": "window-closed",
+          "at": 1794848397032
+        },
+        {
+          "event": "window-all-closed",
+          "at": 1794848397033
+        },
+        {
+          "event": "before-quit",
+          "at": 1794848397033
+        },
+        {
+          "event": "host-stop-start",
+          "at": 1794848397033
+        },
+        {
+          "event": "host-stop-settled",
+          "at": 1794848397133
+        },
+        {
+          "event": "before-quit",
+          "at": 1794848397133
+        },
+        {
+          "event": "will-quit",
+          "at": 1794848397133
+        },
+        {
+          "event": "quit",
+          "at": 1794848397133
+        }
+      ],
+      "beforeClose": {
+        "status": "observed",
+        "processes": [
+          {
+            "pid": 33278,
+            "ppid": 31705,
+            "state": "S"
+          },
+          {
+            "pid": 33297,
+            "ppid": 33278,
+            "state": "S"
+          },
+          {
+            "pid": 33298,
+            "ppid": 33278,
+            "state": "S"
+          },
+          {
+            "pid": 33305,
+            "ppid": 33278,
+            "state": "Ss"
+          },
+          {
+            "pid": 33492,
+            "ppid": 33278,
+            "state": "S"
+          }
+        ]
+      },
+      "closeDispatchedAt": 1794848397025,
+      "observedAt": 1794848397174,
+      "exitCode": 0
+    },
+    "cleanup": {
+      "status": "already-exited",
+      "termSent": false,
+      "killSent": false
+    }
+  },
+  "earlierAcceptanceFailure": {
+    "report": "artifacts/team-ui/gui-VNzhOy/report.json",
+    "scope": "earlier build; team checks passed but normal quit timed out; manually terminated only this QA PID; retained as failure"
+  },
+  "build": {
+    "version": "0.1.51",
+    "path": ".generated/moos-electron/build-CG8JHg/沐码.app",
+    "signatureVerified": true,
+    "workspaceScope": "Team acceptance used this final pre-commit mixed workspace, including separately uncommitted client resource optimizations. Not a claim that the first team commit contains those client changes."
+  },
+  "installed": false,
+  "productionWritten": false,
+  "normalGUI": false,
+  "externalModel": false,
+  "overallP0314Complete": false
+}

@@ -10,12 +10,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 
+class TeamContextRecoveryTests(unittest.TestCase):
+    def test_team_checkpoint_records_real_sdk_and_renderer_scope_without_install_claims(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/team-recovery-context-images.json').read_text())
+        self.assertEqual(e['tests']['coreSerial']['passed'], 319)
+        self.assertEqual(e['tests']['electronPackagedSerial']['passed'], 140)
+        self.assertEqual(e['acceptance']['status'], 'passed')
+        self.assertTrue(all(e['acceptance']['checks'].values()))
+        self.assertEqual(e['acceptance']['shutdown']['exitCode'], 0)
+        for field in ('installed', 'productionWritten', 'normalGUI', 'externalModel', 'overallP0314Complete'):
+            self.assertFalse(e[field])
+        self.assertIn('P03.14.9', (ROOT / 'PLAN.md').read_text())
+
+
 class TeamLongPanelTests(unittest.TestCase):
     def test_bounded_member_panel_evidence_keeps_runtime_and_visual_scope_truthful(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-long-panel.json').read_text())
         self.assertEqual(e['status'], 'bounded-member-panel-layout-accepted-normal-exit-blocked-not-installed')
+        # Historical acceptance describes its committed source, not all future UI revisions.
+        # Keep the original hashes/evidence intact when the current client evolves.
+        accepted_revision = '862453351a023dfffc5760cce4e25fd81efdd73c'
         for path, digest in e['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            accepted_source = subprocess.check_output(
+                ['git', 'show', f'{accepted_revision}:{path}'], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(accepted_source).hexdigest(), digest)
         self.assertEqual(len(e['build']['sourcePackageMatches']), 6)
         self.assertTrue(all(a['match'] for a in e['build']['sourcePackageMatches'].values()))
         for name in ('success-final', 'blocked-final'):

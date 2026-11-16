@@ -88,22 +88,26 @@ export async function runPiTeam(options, run = runPiSdk) {
     const attemptId = randomUUID();
     publish('running', { member, attemptId, ...(nodeId && { nodeId }) });
     let live = true;
+    let toolStarted = false;
     try {
       const attempt = () => run({ ...options, signal: controller.signal,
         conversation: { id: `team-${prefix}-${member}` },
         task: { ...task, text: prompt },
-        // Separate histories. Parent fork/retry/images must not leak into every member.
-        fork: undefined, retry: false, captureCheckpoint: false,
-        images: member === 'captain' ? options.images : undefined,
+        // Seed public parent text only; never branch another role's PI tool history.
+        fork: options.fork?.history?.length ? { history: options.fork.history } : undefined,
+        retry: false, captureCheckpoint: false,
+        images: options.images,
         permissions: readonly ? { getMode: () => 'read-only' } : options.permissions,
         // Planning/summarizing have no side-effect tools; workers retain normal PI policy.
         sessionPolicy: { customTools: tools?.map(definition => ({ ...definition, execute(...args) {
           check();
           if (!live || closed) throw new Error('Stale team attempt');
+          toolStarted = true;
           return definition.execute(...args);
         } })), allowedTools, instructions, beforeRequest: budget },
         emit(type, payload) {
           if (!live || closed || controller.signal.aborted) return;
+          if (type === 'tool_start' || type === 'tool_end') toolStarted = true;
           if (type === 'usage') {
             // P03.14.8：预算只计非缓存 token（input+output）。totalTokens 含 cacheRead 重放
             // （一次可达数万），按请求累加会虚增预算，长团队任务中段被误停（生产 55e6423f 实证
@@ -126,7 +130,7 @@ export async function runPiTeam(options, run = runPiSdk) {
       let result;
       try { result = await attempt(); }
       catch (error) {
-        if (!(error instanceof TaskFailure) || error.code !== 'network' || controller.signal.aborted) throw error;
+        if (!(error instanceof TaskFailure) || error.code !== 'network' || toolStarted || controller.signal.aborted) throw error;
         check();
         publish('running', { member, attemptId, retried: true, reason: 'network' });
         result = await attempt();

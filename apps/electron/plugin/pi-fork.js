@@ -1,8 +1,10 @@
 const messageKey = /^[a-zA-Z0-9_-]{1,160}$/;
 
-export function forkPrefix(session) {
-  const end = session?.inheritedEventCount;
-  if (!session?.header?.isSeeded || !Number.isSafeInteger(end) || end <= 0) return;
+export function forkPrefix(session, beforeSeq) {
+  const currentHistory = Number.isSafeInteger(beforeSeq) && beforeSeq >= 0;
+  const end = currentHistory ? beforeSeq : session?.inheritedEventCount;
+  if ((!currentHistory && !session?.header?.isSeeded) || !Number.isSafeInteger(end) || end <= 0
+    || typeof session?.snapshotEvents !== 'function') return;
   const events = session.snapshotEvents(Math.max(0, end - 1600), end);
   const history = [];
   let userId;

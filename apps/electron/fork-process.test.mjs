@@ -164,3 +164,17 @@ test('forkPrefix reads only the final 1600-event window and keeps the 48-message
   assert.match(prefix.history.at(-1).text, /回答 99/);
   assert.ok(prefix.history.every(item => Number(item.text.match(/\d+/)?.[0]) >= 76), '窗口外与预算外轮次不进入历史');
 });
+
+
+test('team parent text ends before current turn and ordinary unseeded history stays untouched', () => {
+  const events = [
+    { seq: 0, type: 'user/message', data: { id: 'old', source: { kind: 'user' }, content: [{ type: 'text', text: 'prior plan' }] }, time: 1 },
+    { seq: 1, type: 'assistant/message', data: { message: { content: [{ type: 'text', text: 'agreed blue' }] } }, time: 2 },
+    { seq: 2, type: 'turn/start', data: {} },
+    { seq: 3, type: 'user/message', data: { source: { kind: 'user' }, content: [{ type: 'text', text: 'current instruction' }] } },
+  ];
+  const session = { header: {}, snapshotEvents: (from, end) => events.filter(e => e.seq >= from && e.seq < end) };
+  assert.equal(forkPrefix(session), undefined);
+  assert.deepEqual(forkPrefix(session, 2).history.map(item => item.text), ['prior plan', 'agreed blue']);
+  assert.equal(forkPrefix(session, 0), undefined);
+});
