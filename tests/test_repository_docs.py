@@ -3222,3 +3222,48 @@ class ClickReceiptEvidenceTests(unittest.TestCase):
         log = (ROOT / 'operatelog.md').read_text()
         self.assertIn('record one-click SwiftUI receipt', log)
         self.assertIn('E133', log)
+
+
+class TeamLiveEvidenceTests(unittest.TestCase):
+    def test_visible_live_team_evidence_stays_within_page_driven_scope_and_keeps_failures_truthful(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-live.json').read_text())
+        self.assertEqual(e['id'], 'E139')
+        self.assertEqual(e['status'],
+                         'visible-window-page-driven-external-model-team-accepted-exit-receipt-defect-not-deployed')
+        m = e['method']
+        for name in ['visibleWindow', 'pageDriven', 'externalModel']:
+            self.assertTrue(m[name])
+        for name in ['nativeInput', 'productionDataCopied']:
+            self.assertFalse(m[name])
+        self.assertFalse(e['environment']['productionTouched'])
+        self.assertIn('cancelled on focus-unavailable', m['desktopTransaction'])
+        self.assertEqual([s['taskStatus'] for s in e['scenarios']],
+                         ['succeeded', 'failed', 'cancelled', 'failed'])
+        self.assertEqual(e['scenarios'][0]['verifierOutcome'], 'verified')
+        self.assertEqual(e['scenarios'][1]['verifierOutcome'], 'rejected')
+        self.assertTrue(e['scenarios'][1]['noFalseSuccess'])
+        self.assertEqual(e['scenarios'][2]['retryOfPrevious'], 1)
+        self.assertEqual(e['scenarios'][3]['retryOfPrevious'], 2)
+        self.assertTrue(e['scenarios'][3]['freshAttempts'])
+        inv = e['invariants']
+        self.assertTrue(inv['oldTaskEventStreamsUnchangedByLaterRetries'])
+        self.assertTrue(inv['attemptIdsNeverReusedAcrossTasks'])
+        defects = {d['id']: d for d in e['defects']}
+        self.assertFalse(defects['exit-receipt']['normalExitConfirmed'])
+        self.assertIn('no repair claimed', defects['exit-receipt']['note'])
+        self.assertIn('PI 任务执行失败 INTERNAL', defects['blocked-summary-wording']['note'])
+        self.assertEqual(e['regression']['core']['fail'], 4)
+        self.assertIn('not a repair', e['regression']['core']['note'])
+        self.assertEqual(e['regression']['rustOffline']['exit'], 101)
+        for name, digest in e['evidenceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / 'docs/evidence/desktop/agent-teams-live' / name)
+                                            .read_bytes()).hexdigest(), digest)
+        v = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-live/verified.json').read_text())
+        self.assertEqual(v['taskStatuses'], ['succeeded', 'failed', 'cancelled', 'failed'])
+        self.assertTrue(v['normalExit']['runnerExitCodeMissing'])
+        self.assertFalse(v['normalExit']['confirmed'])
+        for name in ['installed', 'deployed', 'overallP0314Complete', 'nativeKeyboardAcceptance',
+                     'exitRootCauseRepaired', 'allRegressionsGreen']:
+            self.assertFalse(e['boundaries'][name])
+        log = (ROOT / 'operatelog.md').read_text()
+        self.assertIn('E139', log)

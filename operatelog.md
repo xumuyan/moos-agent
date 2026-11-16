@@ -2644,3 +2644,12 @@
 - 对应 Git 提交：唯一说明 `fix(P03.14): bound member receipts with keyboard scrolling`；查询 `git log --all --oneline --grep="bound member receipts with keyboard scrolling"`。仅候选代码推送，不称部署；远程提交将与本地HEAD核对。
 
 验证补记（2026-11-16 16:28:56 +08:00，同唯一提交说明）：最终源码与YFupls client再次逐字节匹配（图标占位按构建替换）；清继承环境并指定候选DSH，node --test apps/electron/client.test.mjs apps/electron/pi-team-client.test.mjs scripts/verify-electron-team.test.mjs 18/18、1398.382208ms/墙钟1.52s；python3 -m unittest discover -s tests -v 初155/155、1.963s（证据引用此日志），补元数据后155/155、1.690s。git diff --check通过。没有为退出刷绿复跑；两个最终长卡片场景仍保留失败，不声称全仓通过或正式更新。
+
+## 2026-11-16 17:40:12 +08:00 — 可见窗口真实模型团队协作验收（E139）
+
+- 修改或新增内容：新增 `artifacts/team-visible-live/`（git 忽略：pilot.mjs 隔离启动、ui.mjs 页面驱动、validate.mjs 不变式校验、validation/ 回归驱动）；新增脱敏证据 `docs/evidence/desktop/agent-teams-live.json`（E139）及 `agent-teams-live/{success.png,blocked-panel.png,verified.json,regression.json}`；`tests/test_repository_docs.py` 新增 `TeamLiveEvidenceTests`。
+- 遇到的难题：桌面事务绑定前台窗口时 `focus-unavailable`，按规范取消且不抢焦点；改用隔离应用自身 remote-debugging 端口做页面驱动（明确不算原生键鼠验收）。
+- 处理方式：隔离构建 build-YFupls + 0700 临时数据目录，仅复制一个 GLM provider 密钥副本（0600），生产数据与 `/Applications/沐码.app` 未触碰；四条真实模型场景：成功（2 节点、verified、answer.txt=42\n）、验收不通过（verifier 拒绝、无 write/edit、不假报成功）、停止（cancelled）、停止后重试（沿用原目标、全新 attempt、再次拒绝）。
+- 验证结果：`validate.mjs` 12 项通过（事件流不被后续重试改写、attempt 不复用、单项目、产物 sha256）；首次 Page.close 后进程 430ms 消失，但 `shutdown.json` 无 `exitCode`（`waitQaExit` 返回 void 的收据缺陷），`normalExitConfirmed:false`；发现缺陷：成员详情显示"验收阻塞/未通过"但外层汇总仍是笼统"PI 任务执行失败 INTERNAL"，本轮未改代码。回归：核心 299 中 4 失败（2 个几何辅助本轮新波动 + 2 个已知采样 `team-qa-shutdown.test.mjs:154`），Electron 源码 127 过/10 跳/0 败，打包 136 过/1 跳/0 败，codesign 通过，Rust 离线仍缺 `tauri`（101）；文档契约 156 项（含新测试）通过。
+- 遗留问题：退出收据缺陷与打包严格退出失败均未修复；核心 4 个失败待归因；外层失败文案待改进；P03.14.1–6 保持未勾选；未安装、未部署，等待用户明确授权。
+- 对应 Git 提交：本次唯一提交，说明含 "E139 visible-window live model team acceptance"，可用 `git log --oneline --grep=E139` 查询。

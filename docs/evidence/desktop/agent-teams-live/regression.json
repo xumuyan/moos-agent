@@ -1,0 +1,64 @@
+[
+  {
+    "name": "core",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "extra": {},
+    "exit": 1,
+    "seconds": 77.5
+  },
+  {
+    "name": "electron",
+    "command": [
+      "npm",
+      "run",
+      "test:electron"
+    ],
+    "extra": {},
+    "exit": 0,
+    "seconds": 27.44
+  },
+  {
+    "name": "packaged",
+    "command": [
+      "npm",
+      "run",
+      "test:electron"
+    ],
+    "extra": {
+      "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+    },
+    "exit": 0,
+    "seconds": 41.98
+  },
+  {
+    "name": "signature",
+    "command": [
+      "/usr/bin/codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      ".generated/moos-electron/build-YFupls/沐码.app"
+    ],
+    "extra": {},
+    "exit": 0,
+    "seconds": 4.32
+  },
+  {
+    "name": "rust",
+    "command": [
+      "cargo",
+      "+1.100.0",
+      "test",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "probes/m01/desktop/src-tauri/Cargo.toml"
+    ],
+    "extra": {},
+    "exit": 101,
+    "seconds": 0.14
+  }
+]

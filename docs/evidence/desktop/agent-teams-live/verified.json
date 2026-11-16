@@ -1,0 +1,216 @@
+{
+  "taskStatuses": [
+    "succeeded",
+    "failed",
+    "cancelled",
+    "failed"
+  ],
+  "tasks": [
+    {
+      "ordinal": 0,
+      "status": "succeeded",
+      "eventCount": 54,
+      "mode": "team",
+      "retryPreviousOrdinal": null,
+      "savedGoalInherited": false,
+      "tools": [
+        {
+          "name": "ls",
+          "member": "captain"
+        },
+        {
+          "name": "team_plan",
+          "member": "captain"
+        },
+        {
+          "name": "write",
+          "member": "implementer"
+        },
+        {
+          "name": "bash",
+          "member": "implementer"
+        },
+        {
+          "name": "read",
+          "member": "verifier"
+        },
+        {
+          "name": "bash",
+          "member": "verifier"
+        },
+        {
+          "name": "team_verdict",
+          "member": "verifier"
+        }
+      ],
+      "outcomes": [
+        {
+          "role": "implementer",
+          "code": "member_finished",
+          "toolsSucceeded": 2,
+          "toolsFailed": 0,
+          "evidenceCount": 1
+        },
+        {
+          "role": "verifier",
+          "code": "verified",
+          "toolsSucceeded": 3,
+          "toolsFailed": 0,
+          "evidenceCount": 2
+        }
+      ],
+      "summarized": true
+    },
+    {
+      "ordinal": 1,
+      "status": "failed",
+      "eventCount": 47,
+      "mode": "team",
+      "retryPreviousOrdinal": null,
+      "savedGoalInherited": false,
+      "tools": [
+        {
+          "name": "ls",
+          "member": "captain"
+        },
+        {
+          "name": "read",
+          "member": "captain"
+        },
+        {
+          "name": "team_plan",
+          "member": "captain"
+        },
+        {
+          "name": "read",
+          "member": "implementer"
+        },
+        {
+          "name": "read",
+          "member": "verifier"
+        },
+        {
+          "name": "bash",
+          "member": "verifier"
+        },
+        {
+          "name": "team_verdict",
+          "member": "verifier"
+        }
+      ],
+      "outcomes": [
+        {
+          "role": "implementer",
+          "code": "member_finished",
+          "toolsSucceeded": 1,
+          "toolsFailed": 0,
+          "evidenceCount": 1
+        },
+        {
+          "role": "verifier",
+          "code": "rejected",
+          "toolsSucceeded": 3,
+          "toolsFailed": 0,
+          "evidenceCount": 2
+        }
+      ],
+      "summarized": false
+    },
+    {
+      "ordinal": 2,
+      "status": "cancelled",
+      "eventCount": 12,
+      "mode": "team",
+      "retryPreviousOrdinal": 1,
+      "savedGoalInherited": true,
+      "tools": [
+        {
+          "name": "ls",
+          "member": "captain"
+        },
+        {
+          "name": "read",
+          "member": "captain"
+        }
+      ],
+      "outcomes": [],
+      "summarized": false
+    },
+    {
+      "ordinal": 3,
+      "status": "failed",
+      "eventCount": 48,
+      "mode": "team",
+      "retryPreviousOrdinal": 2,
+      "savedGoalInherited": true,
+      "tools": [
+        {
+          "name": "ls",
+          "member": "captain"
+        },
+        {
+          "name": "read",
+          "member": "captain"
+        },
+        {
+          "name": "team_plan",
+          "member": "captain"
+        },
+        {
+          "name": "ls",
+          "member": "implementer"
+        },
+        {
+          "name": "read",
+          "member": "implementer"
+        },
+        {
+          "name": "read",
+          "member": "verifier"
+        },
+        {
+          "name": "bash",
+          "member": "verifier"
+        },
+        {
+          "name": "team_verdict",
+          "member": "verifier"
+        }
+      ],
+      "outcomes": [
+        {
+          "role": "implementer",
+          "code": "member_finished",
+          "toolsSucceeded": 2,
+          "toolsFailed": 0,
+          "evidenceCount": 2
+        },
+        {
+          "role": "verifier",
+          "code": "rejected",
+          "toolsSucceeded": 3,
+          "toolsFailed": 0,
+          "evidenceCount": 2
+        }
+      ],
+      "summarized": false
+    }
+  ],
+  "actualArtifact": {
+    "name": "answer.txt",
+    "bytes": 3,
+    "sha256": "084c799cd551dd1d8d5c5f9a5d593b2e931f5e36122ee5c793c1d08a19839cc0"
+  },
+  "oldEventsUnchanged": true,
+  "freshAttempts": true,
+  "normalExit": {
+    "confirmed": false,
+    "processAbsentAfterClose": true,
+    "observedMs": 430,
+    "runnerExitCodeMissing": true,
+    "helperReturnWasVoid": true,
+    "notHistoricalQuitRepair": true
+  },
+  "historyFileCount": 10,
+  "checks": 12
+}

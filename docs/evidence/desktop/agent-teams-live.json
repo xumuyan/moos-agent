@@ -1,0 +1,97 @@
+{
+  "id": "E139",
+  "date": "2026-11-16",
+  "task": "P03.14",
+  "status": "visible-window-page-driven-external-model-team-accepted-exit-receipt-defect-not-deployed",
+  "environment": {
+    "os": "macOS 27.0.1 arm64",
+    "build": "0.1.49 isolated build-YFupls (not installed)",
+    "dshVersion": "0.2.2-rc.1",
+    "includesPiFixture": false,
+    "productionTouched": false
+  },
+  "method": {
+    "visibleWindow": true,
+    "pageDriven": true,
+    "nativeInput": false,
+    "cdp": "Page/Input/Runtime over isolated app's remote-debugging-port",
+    "desktopTransaction": "attempted, cancelled on focus-unavailable, no focus steal",
+    "externalModel": true,
+    "model": "glm-5.3 via glm coding plan (single provider copied to isolated 0700 temp home)",
+    "productionDataCopied": false,
+    "isolatedDataDir": "0700 temp dir; QA credential copies 0600, deleted after shutdown and verified absent"
+  },
+  "scenarios": [
+    {
+      "name": "success",
+      "taskStatus": "succeeded",
+      "plan": "exactly 2 nodes: write-answer (implementer), verify-answer (verifier, dependsOn)",
+      "tools": ["captain ls/team_plan", "implementer write/bash", "verifier read/bash/team_verdict"],
+      "verifierOutcome": "verified",
+      "artifact": "answer.txt bytes 42\\n (3 bytes, sha256 in verified.json)",
+      "summarized": true
+    },
+    {
+      "name": "blocked-by-unverifiable-criterion",
+      "taskStatus": "failed",
+      "verifierOutcome": "rejected",
+      "reason": "verifier read actual 42\\n vs required 99\\n, file unmodified, no write/edit tools used",
+      "noFalseSuccess": true,
+      "downstreamNotContinued": true,
+      "summarized": false
+    },
+    {
+      "name": "stop",
+      "taskStatus": "cancelled",
+      "retryOfPrevious": 1,
+      "savedGoalInherited": true,
+      "stoppedViaUi": true
+    },
+    {
+      "name": "retry-after-stop",
+      "taskStatus": "failed",
+      "retryOfPrevious": 2,
+      "savedGoalInherited": true,
+      "freshAttempts": true,
+      "verifierOutcome": "rejected again, no false success"
+    }
+  ],
+  "invariants": {
+    "oldTaskEventStreamsUnchangedByLaterRetries": true,
+    "attemptIdsNeverReusedAcrossTasks": true,
+    "singleIsolatedProject": true,
+    "historySessionsPerRole": 10
+  },
+  "defects": [
+    {
+      "id": "exit-receipt",
+      "note": "runner shutdown.json has closeDispatchedAt/observedAt/passed:false but no exitCode; waitQaExit resolves void so normal-close exit receipt cannot be confirmed; process absent 430ms after Page.close. Distinct from the packaged strict-exit hang; no repair claimed",
+      "normalExitConfirmed": false
+    },
+    {
+      "id": "blocked-summary-wording",
+      "note": "member detail panel states 验收阻塞/验证成员明确报告未通过 with tool evidence, but outer turn summary shows generic PI 任务执行失败 INTERNAL; improvement candidate, not changed this round"
+    }
+  ],
+  "regression": {
+    "core": { "tests": 299, "pass": 295, "fail": 4, "exit": 1, "note": "2 geometry-helper failures flaky this round plus 2 known sampling failures at scripts/team-qa-shutdown.test.mjs:154 (actual unavailable, expected observed); serial rerun from prior round passed but is not a repair" },
+    "electronSource": { "pass": 127, "skip": 10, "fail": 0, "exit": 0 },
+    "electronPackagedYFupls": { "pass": 136, "skip": 1, "fail": 0, "exit": 0 },
+    "signature": { "exit": 0, "codesign": "--verify --deep --strict build-YFupls/沐码.app" },
+    "rustOffline": { "exit": 101, "reason": "tauri missing from offline crates index (known blocked)" }
+  },
+  "evidenceSha256": {
+    "success.png": "d7f8aa8a416dca55117a83b41cb723f28260ba36333c5ee3d6f2d4dbc464a32b",
+    "blocked-panel.png": "fadb667da301aebf598d14c184b8dd98415c0d6eaa938b05fcf07a885e7b6a3c",
+    "verified.json": "77fb8ccc7dd04c04ce8aee17254172db98c49901ecdca485c0d2dfa387b95c7f",
+    "regression.json": "e5c9fae9d194551b9adef8c6bdccd935c14aa7fdffbda6ab1090e7f6edcc39f7"
+  },
+  "boundaries": {
+    "installed": false,
+    "deployed": false,
+    "overallP0314Complete": false,
+    "nativeKeyboardAcceptance": false,
+    "exitRootCauseRepaired": false,
+    "allRegressionsGreen": false
+  }
+}
