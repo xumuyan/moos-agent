@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
 import { EventEmitter } from 'node:events';
-import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses, summarizeQaSample, sampleQaProcess } from './team-qa-shutdown.mjs';
+import { readFile, writeFile, stat } from 'node:fs/promises';
 
 test('QA shutdown instrumentation preserves awaited Host cleanup and records ordered lifecycle', async () => {
   let release; const pending = new Promise(resolve => { release = resolve; });
@@ -63,4 +64,59 @@ test('explicit QA quit fault blocks only the copied app and still awaits Host cl
     { app, host: { stop: () => Promise.resolve() }, console: { error() {} } });
   app.emit('before-quit', { preventDefault() { prevented++; } });
   assert.equal(prevented, 1);
+});
+
+const syntheticSample = `Process:         QA [123]
+Path: /private/user/secret
+Call graph:
+    77 Thread_1 DispatchQueue_1: com.apple.main-thread (serial)
+    + 77 -[NSApplication run] (in AppKit)
+    + 77 __CFRunLoopRun (in CoreFoundation)
+    + 77 mach_msg2_trap (in libsystem_kernel.dylib)
+    77 Thread_2
+    + 77 __psynch_mutexwait
+Total number in stack (recursive counted multiple, when >=5):
+`;
+
+test('native sample whitelist binds PID and main thread without leaking paths, symbols or metadata', () => {
+  const result = summarizeQaSample(syntheticSample, 123);
+  assert.deepEqual(result, { mainThread: { appKitRunLoop: true, coreFoundationRunLoop: true,
+    machMessageWait: true, keventWait: false, mutexWait: false, semaphoreWait: false } });
+  assert.doesNotMatch(JSON.stringify(result), /private|secret|Process|Path|Thread_1|NSApplication/);
+  for (const text of ['', syntheticSample.replace('[123]', '[124]'), syntheticSample.replace('com.apple.main-thread', 'worker'), 'x'.repeat(2 * 1024 * 1024 + 1)]) {
+    assert.equal(summarizeQaSample(text, 123), undefined);
+  }
+  assert.throws(() => summarizeQaSample(syntheticSample, 1), /Invalid QA root/);
+});
+
+test('native sample uses exact live QA PID, bounded command and private transient file deleted on all outcomes', async () => {
+  const child = { pid: 123, exitCode: null, signalCode: null };
+  for (const mode of ['success', 'throw', 'malformed', 'oversized']) {
+    let file;
+    const result = await sampleQaProcess(child, async (command, args, options) => {
+      assert.equal(command, '/usr/bin/sample'); assert.deepEqual(args.slice(0, 4), ['123', '1', '10', '-file']);
+      assert.equal(options.timeout, 3000); assert.equal(options.maxBuffer, 2 * 1024 * 1024);
+      file = args[4]; assert.equal((await stat(file)).mode & 0o777, 0o600);
+      assert.equal((await stat(file.slice(0, file.lastIndexOf('/')))).mode & 0o777, 0o700);
+      if (mode === 'throw') throw new Error('private command error');
+      await writeFile(file, mode === 'success' ? syntheticSample : mode === 'oversized' ? 'x'.repeat(2 * 1024 * 1024 + 1) : 'private malformed');
+    });
+    assert.equal(result.status, mode === 'success' ? 'observed' : 'unavailable');
+    await assert.rejects(readFile(file), { code: 'ENOENT' });
+    assert.doesNotMatch(JSON.stringify(result), /private|malformed|command error/);
+  }
+  let called = false;
+  for (const c of [{ ...child, exitCode: 0 }, { ...child, signalCode: 'SIGTERM' }]) {
+    assert.deepEqual(await sampleQaProcess(c, () => { called = true; }), { status: 'already-exited' });
+  }
+  assert.equal(called, false);
+  await assert.rejects(sampleQaProcess({ pid: 1 }), /Invalid QA child/);
+});
+
+test('sample failure reasons are fixed enums, not native command stderr', async () => {
+  const child = { pid: 123, exitCode: null, signalCode: null };
+  assert.deepEqual(await sampleQaProcess(child, () => { throw new Error('/secret private stderr'); }),
+    { status: 'unavailable', reason: 'command' });
+  assert.deepEqual(await sampleQaProcess(child, async (_command, args) => writeFile(args[4], 'secret')),
+    { status: 'unavailable', reason: 'unrecognized-sample' });
 });

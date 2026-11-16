@@ -1,6 +1,6 @@
 // Isolated hidden-window renderer/Host/PI acceptance. Not normal desktop-input QA.
 import assert from 'node:assert/strict';
-import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses, sampleQaProcess } from './team-qa-shutdown.mjs';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
@@ -621,8 +621,11 @@ try {
   report.status = 'failed'; report.error = error.message;
   if (report.shutdown) {
     report.shutdown.failureAt = Date.now();
-    report.shutdown.failureProcesses = await snapshotQaProcesses(child.pid);
     report.shutdown.exitCode = child.exitCode;
+    report.shutdown.failureProcesses = await snapshotQaProcesses(child.pid);
+    // Diagnostic work occurs only after the strict exit assertion failed.
+    // An exit during sampling never converts this failure into a pass.
+    report.shutdown.failureSample = await sampleQaProcess(child);
   }
   throw error;
 }

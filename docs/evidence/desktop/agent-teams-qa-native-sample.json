@@ -1,0 +1,1626 @@
+{
+  "status": "isolated-qa-native-exit-diagnostic-checkpoint-root-cause-unresolved-not-installed",
+  "recordedAt": "2026-11-16T12:35:06+08:00",
+  "baseCommit": "023cc224873cc8c5728f9edd75f347387bdcf59e",
+  "workspaceState": "precommit QA diagnostic/tests/docs; no application runtime changes; final sampler cleanup guard tested by targeted and full core inventory",
+  "runtimeModified": false,
+  "environment": "arm64 macOS27.0.1(26A434), Node24.15.0, TMPDIR=/private/tmp/; inherited Electron/DSH/QA flags cleaned",
+  "implementation": {
+    "sourceSha256": {
+      "scripts/team-qa-shutdown.mjs": "6e86ad902e3d452c1cb5b976f2da16f1864b6134dee136ae7c4f34239fdd5203",
+      "scripts/team-qa-shutdown.test.mjs": "be63626e22c55166476bcec03539ceb829bcc57beb43aba00313fd7d835ae6d7",
+      "scripts/verify-electron-team.mjs": "b50112f106b5bb56f8ad0a8e2c0d73162d21aa4f6a308e8e896b3e4dd1b2647d",
+      "scripts/verify-electron-team.test.mjs": "e34c804c847e1ddf667c4be64bd4dbb6643002f05912743d60d4f2684eab1e29"
+    },
+    "samplingAfterFailureOnly": true,
+    "strictExitMs": 10000,
+    "strictExitCode": 0,
+    "sampleCommand": [
+      "/usr/bin/sample",
+      "<exact-live-QA-child-pid>",
+      "1",
+      "10",
+      "-file",
+      "<private-temporary-file>"
+    ],
+    "sampleTimeoutMs": 3000,
+    "sampleMaxBytes": 2097152,
+    "output": "status and optional fixed reason enum or mainThread boolean whitelist only",
+    "rawSampleExported": false,
+    "privateDirectoryMode": "0700",
+    "privateFileMode": "0600",
+    "temporaryFileRemovedInFinally": true,
+    "cleanupFailureReported": "unavailable/cleanup; no retry or pass conversion",
+    "failureExitCodeCapturedBeforeDiagnostics": true,
+    "rootPidScope": "current spawned copied QA child, rechecked before command; not lookup by name; PID reuse remains possible",
+    "hostStopThenQuitOrderChanged": false,
+    "desktopGuardsChanged": false
+  },
+  "acceptance": {
+    "injected": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 60.64
+      },
+      "path": "artifacts/team-ui/gui-nfoX6R/report.json",
+      "sha256": "a9ebd23e1ab8fd22a79d49d5063099af3cccc2be59b7da8fd5f928b7a87045f3",
+      "scenario": "stop",
+      "status": "failed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": true,
+        "requestedAt": 1794802306014,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802306058
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802306065
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802306066
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802306066
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802306066
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802306310
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802306310
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 98171,
+              "ppid": 96497,
+              "state": "R"
+            },
+            {
+              "pid": 98196,
+              "ppid": 98171,
+              "state": "R"
+            },
+            {
+              "pid": 98197,
+              "ppid": 98171,
+              "state": "R"
+            },
+            {
+              "pid": 98202,
+              "ppid": 98171,
+              "state": "Rs"
+            },
+            {
+              "pid": 98506,
+              "ppid": 98171,
+              "state": "R"
+            }
+          ]
+        },
+        "observedAt": 1794802316060,
+        "exitCode": null,
+        "failureAt": 1794802316061,
+        "failureProcesses": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 98171,
+              "ppid": 96497,
+              "state": "R"
+            },
+            {
+              "pid": 98196,
+              "ppid": 98171,
+              "state": "R"
+            },
+            {
+              "pid": 98197,
+              "ppid": 98171,
+              "state": "R"
+            }
+          ]
+        },
+        "failureSample": {
+          "status": "unavailable"
+        }
+      },
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "injected-final": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 53.78
+      },
+      "path": "artifacts/team-ui/gui-uZe1Nl/report.json",
+      "sha256": "1dd3d54d5b13c4d8edf7d07830626baa6e1ab8086350228384981086e8d93841",
+      "scenario": "stop",
+      "status": "failed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": true,
+        "requestedAt": 1794802953416,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802953457
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802953458
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802953459
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802953459
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802953459
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802953636
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802953636
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 40150,
+              "ppid": 38680,
+              "state": "R"
+            },
+            {
+              "pid": 40166,
+              "ppid": 40150,
+              "state": "S"
+            },
+            {
+              "pid": 40167,
+              "ppid": 40150,
+              "state": "S"
+            },
+            {
+              "pid": 40170,
+              "ppid": 40150,
+              "state": "Ss"
+            },
+            {
+              "pid": 40370,
+              "ppid": 40150,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794802963456,
+        "exitCode": null,
+        "failureAt": 1794802963457,
+        "failureProcesses": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 40150,
+              "ppid": 38680,
+              "state": "S"
+            },
+            {
+              "pid": 40166,
+              "ppid": 40150,
+              "state": "S"
+            },
+            {
+              "pid": 40167,
+              "ppid": 40150,
+              "state": "S"
+            }
+          ]
+        },
+        "failureSample": {
+          "status": "observed",
+          "mainThread": {
+            "appKitRunLoop": true,
+            "coreFoundationRunLoop": true,
+            "machMessageWait": true,
+            "keventWait": false,
+            "mutexWait": false,
+            "semaphoreWait": false
+          }
+        }
+      },
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "stop": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 65.01
+      },
+      "path": "artifacts/team-ui/gui-nex2zX/report.json",
+      "sha256": "4a4538686d36acdf775055231abcd53e7a6257d861c10307ff075ff41bed265d",
+      "scenario": "stop",
+      "status": "failed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794802373029,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802373081
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802373082
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802373082
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802373082
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802373082
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802373328
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802373328
+          },
+          {
+            "event": "will-quit",
+            "at": 1794802373328
+          },
+          {
+            "event": "quit",
+            "at": 1794802373328
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 2252,
+              "ppid": 168,
+              "state": "R"
+            },
+            {
+              "pid": 2272,
+              "ppid": 2252,
+              "state": "R"
+            },
+            {
+              "pid": 2273,
+              "ppid": 2252,
+              "state": "R"
+            },
+            {
+              "pid": 2277,
+              "ppid": 2252,
+              "state": "Rs"
+            },
+            {
+              "pid": 2566,
+              "ppid": 2252,
+              "state": "R"
+            }
+          ]
+        },
+        "observedAt": 1794802383081,
+        "exitCode": null,
+        "failureAt": 1794802383082,
+        "failureProcesses": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 2252,
+              "ppid": 168,
+              "state": "R"
+            },
+            {
+              "pid": 2272,
+              "ppid": 2252,
+              "state": "R"
+            },
+            {
+              "pid": 2273,
+              "ppid": 2252,
+              "state": "R"
+            }
+          ]
+        },
+        "failureSample": {
+          "status": "observed",
+          "mainThread": {
+            "appKitRunLoop": false,
+            "coreFoundationRunLoop": false,
+            "machMessageWait": true,
+            "keventWait": false,
+            "mutexWait": false,
+            "semaphoreWait": false
+          }
+        }
+      },
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "success": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 54.9
+      },
+      "path": "artifacts/team-ui/gui-ylC5Bz/report.json",
+      "sha256": "4406949c5fef1a2c174472488963d47cda420f7759fbf1bd6d058acc7a4b032e",
+      "scenario": "success",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "memberFileIndexNavigation": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794802433998,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802434040
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802434040
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802434041
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802434041
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802434041
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802434232
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802434232
+          },
+          {
+            "event": "will-quit",
+            "at": 1794802434232
+          },
+          {
+            "event": "quit",
+            "at": 1794802434232
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 5785,
+              "ppid": 4002,
+              "state": "R"
+            },
+            {
+              "pid": 5804,
+              "ppid": 5785,
+              "state": "S"
+            },
+            {
+              "pid": 5806,
+              "ppid": 5785,
+              "state": "S"
+            },
+            {
+              "pid": 5809,
+              "ppid": 5785,
+              "state": "Ss"
+            },
+            {
+              "pid": 6022,
+              "ppid": 5785,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794802435809,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "blocked": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 47.12
+      },
+      "path": "artifacts/team-ui/gui-OoDXrk/report.json",
+      "sha256": "0e173470015b22c7a4b7cf396f2a23d477a6139334056d3603f38902210417cc",
+      "scenario": "blocked",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "downstreamBlockerDetails": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "memberFileIndexNavigation": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794802481093,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802481140
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802481140
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802481141
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802481141
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802481141
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802481340
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802481340
+          },
+          {
+            "event": "will-quit",
+            "at": 1794802481340
+          },
+          {
+            "event": "quit",
+            "at": 1794802481340
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 8498,
+              "ppid": 7068,
+              "state": "S"
+            },
+            {
+              "pid": 8515,
+              "ppid": 8498,
+              "state": "S"
+            },
+            {
+              "pid": 8516,
+              "ppid": 8498,
+              "state": "S"
+            },
+            {
+              "pid": 8519,
+              "ppid": 8498,
+              "state": "Ss"
+            },
+            {
+              "pid": 8830,
+              "ppid": 8498,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794802481400,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "shell-stop": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "shell-stop"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 47.35
+      },
+      "path": "artifacts/team-ui/gui-BmPTgh/report.json",
+      "sha256": "459c6f2d2ff105bea2d16c1796018f3799c83eead819b473cae971a90bad22d2",
+      "scenario": "shell-stop",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "actualOwnedShellAndChildRunning": true,
+        "shellAndChildExitedAfterStop": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "noPostStopShellWrite": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794802528431,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794802528473
+          },
+          {
+            "event": "window-closed",
+            "at": 1794802528474
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794802528475
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802528475
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794802528475
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794802528707
+          },
+          {
+            "event": "before-quit",
+            "at": 1794802528707
+          },
+          {
+            "event": "will-quit",
+            "at": 1794802528707
+          },
+          {
+            "event": "quit",
+            "at": 1794802528707
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 11469,
+              "ppid": 9983,
+              "state": "S"
+            },
+            {
+              "pid": 11488,
+              "ppid": 11469,
+              "state": "S"
+            },
+            {
+              "pid": 11489,
+              "ppid": 11469,
+              "state": "S"
+            },
+            {
+              "pid": 11492,
+              "ppid": 11469,
+              "state": "Ss"
+            },
+            {
+              "pid": 11728,
+              "ppid": 11469,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794802531101,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "retry": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 52.46
+      },
+      "path": "artifacts/team-ui/gui-DQzeom/report.json",
+      "sha256": "b80f60a8f064da0bd2ac3cb4fd8f5248b44209d7f34b722349256e82421dfa54",
+      "scenario": "retry",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "memberFileIndexNavigation": true,
+        "structuredMemberDetails": true,
+        "retriedReadOnlyMemberHasNoInventedFiles": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "noFalseDeliveryOrDownstream": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794803281183,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794803281224
+          },
+          {
+            "event": "window-closed",
+            "at": 1794803281225
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794803281227
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803281227
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794803281227
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794803281413
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803281413
+          },
+          {
+            "event": "will-quit",
+            "at": 1794803281413
+          },
+          {
+            "event": "quit",
+            "at": 1794803281413
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 58998,
+              "ppid": 57518,
+              "state": "S"
+            },
+            {
+              "pid": 59028,
+              "ppid": 58998,
+              "state": "R"
+            },
+            {
+              "pid": 59029,
+              "ppid": 58998,
+              "state": "S"
+            },
+            {
+              "pid": 59031,
+              "ppid": 58998,
+              "state": "Ss"
+            },
+            {
+              "pid": 59233,
+              "ppid": 58998,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794803282453,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "attachments": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 104.47
+      },
+      "path": "artifacts/team-ui/gui-S15FLO/report.json",
+      "sha256": "344d3585556c366d90ce158d6c46514409d745cf5afea07220fe773d924d857c",
+      "scenario": "attachments",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "attachmentAdmissionFailureNoTask": true,
+        "liveProgress": true,
+        "actualUploadsAndQueueAdmission": true,
+        "nodeProjection": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "memberFileIndexNavigation": true,
+        "structuredMemberDetails": true,
+        "independentReadAndArtifact": true,
+        "modeClearDoesNotCancel": true,
+        "uploadBytesAndCaptainMemberReads": true,
+        "queuedModeImmutableAfterFutureSelection": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794803373216,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794803373344
+          },
+          {
+            "event": "window-closed",
+            "at": 1794803373346
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794803373346
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803373346
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794803373347
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794803373697
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803373697
+          },
+          {
+            "event": "will-quit",
+            "at": 1794803373697
+          },
+          {
+            "event": "quit",
+            "at": 1794803373697
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 63167,
+              "ppid": 60544,
+              "state": "R"
+            },
+            {
+              "pid": 63234,
+              "ppid": 63167,
+              "state": "R"
+            },
+            {
+              "pid": 63236,
+              "ppid": 63167,
+              "state": "R"
+            },
+            {
+              "pid": 63244,
+              "ppid": 63167,
+              "state": "Rs"
+            },
+            {
+              "pid": 63997,
+              "ppid": 63167,
+              "state": "R"
+            }
+          ]
+        },
+        "observedAt": 1794803385666,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "stop-retry": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 57.25
+      },
+      "path": "artifacts/team-ui/gui-qgsjM1/report.json",
+      "sha256": "1332cd65985d3e97461066912e1f3cdcedfe757e71b4e857219757b2a1d2275b",
+      "scenario": "stop-retry",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "stoppedPartialArtifactNoAutoReplay": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "retriedReadOnlyMemberHasNoInventedFiles": true,
+        "structuredMemberDetails": true,
+        "explicitStopCancels": true,
+        "noFalseDeliveryOrDownstream": true,
+        "stoppedTaskHistoryUnchanged": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794803442863,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794803442906
+          },
+          {
+            "event": "window-closed",
+            "at": 1794803442908
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794803442909
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803442909
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794803442909
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794803443089
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803443089
+          },
+          {
+            "event": "will-quit",
+            "at": 1794803443089
+          },
+          {
+            "event": "quit",
+            "at": 1794803443089
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 68097,
+              "ppid": 66383,
+              "state": "R"
+            },
+            {
+              "pid": 68115,
+              "ppid": 68097,
+              "state": "R"
+            },
+            {
+              "pid": 68116,
+              "ppid": 68097,
+              "state": "S"
+            },
+            {
+              "pid": 68120,
+              "ppid": 68097,
+              "state": "Ss"
+            },
+            {
+              "pid": 68357,
+              "ppid": 68097,
+              "state": "S"
+            }
+          ]
+        },
+        "observedAt": 1794803443729,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "interrupt-retry": {
+      "command": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 81.05
+      },
+      "path": "artifacts/team-ui/gui-xdewMe/report.json",
+      "sha256": "7243e84f842776eedfe417f246e76f85a47d37ccd1db93ffe35ada10cf979fd7",
+      "scenario": "interrupt-retry",
+      "status": "passed",
+      "checks": {
+        "menuAndTag": true,
+        "liveProgress": true,
+        "abruptOwnedQAFaultAndColdRunning": true,
+        "restartMarksInterruptedWithoutReplay": true,
+        "restartPreservesEventPrefixAndArtifact": true,
+        "nodeProjection": true,
+        "noInventedStoppedReceipt": true,
+        "stoppedPartialArtifactNoAutoReplay": true,
+        "readableMemberLayout": true,
+        "reportedMemberUsageOrExplicitUnknown": true,
+        "retriedReadOnlyMemberHasNoInventedFiles": true,
+        "structuredMemberDetails": true,
+        "faultClosesModelConnection": true,
+        "noFalseDeliveryOrDownstream": true,
+        "stoppedTaskHistoryUnchanged": true,
+        "retryRetainsModeAndGoal": true,
+        "freshParentAndRoleContexts": true,
+        "artifactInspectedNotRewritten": true,
+        "persistedTerminalState": true,
+        "ordinaryAfterClear": true
+      },
+      "shutdown": {
+        "injectedQuitBlock": false,
+        "requestedAt": 1794803512822,
+        "events": [
+          {
+            "event": "webcontents-destroyed",
+            "at": 1794803512891
+          },
+          {
+            "event": "window-closed",
+            "at": 1794803512893
+          },
+          {
+            "event": "window-all-closed",
+            "at": 1794803512894
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803512894
+          },
+          {
+            "event": "host-stop-start",
+            "at": 1794803512894
+          },
+          {
+            "event": "host-stop-settled",
+            "at": 1794803513191
+          },
+          {
+            "event": "before-quit",
+            "at": 1794803513191
+          },
+          {
+            "event": "will-quit",
+            "at": 1794803513191
+          },
+          {
+            "event": "quit",
+            "at": 1794803513191
+          }
+        ],
+        "beforeClose": {
+          "status": "observed",
+          "processes": [
+            {
+              "pid": 72149,
+              "ppid": 69623,
+              "state": "R"
+            },
+            {
+              "pid": 72172,
+              "ppid": 72149,
+              "state": "R"
+            },
+            {
+              "pid": 72174,
+              "ppid": 72149,
+              "state": "R"
+            },
+            {
+              "pid": 72178,
+              "ppid": 72149,
+              "state": "Rs"
+            },
+            {
+              "pid": 72441,
+              "ppid": 72149,
+              "state": "R"
+            }
+          ]
+        },
+        "observedAt": 1794803523991,
+        "exitCode": 0
+      },
+      "error": null,
+      "productionTouched": false,
+      "normalGUI": false,
+      "externalModel": false
+    }
+  },
+  "exploration": {
+    "normalBaselineFirst": {
+      "exit": 0,
+      "seconds": 39.64,
+      "command": [
+        "node",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/team-quit-investigation/baseline.mjs",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+        "stop"
+      ]
+    },
+    "normalBaselineSecond": {
+      "exit": 0,
+      "seconds": 39.46,
+      "command": [
+        "node",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/team-quit-investigation/baseline.mjs",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+        "stop"
+      ]
+    },
+    "interpretation": "two diagnostic baseline passes did not reproduce or repair historical failure; final instrumented Stop failure is retained, not rerun to green",
+    "importFailure": {
+      "path": "artifacts/team-quit-investigation/import-failure.log",
+      "sha256": "c1075f1fc3bf70c545408add4370129e88b424c4b1937d4afd0843a0d7915705",
+      "description": "initial ignored diagnostic script relative import was wrong; failed before QA copy/launch, fixed diagnostic import"
+    },
+    "rawPilotSample": "injected-only exploratory raw sample was read locally then deleted; not committed/exported; final integrated sampler uses transient private files"
+  },
+  "findings": {
+    "naturalStopReproduced": true,
+    "normalStopBusinessChecksPassed": true,
+    "rootCauseConfirmed": false,
+    "rootCauseRepaired": false,
+    "naturalStopMainThread": "mach message wait observed; no AppKit/CF run marker in sampled main-thread frames; not proof of a particular deadlock or component cause",
+    "injectedMainThread": "AppKit/CF run loop and mach message wait observed; deliberate preventDefault is not historical root-cause reproduction",
+    "unavailableFirstInjectedSample": "recorded unavailable without fabricated stack; final enum/report path separately tested via a second injected fault",
+    "limits": [
+      "native samples are best-effort point-in-time observations, symbols can be incomplete or stripped",
+      "main-thread flags alone do not establish root cause, Host descendant cleanup, exactly-once, or permanent isolation",
+      "native sample collected after original strict failure may perturb timing but cannot convert failure to success",
+      "no normal visible GUI/native input/external provider acceptance",
+      "P03.14.1–6 remain unchecked"
+    ]
+  },
+  "regression": {
+    "commands": {
+      "signature": {
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 6.26
+      },
+      "injected": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 60.64
+      },
+      "stop": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 65.01
+      },
+      "success": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 54.9
+      },
+      "blocked": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 47.12
+      },
+      "shell-stop": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "shell-stop"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 47.35
+      },
+      "core": {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 58.51
+      },
+      "electron": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 21.92
+      },
+      "packaged": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 33.26
+      },
+      "native": {
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "env": {},
+        "exit": 101,
+        "seconds": 0.2
+      },
+      "retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 52.46
+      },
+      "attachments": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 104.47
+      },
+      "stop-retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 57.25
+      },
+      "interrupt-retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 81.05
+      },
+      "injected-final": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {
+          "MOOS_QA_BLOCK_QUIT": "1"
+        },
+        "exit": 1,
+        "seconds": 53.78
+      },
+      "core-serial-delivery": {
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 162.31
+      }
+    },
+    "counts": {
+      "targeted-final": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "core": {
+        "tests": 289,
+        "pass": 289,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "core-final": {
+        "tests": 289,
+        "pass": 288,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "core-delivery": {
+        "tests": 289,
+        "pass": 287,
+        "fail": 1,
+        "cancelled": 1,
+        "skipped": 0
+      },
+      "core-serial-final": {
+        "tests": 289,
+        "pass": 289,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "core-serial-delivery": {
+        "tests": 289,
+        "pass": 289,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "electron": {
+        "tests": 136,
+        "pass": 126,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 10
+      },
+      "packaged": {
+        "tests": 136,
+        "pass": 135,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1
+      }
+    },
+    "coreDeliveryExit": 1,
+    "coreDeliveryFailure": "desktop geometry-drift assertion got helper timeout; adapter concurrency test timed out at existing 25000ms (one cancelled test)",
+    "coreFinalExit": 1,
+    "coreFinalFailure": "same existing desktop geometry-drift test expected reads6, actual reads5",
+    "initialCoreExit": 0,
+    "initialCoreIsNotRepair": true,
+    "fullSerialDeliveryExit": 0,
+    "allRegressionsGreen": false,
+    "offlineRustExit": 101,
+    "blockers": [
+      "normal Stop strict exit failure unresolved",
+      "default core helper timing and adapter cancellation timeout; serial pass is not repair",
+      "offline tauri dependency unavailable",
+      "source10/package1 reviewed-skin skips"
+    ],
+    "documentation": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit": 0,
+      "tests": 149,
+      "seconds": 0.88,
+      "log": "artifacts/team-quit-investigation/docs-final.log",
+      "sha256": "aba879eb6076dde932b3b0b800e25fcee5c6c1870def63b60c311e55cdbc6b65",
+      "workspaceState": "new documentation contract and precommit QA evidence; final metadata followed by unchanged docs recheck"
+    }
+  },
+  "build": {
+    "candidate": ".generated/moos-electron/build-QWEhD0/沐码.app",
+    "version": "0.1.49",
+    "rebuilt": false,
+    "installed": false,
+    "strictCodesign": {
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 6.26
+    },
+    "sourceSha256UnchangedSinceUsageCandidate": {
+      "apps/electron/pi-turn.mjs": "77782f543bf40aa0e353b96688fb9de8899607ab5131e76927967033088582d6",
+      "packages/pi-runtime/team-runtime.mjs": "7967b4fea4c230bdcf33f6106115973d698785af64e53eedca3798683e5702b6",
+      "apps/electron/plugin/host.js": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+      "apps/electron/plugin/pi-tasks.js": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+      "apps/electron/plugin/pi-route.js": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+      "apps/electron/plugin/client.js": "4e633f338543b408b40001fd034027b2a939f277c3a040247cdaf58a563caba9"
+    },
+    "archiveComparison": "six current sources rehashed unchanged against 023cc22 usage candidate source-check; archive comparisons inherited from agent-teams-member-usage.json, not repeated as new archive acceptance"
+  },
+  "protection": {
+    "productionTouched": false,
+    "productionRestarted": false,
+    "realDataChanged": false,
+    "legacyExecutorsEnabled": false
+  },
+  "artifactLogs": {
+    "artifacts/team-quit-investigation/attachments.log": "7f661b1dbb28fedd6f177e48da332b7b72f204c321ef8b7104c475f137bfd152",
+    "artifacts/team-quit-investigation/baseline-first.log": "3496645f16c024fe4be2ef3dbbb44c57b17877a0ad32d9293577fa641c063b0b",
+    "artifacts/team-quit-investigation/baseline-second.log": "6b86a4b99c7e163164ea9b3ec6251876abdc54d53e91401c30a27bb251eb85d6",
+    "artifacts/team-quit-investigation/baseline.log": "25292d5141a1dbdc1f1ccf39b114adf4384d72277d624213e96607dbb15eb466",
+    "artifacts/team-quit-investigation/blocked.log": "85b1a65e0812d7345c7297ab8fe19a03da25421eba156fd178c858ed979f07bd",
+    "artifacts/team-quit-investigation/core-delivery.log": "f6b177cbb2360833114cbc7ce923dff01ec079ea74eb50937f54ee0ad389e0ee",
+    "artifacts/team-quit-investigation/core-final.log": "beeec8ae06b572ae1a9814f8a4e716ad8a28f3fdd0a9a43d01a08683cb71410f",
+    "artifacts/team-quit-investigation/core-serial-delivery.log": "feac6675f13c147d7cbabe684ef6d97efa3f339675e7b269e98f91a62f86fcd1",
+    "artifacts/team-quit-investigation/core-serial-final.log": "92a2e89e9c0b43a1dc528259d8c4a62788d3410447d4802fc907e8c267d12ecc",
+    "artifacts/team-quit-investigation/core.log": "7f26abecc4d0b1e626e70305501866b8001981ff686b0466406d2692774a4385",
+    "artifacts/team-quit-investigation/docs-transition.log": "8c69bf1803cc9b9f4ab3db17f2e755d4f0f1fe0aec24d39d23df6d33df93f41a",
+    "artifacts/team-quit-investigation/driver.log": "8f3105a524e7b579961949b9141bc95bbed54f4a8515a336b7601a593debaf64",
+    "artifacts/team-quit-investigation/electron.log": "8f08ebf76b774dba771550b6b55a49088a56d0f20ab3569ab7ab55e1d8fc05bd",
+    "artifacts/team-quit-investigation/import-failure.log": "c1075f1fc3bf70c545408add4370129e88b424c4b1937d4afd0843a0d7915705",
+    "artifacts/team-quit-investigation/injected-final.log": "89760cfac3396e88a558c0ac7353b4d9d0f226be3d9ac386fa01756a2a800244",
+    "artifacts/team-quit-investigation/injected.log": "77edefde702ecaa67e2591aa43849f919d3b4e1e82c5496bf5454a6f7cc7fd2c",
+    "artifacts/team-quit-investigation/interrupt-retry.log": "f5a3166e1db59590d72a17f812fdfe99fc6a6e2c61bcd4b659bb9d21287e96b8",
+    "artifacts/team-quit-investigation/native.log": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49",
+    "artifacts/team-quit-investigation/packaged.log": "f92f03e05483e33ec7daa60795fe92b7f02643d1648bc55857fc1443b450a07e",
+    "artifacts/team-quit-investigation/remaining-driver.log": "4305a9d7717d7e6a2e91389841700f412101fccd4f8c8053f035164681006382",
+    "artifacts/team-quit-investigation/retry.log": "bf5b9fb8a4c9b42a4b02c9041a5205bf0e54549f2dc539577ee2c3405f6b5d73",
+    "artifacts/team-quit-investigation/shell-stop.log": "f9048ed4b582a064b2571cf7e1f016ad68f2c8337d7f61839b6ae794a988933e",
+    "artifacts/team-quit-investigation/signature.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/team-quit-investigation/stop-retry.log": "38c19f39dea532e3f55e0d62c45ac348367cfe20851eeba4cff3c4d895d71e6f",
+    "artifacts/team-quit-investigation/stop.log": "b678fa7fcc7cb9b86208dfbf43c4c08b761d5fb0012921c62c0d2c0f564cf868",
+    "artifacts/team-quit-investigation/success.log": "e707efe29644d4cc79ec145c90e96d33c659513b9508751401a1349d2af312f1",
+    "artifacts/team-quit-investigation/targeted-final.log": "d39b7498d4c6d7522678ba523dbb2d7b81b939cbcaa6601450a13e9050596fb3",
+    "artifacts/team-quit-investigation/targeted.log": "c1aa360d82469946d2dfe6f386d6e7291766cac60f65a67011079e6529f40b73"
+  }
+}

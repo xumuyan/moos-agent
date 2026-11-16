@@ -1,5 +1,8 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { mkdtemp, writeFile, readFile, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 // Instrument only the copied QA entry. Never emit URLs, tokens or user content.
 export function instrumentQaShutdown(source, { blockQuit = false } = {}) {
@@ -50,6 +53,51 @@ export function selectQaProcesses(text, rootPid) {
     if (!added) break;
   }
   return rows.filter(row => selected.has(row.pid)).slice(0, 128);
+}
+
+// Never export raw native samples: they contain local paths and image metadata.
+export function summarizeQaSample(text, rootPid) {
+  if (!Number.isSafeInteger(rootPid) || rootPid <= 1) throw new Error('Invalid QA root PID');
+  if (typeof text !== 'string' || Buffer.byteLength(text) > 2 * 1024 * 1024
+    || !new RegExp('^Process: +[^\\n]+ \\[' + rootPid + '\\]$', 'm').test(text)) return undefined;
+  const graph = text.split('Call graph:\n')[1]?.split('\nTotal number in stack')[0];
+  const main = graph?.match(/(?:^|\n)    \d+ Thread_[^\n]*com\.apple\.main-thread[^\n]*\n([\s\S]*?)(?=\n    \d+ Thread_|$)/)?.[1];
+  if (!main) return undefined;
+  return { mainThread: {
+    appKitRunLoop: main.includes('-[NSApplication run]'),
+    coreFoundationRunLoop: main.includes('__CFRunLoopRun'),
+    machMessageWait: main.includes('mach_msg2_trap'),
+    keventWait: /\bkevent(?:64)?\b/.test(main),
+    mutexWait: /\b__psynch_mutexwait\b/.test(main),
+    semaphoreWait: /\bsemaphore_wait_trap\b/.test(main),
+  } };
+}
+
+export async function sampleQaProcess(child, run = promisify(execFile)) {
+  if (!child || !Number.isSafeInteger(child.pid) || child.pid <= 1) throw new Error('Invalid QA child');
+  // Only the runner's still-live copied child; never enumerate/select another app.
+  if (child.exitCode !== null || child.signalCode != null) return { status: 'already-exited' };
+  let directory, stage = 'filesystem';
+  try {
+    directory = await mkdtemp(join(tmpdir(), 'muma-qa-sample-'));
+    const path = join(directory, 'sample.txt');
+    await writeFile(path, '', { mode: 0o600 });
+    if (child.exitCode !== null || child.signalCode != null) return { status: 'already-exited' };
+    stage = 'command';
+    await run('/usr/bin/sample', [String(child.pid), '1', '10', '-file', path],
+      { timeout: 3000, maxBuffer: 2 * 1024 * 1024, encoding: 'utf8' });
+    stage = 'filesystem';
+    if ((await stat(path)).size > 2 * 1024 * 1024) return { status: 'unavailable', reason: 'size-limit' };
+    const summary = summarizeQaSample(await readFile(path, 'utf8'), child.pid);
+    return summary ? { status: 'observed', ...summary } : { status: 'unavailable', reason: 'unrecognized-sample' };
+  } catch {
+    return { status: 'unavailable', reason: stage };
+  } finally {
+    if (directory) {
+      try { await rm(directory, { recursive: true, force: true }); }
+      catch { return { status: 'unavailable', reason: 'cleanup' }; }
+    }
+  }
 }
 
 export async function snapshotQaProcesses(rootPid) {

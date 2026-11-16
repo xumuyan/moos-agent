@@ -9,6 +9,59 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaNativeSampleTests(unittest.TestCase):
+    def test_native_qa_sample_is_sanitized_and_preserves_failed_stop(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-native-sample.json').read_text())
+        self.assertEqual(e['status'], 'isolated-qa-native-exit-diagnostic-checkpoint-root-cause-unresolved-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        i = e['implementation']
+        for path, digest in i['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertEqual((i['strictExitMs'], i['strictExitCode'], i['sampleTimeoutMs'], i['sampleMaxBytes']), (10000, 0, 3000, 2097152))
+        for key in ('samplingAfterFailureOnly', 'temporaryFileRemovedInFinally', 'failureExitCodeCapturedBeforeDiagnostics'):
+            self.assertTrue(i[key])
+        for key in ('rawSampleExported', 'hostStopThenQuitOrderChanged', 'desktopGuardsChanged'):
+            self.assertFalse(i[key])
+        self.assertEqual((i['privateDirectoryMode'], i['privateFileMode']), ('0700', '0600'))
+        stop = e['acceptance']['stop']
+        self.assertEqual(stop['command']['exit'], 1)
+        self.assertIsNone(stop['shutdown']['exitCode'])
+        self.assertTrue(all(stop['checks'].values()))
+        self.assertIn('normal QA quit', stop['error'])
+        self.assertEqual(stop['shutdown']['failureSample']['status'], 'observed')
+        self.assertTrue(stop['shutdown']['failureSample']['mainThread']['machMessageWait'])
+        for key in ('rootCauseConfirmed', 'rootCauseRepaired'):
+            self.assertFalse(e['findings'][key])
+        for n, a in e['acceptance'].items():
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+            self.assertTrue(all(a['checks'].values()))
+            for key in ('productionTouched', 'normalGUI', 'externalModel'):
+                self.assertFalse(a[key])
+            if n not in ('stop', 'injected', 'injected-final'):
+                self.assertEqual((a['command']['exit'], a['shutdown']['exitCode']), (0, 0))
+        self.assertEqual(e['acceptance']['injected']['shutdown']['failureSample']['status'], 'unavailable')
+        self.assertTrue(e['acceptance']['injected-final']['shutdown']['failureSample']['mainThread']['appKitRunLoop'])
+        counts = e['regression']['counts']
+        self.assertEqual(counts['targeted-final']['pass'], 12)
+        self.assertEqual(counts['core-serial-delivery']['pass'], 289)
+        self.assertEqual((counts['core-delivery']['pass'], counts['core-delivery']['fail'], counts['core-delivery']['cancelled']), (287, 1, 1))
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertEqual(e['regression']['offlineRustExit'], 101)
+        for path, digest in e['artifactLogs'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['rebuilt'])
+        self.assertEqual(len(e['build']['sourceSha256UnchangedSinceUsageCandidate']), 6)
+        for path, digest in e['build']['sourceSha256UnchangedSinceUsageCandidate'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertTrue(all(value is False for value in e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('QA退出原生采样检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.23 QA退出原生采样', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamMemberUsageTests(unittest.TestCase):
     def test_reported_member_usage_preserves_unknowns_privacy_and_failed_acceptance(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-usage.json').read_text())
@@ -20,7 +73,8 @@ class TeamMemberUsageTests(unittest.TestCase):
         for key in ('estimateMissing', 'costExposed', 'providerModelOrRawPayloadExposed', 'newPolling'):
             self.assertFalse(i[key])
         for path, digest in i['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = subprocess.check_output(['git', 'show', '023cc22:' + path], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         for name in ('usage-success', 'usage-blocked', 'usage-history-success', 'usage-history-blocked'):
             a = e['acceptance'][name]
             self.assertEqual(a['command']['exit'], 0)
