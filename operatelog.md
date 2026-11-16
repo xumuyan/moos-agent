@@ -1,5 +1,13 @@
 # 操作日志
 
+## 2026-11-16 22:10:00 +08:00｜build-eGqLI7 预算修复版安装完成（E84 流程，用户授权）
+
+- 修改或新增内容：一次性更新脚本（artifacts/installed-update-0.1.50-eGqLI7/）将 /Applications/沐码.app 从 build-eUCp8Q 换为含团队 token 预算修复（commit 959814a）的 build-eGqLI7；换包后应用 21:49:53 启动，单实例，codesign 严格通过，包内 team-runtime 含 team_budget/chargeable、sdk-runtime 含流中断区分逻辑（与候选包 sha256 一致）。
+- 遇到的难题：上一轮保留的旧包 .muma-old-0.1.50-ZBZ6Xm 会与本轮 OLD 路径冲突，安装前确认 eUCp8Q 已被用户使用验证后删除旧包与备份；execution-policy.json 文件名猜测不存在，改以 providers.json/credentials.json 字节核对为准。
+- 处理方式：脚本换包前停机完整备份 ~/.muma-update-backup-0.1.50-eGqLI7-bak（0700/0600，消息 1323/任务 698/事件 493885 逐项核对）；数据目录零改动，安装后 providers.json 与 private/credentials.json 与备份逐字节一致，SQLite 仅正常增长（1324/699/493909，integrity ok）。
+- 验证结果：本轮更新已安装并核对通过；两轮缺陷修复（流中断 network 归因+成员重试、预算 chargeable 计数+team_budget 码）现均在生产包内。
+- 遗留问题：备份与旧包待用户使用确认后清理；严格退出故障与既有 3 失败随版本保留。
+- 对应 Git 提交：修复见 959814a；本日志条目唯一提交说明含 eGqLI7 installed；查询 `git log --oneline --grep='eGqLI7'`。
 ## 2026-11-16 22:05:00 +08:00｜团队 token 预算虚增误停修复（build-eUCp8Q 已装后再修，新候选未安装）
 
 - 修改或新增内容：安装 build-eUCp8Q 后用户团队任务 55e6423f（21:37）仍报 tool_error。诊断生产 SQLite：该任务 15 次 usage 的 totalTokens 求和 408893 > TEAM_LIMITS.tokens 400000，而 totalTokens 含 cacheRead 上下文重放（单次 5 万+），按请求累加属预算虚增，长任务中段被误停，再被包装成「本地工具执行失败」。修复：team-runtime 预算只计 chargeable（inputTokens+outputTokens，排除缓存重放）；预算触顶改用新增真实错误码 team_budget（messages 与 pi-route 映射 TEAM_BUDGET，文案「团队任务达到非缓存 token 预算上限…」），不再冒充 tool_error。
