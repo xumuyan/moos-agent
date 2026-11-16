@@ -10,6 +10,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 
+class ElectronResourceReviewTests(unittest.TestCase):
+    def test_resource_checkpoint_does_not_claim_unmeasured_memory_or_hidden_window_gains(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/electron-polling-cache-review.json').read_text())
+        self.assertEqual(e['version'], '0.1.51')
+        cache = e['fixes']['screenshotCache']
+        self.assertEqual(cache['maximumEntries'], 8)
+        self.assertEqual(cache['maximumDataUrlChars'], 4 * 1024 * 1024)
+        self.assertFalse(cache['nativeImageDecodeMemoryIncluded'])
+        self.assertTrue(all(value['packagedMatch'] for value in e['sourceChecks'].values()))
+        self.assertEqual(e['tests']['client']['passed'], 14)
+        self.assertTrue(all(sample['visible'] for run in e['measurements'] for sample in run['samples']))
+        for field in ('installed', 'productionRestarted', 'cpuMemoryTargetAccepted', 'nshModified'):
+            self.assertFalse(e[field])
+        self.assertTrue(e['sensitiveFixtureCleanup']['completedBenchmarkAppAndDataCopiesRemoved'])
+        self.assertFalse(e['sensitiveFixtureCleanup']['credentialsCopied'])
+        self.assertIn('P03.14.10', (ROOT / 'PLAN.md').read_text())
+
+
 class TeamContextRecoveryTests(unittest.TestCase):
     def test_team_checkpoint_records_real_sdk_and_renderer_scope_without_install_claims(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/team-recovery-context-images.json').read_text())

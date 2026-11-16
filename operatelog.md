@@ -2773,3 +2773,15 @@
 - 对应 Git 提交：唯一说明 `fix(P03.14.9): preserve team context and prevent post-tool replay`；查询 `git log --oneline --grep='preserve team context and prevent post-tool replay'`。验证来源为本条所述提交前工作区；推送后核对远程HEAD与本地提交一致。
 
 文档补记（2026-11-17 01:04:00 +08:00，同P03.14.9唯一提交说明）：新增条目首次因ISO时间格式不符审计规则失败；已改为北京时间空格格式。增加证据边界检查，并将旧长面板验收源码哈希核对到原验收提交8624533，不把历史证据改成新源码哈希；最终`npm run test:docs`161/161通过。
+
+## 2026-11-17 01:06:44 +08:00｜P03.14.10 Electron轮询去重与有界截图缓存
+
+- 修改或新增内容：用量、过程和后台任务的IPC快照相同则不setState；隐藏文档跳过循环读取，恢复后继续；截图按会话+ID缓存，上限8项/4Mi字符、超大URL不全局缓存并lazy加载，切会话不沿用旧图。应用和壳插件版本升0.1.51，补测试和资源证据。
+- 遇到的难题：全局Map无上限；每秒/两秒新对象即使无变化也触发界面。初次加强超大URL测试按简化VM每轮重复执行effect，实际读数3而预期2；改成验证第二次展示确实重新读取，独立条数/字节断言保持。短空闲A/B整进程CPU和RSS未下降，不能把局部优化冒充已达低资源目标；测试driver第二段标hidden但实际visible，作为重复可见样本保留并更正解释。
+- 处理方式：最小化到客户端刷新及缓存，不关闭皮肤、不修改NSH。保留旧测量和失败；完成后仅删除本次benchmark的QA.app/data（含私有历史复制品），保留数值report；未复制凭据，不改正式数据。原长面板历史哈希核对原验收提交8624533，未篡改历史证据。
+- 验证结果：最终源码相关`node --test apps/electron/client.test.mjs`13/13，原源码运行新增轮询/缓存用例失败、当前通过；核心完整串行319/319与带最终运行时/审定皮肤环境的Electron串行140/140通过，命令/时间及早期失败见P03.14.9。`npm run build:app`生成build-CG8JHg/沐码.app（0.1.51），`codesign --verify --deep --strict`通过，client图标替换后/团队runtime/路由/fork与包内源码逐项核对一致；最终隐藏渲染器团队闭环report gui-SjSc8I passed，9本地模型请求/独立文件读取/正常退出exit0。测试新增后未改运行时代码，不重复无关构建。`npm run test:docs`上轮161/161，新证据检查随后执行。
+- 实测边界：同女仆皮肤/新会话/无模型任务，旧版两段整进程CPU1.74%/1.48%、合计RSS643.45/601.95MiB；新版3.49%/1.74%、RSS675.59/642.09MiB（各12秒，不随机化，RSS重复计共享页），不构成明显降低。当前正式库后续只读检查1个running、502127事件，不能把其渲染器约50%当空闲；正常UI读取超时，未使用此失败宣称GUI通过。
+- 遗留问题：需要新版同一长会话/同模型任务的CPU与真实内存、长时间增长实测，才判断是否满足用户需求；不承诺Electron极低内存、无需重构或团队整体完成。未安装、退出或重启正式应用；NSH其他开发文件未加入本提交。独立M01 Rust工具链缺manifest仍受阻。
+- 对应 Git 提交：唯一说明 `perf(P03.14.10): avoid redundant polling renders and bound screenshot cache`；查询 `git log --oneline --grep='avoid redundant polling renders and bound screenshot cache'`；团队前提交5db24a7已推送并核对，当前提交推送后再核对远程HEAD。
+
+资源验证补记（2026-11-17 01:11:15 +08:00，同P03.14.10提交说明）：最终复核补首个读取失败仍清空上一次快照的回归，避免去重器初值undefined误保留旧状态；客户端最终14/14。重新`npm run build:app`生成build-e30oHT/沐码.app，严格签名与包内四源码核对通过；最终带此包运行时/审定皮肤的Electron完整串行141/141（47.413s，无跳过），`MOOS_QA_REPORTED_USAGE=1 node scripts/verify-electron-team.mjs '.generated/moos-electron/build-e30oHT/沐码.app' success`passed/9请求/正常退出exit0，报告gui-jf2BMC。短A/B属更早0.1.51草稿，未借此宣称最终CPU/RSS降低。仅清理本次三个中间构建dDhImq/zq1RIH/CG8JHg、三个已结束gui测试App/data和benchmark App/data，保留最终e30oHT及数值/截图/报告；未触碰生产目录或他人NSH产物。最终文档162/162随后复核。对应唯一Git说明 `perf(P03.14.10): bound screenshot cache and deduplicate UI polling`，查询 `git log --oneline --grep='bound screenshot cache and deduplicate UI polling'`；较早文档补记01:04:00为人工约记时间，未独立核实秒数，以本条实时时钟及工具报告为准。

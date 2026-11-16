@@ -1,0 +1,275 @@
+{
+  "task": "P03.14.10",
+  "recordedAt": "2026-11-17T01:06:44.018142+08:00",
+  "status": "polling-and-cache-regressions-passed-no-demonstrated-material-footprint-reduction-not-installed",
+  "version": "0.1.51",
+  "fixes": {
+    "unchangedSnapshots": "serialized equality avoids repeated React setState for usage/turn/task polling",
+    "hiddenPolling": "document.hidden skips recurring IPC; unit test verifies stop/recovery/cleanup; one-shot settings still read",
+    "screenshotCache": {
+      "maximumEntries": 8,
+      "maximumDataUrlChars": 4194304,
+      "maximumUtf16Bytes": 8388608,
+      "sessionScoped": true,
+      "oversizedUrlGloballyCached": false,
+      "nativeImageDecodeMemoryIncluded": false,
+      "mountedImagesIncluded": false,
+      "lazyImages": true
+    }
+  },
+  "sourceChecks": {
+    "apps/electron/plugin/client.js": {
+      "sha256": "283ac9ca923b0ea1a4799ba0cb054f6553ac23ae8d6b18728a682790d368d44f",
+      "packagedMatch": true
+    },
+    "packages/pi-runtime/team-runtime.mjs": {
+      "sha256": "c7c90fc62ee44908bd455e7046fbdfcd36ffbb058d4dbb772960496bf676d27b",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/pi-route.js": {
+      "sha256": "568926c8dd6b4849be2c8cb36c7b691ef86879746d0b9fede75ecdb03e4fca38",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/pi-fork.js": {
+      "sha256": "c58d6fa50cb9c06a9480f351f5b44a481c68cdea7f082b89dffd7c253645f16f",
+      "packagedMatch": true
+    }
+  },
+  "tests": {
+    "client": {
+      "passed": 14,
+      "failed": 0,
+      "originalSourceRegression": "new polling/cache cases fail against original source; final test includes independent count/byte/oversized URL cases"
+    },
+    "coreSerial": {
+      "passed": 319,
+      "seconds": 329.986
+    },
+    "electronPackagedSerial": {
+      "passed": 141,
+      "skipped": 0,
+      "seconds": 47.413
+    },
+    "docsBeforeThisRecord": {
+      "passed": 161
+    },
+    "latestRendererAcceptance": {
+      "report": "artifacts/team-ui/gui-jf2BMC/report.json",
+      "status": "passed",
+      "normalGUI": false,
+      "normalExit": 0
+    },
+    "latestDocs": {
+      "passed": 162
+    }
+  },
+  "measurements": [
+    {
+      "kind": "before",
+      "sourceBuild": "build-dDhImq/沐码.app",
+      "skin": "maid-atelier",
+      "workload": "fresh empty conversation, no model task; hidden QA window with foreground visibility emulation",
+      "samples": [
+        {
+          "label": "foreground semantics idle",
+          "visible": true,
+          "cpuTaskPercent": 0.07985757572094541,
+          "processCpuPercent": 1.7385545161023332,
+          "sumRssMiB": 643.453125,
+          "processCount": 5,
+          "jsHeapMiB": 25.589954376220703,
+          "nodes": 1471,
+          "layouts": 0,
+          "styleRecalcs": 0
+        },
+        {
+          "label": "hidden idle",
+          "visible": true,
+          "cpuTaskPercent": 0.33008845553771593,
+          "processCpuPercent": 1.4807502467917053,
+          "sumRssMiB": 601.953125,
+          "processCount": 5,
+          "jsHeapMiB": 20.53888702392578,
+          "nodes": 1420,
+          "layouts": 0,
+          "styleRecalcs": 0
+        }
+      ],
+      "correction": "The second sample was labelled hidden idle by the first driver, but document.hidden was false. Both samples count as visible repeat samples, not hidden-window acceptance."
+    },
+    {
+      "kind": "after",
+      "sourceBuild": "build-zq1RIH/沐码.app",
+      "skin": "maid-atelier",
+      "workload": "fresh empty conversation, no model task; hidden QA window with foreground visibility emulation",
+      "samples": [
+        {
+          "label": "foreground semantics idle",
+          "visible": true,
+          "cpuTaskPercent": 0.06876915641187198,
+          "processCpuPercent": 3.4877927254608863,
+          "sumRssMiB": 675.59375,
+          "processCount": 5,
+          "jsHeapMiB": 25.78168487548828,
+          "nodes": 1472,
+          "layouts": 0,
+          "styleRecalcs": 0
+        },
+        {
+          "label": "hidden idle",
+          "visible": true,
+          "cpuTaskPercent": 0.3234316626187444,
+          "processCpuPercent": 1.7449106771915244,
+          "sumRssMiB": 642.09375,
+          "processCount": 5,
+          "jsHeapMiB": 20.53927230834961,
+          "nodes": 1420,
+          "layouts": 0,
+          "styleRecalcs": 0
+        }
+      ],
+      "correction": "The second sample was labelled hidden idle by the first driver, but document.hidden was false. Both samples count as visible repeat samples, not hidden-window acceptance."
+    }
+  ],
+  "measurementLimits": [
+    "One short run per build, sequential rather than randomized; aggregate RSS double-counts shared pages; not exclusive resident or physical footprint.",
+    "Whole-process CPU and RSS did not demonstrate a meaningful reduction; the after sample was higher. Do not present renderer JS heap as whole-app memory.",
+    "Loaded real-history copies were available in another isolated run, but no open long conversation was verified; that run does not validate long-chat performance.",
+    "A later read-only production query found one running task and 502127 events. The installed renderer CPU observation is not an established idle benchmark.",
+    "No promises that Electron can meet the desired memory floor or that an NSH rewrite is unnecessary.",
+    "Short A/B runs used an earlier 0.1.51 draft before the final first-error snapshot-reset fix. Final e30oHT was revalidated with 141 tests and renderer QA, but no additional footprint reduction is claimed."
+  ],
+  "sensitiveFixtureCleanup": {
+    "completedBenchmarkAppAndDataCopiesRemoved": true,
+    "productionNeverWritten": true,
+    "numericReportsRetained": true,
+    "credentialsCopied": false,
+    "intermediateBuildsRemoved": [
+      "build-dDhImq",
+      "build-zq1RIH",
+      "build-CG8JHg"
+    ],
+    "finalBuildRetained": "build-e30oHT"
+  },
+  "build": ".generated/moos-electron/build-e30oHT/沐码.app",
+  "signatureVerified": true,
+  "installed": false,
+  "productionRestarted": false,
+  "cpuMemoryTargetAccepted": false,
+  "nshModified": false,
+  "acceptance": {
+    "scenario": "success",
+    "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+    "checks": {
+      "menuAndTag": true,
+      "liveProgress": true,
+      "nodeProjection": true,
+      "readableMemberLayout": true,
+      "reportedMemberUsageOrExplicitUnknown": true,
+      "memberFileIndexNavigation": true,
+      "structuredMemberDetails": true,
+      "independentReadAndArtifact": true,
+      "modeClearDoesNotCancel": true,
+      "persistedTerminalState": true,
+      "ordinaryAfterClear": true
+    },
+    "productionTouched": false,
+    "normalGUI": false,
+    "externalModel": false,
+    "memberUsage": {
+      "providerReported": true,
+      "nodes": [
+        {
+          "id": "build",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+        },
+        {
+          "id": "check",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+        }
+      ]
+    },
+    "status": "passed",
+    "requests": 9,
+    "shutdown": {
+      "injectedQuitBlock": false,
+      "requestedAt": 1794848967794,
+      "events": [
+        {
+          "event": "webcontents-destroyed",
+          "at": 1794848967832
+        },
+        {
+          "event": "window-closed",
+          "at": 1794848967833
+        },
+        {
+          "event": "window-all-closed",
+          "at": 1794848967834
+        },
+        {
+          "event": "before-quit",
+          "at": 1794848967834
+        },
+        {
+          "event": "host-stop-start",
+          "at": 1794848967834
+        },
+        {
+          "event": "host-stop-settled",
+          "at": 1794848968006
+        },
+        {
+          "event": "before-quit",
+          "at": 1794848968006
+        },
+        {
+          "event": "will-quit",
+          "at": 1794848968006
+        },
+        {
+          "event": "quit",
+          "at": 1794848968006
+        }
+      ],
+      "beforeClose": {
+        "status": "observed",
+        "processes": [
+          {
+            "pid": 71652,
+            "ppid": 70310,
+            "state": "S"
+          },
+          {
+            "pid": 71678,
+            "ppid": 71652,
+            "state": "S"
+          },
+          {
+            "pid": 71679,
+            "ppid": 71652,
+            "state": "S"
+          },
+          {
+            "pid": 71689,
+            "ppid": 71652,
+            "state": "Ss"
+          },
+          {
+            "pid": 71886,
+            "ppid": 71652,
+            "state": "S"
+          }
+        ]
+      },
+      "closeDispatchedAt": 1794848967829,
+      "observedAt": 1794848968057,
+      "exitCode": 0
+    },
+    "cleanup": {
+      "status": "already-exited",
+      "termSent": false,
+      "killSent": false
+    }
+  }
+}

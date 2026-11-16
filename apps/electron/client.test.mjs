@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 
-async function loadClient(overrides = {}, contextOverrides = {}) {
+async function loadClient(overrides = {}, contextOverrides = {}, runtimeOverrides = {}) {
   const source = await readFile(new URL('./plugin/client.js', import.meta.url), 'utf8');
   let entry;
   const effects = [];
+  const updates = [];
   const stateStore = new Map();
   let stateIndex = 0;
   const document = {
@@ -28,13 +29,14 @@ async function loadClient(overrides = {}, contextOverrides = {}) {
       __ModuleLoader__: { load(value) { entry = value; } },
       ...overrides,
     },
+    ...runtimeOverrides,
   });
   const plugin = entry.factory(() => ({
     createElement: (element, props, ...children) => ({ element, props, children }),
     useState: init => {
       const key = stateIndex++;
       if (!stateStore.has(key)) stateStore.set(key, typeof init === 'function' ? init() : init);
-      return [stateStore.get(key), value => stateStore.set(key, value)];
+      return [stateStore.get(key), value => { updates.push(value); stateStore.set(key, value); }];
     },
     useEffect: (callback, dependencies) => effects.push({ callback, dependencies }),
     useRef: () => ({ current: undefined }),
@@ -63,7 +65,7 @@ async function loadClient(overrides = {}, contextOverrides = {}) {
     };
     return walk(element);
   };
-  return { render, effects, source, renderers,
+  return { render, effects, updates, source, renderers,
     renderComponent: (id, props) => { stateIndex = 0; return renderers.get(id)(props); } };
 }
 
@@ -641,4 +643,82 @@ test('long team receipts have a bounded keyboard-focusable scrolling region with
   assert.match(harness.source, /max-block-size: min\(50vh, 420px\); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scroll-margin-block: 24px 180px/);
   assert.match(harness.source, /\[data-moos-team-progress\]:focus-visible/);
   assert.equal(harness.effects.at(-1).dependencies[2], false);
+});
+
+
+test('live IPC polling skips hidden windows and unchanged snapshots, then recovers and disposes', async () => {
+  const timers = [];
+  const document = { hidden: false, documentElement: { dataset: {} }, createElement: () => ({}),
+    querySelector: () => null, head: { append() {} }, title: '沐码' };
+  let reads = 0, actions = [];
+  const harness = await loadClient({ moosTurn: async () => { reads++; return { status: 'running', actions }; } }, {},
+    { document, setTimeout: fn => { timers.push(fn); return fn; }, clearTimeout: fn => { const i = timers.indexOf(fn); if (i >= 0) timers.splice(i, 1); } });
+  harness.render({ sessionId: 'session-a', startSeq: 1, live: true });
+  const cleanup = harness.effects[0].callback();
+  await flush();
+  assert.equal(harness.updates.length, 1);
+  await timers.shift()();
+  assert.equal(reads, 2);
+  assert.equal(harness.updates.length, 1, 'equal fresh objects do not redraw');
+  document.hidden = true;
+  await timers.shift()();
+  assert.equal(reads, 2, 'hidden window sends no polling IPC');
+  document.hidden = false;
+  actions = [{ id: 'new-tool', state: 'done' }];
+  await timers.shift()();
+  assert.equal(reads, 3);
+  assert.equal(harness.updates.length, 2, 'new tool state still arrives');
+  cleanup();
+  assert.equal(timers.length, 0);
+});
+
+test('screenshot cache enforces count and byte budgets and isolates sessions', async () => {
+  let shots = [], calls = [], payloadSize = 16;
+  const harness = await loadClient({
+    moosTurn: async () => ({ status: 'succeeded', actions: [], shots }),
+    moosShot: async (session, id) => { calls.push([session, id]); return { dataUrl: 'data:image/png;base64,' + 'A'.repeat(payloadSize) }; },
+  });
+  async function show(session, ids) {
+    shots = ids.map(id => ({ id, width: 1, height: 1 }));
+    harness.render({ sessionId: session, startSeq: 1 });
+    for (const effect of harness.effects.splice(0)) effect.callback();
+    await flush();
+    harness.render({ sessionId: session, startSeq: 1 });
+    for (const effect of harness.effects.splice(0)) effect.callback();
+    await flush();
+  }
+  await show('one', ['old']);
+  await show('one', Array.from({ length: 9 }, (_, i) => 'new-' + i));
+  await show('one', ['old']);
+  assert.equal(calls.filter(([session, id]) => session === 'one' && id === 'old').length, 2, 'evicted bytes are fetched on demand');
+  payloadSize = 600000;
+  await show('budget', Array.from({ length: 7 }, (_, i) => 'large-' + i));
+  await show('budget', ['large-0']);
+  assert.equal(calls.filter(([session, id]) => session === 'budget' && id === 'large-0').length, 2, 'byte limit evicts even below the eight-entry count');
+  payloadSize = 5 * 1024 * 1024;
+  await show('oversized', ['large']);
+  const oversizedReads = calls.filter(([session]) => session === 'oversized').length;
+  await show('oversized', ['large']);
+  assert.ok(calls.filter(([session]) => session === 'oversized').length > oversizedReads, 'one oversized URL is displayed but never retained globally');
+  await show('two', ['old']);
+  assert.ok(calls.some(([session, id]) => session === 'two' && id === 'old'), 'same ID in another session uses its own restricted IPC');
+});
+
+
+test('a first failed read after polling dependencies change clears the previous turn snapshot', async () => {
+  let fail = false;
+  const harness = await loadClient({ moosTurn: async () => {
+    if (fail) throw new Error('unavailable');
+    return { status: 'running', actions: [] };
+  } });
+  harness.render({ sessionId: 'stable', startSeq: 4, live: false });
+  harness.effects.shift().callback();
+  await flush();
+  assert.equal(harness.updates.length, 1);
+  fail = true;
+  harness.render({ sessionId: 'stable', startSeq: 4, live: false });
+  harness.effects.shift().callback();
+  await flush();
+  assert.equal(harness.updates.length, 2);
+  assert.equal(harness.updates.at(-1), undefined, 'an undefined first value is a real reset, not an unchanged snapshot');
 });

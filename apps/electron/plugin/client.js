@@ -14,24 +14,37 @@ window.__ModuleLoader__.load({
     const percent = new Intl.NumberFormat('zh-CN', { style: 'percent', maximumFractionDigits: 1 });
     const count = value => value == null ? '—' : number.format(value);
 
+    // Identical IPC snapshots must not trigger React/skin DOM work every second.
+    function distinctState(set) {
+      let previous;
+      let initialized = false;
+      return value => {
+        const key = JSON.stringify(value);
+        if (!initialized || key !== previous) { initialized = true; previous = key; set(value); }
+      };
+    }
+    function poll(read, receive, interval) {
+      let closed = false;
+      let timer;
+      async function update() {
+        if (!interval || !document.hidden) {
+          const value = await read();
+          if (!closed) receive(value);
+        }
+        if (!closed && interval) timer = setTimeout(update, interval);
+      }
+      void update();
+      return () => { closed = true; clearTimeout(timer); };
+    }
     function useUsage(sessionId, refresh = 0) {
       const [result, setResult] = useState();
-      useEffect(() => {
-        let closed = false;
-        let timer;
-        async function update() {
-          try {
-            const data = sessionId === null
-              ? await window.moosUsage.summary() : await window.moosUsage.latest(sessionId);
-            if (!closed) setResult({ sessionId, data });
-          } catch {
-            if (!closed) setResult({ sessionId, failed: true });
-          }
-          if (!closed && sessionId !== null) timer = setTimeout(update, 2000);
-        }
-        void update();
-        return () => { closed = true; clearTimeout(timer); };
-      }, [sessionId, refresh]);
+      useEffect(() => poll(async () => {
+        try {
+          const data = sessionId === null
+            ? await window.moosUsage.summary() : await window.moosUsage.latest(sessionId);
+          return { sessionId, data };
+        } catch { return { sessionId, failed: true }; }
+      }, distinctState(setResult), sessionId === null ? 0 : 2000), [sessionId, refresh]);
       return result?.sessionId === sessionId ? result : undefined;
     }
 
@@ -311,19 +324,10 @@ window.__ModuleLoader__.load({
       const [result, setResult] = useState();
       useEffect(() => {
         if (startSeq === undefined) return;
-        let closed = false;
-        let timer;
-        async function update() {
-          try {
-            const data = await window.moosTurn(sessionId, startSeq);
-            if (!closed) setResult({ sessionId, startSeq, data });
-          } catch {
-            if (!closed) setResult(undefined);
-          }
-          if (!closed && (live || startSeq === 'retry')) timer = setTimeout(update, 1000);
-        }
-        void update();
-        return () => { closed = true; clearTimeout(timer); };
+        return poll(async () => {
+          try { return { sessionId, startSeq, data: await window.moosTurn(sessionId, startSeq) }; }
+          catch { return undefined; }
+        }, distinctState(setResult), live || startSeq === 'retry' ? 1000 : 0);
       }, [sessionId, startSeq, live]);
       return result?.sessionId === sessionId && result.startSeq === startSeq ? result.data : undefined;
     }
@@ -333,20 +337,36 @@ window.__ModuleLoader__.load({
       cancelled: '已停止', interrupted: '已中断' };
     const routeReasons = { repair: '两轮修复后验证仍失败', rate_limit: '模型服务限流', quota: '模型服务额度不足', network: '模型服务连接失败' };
 
-    // 桌面截图缩略图：只拿受限 IPC 返回的 data URL（不含路径），同一 ID 全局只拉取一次。
+    // 桌面截图缩略图通过受限 IPC 读取；缓存按会话隔离并受条数/字节上限约束。
     const shotCache = new Map();
+    let shotCacheChars = 0;
+    const shotCacheLimit = 4 * 1024 * 1024; // At most 8 MiB of UTF-16 data URLs.
+    function cacheShot(key, value) {
+      if (value.length > shotCacheLimit) return;
+      shotCacheChars -= shotCache.get(key)?.length ?? 0;
+      shotCache.delete(key);
+      shotCache.set(key, value);
+      shotCacheChars += value.length;
+      while (shotCache.size > 8 || shotCacheChars > shotCacheLimit) {
+        const oldest = shotCache.keys().next().value;
+        shotCacheChars -= shotCache.get(oldest).length;
+        shotCache.delete(oldest);
+      }
+    }
     function DesktopShot({ sessionId, shot }) {
-      const [src, setSrc] = useState(shotCache.get(shot.id));
+      const cacheKey = sessionId + ':' + shot.id;
+      const [image, setImage] = useState(() => ({ key: cacheKey, src: shotCache.get(cacheKey) }));
+      const src = image?.key === cacheKey ? image.src : undefined;
       useEffect(() => {
         let closed = false;
         (async () => {
-          const cached = shotCache.get(shot.id);
-          if (cached) { setSrc(cached); return; }
+          const cached = shotCache.get(cacheKey);
+          if (cached) { setImage({ key: cacheKey, src: cached }); return; }
           try {
             const result = await window.moosShot?.(sessionId, shot.id);
             if (!closed && result?.dataUrl) {
-              shotCache.set(shot.id, result.dataUrl);
-              setSrc(result.dataUrl);
+              cacheShot(cacheKey, result.dataUrl);
+              setImage({ key: cacheKey, src: result.dataUrl });
             }
           } catch { /* 读取失败保持占位，不显示路径 */ }
         })();
@@ -354,7 +374,7 @@ window.__ModuleLoader__.load({
       }, [sessionId, shot.id]);
       const title = `桌面截图${shot.width ? ` ${shot.width}×${shot.height ?? '?'}` : ''}`;
       return createElement('img', {
-        src, alt: title, title, draggable: false, 'data-moos-desktop-shot': shot.id,
+        src, loading: 'lazy', alt: title, title, draggable: false, 'data-moos-desktop-shot': shot.id,
         style: {
           maxWidth: 160, maxHeight: 96, borderRadius: 6,
           border: '1px solid color-mix(in srgb, currentColor 14%, transparent)',
@@ -526,19 +546,14 @@ window.__ModuleLoader__.load({
       const [tasks, setTasks] = useState();
       const [error, setError] = useState(false);
       useEffect(() => {
-        let disposed = false;
-        let timer;
-        async function refresh() {
-          try {
-            const rows = await window.moosActiveTasks();
-            if (!disposed) { setTasks(rows); setError(false); }
-          } catch {
-            if (!disposed) setError(true);
-          }
-          if (!disposed) timer = setTimeout(refresh, 1000);
-        }
-        void refresh();
-        return () => { disposed = true; clearTimeout(timer); };
+        const receive = distinctState(setTasks);
+        return poll(async () => {
+          try { return { rows: await window.moosActiveTasks() }; }
+          catch { return { failed: true }; }
+        }, value => {
+          setError(Boolean(value.failed));
+          if (!value.failed) receive(value.rows);
+        }, 1000);
       }, []);
       return createElement('section', { 'data-moos-pi-tasks': '', 'aria-label': '后台任务' },
         createElement('div', null,
