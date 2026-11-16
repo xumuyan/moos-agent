@@ -1,5 +1,13 @@
 # 操作日志
 
+## 2026-11-16 23:20:00 +08:00｜团队预算上限按真实成本放宽（P03.14.8b，候选未安装）
+
+- 修改或新增内容：build-eGqLI7 安装后团队任务连报 team_budget。诊断生产：计数已诚实（input+output），590a5050 真实 44.6 万 chargeable/36 请求、e4036014 40 万/34 请求、cada8651 48 请求触请求数分支——是上限本身太紧，不是误判。旧 totalTokens 口径（含缓存重放）等效只容约 8 次请求，是此前团队任务屡败的根因。放宽 TEAM_LIMITS：requests 48→200、tokens 40 万→200 万（chargeable 口径），nodes/resultChars 不变。
+- 遇到的难题：放宽与成本约束需平衡；按用户任务实测（单任务 40–45 万）留 4 倍以上余量。
+- 处理方式：测试沿用 TEAM_LIMITS 动态引用无需改断言；team-runtime 15/15、electron 127 过 10 跳 0 败。
+- 验证结果：如上；候选待重打包并经用户授权按 E84 流程安装。
+- 遗留问题：生产包 build-eGqLI7 仍为旧上限，需尽快安装新候选；备份/旧包待清理。
+- 对应 Git 提交：唯一提交说明含 team limits widened；查询 `git log --oneline --grep='team limits'`。
 ## 2026-11-16 22:10:00 +08:00｜build-eGqLI7 预算修复版安装完成（E84 流程，用户授权）
 
 - 修改或新增内容：一次性更新脚本（artifacts/installed-update-0.1.50-eGqLI7/）将 /Applications/沐码.app 从 build-eUCp8Q 换为含团队 token 预算修复（commit 959814a）的 build-eGqLI7；换包后应用 21:49:53 启动，单实例，codesign 严格通过，包内 team-runtime 含 team_budget/chargeable、sdk-runtime 含流中断区分逻辑（与候选包 sha256 一致）。

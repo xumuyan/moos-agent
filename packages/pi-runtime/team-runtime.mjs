@@ -8,7 +8,10 @@ import { taskTimeout } from '../../services/agent/task-policy.mjs';
 // throughout; all child turns execute directly, sequentially inside that lease.
 // Never submit a child back into the same Scheduler (captain/child self-deadlock).
 // This is our own bounded implementation, not the upstream DSH executor/plugin.
-export const TEAM_LIMITS = Object.freeze({ nodes: 6, requests: 48, tokens: 400000, resultChars: 16000 });
+// P03.14.8b：tokens 只计 chargeable（input+output，不含缓存重放，见 budget()）。生产实测真实团队
+// 任务一次完整执行需 40–45 万 chargeable/36–48 请求，旧 40 万/48 次曾因缓存重放虚增等效只容 ~8 请求；
+// 诚实计数后按真实成本放宽，避免正常开发任务被闸停。
+export const TEAM_LIMITS = Object.freeze({ nodes: 6, requests: 200, tokens: 2000000, resultChars: 16000 });
 const idPattern = /^[a-z][a-z0-9_-]{0,31}$/;
 const text = (value, max) => typeof value === 'string' && value.trim() && value.length <= max;
 

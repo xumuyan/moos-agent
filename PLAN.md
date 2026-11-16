@@ -911,3 +911,7 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 ### 团队 token 预算虚增误停修复（P03.14.8，候选未安装）
 
 - 生产 55e6423f 实证：预算把含 cacheRead 重放的 totalTokens 按请求累加（408893>400000）误停团队任务并误报 tool_error。修复：预算只计 inputTokens+outputTokens；触顶改用新真实码 team_budget（pi-route 映射 TEAM_BUDGET）。验证：team-runtime/errors/team-host 全过、electron 127/10skip/0fail、docs OK。候选待重打包并经用户授权安装。
+
+### 团队预算上限放宽（P03.14.8b，候选未安装）
+
+- 生产实证计数诚实后真实任务需 40–45 万 chargeable/36–48 请求，旧 40 万/48 次过紧（旧缓存虚增口径等效 ~8 请求，系此前团队任务屡败根因）。TEAM_LIMITS 放宽为 requests 200、tokens 2000000。测试全过（team-runtime 15/15、electron 127/10skip/0fail）。候选待重打包并经用户授权安装。
