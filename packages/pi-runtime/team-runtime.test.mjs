@@ -124,11 +124,27 @@ test('model requests and reported token use are bounded, never emit successful d
     const events = [];
     await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
       if (kind === 'requests') for (let i = 0; i <= TEAM_LIMITS.requests; i++) options.sessionPolicy.beforeRequest();
-      else options.emit('usage', { totalTokens: TEAM_LIMITS.tokens + 1 });
+      else options.emit('usage', { inputTokens: TEAM_LIMITS.tokens, outputTokens: 1 });
       return { text: '' };
-    }), error => error.code === 'tool_error');
+    }), error => error.code === 'team_budget');
     assert.ok(!events.some(event => event.payload.phase === 'succeeded'));
   }
+});
+
+test('token budget counts only chargeable tokens, ignoring cacheRead replay', async () => {
+  const events = [];
+  const result = await runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
+    if (options.task.text.includes('你是队长。')) { await submit(options, 'team_plan', plan); }
+    else if (options.task.text.includes('独立验证')) {
+      evidence(options);
+      await submit(options, 'team_verdict', { passed: true, summary: 'checked actual file' });
+    }
+    // 模拟生产 55e6423f 形态：单次 totalTokens ≈ 5 万（含 cacheRead），chargeable 很小。
+    options.emit('usage', { inputTokens: 1000, outputTokens: 50, cacheReadTokens: 50000, totalTokens: 51050 });
+    return { text: 'ok' };
+  });
+  assert.equal(result.text, 'ok');
+  assert.ok(!events.some(event => event.payload.phase === 'failed'));
 });
 
 // Actual PI SDK -> local model -> write/read/customTools -> independent session files.

@@ -1,5 +1,13 @@
 # 操作日志
 
+## 2026-11-16 22:05:00 +08:00｜团队 token 预算虚增误停修复（build-eUCp8Q 已装后再修，新候选未安装）
+
+- 修改或新增内容：安装 build-eUCp8Q 后用户团队任务 55e6423f（21:37）仍报 tool_error。诊断生产 SQLite：该任务 15 次 usage 的 totalTokens 求和 408893 > TEAM_LIMITS.tokens 400000，而 totalTokens 含 cacheRead 上下文重放（单次 5 万+），按请求累加属预算虚增，长任务中段被误停，再被包装成「本地工具执行失败」。修复：team-runtime 预算只计 chargeable（inputTokens+outputTokens，排除缓存重放）；预算触顶改用新增真实错误码 team_budget（messages 与 pi-route 映射 TEAM_BUDGET，文案「团队任务达到非缓存 token 预算上限…」），不再冒充 tool_error。
+- 遇到的难题：预算触发后回合内 check() 先抛 cancelled、外层才按 budgetExceeded 包装，测试断言一度因三元优先级写错失败；已修正。
+- 处理方式：新增两条锁定测试——缓存重放形态（单次 total 51050、chargeable 1050）整队跑完不误停；请求/超预算两分支均得 team_budget。
+- 验证结果：team-runtime 15/15、errors 全过、team-host 含 team_budget 映射断言；npm run test:electron 127 过 10 跳 0 败；python 文档检查 OK。含修复候选待重打包后按 E84 流程经用户授权安装。
+- 遗留问题：build-eUCp8Q 本身不含本修复（生产仍可能预算误停），需尽快安装新候选；上一轮停机备份/旧包待清理；严格退出故障与既有 3 失败随版本保留。
+- 对应 Git 提交：唯一提交说明含 team budget cacheRead；查询 `git log --oneline --grep='team budget'`。
 ## 2026-11-16 21:15:00 +08:00｜0.1.50 团队入口修复安装 + 团队任务误报工具失败归因与流中断修复（未安装本轮代码修复）
 
 - 修改或新增内容：① 根因确认：团队协作入口缺失不是代码缺 UI，而是数据目录里的旧壳 moos-electron-shell 停在 0.1.49，与打包模板同版本号导致 shell-update 比较相等跳过升级；应用与壳版本号同步升 0.1.50（commit 930fc66），按 E84 流程重新打包 build-ZBZ6Xm 并一次性更新（脚本预清源包 quarantine、换包后再清一次），安装后数据目录壳已为 0.1.50 且含团队协作；停机备份 ~/.muma-update-backup-0.1.49-ZBZ6Xm 与旧包 /Applications/.muma-old-0.1.49-nRahNV 保留待用户确认后清理。② 20:37 一次正在运行的团队任务随安装重启被取消（如实记录，属安装副作用）。③ 用户报告团队协作报错，只读诊断生产 SQLite/会话 jsonl：20:46 任务 5c454def 在执行成员回合失败，jsonl 实证模型流被中转站中断（OpenAI Responses stream ended before a terminal response event），却被分类为 tool_error「本地工具执行失败」，文案误导；20:47 任务 6064e099（用户停止）的成员亦遇同款流中断。

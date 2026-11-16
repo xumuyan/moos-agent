@@ -907,3 +907,7 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 - 团队协作入口缺失根因：数据目录旧壳 moos-electron-shell 0.1.49 与模板同版本号，shell-update 相等即跳过；应用与壳同步升 0.1.50（commit 930fc66），build-ZBZ6Xm 经 E84 流程安装（2026-11-16 20:38），安装后数据目录壳 0.1.50、含团队协作入口。停机备份 ~/.muma-update-backup-0.1.49-ZBZ6Xm 与旧包 .muma-old-0.1.49-nRahNV 待用户确认后清理。
 - 用户报告团队任务「本地工具执行失败」误报：生产 jsonl 实证为模型流中断（stream ended before a terminal response event），非本地工具故障。修复（候选 build-eUCp8Q，未安装）：sdk-runtime 区分进程取消与 PI 会话自身 abort（带原始错误按真实归类）；errors.mjs 流中断文本→network；team-runtime 成员回合 network 有界重试一次；scheduler 失败落原始错误栈。
 - 验证：electron 127/10skip/0fail、docs OK、npm test 297/302（1 负载偶发单独重跑过 + 3 既有已知）；候选包验签通过且包内含两处修复。
+
+### 团队 token 预算虚增误停修复（P03.14.8，候选未安装）
+
+- 生产 55e6423f 实证：预算把含 cacheRead 重放的 totalTokens 按请求累加（408893>400000）误停团队任务并误报 tool_error。修复：预算只计 inputTokens+outputTokens；触顶改用新真实码 team_budget（pi-route 映射 TEAM_BUDGET）。验证：team-runtime/errors/team-host 全过、electron 127/10skip/0fail、docs OK。候选待重打包并经用户授权安装。

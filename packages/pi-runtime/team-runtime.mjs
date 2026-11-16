@@ -77,7 +77,7 @@ export async function runPiTeam(options, run = runPiSdk) {
   const budget = () => {
     check();
     if (++requests > TEAM_LIMITS.requests) {
-      budgetExceeded = true; controller.abort(); throw new TaskFailure('tool_error');
+      budgetExceeded = true; controller.abort(); throw new TaskFailure('team_budget');
     }
   };
   async function turn(member, prompt, { tools, allowedTools, readonly = false, instructions = '', onToolEnd, nodeId } = {}) {
@@ -102,7 +102,13 @@ export async function runPiTeam(options, run = runPiSdk) {
         emit(type, payload) {
           if (!live || closed || controller.signal.aborted) return;
           if (type === 'usage') {
-            usedTokens += Number.isSafeInteger(payload.totalTokens) && payload.totalTokens > 0 ? payload.totalTokens : 0;
+            // P03.14.8：预算只计非缓存 token（input+output）。totalTokens 含 cacheRead 重放
+            // （一次可达数万），按请求累加会虚增预算，长团队任务中段被误停（生产 55e6423f 实证
+            // 15 次请求求和 408893 > 400000，实际新增成本 token 远低于此）。
+            const usage = payload ?? {};
+            const chargeable = (Number.isSafeInteger(usage.inputTokens) ? usage.inputTokens : 0)
+              + (Number.isSafeInteger(usage.outputTokens) ? usage.outputTokens : 0);
+            usedTokens += chargeable;
             emit(type, { ...payload, teamId, member, attemptId });
             if (usedTokens > TEAM_LIMITS.tokens) { budgetExceeded = true; controller.abort(); }
           } else if (type !== 'text_delta' && type !== 'pi_checkpoint') {
@@ -200,7 +206,7 @@ export async function runPiTeam(options, run = runPiSdk) {
     return { text: answer.text };
   } catch (error) {
     if (!controller.signal.aborted) publish('failed');
-    throw budgetExceeded ? new TaskFailure('tool_error') : controller.signal.aborted ? failure() : error;
+    throw budgetExceeded ? new TaskFailure('team_budget') : controller.signal.aborted ? failure() : error;
   } finally {
     closed = true; clearTimeout(timer); signal?.removeEventListener('abort', abort);
   }

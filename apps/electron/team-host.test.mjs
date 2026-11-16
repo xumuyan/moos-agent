@@ -25,7 +25,7 @@ test('production Host dispatches mode snapshots to real PI team sessions without
       await cp(new URL('./plugin/' + name, import.meta.url), join(adapterDir, name));
     }
     const routed = await readFile(new URL('./plugin/pi-route.js', import.meta.url), 'utf8');
-    for (const code of ['verification_rejected', 'verification_incomplete', 'tool_error']) {
+    for (const code of ['verification_rejected', 'verification_incomplete', 'tool_error', 'team_budget']) {
       assert.ok(routed.includes(code), `team failure ${code} must map to a truthful turn failure, not the INTERNAL fallback`);
     }
   }

@@ -29,6 +29,7 @@ const errors = {
   verification_rejected: { code: 'VERIFICATION_REJECTED', message: '团队独立验证未通过，详见成员验收明细' },
   verification_incomplete: { code: 'VERIFICATION_INCOMPLETE', message: '独立验证成员未提交验收结论，详见成员验收明细' },
   tool_error: { code: 'TOOL_ERROR', message: '本地工具执行失败，请查看任务轨迹' },
+  team_budget: { code: 'TEAM_BUDGET', message: '团队任务达到非缓存 token 预算上限，已停止；可重试或拆小目标' },
 };
 const stop = { type: 'finish', reason: { kind: 'stop' } };
 const aborted = { type: 'finish', reason: { kind: 'aborted', failure: { code: 'CANCELLED', message: 'PI 任务已停止' } } };
