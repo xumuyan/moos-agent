@@ -374,6 +374,16 @@ window.__ModuleLoader__.load({
         createElement('summary', null, node.id, ' · 成员结果与验收'),
         createElement('p', null, '成员：', teamRoles[node.role], '；状态：', teamPhases[node.state] ?? '状态未知'),
         node.dependsOn.length ? createElement('p', null, '依赖节点：', node.dependsOn.join('、')) : null,
+        createElement('div', { 'data-moos-team-usage': '' },
+          createElement('p', null, '本节点已报告用量（非完整账单，不估算缺失请求）'),
+          ...[['reply', '成员回复'], ['compaction', '上下文压缩']].map(([kind, label]) => {
+            const usage = node.usage?.[kind];
+            return createElement('p', { key: kind }, label, '：', usage?.records
+              ? usage.records + ' 条记录；输入 ' + usage.inputTokens + '；输出 ' + usage.outputTokens + '；总计 ' + usage.totalTokens + ' token'
+              : '未报告');
+          }),
+          node.usage?.invalidRecords || node.usage?.limited
+            ? createElement('small', null, '用量记录无效或展示已达上限，可能不完整。') : null),
         node.waitingOn?.length ? createElement('p', { 'data-moos-team-blocker': '' }, '未执行：依赖验收阻塞于 ', node.waitingOn.join('、')) : null,
         createElement('div', { 'data-moos-team-files': '' },
           createElement('p', null, '已记录文件写入（不代表当前文件仍存在或验收通过）'),

@@ -103,7 +103,7 @@ export async function runPiTeam(options, run = runPiSdk) {
           if (!live || closed || controller.signal.aborted) return;
           if (type === 'usage') {
             usedTokens += Number.isSafeInteger(payload.totalTokens) && payload.totalTokens > 0 ? payload.totalTokens : 0;
-            emit(type, payload);
+            emit(type, { ...payload, teamId, member, attemptId });
             if (usedTokens > TEAM_LIMITS.tokens) { budgetExceeded = true; controller.abort(); }
           } else if (type !== 'text_delta' && type !== 'pi_checkpoint') {
             if (type === 'tool_end') onToolEnd?.(payload);

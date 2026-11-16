@@ -9,6 +9,70 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamMemberUsageTests(unittest.TestCase):
+    def test_reported_member_usage_preserves_unknowns_privacy_and_failed_acceptance(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-member-usage.json').read_text())
+        self.assertEqual(e['status'], 'isolated-reported-member-usage-candidate-overall-acceptance-blocked-not-installed')
+        i = e['implementation']
+        self.assertEqual((i['maxUsageEvents'], i['queryLimit'], i['maxCounter']), (256, 257, 1000000000))
+        for key in ('replyAndCompactionSeparated', 'reportedZeroIsRecord', 'missingIsUnknown'):
+            self.assertTrue(i[key])
+        for key in ('estimateMissing', 'costExposed', 'providerModelOrRawPayloadExposed', 'newPolling'):
+            self.assertFalse(i[key])
+        for path, digest in i['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        for name in ('usage-success', 'usage-blocked', 'usage-history-success', 'usage-history-blocked'):
+            a = e['acceptance'][name]
+            self.assertEqual(a['command']['exit'], 0)
+            self.assertEqual(a['report']['status'], 'passed')
+            self.assertEqual(a['report']['shutdown']['exitCode'], 0)
+            self.assertTrue(all(a['report']['checks'].values()))
+            text = json.dumps(a['report']['memberUsage'], ensure_ascii=False)
+            self.assertIn('总计 24 token', text)
+            self.assertIn('总计 36 token', text)
+            self.assertIn('上下文压缩：未报告', text)
+            if 'history' in name:
+                h = a['report']['historyReload']
+                self.assertTrue(h['projectionEqual'] and h['tasksAndEventsEqual'])
+                self.assertEqual(h['observationMs'], 1000)
+                self.assertEqual(h['modelRequestsBefore'], h['modelRequestsAfter'])
+                self.assertFalse(h['appRelaunched'])
+        a = e['acceptance']['stop']
+        self.assertEqual(a['command']['exit'], 1)
+        self.assertEqual(a['report']['status'], 'failed')
+        self.assertIsNone(a['report']['shutdown']['exitCode'])
+        self.assertTrue(all(a['report']['checks'].values()))
+        self.assertEqual(len(e['preservedFailures']), 6)
+        self.assertEqual(sum('stop' in f['name'] for f in e['preservedFailures']), 3)
+        for f in e['preservedFailures']:
+            self.assertNotEqual(f['command']['exit'], 0)
+            self.assertEqual(hashlib.sha256((ROOT / f['path']).read_bytes()).hexdigest(), f['sha256'])
+        r = e['regression']
+        self.assertFalse(r['allRegressionsGreen'])
+        self.assertEqual(r['counts']['targeted-final']['pass'], 42)
+        self.assertEqual(r['counts']['core']['fail'], 1)
+        self.assertEqual(r['counts']['core-serial']['pass'], 286)
+        self.assertEqual(r['counts']['electron']['pass'], 126)
+        self.assertEqual(r['counts']['packaged']['pass'], 135)
+        self.assertEqual(r['commands']['native']['exit'], 101)
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertFalse(e['build']['installed'])
+        self.assertEqual(len(e['build']['sourceArchiveMatches']), 6)
+        for p, digest in e['build']['sourceArchiveMatches'].items():
+            self.assertEqual(hashlib.sha256((ROOT / p).read_bytes()).hexdigest(), digest)
+        for item in e['screenshots']:
+            self.assertTrue(item['visuallyReviewed'])
+            data = (ROOT / item['path']).read_bytes()
+            self.assertTrue(data.startswith(b'\x89PNG'))
+            self.assertEqual(hashlib.sha256(data).hexdigest(), item['sha256'])
+        self.assertFalse(any(e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('成员已报告用量检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.22', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class PiRpcSignalShutdownTests(unittest.TestCase):
     def test_candidate_preserves_partial_results_and_signal_before_eof(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/pi-rpc-signal-shutdown.json').read_text())
@@ -326,7 +390,7 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertEqual(e['implementation']['allowedScenarios'], ['stop', 'shell-stop'])
         self.assertTrue(e['implementation']['guardBeforeCopy'])
         for path, digest in e['implementation']['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            self.assertEqual(hashlib.sha256(subprocess.check_output(['git', 'show', 'f50851a:' + path], cwd=ROOT)).hexdigest(), digest)
         for name, events in [('stop', 11), ('shell-stop', 13)]:
             a = e['acceptance'][name]
             self.assertEqual(a['command']['exit'], 0)
@@ -446,11 +510,10 @@ class RepositoryDocsTests(unittest.TestCase):
             self.assertFalse(item['rootCauseConfirmed'])
             self.assertFalse(item['guardChanged'])
             self.assertEqual(hashlib.sha256((ROOT / item['log']).read_bytes()).hexdigest(), item['sha256'])
-        # Runtime is unchanged; evolving QA scripts are checked at their evidence commit,
-        # rather than rewriting the historical accepted source hashes.
+        # Historical runtime/QA acceptance is checked at its evidence commit;
+        # later increments must not rewrite accepted hashes.
         for path, digest in e['implementation']['sourceSha256'].items():
-            content = (subprocess.check_output(['git', 'show', '5b9bf8e:' + path], cwd=ROOT)
-                       if path.startswith('scripts/') else (ROOT / path).read_bytes())
+            content = subprocess.check_output(['git', 'show', '5b9bf8e:' + path], cwd=ROOT)
             self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         for item in e['screenshots'].values():
             self.assertEqual(item['encoding'], 'PNG')

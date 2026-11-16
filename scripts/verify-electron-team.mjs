@@ -27,6 +27,8 @@ const historyReload = process.env.MOOS_QA_HISTORY_RELOAD === '1';
 assert.ok(!historyReload || ['success', 'blocked'].includes(scenario), 'History reload QA requires success or blocked');
 const activeReload = process.env.MOOS_QA_ACTIVE_RELOAD === '1';
 assert.ok(!activeReload || ['stop', 'shell-stop'].includes(scenario), 'Active reload QA requires stop or shell-stop');
+const reportedUsage = process.env.MOOS_QA_REPORTED_USAGE === '1';
+assert.ok(!reportedUsage || ['success', 'blocked'].includes(scenario), 'Reported usage QA requires success or blocked');
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
 const app = join(scratch, 'QA.app');
 execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
@@ -121,6 +123,8 @@ const server = createServer(async (req, res) => {
     const delta = name ? { tool_calls: [{ index: 0, id: 'call-' + requests.length, type: 'function', function: { name, arguments: JSON.stringify(args) } }] } : { content };
     for (const [part, finish] of [[delta, null], [{}, name ? 'tool_calls' : 'stop']]) res.write('data: ' + JSON.stringify({
       id: 'fixture', object: 'chat.completion.chunk', choices: [{ index: 0, delta: part, finish_reason: finish }] }) + '\n\n');
+    if (reportedUsage) res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk', choices: [],
+      usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 } }) + '\n\n');
     res.end('data: [DONE]\n\n');
   } catch (error) { errors.push(error.message); res.writeHead(500); res.end(); }
 });
@@ -393,6 +397,19 @@ try {
     })()`);
     assert.ok(Object.values(layout).every(Boolean), 'readable team panel layout: ' + JSON.stringify(layout));
     report.checks.readableMemberLayout = true;
+    const usageText = await evaluate(`[...document.querySelectorAll('[data-moos-team-node-details]')].map(el => ({
+      id: el.getAttribute('data-moos-team-node-details'), text: el.querySelector('[data-moos-team-usage]')?.innerText }))`);
+    for (const node of usageText) {
+      assert.ok(node.text?.includes('非完整账单，不估算缺失请求'));
+      if (reportedUsage && ['build', 'check'].includes(node.id)) {
+        const records = node.id === 'build' ? 2 : 3;
+        assert.ok(node.text.includes(records + ' 条记录；输入 ' + records * 10 + '；输出 ' + records * 2 + '；总计 ' + records * 12 + ' token'), node.text);
+      } else assert.ok(node.text.includes('成员回复：未报告'), node.text);
+      assert.ok(node.text.includes('上下文压缩：未报告'), node.text);
+    }
+    report.checks.reportedMemberUsageOrExplicitUnknown = true;
+    report.memberUsage = { providerReported: reportedUsage, nodes: usageText };
+
     const fileIndex = await evaluate(`(() => {
       const panel = [...document.querySelectorAll('[data-moos-team-node-details="build"]')].at(-1);
       if (${retrying && code === 'verified'}) return !panel?.querySelector('[data-moos-team-file]')

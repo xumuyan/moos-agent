@@ -562,3 +562,67 @@ test('same-role nodes keep separate file indexes even when PI role history is sh
   store.setSetting('dsh-turn:other:1', task.id);
   assert.equal(reader.read('other', 1), null, 'index cannot bypass conversation ownership');
 });
+
+test('member usage sums only owned in-interval reported counters and separates compaction without private fields', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-usage-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'synthetic' });
+  store.setSetting('dsh-session:usage', conversation.id); store.setSetting('dsh-turn:usage:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planned', tasks: [
+    { id: 'first', role: 'implementer', dependsOn: [] }, { id: 'second', role: 'implementer', dependsOn: ['first'] },
+    { id: 'check', role: 'verifier', dependsOn: ['second'] }] });
+  const own = { teamId: task.id, member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' };
+  const usage = extra => store.appendEvent(task.id, 'usage', { ...own, inputTokens: 10, outputTokens: 2, totalTokens: 12,
+    providerId: 'private-provider', model: 'private-model', providerCostUsd: 123, secret: 'private-secret', ...extra });
+  const state = (phase, extra = {}) => store.appendEvent(task.id, 'team_state', { ...own, nodeId: 'first', phase, ...extra });
+  const nodes = () => reader.read('usage', 1).team.nodes;
+  usage(); state('running'); usage(); usage({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }); usage({ kind: 'compaction' });
+  usage({ teamId: 'foreign' }); usage({ member: 'verifier' }); usage({ attemptId: own.attemptId.replace(/1$/, '2') });
+  usage({ attemptId: undefined }); usage({ kind: 'unknown' });
+  for (const totalTokens of [-1, 1.5, '12', null, 1000000001]) usage({ totalTokens });
+  usage({ inputTokens: undefined });
+  const expected = { reply: { records: 2, inputTokens: 10, outputTokens: 2, totalTokens: 12 },
+    compaction: { records: 1, inputTokens: 10, outputTokens: 2, totalTokens: 12 }, invalidRecords: 7, limited: false };
+  assert.deepEqual(nodes()[0].usage, expected); assert.equal(nodes()[1].usage, undefined);
+  state('done'); state('completed'); usage();
+  assert.deepEqual(nodes()[0].usage, expected, 'late reports after done are not owned');
+  const next = { nodeId: 'second', attemptId: own.attemptId.replace(/1$/, '2') };
+  state('running', next); usage({ attemptId: next.attemptId, inputTokens: 5, outputTokens: 1, totalTokens: 6 });
+  assert.equal(nodes()[1].usage.reply.totalTokens, 6, 'same role session does not merge node attempts');
+  store.appendEvent(task.id, 'task_state', { status: 'cancelled' }); usage({ attemptId: next.attemptId });
+  assert.equal(nodes()[1].usage.reply.totalTokens, 6, 'parent terminal fences unfinished attempt');
+  assert.equal(nodes()[2].usage, undefined, 'queued or legacy missing usage is unknown, not zero');
+  assert.doesNotMatch(JSON.stringify(nodes()), /private|attemptId|providerId|model|Cost/);
+  const other = store.createConversation(project.id); store.setSetting('dsh-session:other-usage', other.id);
+  store.setSetting('dsh-turn:other-usage:1', task.id); assert.equal(reader.read('other-usage', 1), null);
+  for (let i = 0; i < 260; i++) usage();
+  assert.equal(nodes()[0].usage.limited, true, 'bounded scan signals incomplete coverage');
+  reader.close(); assert.equal(reader.read('usage', 1).team.nodes[1].usage.reply.totalTokens, 6);
+});
+
+test('member usage scan and counters are bounded while a reported zero remains a real record', async t => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moos-team-usage-cap-')));
+  const store = new Store({ dbPath: join(root, 'test.sqlite') });
+  const reader = createPiTurnReader(join(root, 'test.sqlite'), timelinePayload);
+  t.after(async () => { reader.close(); store.close(); await rm(root, { recursive: true, force: true }); });
+  const project = await store.addProject(root), conversation = store.createConversation(project.id);
+  const task = store.createTask({ conversationId: conversation.id, message: 'synthetic' });
+  store.setSetting('dsh-session:usage-cap', conversation.id); store.setSetting('dsh-turn:usage-cap:1', task.id);
+  store.appendEvent(task.id, 'task_submission', { mode: 'team' });
+  store.appendEvent(task.id, 'team_state', { teamId: task.id, phase: 'planned', tasks: [
+    { id: 'build', role: 'implementer', dependsOn: [] }] });
+  const own = { teamId: task.id, member: 'implementer', attemptId: '00000000-0000-0000-0000-000000000001' };
+  store.appendEvent(task.id, 'team_state', { ...own, nodeId: 'build', phase: 'running' });
+  const record = n => store.appendEvent(task.id, 'usage', { ...own, inputTokens: n, outputTokens: n, totalTokens: n });
+  const usage = () => reader.read('usage-cap', 1).team.nodes[0].usage;
+  record(0); assert.equal(usage().reply.records, 1); assert.equal(usage().reply.totalTokens, 0);
+  for (let i = 0; i < 255; i++) record(1000000000);
+  assert.equal(usage().reply.records, 256); assert.equal(usage().reply.totalTokens, 255000000000);
+  assert.equal(usage().limited, false);
+  record(1000000000);
+  assert.equal(usage().reply.totalTokens, 255000000000); assert.equal(usage().limited, true);
+});

@@ -228,6 +228,31 @@ export function createPiTurnReader(dbPath, timelinePayload, { screenshotsRoot, m
           const ancestors = [...new Set(node.dependsOn.flatMap(id => blockedBy.get(id) ?? []))];
           if (ancestors.length) blockedBy.set(node.id, ancestors);
         }
+        // Reported counters only: no estimates, provider identities, prices or raw payloads.
+        // Bound the scan independently of tool events; old uncorrelated usage stays unknown.
+        const usageRows = db.prepare(`SELECT id AS eventId, payload FROM events
+          WHERE taskId = ? AND type = 'usage' ORDER BY id LIMIT 257`).all(task.id);
+        const settledAt = db.prepare(`SELECT MIN(id) AS id FROM events WHERE taskId = ? AND type = 'task_state'
+          AND json_extract(payload, '$.status') IN ('succeeded','failed','cancelled','interrupted')`).get(task.id)?.id;
+        const counter = value => Number.isSafeInteger(value) && value >= 0 && value <= 1000000000;
+        for (const node of nodes.values()) {
+          const attempt = attempts.get(node.id);
+          const usage = { reply: { records: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+            compaction: { records: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+            invalidRecords: 0, limited: usageRows.length > 256 || states.length > 128 };
+          if (attempt) for (const row of usageRows.slice(0, 256)) {
+            if (row.eventId <= attempt.start || attempt.end !== undefined && row.eventId >= attempt.end
+              || settledAt !== null && settledAt !== undefined && row.eventId >= settledAt) continue;
+            let payload; try { payload = JSON.parse(row.payload); } catch { continue; }
+            if (payload?.teamId !== task.id || payload.member !== node.role || payload.attemptId !== attempt.id) continue;
+            if (!['inputTokens', 'outputTokens', 'totalTokens'].every(key => counter(payload[key]))
+              || payload.kind !== undefined && payload.kind !== 'compaction') { usage.invalidRecords++; continue; }
+            const group = payload.kind === 'compaction' ? usage.compaction : usage.reply;
+            group.records++;
+            for (const key of ['inputTokens', 'outputTokens', 'totalTokens']) group[key] += payload[key];
+          }
+          if (usage.reply.records || usage.compaction.records || usage.invalidRecords || usage.limited) node.usage = usage;
+        }
         // Historical write/edit records, not current file existence or model claims.
         // Correlate both endpoints inside the accepted attempt's event interval.
         const starts = new Map(), ends = new Map();

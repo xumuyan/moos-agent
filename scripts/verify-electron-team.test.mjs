@@ -61,3 +61,19 @@ test('active reload opt-in rejects unsupported scenarios before copying QA', asy
     'reload must not close active model response', 'active reload must not mutate tasks/events',
     'active reload must not duplicate model requests']) assert.ok(source.includes(check));
 });
+
+test('reported member usage QA is opt-in before copying and checks explicit unknown data', async () => {
+  const source = await readFile(new URL('./verify-electron-team.mjs', import.meta.url), 'utf8');
+  assert.ok(source.indexOf('Reported usage QA requires success or blocked') < source.indexOf("execFileSync('/usr/bin/ditto'"));
+  const guard = source.match(/assert\.ok\(!reportedUsage[^\n]+/)[0];
+  const { runInNewContext } = await import('node:vm');
+  for (const scenario of ['success', 'blocked']) assert.doesNotThrow(() => runInNewContext(guard, { assert, reportedUsage: true, scenario }));
+  for (const scenario of ['stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry', 'shell-stop']) {
+    assert.throws(() => runInNewContext(guard, { assert, reportedUsage: true, scenario }), /Reported usage QA/);
+    assert.doesNotThrow(() => runInNewContext(guard, { assert, reportedUsage: false, scenario }));
+  }
+  assert.match(source, /MOOS_QA_REPORTED_USAGE/);
+  assert.match(source, /prompt_tokens: 10, completion_tokens: 2, total_tokens: 12/);
+  assert.match(source, /reportedMemberUsageOrExplicitUnknown/);
+  assert.match(source, /成员回复：未报告/);
+});

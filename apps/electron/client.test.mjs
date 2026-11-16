@@ -607,3 +607,19 @@ test('member file button locates only an existing action in its own process card
   assert.match(text, /不代表当前文件仍存在或验收通过/); assert.match(text, /文件索引展示已达上限/);
   assert.doesNotMatch(text, /file:\/\/|href|private contents/);
 });
+
+test('member usage shows reported reply and compaction totals while missing data stays unknown', async () => {
+  const harness = await loadClient({ moosTurn: async () => ({ status: 'succeeded', actions: [], team: {
+    phase: 'succeeded', nodes: [{ id: 'build', role: 'implementer', state: 'completed', dependsOn: [], usage: {
+      reply: { records: 2, inputTokens: 17, outputTokens: 3, totalTokens: 20 },
+      compaction: { records: 1, inputTokens: 9, outputTokens: 1, totalTokens: 10 }, invalidRecords: 1, limited: true } },
+    { id: 'check', role: 'verifier', state: 'queued', dependsOn: ['build'] }] } }) });
+  harness.render({ sessionId: 'usage', startSeq: 1, live: false });
+  harness.effects.splice(0).forEach(effect => effect.callback()); await flush();
+  const text = JSON.stringify(harness.render({ sessionId: 'usage', startSeq: 1, live: false }));
+  assert.match(text, /data-moos-team-usage/); assert.match(text, /非完整账单，不估算缺失请求/);
+  assert.match(text, /总计 20 token/); assert.match(text, /总计 10 token/);
+  assert.match(text, /未报告/); assert.match(text, /可能不完整/);
+  assert.doesNotMatch(text, /费用|美元|估算费用/);
+  assert.equal(harness.effects.at(-1).dependencies[2], false);
+});

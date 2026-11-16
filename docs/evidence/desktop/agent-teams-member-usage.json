@@ -1,0 +1,2968 @@
+{
+  "status": "isolated-reported-member-usage-candidate-overall-acceptance-blocked-not-installed",
+  "recordedAt": "2026-11-16T11:32:24+08:00",
+  "baseCommit": "f50851a8f8f41b27f5874294c525cf37ae322e9a",
+  "workspaceState": "precommit runtime/client/tests/QA changes; final test-only strengthening after initial targeted run, before full regression",
+  "runtimeModified": true,
+  "environment": "arm64 macOS27.0.1(26A434), Node24.15.0; TMPDIR=/private/tmp/; inherited Electron/DSH/test environment cleaned",
+  "implementation": {
+    "ownership": [
+      "runtime stamps owning teamId/member/attemptId overriding supplied identity",
+      "only live nonaborted attempt forwards usage",
+      "projection matches team/role/attempt and running < usage < done if present, before earliest parent terminal"
+    ],
+    "maxUsageEvents": 256,
+    "queryLimit": 257,
+    "maxCounter": 1000000000,
+    "counterType": "nonnegative safe integer; reported total is not recomputed",
+    "replyAndCompactionSeparated": true,
+    "reportedZeroIsRecord": true,
+    "missingIsUnknown": true,
+    "estimateMissing": false,
+    "costExposed": false,
+    "providerModelOrRawPayloadExposed": false,
+    "newPolling": false,
+    "incomplete": "owned invalid counters/kind flagged; usage or state truncation flagged; malformed JSON and legacy/foreign unowned rows ignored, not a complete bill",
+    "capScope": "first 256 usage records across parent, including captain/foreign rows consuming scan capacity; not per-node completeness",
+    "sourceSha256": {
+      "packages/pi-runtime/team-runtime.mjs": "7967b4fea4c230bdcf33f6106115973d698785af64e53eedca3798683e5702b6",
+      "packages/pi-runtime/team-runtime.test.mjs": "74c78e4f8edc4a3603a3bb1d0c4a01bbdd1e1783bbdf1726c41880510b733baa",
+      "apps/electron/pi-turn.mjs": "77782f543bf40aa0e353b96688fb9de8899607ab5131e76927967033088582d6",
+      "apps/electron/pi-turn.test.mjs": "0a2e7fa7d056a8b182b0f922797378d3450f11dc9900c364eecb21af7aee8ebd",
+      "apps/electron/plugin/client.js": "4e633f338543b408b40001fd034027b2a939f277c3a040247cdaf58a563caba9",
+      "apps/electron/client.test.mjs": "b7aa23717869922f4ad9f50f2924ac7e99226c8cb121a938eb5a2b3d6d54ae06",
+      "scripts/verify-electron-team.mjs": "ba0b0f81c6f30b2a05e742ec90b4e865d851a8f910197cc135ad0897822d7fcb",
+      "scripts/verify-electron-team.test.mjs": "7fa4f900a61cb28b2f51623c330179c60e99058467d161c296181f42e2f0f2da"
+    }
+  },
+  "acceptance": {
+    "usage-success": {
+      "command": {
+        "exit": 0,
+        "seconds": 45.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-RxZjqu/report.json",
+      "sha256": "00864db7d5b3b041f20441fedaa581efe3838ee1e2877bb394c272a62f9bacc9",
+      "report": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798658370,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798658417
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798658421
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798658422
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798658422
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798658422
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798658615
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798658616
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798658616
+            },
+            {
+              "event": "quit",
+              "at": 1794798658616
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 46231,
+                "ppid": 44756,
+                "state": "S"
+              },
+              {
+                "pid": 46245,
+                "ppid": 46231,
+                "state": "S"
+              },
+              {
+                "pid": 46246,
+                "ppid": 46231,
+                "state": "S"
+              },
+              {
+                "pid": 46253,
+                "ppid": 46231,
+                "state": "Ss"
+              },
+              {
+                "pid": 46502,
+                "ppid": 46231,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794798665991,
+          "exitCode": 0
+        }
+      }
+    },
+    "usage-blocked": {
+      "command": {
+        "exit": 0,
+        "seconds": 46.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-5cVxEW/report.json",
+      "sha256": "5a5122ae9e2ce10138db4e37035a4a7858e12c959f1c8c68fd0a8a42d9b251c3",
+      "report": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "final",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798705073,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798705118
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798705122
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798705123
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798705123
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798705123
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798705310
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798705310
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798705310
+            },
+            {
+              "event": "quit",
+              "at": 1794798705310
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 49035,
+                "ppid": 47617,
+                "state": "R"
+              },
+              {
+                "pid": 49056,
+                "ppid": 49035,
+                "state": "R"
+              },
+              {
+                "pid": 49057,
+                "ppid": 49035,
+                "state": "R"
+              },
+              {
+                "pid": 49062,
+                "ppid": 49035,
+                "state": "Rs"
+              },
+              {
+                "pid": 49274,
+                "ppid": 49035,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794798710981,
+          "exitCode": 0
+        }
+      }
+    },
+    "success": {
+      "command": {
+        "exit": 0,
+        "seconds": 46.7,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-mrngdI/report.json",
+      "sha256": "851667b0a539fc18d32546d527e686e5d9956e482e1cd5ec235891873859e359",
+      "report": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798751805,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798751845
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798751846
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798751847
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798751847
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798751847
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798752029
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798752029
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798752029
+            },
+            {
+              "event": "quit",
+              "at": 1794798752029
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 51842,
+                "ppid": 50349,
+                "state": "R"
+              },
+              {
+                "pid": 51858,
+                "ppid": 51842,
+                "state": "R"
+              },
+              {
+                "pid": 51859,
+                "ppid": 51842,
+                "state": "R"
+              },
+              {
+                "pid": 51862,
+                "ppid": 51842,
+                "state": "Rs"
+              },
+              {
+                "pid": 52062,
+                "ppid": 51842,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794798761802,
+          "exitCode": 0
+        }
+      }
+    },
+    "blocked": {
+      "command": {
+        "exit": 0,
+        "seconds": 49.59,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-B4DbfC/report.json",
+      "sha256": "f5141fd4459a4d1b950e0be1410cdaeb15e0470a8aa476d0bba42d43691f197b",
+      "report": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "final",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798801367,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798801403
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798801406
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798801407
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798801407
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798801407
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798801635
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798801635
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798801635
+            },
+            {
+              "event": "quit",
+              "at": 1794798801635
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 54769,
+                "ppid": 53098,
+                "state": "S"
+              },
+              {
+                "pid": 54787,
+                "ppid": 54769,
+                "state": "S"
+              },
+              {
+                "pid": 54788,
+                "ppid": 54769,
+                "state": "S"
+              },
+              {
+                "pid": 54792,
+                "ppid": 54769,
+                "state": "Ss"
+              },
+              {
+                "pid": 55013,
+                "ppid": 54769,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794798801807,
+          "exitCode": 0
+        }
+      }
+    },
+    "stop": {
+      "command": {
+        "exit": 1,
+        "seconds": 51.0,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-KP3V3j/report.json",
+      "sha256": "5236cab62cd38ed2dde9e3d825e8e5fcc8c64ce77a6bad96fbd3eacde1d9d8a6",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799780361,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799780396
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799780397
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799780397
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799780397
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799780397
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799780612
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799780612
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799780612
+            },
+            {
+              "event": "quit",
+              "at": 1794799780612
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 13708,
+                "ppid": 12275,
+                "state": "R"
+              },
+              {
+                "pid": 13725,
+                "ppid": 13708,
+                "state": "S"
+              },
+              {
+                "pid": 13726,
+                "ppid": 13708,
+                "state": "R"
+              },
+              {
+                "pid": 13731,
+                "ppid": 13708,
+                "state": "Ss"
+              },
+              {
+                "pid": 13977,
+                "ppid": 13708,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794799790395,
+          "exitCode": null,
+          "failureAt": 1794799790396,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 13708,
+                "ppid": 12275,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    "retry": {
+      "command": {
+        "exit": 0,
+        "seconds": 50.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "retry"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-v3sCiX/report.json",
+      "sha256": "545c89dafc5a80356edf486327af8e46a74e9fe074d7286eb40e97b13c274b0e",
+      "report": {
+        "scenario": "retry",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "retriedReadOnlyMemberHasNoInventedFiles": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "retryRetainsModeAndGoal": true,
+          "freshParentAndRoleContexts": true,
+          "artifactInspectedNotRewritten": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 17,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798906036,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798906073
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798906076
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798906077
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798906077
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798906077
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798906251
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798906251
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798906251
+            },
+            {
+              "event": "quit",
+              "at": 1794798906251
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 60531,
+                "ppid": 59170,
+                "state": "R"
+              },
+              {
+                "pid": 60551,
+                "ppid": 60531,
+                "state": "R"
+              },
+              {
+                "pid": 60552,
+                "ppid": 60531,
+                "state": "R"
+              },
+              {
+                "pid": 60555,
+                "ppid": 60531,
+                "state": "Rs"
+              },
+              {
+                "pid": 60758,
+                "ppid": 60531,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794798909890,
+          "exitCode": 0
+        }
+      }
+    },
+    "attachments": {
+      "command": {
+        "exit": 0,
+        "seconds": 48.5,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-sqB10o/report.json",
+      "sha256": "ccf114af97643aa851ea280c6be0697f78a33b5fb7ac99679287a6f801c6a0cb",
+      "report": {
+        "scenario": "attachments",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "attachmentAdmissionFailureNoTask": true,
+          "liveProgress": true,
+          "actualUploadsAndQueueAdmission": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "uploadBytesAndCaptainMemberReads": true,
+          "queuedModeImmutableAfterFutureSelection": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 11,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799613773,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799613808
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799613812
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799613813
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799613813
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799613813
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799613983
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799613983
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799613983
+            },
+            {
+              "event": "quit",
+              "at": 1794799613983
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 3821,
+                "ppid": 2508,
+                "state": "R"
+              },
+              {
+                "pid": 3847,
+                "ppid": 3821,
+                "state": "R"
+              },
+              {
+                "pid": 3848,
+                "ppid": 3821,
+                "state": "R"
+              },
+              {
+                "pid": 3850,
+                "ppid": 3821,
+                "state": "Rs"
+              },
+              {
+                "pid": 4065,
+                "ppid": 3821,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799616571,
+          "exitCode": 0
+        }
+      }
+    },
+    "stop-retry": {
+      "command": {
+        "exit": 0,
+        "seconds": 51.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop-retry"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-oHOQnQ/report.json",
+      "sha256": "0800ff971cbde6d1a096d792b749ab4d3ad0da68096b6f37b026758ad7f17f05",
+      "report": {
+        "scenario": "stop-retry",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "stoppedPartialArtifactNoAutoReplay": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "retriedReadOnlyMemberHasNoInventedFiles": true,
+          "structuredMemberDetails": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "stoppedTaskHistoryUnchanged": true,
+          "retryRetainsModeAndGoal": true,
+          "freshParentAndRoleContexts": true,
+          "artifactInspectedNotRewritten": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 14,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799017653,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799017690
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799017694
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799017695
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799017695
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799017695
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799017875
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799017875
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799017875
+            },
+            {
+              "event": "quit",
+              "at": 1794799017875
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 66655,
+                "ppid": 65277,
+                "state": "R"
+              },
+              {
+                "pid": 66671,
+                "ppid": 66655,
+                "state": "R"
+              },
+              {
+                "pid": 66673,
+                "ppid": 66655,
+                "state": "R"
+              },
+              {
+                "pid": 66678,
+                "ppid": 66655,
+                "state": "Rs"
+              },
+              {
+                "pid": 66901,
+                "ppid": 66655,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799026498,
+          "exitCode": 0
+        }
+      }
+    },
+    "interrupt-retry": {
+      "command": {
+        "exit": 0,
+        "seconds": 58.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-cdUXR6/report.json",
+      "sha256": "1da5c02a33b9af2c1250b0ad52d0c23e8a3570283cdf299237fc5b87c60096e2",
+      "report": {
+        "scenario": "interrupt-retry",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "abruptOwnedQAFaultAndColdRunning": true,
+          "restartMarksInterruptedWithoutReplay": true,
+          "restartPreservesEventPrefixAndArtifact": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "stoppedPartialArtifactNoAutoReplay": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "retriedReadOnlyMemberHasNoInventedFiles": true,
+          "structuredMemberDetails": true,
+          "faultClosesModelConnection": true,
+          "noFalseDeliveryOrDownstream": true,
+          "stoppedTaskHistoryUnchanged": true,
+          "retryRetainsModeAndGoal": true,
+          "freshParentAndRoleContexts": true,
+          "artifactInspectedNotRewritten": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "passed",
+        "requests": 14,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799075782,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799075817
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799075819
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799075819
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799075819
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799075819
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799076011
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799076011
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799076011
+            },
+            {
+              "event": "quit",
+              "at": 1794799076011
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 70062,
+                "ppid": 68149,
+                "state": "R"
+              },
+              {
+                "pid": 70076,
+                "ppid": 70062,
+                "state": "S"
+              },
+              {
+                "pid": 70077,
+                "ppid": 70062,
+                "state": "S"
+              },
+              {
+                "pid": 70080,
+                "ppid": 70062,
+                "state": "Rs"
+              },
+              {
+                "pid": 70277,
+                "ppid": 70062,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794799079543,
+          "exitCode": 0
+        }
+      }
+    },
+    "shell-stop": {
+      "command": {
+        "exit": 0,
+        "seconds": 48.21,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "shell-stop"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-LB2P2H/report.json",
+      "sha256": "97ca40bf372089cb8442061196f5b236f9da928c6d99224e19b1afdd5858b795",
+      "report": {
+        "scenario": "shell-stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "actualOwnedShellAndChildRunning": true,
+          "shellAndChildExitedAfterStop": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "noPostStopShellWrite": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "passed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799124036,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799124071
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799124076
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799124077
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799124077
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799124077
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799124268
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799124268
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799124268
+            },
+            {
+              "event": "quit",
+              "at": 1794799124268
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 72932,
+                "ppid": 71415,
+                "state": "R"
+              },
+              {
+                "pid": 72950,
+                "ppid": 72932,
+                "state": "S"
+              },
+              {
+                "pid": 72951,
+                "ppid": 72932,
+                "state": "R"
+              },
+              {
+                "pid": 72955,
+                "ppid": 72932,
+                "state": "Ss"
+              },
+              {
+                "pid": 73158,
+                "ppid": 72932,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794799125718,
+          "exitCode": 0
+        }
+      }
+    },
+    "usage-history-success": {
+      "command": {
+        "exit": 0,
+        "seconds": 51.17,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-Wdah0c/report.json",
+      "sha256": "919165e0362c16013083fe3f9c43ffbd86ec077f3ac635e2e557f17f8f3c787b",
+      "report": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 46,
+          "modelRequestsBefore": 9,
+          "modelRequestsAfter": 9,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "passed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799664954,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799664992
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799664996
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799664997
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799664997
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799664997
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799665162
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799665162
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799665162
+            },
+            {
+              "event": "quit",
+              "at": 1794799665162
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 6773,
+                "ppid": 5223,
+                "state": "R"
+              },
+              {
+                "pid": 6792,
+                "ppid": 6773,
+                "state": "S"
+              },
+              {
+                "pid": 6793,
+                "ppid": 6773,
+                "state": "R"
+              },
+              {
+                "pid": 6798,
+                "ppid": 6773,
+                "state": "Rs"
+              },
+              {
+                "pid": 7037,
+                "ppid": 6773,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799667153,
+          "exitCode": 0
+        }
+      }
+    },
+    "usage-history-blocked": {
+      "command": {
+        "exit": 0,
+        "seconds": 47.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-1Dqi4T/report.json",
+      "sha256": "960f6303b0e64f621ec32402b37bbf8e6d20853bfbf8339d924101577f4fa2d8",
+      "report": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "final",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 41,
+          "modelRequestsBefore": 8,
+          "modelRequestsAfter": 8,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "passed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799712654,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799712692
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799712696
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799712697
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799712697
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799712697
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799712889
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799712889
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799712889
+            },
+            {
+              "event": "quit",
+              "at": 1794799712889
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 9577,
+                "ppid": 8239,
+                "state": "S"
+              },
+              {
+                "pid": 9598,
+                "ppid": 9577,
+                "state": "S"
+              },
+              {
+                "pid": 9599,
+                "ppid": 9577,
+                "state": "S"
+              },
+              {
+                "pid": 9601,
+                "ppid": 9577,
+                "state": "Ss"
+              },
+              {
+                "pid": 9829,
+                "ppid": 9577,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794799712959,
+          "exitCode": 0
+        }
+      }
+    }
+  },
+  "preservedFailures": [
+    {
+      "name": "stop",
+      "command": {
+        "exit": 1,
+        "seconds": 53.96,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-zxOJRa/report.json",
+      "sha256": "7906656b0415d091a3eee7c7fb9cc25814a156daefc5b98a08a7e3ad80c3ef80",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798851120,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798851159
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798851160
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798851161
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798851161
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798851161
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798851323
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798851323
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798851323
+            },
+            {
+              "event": "quit",
+              "at": 1794798851323
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 57672,
+                "ppid": 56124,
+                "state": "R"
+              },
+              {
+                "pid": 57695,
+                "ppid": 57672,
+                "state": "R"
+              },
+              {
+                "pid": 57696,
+                "ppid": 57672,
+                "state": "R"
+              },
+              {
+                "pid": 57698,
+                "ppid": 57672,
+                "state": "Rs"
+              },
+              {
+                "pid": 57907,
+                "ppid": 57672,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794798861159,
+          "exitCode": null,
+          "failureAt": 1794798861161,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 57672,
+                "ppid": 56124,
+                "state": "R"
+              },
+              {
+                "pid": 57695,
+                "ppid": 57672,
+                "state": "R"
+              },
+              {
+                "pid": 57696,
+                "ppid": 57672,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    {
+      "name": "rerun-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 49.12,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-S2iJYe/report.json",
+      "sha256": "1a8c00bbc1c37d46fb15578d94c9694de2a79d09edf1ba14aff4e33db05565da",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799563720,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799563765
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799563766
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799563767
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799563767
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799563767
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799563945
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799563946
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799563946
+            },
+            {
+              "event": "quit",
+              "at": 1794799563946
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 1150,
+                "ppid": 99492,
+                "state": "R"
+              },
+              {
+                "pid": 1174,
+                "ppid": 1150,
+                "state": "R"
+              },
+              {
+                "pid": 1176,
+                "ppid": 1150,
+                "state": "R"
+              },
+              {
+                "pid": 1179,
+                "ppid": 1150,
+                "state": "Rs"
+              },
+              {
+                "pid": 1396,
+                "ppid": 1150,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799573765,
+          "exitCode": null,
+          "failureAt": 1794799573767,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 1150,
+                "ppid": 99492,
+                "state": "R"
+              },
+              {
+                "pid": 1174,
+                "ppid": 1150,
+                "state": "R"
+              },
+              {
+                "pid": 1176,
+                "ppid": 1150,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    {
+      "name": "attachments",
+      "command": {
+        "exit": 1,
+        "seconds": 59.62,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-HosdLG/report.json",
+      "sha256": "f68e28da098716b47b1e6d270ddd9ad7bca776c1893157f3d4a1c64e4f7a3a41",
+      "report": {
+        "scenario": "attachments",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "attachmentAdmissionFailureNoTask": true,
+          "liveProgress": true,
+          "actualUploadsAndQueueAdmission": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "uploadBytesAndCaptainMemberReads": true,
+          "queuedModeImmutableAfterFutureSelection": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "status": "failed",
+        "requests": 11,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794798955614,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794798955688
+            },
+            {
+              "event": "window-closed",
+              "at": 1794798955689
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794798955690
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798955690
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794798955690
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794798955901
+            },
+            {
+              "event": "before-quit",
+              "at": 1794798955901
+            },
+            {
+              "event": "will-quit",
+              "at": 1794798955902
+            },
+            {
+              "event": "quit",
+              "at": 1794798955902
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 63390,
+                "ppid": 61993,
+                "state": "R"
+              },
+              {
+                "pid": 63409,
+                "ppid": 63390,
+                "state": "R"
+              },
+              {
+                "pid": 63410,
+                "ppid": 63390,
+                "state": "R"
+              },
+              {
+                "pid": 63414,
+                "ppid": 63390,
+                "state": "Rs"
+              },
+              {
+                "pid": 63625,
+                "ppid": 63390,
+                "state": "R"
+              }
+            ]
+          },
+          "failureAt": 1794798970687,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 63390,
+                "ppid": 61993,
+                "state": "R"
+              }
+            ]
+          },
+          "exitCode": null
+        },
+        "error": "CDP timeout"
+      }
+    },
+    {
+      "name": "usage-history-success",
+      "command": {
+        "exit": 1,
+        "seconds": 53.22,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-3s78Vx/report.json",
+      "sha256": "fbce70136695590f93a94d03c48e37a3a738104f20b2316508bf464ad9dc48db",
+      "report": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 46,
+          "modelRequestsBefore": 9,
+          "modelRequestsAfter": 9,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "failed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799456797,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799456832
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799456833
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799456834
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799456834
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799456834
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799456999
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799456999
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799456999
+            },
+            {
+              "event": "quit",
+              "at": 1794799456999
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 94776,
+                "ppid": 93384,
+                "state": "R"
+              },
+              {
+                "pid": 94804,
+                "ppid": 94776,
+                "state": "R"
+              },
+              {
+                "pid": 94805,
+                "ppid": 94776,
+                "state": "R"
+              },
+              {
+                "pid": 94806,
+                "ppid": 94776,
+                "state": "Rs"
+              },
+              {
+                "pid": 95018,
+                "ppid": 94776,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799466833,
+          "exitCode": null,
+          "failureAt": 1794799466834,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 94776,
+                "ppid": 93384,
+                "state": "R"
+              },
+              {
+                "pid": 94804,
+                "ppid": 94776,
+                "state": "R"
+              },
+              {
+                "pid": 94805,
+                "ppid": 94776,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    {
+      "name": "usage-history-blocked",
+      "command": {
+        "exit": 1,
+        "seconds": 53.78,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "path": "artifacts/team-ui/gui-7AiQ94/report.json",
+      "sha256": "5e55a8c192632b41fbbe915c198c02d5bb728ec0778eb73ca25c89e2effe1e67",
+      "report": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true,
+          "historyReloadRestoresMemberProjection": true,
+          "historyReloadFileNavigation": true,
+          "historyReloadNoModelReplayOrEventMutation": true,
+          "historyReloadDoesNotRestoreComposerMode": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "final",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "historyReload": {
+          "observationMs": 1000,
+          "taskCount": 2,
+          "eventCount": 41,
+          "modelRequestsBefore": 8,
+          "modelRequestsAfter": 8,
+          "projectionEqual": true,
+          "tasksAndEventsEqual": true,
+          "appRelaunched": false
+        },
+        "status": "failed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799509674,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799509712
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799509713
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799509714
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799509714
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799509714
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799509881
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799509881
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799509881
+            },
+            {
+              "event": "quit",
+              "at": 1794799509881
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 97809,
+                "ppid": 96530,
+                "state": "R"
+              },
+              {
+                "pid": 97826,
+                "ppid": 97809,
+                "state": "R"
+              },
+              {
+                "pid": 97827,
+                "ppid": 97809,
+                "state": "R"
+              },
+              {
+                "pid": 97830,
+                "ppid": 97809,
+                "state": "Rs"
+              },
+              {
+                "pid": 98025,
+                "ppid": 97809,
+                "state": "R"
+              }
+            ]
+          },
+          "observedAt": 1794799519711,
+          "exitCode": null,
+          "failureAt": 1794799519712,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 97809,
+                "ppid": 96530,
+                "state": "R"
+              },
+              {
+                "pid": 97826,
+                "ppid": 97809,
+                "state": "R"
+              },
+              {
+                "pid": 97827,
+                "ppid": 97809,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    },
+    {
+      "name": "final-stop",
+      "command": {
+        "exit": 1,
+        "seconds": 51.0,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "path": "artifacts/team-ui/gui-KP3V3j/report.json",
+      "sha256": "5236cab62cd38ed2dde9e3d825e8e5fcc8c64ce77a6bad96fbd3eacde1d9d8a6",
+      "report": {
+        "scenario": "stop",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "noInventedStoppedReceipt": true,
+          "explicitStopCancels": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "status": "failed",
+        "requests": 4,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794799780361,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794799780396
+            },
+            {
+              "event": "window-closed",
+              "at": 1794799780397
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794799780397
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799780397
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794799780397
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794799780612
+            },
+            {
+              "event": "before-quit",
+              "at": 1794799780612
+            },
+            {
+              "event": "will-quit",
+              "at": 1794799780612
+            },
+            {
+              "event": "quit",
+              "at": 1794799780612
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 13708,
+                "ppid": 12275,
+                "state": "R"
+              },
+              {
+                "pid": 13725,
+                "ppid": 13708,
+                "state": "S"
+              },
+              {
+                "pid": 13726,
+                "ppid": 13708,
+                "state": "R"
+              },
+              {
+                "pid": 13731,
+                "ppid": 13708,
+                "state": "Ss"
+              },
+              {
+                "pid": 13977,
+                "ppid": 13708,
+                "state": "S"
+              }
+            ]
+          },
+          "observedAt": 1794799790395,
+          "exitCode": null,
+          "failureAt": 1794799790396,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 13708,
+                "ppid": 12275,
+                "state": "R"
+              }
+            ]
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n"
+      }
+    }
+  ],
+  "regression": {
+    "commands": {
+      "targeted": {
+        "exit": 0,
+        "seconds": 3.22,
+        "command": [
+          "node",
+          "--test",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "apps/electron/pi-turn.test.mjs",
+          "apps/electron/client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {}
+      },
+      "build": {
+        "exit": 0,
+        "seconds": 38.93,
+        "command": [
+          "npm",
+          "run",
+          "build:app"
+        ],
+        "env": {}
+      },
+      "signature": {
+        "exit": 0,
+        "seconds": 4.87,
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+        ],
+        "env": {}
+      },
+      "usage-success": {
+        "exit": 0,
+        "seconds": 45.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1"
+        }
+      },
+      "usage-blocked": {
+        "exit": 0,
+        "seconds": 46.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1"
+        }
+      },
+      "success": {
+        "exit": 0,
+        "seconds": 46.7,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {}
+      },
+      "blocked": {
+        "exit": 0,
+        "seconds": 49.59,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {}
+      },
+      "stop": {
+        "exit": 1,
+        "seconds": 53.96,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "retry": {
+        "exit": 0,
+        "seconds": 50.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "retry"
+        ],
+        "env": {}
+      },
+      "attachments": {
+        "exit": 1,
+        "seconds": 59.62,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {}
+      },
+      "stop-retry": {
+        "exit": 0,
+        "seconds": 51.98,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop-retry"
+        ],
+        "env": {}
+      },
+      "interrupt-retry": {
+        "exit": 0,
+        "seconds": 58.14,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {}
+      },
+      "shell-stop": {
+        "exit": 0,
+        "seconds": 48.21,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "shell-stop"
+        ],
+        "env": {}
+      },
+      "core": {
+        "exit": 1,
+        "seconds": 67.88,
+        "command": [
+          "npm",
+          "test"
+        ],
+        "env": {}
+      },
+      "core-serial": {
+        "exit": 0,
+        "seconds": 153.89,
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {}
+      },
+      "electron": {
+        "exit": 0,
+        "seconds": 24.95,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {}
+      },
+      "packaged": {
+        "exit": 0,
+        "seconds": 36.22,
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        }
+      },
+      "native": {
+        "exit": 101,
+        "seconds": 0.2,
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "env": {}
+      }
+    },
+    "extraCommands": {
+      "usage-history-success": {
+        "exit": 1,
+        "seconds": 53.22,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "usage-history-blocked": {
+        "exit": 1,
+        "seconds": 53.78,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      }
+    },
+    "rerunCommands": {
+      "stop": {
+        "exit": 1,
+        "seconds": 49.12,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "stop"
+        ],
+        "env": {}
+      },
+      "attachments": {
+        "exit": 0,
+        "seconds": 48.5,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "attachments"
+        ],
+        "env": {}
+      },
+      "usage-history-success": {
+        "exit": 0,
+        "seconds": 51.17,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      },
+      "usage-history-blocked": {
+        "exit": 0,
+        "seconds": 47.72,
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_REPORTED_USAGE": "1",
+          "MOOS_QA_HISTORY_RELOAD": "1"
+        }
+      }
+    },
+    "finalStopCommand": {
+      "exit": 1,
+      "seconds": 51.0,
+      "command": [
+        "node",
+        "scripts/verify-electron-team.mjs",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app",
+        "stop"
+      ],
+      "env": {}
+    },
+    "finalTargetedCommand": {
+      "command": [
+        "node",
+        "--test",
+        "packages/pi-runtime/team-runtime.test.mjs",
+        "apps/electron/pi-turn.test.mjs",
+        "apps/electron/client.test.mjs",
+        "scripts/verify-electron-team.test.mjs"
+      ],
+      "actualCommand": "TMPDIR=/private/tmp/ node --test packages/pi-runtime/team-runtime.test.mjs apps/electron/pi-turn.test.mjs apps/electron/client.test.mjs scripts/verify-electron-team.test.mjs",
+      "exit": 0,
+      "durationMs": 5203.177625,
+      "log": "artifacts/team-usage/targeted-final.log"
+    },
+    "counts": {
+      "targeted": {
+        "tests": 41,
+        "pass": 41,
+        "fail": 0,
+        "skipped": 0
+      },
+      "targeted-final": {
+        "tests": 42,
+        "pass": 42,
+        "fail": 0,
+        "skipped": 0
+      },
+      "core": {
+        "tests": 286,
+        "pass": 285,
+        "fail": 1,
+        "skipped": 0
+      },
+      "core-serial": {
+        "tests": 286,
+        "pass": 286,
+        "fail": 0,
+        "skipped": 0
+      },
+      "electron": {
+        "tests": 136,
+        "pass": 126,
+        "fail": 0,
+        "skipped": 10
+      },
+      "packaged": {
+        "tests": 136,
+        "pass": 135,
+        "fail": 0,
+        "skipped": 1
+      }
+    },
+    "allRegressionsGreen": false,
+    "coreFailure": {
+      "log": "artifacts/team-usage/core.log",
+      "sha256": "456bae91b412343fcf80556948ac7569ec720564216885a80546e6bfa4241deb",
+      "error": "expected DESKTOP_FOCUS_CHANGED, actual desktop helper timeout",
+      "rootCauseRepaired": false
+    },
+    "blockers": [
+      "Stop business checks true but strict normal QA quit remains failed in three runs; no acceptance success for this scenario",
+      "default npm test existing geometry-drift helper timeout; serial full inventory pass is not repair",
+      "offline Rust missing tauri exit101",
+      "source 10/package 1 reviewed-skin skips"
+    ],
+    "documentation": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit": 0,
+      "tests": 148,
+      "seconds": 0.661,
+      "workspace": "precommit including new evidence, PLAN/log/guide and documentation contract; final metadata rerun still required"
+    }
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-QWEhD0/沐码.app",
+    "version": "0.1.49",
+    "runtime": {
+      "dshVersion": "0.2.2-rc.1",
+      "includesPiFixture": false
+    },
+    "command": {
+      "exit": 0,
+      "seconds": 38.93,
+      "command": [
+        "npm",
+        "run",
+        "build:app"
+      ],
+      "env": {}
+    },
+    "strictCodesign": {
+      "exit": 0,
+      "seconds": 4.87,
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+      ],
+      "env": {}
+    },
+    "sourceArchiveMatches": {
+      "apps/electron/pi-turn.mjs": "77782f543bf40aa0e353b96688fb9de8899607ab5131e76927967033088582d6",
+      "packages/pi-runtime/team-runtime.mjs": "7967b4fea4c230bdcf33f6106115973d698785af64e53eedca3798683e5702b6",
+      "apps/electron/plugin/host.js": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+      "apps/electron/plugin/pi-tasks.js": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+      "apps/electron/plugin/pi-route.js": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+      "apps/electron/plugin/client.js": "4e633f338543b408b40001fd034027b2a939f277c3a040247cdaf58a563caba9"
+    },
+    "installed": false,
+    "logicalBytes": 818615494,
+    "diskKiB": 691684,
+    "compressedInstallerMeasured": false,
+    "runtimeDownloadsMeasured": false,
+    "firstLaunch": "copied hidden QA uses independent synthetic profile/local provider; not formal first-launch acceptance"
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/team-ui/gui-RxZjqu/team-file-panel.png",
+      "sha256": "fb68dc64be93cd384717a55276ee7a755c17f26d4214ff11cf4380fc189ef626",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "reported success 24/36 token rows; bottom clipped"
+    },
+    {
+      "path": "artifacts/team-ui/gui-1Dqi4T/team-history-panel.png",
+      "sha256": "a105304f775486d33d44b336999507d6078000539f891cd6a1908cb631ac15ba",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "reported blocked after reload 24/36 token rows; lower final node obscured"
+    },
+    {
+      "path": "artifacts/team-ui/gui-mrngdI/team-file-panel.png",
+      "sha256": "98c6aecf64813bf7c8ec66cc48883b04241dbc764bc8396bf272595b5c36bd6b",
+      "encoding": "PNG",
+      "visuallyReviewed": true,
+      "scope": "missing provider usage explicitly unknown, bottom clipped"
+    }
+  ],
+  "limits": [
+    "real SDK/local synthetic reported SSE usage; not external provider or complete invoice",
+    "actual compaction usage correlation/projection is unit-tested, not provider compaction GUI acceptance",
+    "historical reported events have no deduplication/exactly-once/completeness guarantee",
+    "renderer reload is same live app/Host and one-second observation, not cold recovery or permanent replay prevention",
+    "long panel bottom is covered by fixed composer; visible usage rows checked but full long-panel usability not accepted",
+    "QA quit/helper/ps roots unresolved; normal exit guard and desktop timeouts unchanged",
+    "captain node correlation/full member messages/right-side panel/safe preview/queued attachment refresh remain unfinished",
+    "P03.14.1–6 remain unchecked"
+  ],
+  "protection": {
+    "productionTouched": false,
+    "realDataChanged": false,
+    "productionRestarted": false,
+    "desktopGuardsChanged": false,
+    "legacyExecutorsEnabled": false
+  }
+}

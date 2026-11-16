@@ -90,6 +90,7 @@ test('cancel drains active member, suppresses late events, and starts no downstr
     await new Promise(resolve => options.signal.addEventListener('abort', resolve, { once: true }));
     options.emit('text_delta', { delta: 'late' });
     options.emit('tool_end', { toolName: 'write' });
+    options.emit('usage', { inputTokens: 10, outputTokens: 2, totalTokens: 12 });
     await drained.promise;
     return { text: 'late' };
   };
@@ -103,7 +104,7 @@ test('cancel drains active member, suppresses late events, and starts no downstr
   drained.resolve();
   await assert.rejects(execution, error => error.code === 'cancelled');
   assert.equal(trace.length, 2);
-  assert.ok(!events.some(event => ['text_delta', 'tool_end'].includes(event.type)));
+  assert.ok(!events.some(event => ['text_delta', 'tool_end', 'usage'].includes(event.type)));
 });
 
 test('model requests and reported token use are bounded, never emit successful delivery', async () => {
@@ -159,6 +160,8 @@ test('real SDK team creates an artifact, independently reads it and resumes capt
         res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk',
           choices: [{ index: 0, delta: data, finish_reason: finish }] }) + '\n\n');
       }
+      res.write('data: ' + JSON.stringify({ id: 'fixture', object: 'chat.completion.chunk', choices: [],
+        usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 } }) + '\n\n');
       res.end('data: [DONE]\n\n');
     } catch (error) { errors.push(error); res.writeHead(500); res.end(); }
   });
@@ -169,6 +172,13 @@ test('real SDK team creates an artifact, independently reads it and resumes capt
     emit: (type, payload) => events.push({ type, payload }),
     provider: { id: 'fixture', name: 'Local team fixture', model: 'fixture-model', api: 'openai-completions',
       baseUrl: `http://127.0.0.1:${server.address().port}/v1`, contextWindow: 128000, maxTokens: 2048 } });
+  const usage = events.filter(event => event.type === 'usage');
+  assert.equal(usage.length, requests.length, 'real SDK emits each reported local provider usage');
+  assert.ok(usage.every(event => event.payload.inputTokens === 10 && event.payload.outputTokens === 2
+    && event.payload.totalTokens === 12 && event.payload.teamId === base().task.id));
+  assert.deepEqual(usage.reduce((totals, event) => ({ ...totals,
+    [event.payload.member]: (totals[event.payload.member] ?? 0) + event.payload.totalTokens }), {}),
+    { captain: 36, implementer: 24, verifier: 36 });
   assert.deepEqual(errors, []);
   assert.equal(await readFile(join(cwd, 'answer.txt'), 'utf8'), '42\n');
   assert.match(result.text, /独立读取验证/);
@@ -269,4 +279,28 @@ test('public node receipts distinguish failed tools, missing verdict and explici
     assert.doesNotMatch(JSON.stringify(node.outcome), /private|secret/);
     assert.equal(events.some(event => event.payload.phase === 'succeeded'), kind === 'verified');
   }
+});
+
+test('usage preserves reported fields and stamps the owning live role attempt including compaction', async () => {
+  const events = [], reports = [];
+  const runner = fakeRun(); let late;
+  await runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
+    const report = { inputTokens: 17, outputTokens: 3, totalTokens: 20, providerId: 'synthetic',
+      teamId: 'forged', member: 'forged', attemptId: 'forged' };
+    options.emit('usage', report); options.emit('usage', { ...report, kind: 'compaction' });
+    reports.push(report); late = () => options.emit('usage', report);
+    return runner(options);
+  });
+  const usages = events.filter(event => event.type === 'usage');
+  assert.equal(usages.length, 8);
+  for (const { payload } of usages) {
+    assert.equal(payload.teamId, 'task-a'); assert.equal(payload.totalTokens, 20);
+    assert.equal(payload.providerId, 'synthetic');
+    assert.ok(events.some(event => event.type === 'team_state' && event.payload.phase === 'running'
+      && event.payload.member === payload.member && event.payload.attemptId === payload.attemptId));
+  }
+  assert.deepEqual(usages.map(event => event.payload.kind), [undefined, 'compaction', undefined, 'compaction', undefined, 'compaction', undefined, 'compaction']);
+  assert.equal(new Set(usages.map(event => event.payload.attemptId)).size, 4);
+  late(); assert.equal(events.filter(event => event.type === 'usage').length, 8);
+  assert.ok(reports.every(report => report.teamId === 'forged'), 'input payloads are not mutated');
 });
