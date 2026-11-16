@@ -82,3 +82,16 @@ test('reported member usage QA is opt-in before copying and checks explicit unkn
   assert.match(source, /reportedMemberUsageOrExplicitUnknown/);
   assert.match(source, /成员回复：未报告/);
 });
+
+
+test('long panel acceptance is bounded before copy and checks real layout and keyboard scrolling', async () => {
+  const source = await readFile(new URL('./verify-electron-team.mjs', import.meta.url), 'utf8');
+  const guard = source.match(/assert\.ok\(!longPanel[^\n]+/)[0];
+  const { runInNewContext } = await import('node:vm');
+  for (const scenario of ['success', 'blocked']) assert.doesNotThrow(() => runInNewContext(guard, { assert, longPanel: true, scenario }));
+  for (const scenario of ['stop', 'retry', 'attachments', 'stop-retry', 'interrupt-retry', 'shell-stop'])
+    assert.throws(() => runInNewContext(guard, { assert, longPanel: true, scenario }), /Long panel QA/);
+  assert.ok(source.indexOf(guard) < source.indexOf('const scratch ='));
+  for (const anchor of ['Input.dispatchKeyEvent', 'finalReceiptVisible', 'panelAboveComposer', 'homeReturnedToStart',
+    'longPanelKeyboardScrollAndUnobscuredReceipt', '[[980, 720], [760, 620]]']) assert.ok(source.includes(anchor));
+});

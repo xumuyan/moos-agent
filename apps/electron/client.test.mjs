@@ -623,3 +623,22 @@ test('member usage shows reported reply and compaction totals while missing data
   assert.doesNotMatch(text, /费用|美元|估算费用/);
   assert.equal(harness.effects.at(-1).dependencies[2], false);
 });
+
+
+test('long team receipts have a bounded keyboard-focusable scrolling region without new polling', async () => {
+  const harness = await loadClient({ moosTurn: async () => ({ status: 'succeeded', actions: [], team: {
+    phase: 'succeeded', nodes: Array.from({ length: 6 }, (_, i) => ({ id: 'member' + i,
+      role: i ? 'verifier' : 'implementer', state: 'completed', dependsOn: [],
+      outcome: { code: i ? 'verified' : 'member_finished', toolsSucceeded: 1, toolsFailed: 0, evidenceCount: i ? 1 : 0 } })) } }) });
+  harness.render({ sessionId: 'long', startSeq: 1, live: false });
+  harness.effects.splice(0).forEach(effect => effect.callback()); await flush();
+  const tree = harness.render({ sessionId: 'long', startSeq: 1, live: false });
+  const walk = n => !n || typeof n !== 'object' ? [] : [n, ...(Array.isArray(n) ? n : n.children ?? []).flatMap(walk)];
+  const panel = walk(tree).find(n => n.props?.['data-moos-team-progress'] === '');
+  assert.equal(panel.props.role, 'region'); assert.equal(panel.props.tabIndex, 0);
+  assert.match(panel.props['aria-label'], /可滚动/);
+  assert.equal(walk(panel).filter(n => n.props?.['data-moos-team-node-details']).length, 6);
+  assert.match(harness.source, /max-block-size: min\(50vh, 420px\); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scroll-margin-block: 24px 180px/);
+  assert.match(harness.source, /\[data-moos-team-progress\]:focus-visible/);
+  assert.equal(harness.effects.at(-1).dependencies[2], false);
+});

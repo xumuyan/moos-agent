@@ -29,6 +29,8 @@ const activeReload = process.env.MOOS_QA_ACTIVE_RELOAD === '1';
 assert.ok(!activeReload || ['stop', 'shell-stop'].includes(scenario), 'Active reload QA requires stop or shell-stop');
 const reportedUsage = process.env.MOOS_QA_REPORTED_USAGE === '1';
 assert.ok(!reportedUsage || ['success', 'blocked'].includes(scenario), 'Reported usage QA requires success or blocked');
+const longPanel = process.env.MOOS_QA_LONG_PANEL === '1';
+assert.ok(!longPanel || ['success', 'blocked'].includes(scenario), 'Long panel QA requires success or blocked');
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
 const app = join(scratch, 'QA.app');
 execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
@@ -433,6 +435,54 @@ try {
         return { x: b.x + scrollX, y: b.y + scrollY, width: b.width, height: b.height, scale: 1 };
       })()`);
       await writeFile(join(scratch, 'team-file-panel.png'), Buffer.from((await call('Page.captureScreenshot', { clip, captureBeyondViewport: true })).data, 'base64'));
+    }
+    if (longPanel) {
+      report.longPanel = [];
+      for (const [width, height] of [[980, 720], [760, 620]]) {
+        await call('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+        await evaluate(`(() => {
+          const panel = [...document.querySelectorAll('[data-moos-team-progress]')].at(-1);
+          panel.scrollIntoView({ block: 'center' }); panel.focus({ preventScroll: true }); panel.scrollTop = 0;
+        })()`);
+        await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'End', code: 'End', windowsVirtualKeyCode: 35 });
+        await call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'End', code: 'End', windowsVirtualKeyCode: 35 });
+        await until(() => evaluate(`(() => { const p = [...document.querySelectorAll('[data-moos-team-progress]')].at(-1);
+          return p.scrollTop > 0 && p.scrollTop + p.clientHeight >= p.scrollHeight - 2; })()`), 'keyboard End reaches final member receipt');
+        const finalMemberVisible = await evaluate(`(() => {
+          const panel = [...document.querySelectorAll('[data-moos-team-progress]')].at(-1);
+          const member = [...panel.querySelectorAll('[data-moos-team-node-details]')].at(-1);
+          const p = panel.getBoundingClientRect(), b = member.getBoundingClientRect();
+          return b.bottom <= p.bottom + 1 && b.bottom > p.top;
+        })()`);
+        assert.ok(finalMemberVisible, 'End reaches the last member, including an unexecuted dependent');
+        // A blocked team can end with an unexecuted dependent after its rejected
+        // verifier. Check that receipt separately, rather than pretending End
+        // must expose a receipt that is not the final item.
+        await evaluate(`([...document.querySelectorAll('[data-moos-team-outcome]')].at(-1))
+          .scrollIntoView({ block: 'nearest' })`);
+        const bounds = await evaluate(`(() => {
+          const panel = [...document.querySelectorAll('[data-moos-team-progress]')].at(-1);
+          const last = [...panel.querySelectorAll('[data-moos-team-outcome]')].at(-1);
+          const p = panel.getBoundingClientRect(), b = last.getBoundingClientRect();
+          const composer = document.querySelector('[data-composer-input]'); const c = composer.getBoundingClientRect();
+          return { panelHeight: p.height, viewportHeight: innerHeight, scrollTop: panel.scrollTop,
+            scrollHeight: panel.scrollHeight, clientHeight: panel.clientHeight,
+            bounded: p.height <= innerHeight * .5 + 1, fits: panel.scrollWidth <= panel.clientWidth + 1,
+            focused: document.activeElement === panel,
+            finalReceiptVisible: b.top >= p.top && b.bottom <= p.bottom + 1 && b.bottom <= c.top,
+            panelAboveComposer: p.top >= 0 && p.bottom <= c.top };
+        })()`);
+        assert.ok(bounds.bounded && bounds.fits && bounds.focused && bounds.finalReceiptVisible && bounds.panelAboveComposer,
+          'long panel is scrollable and not obscured by composer: ' + JSON.stringify(bounds));
+        await capture('team-long-panel-' + width);
+        await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Home', code: 'Home', windowsVirtualKeyCode: 36 });
+        await call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Home', code: 'Home', windowsVirtualKeyCode: 36 });
+        await until(() => evaluate(`([...document.querySelectorAll('[data-moos-team-progress]')].at(-1)?.scrollTop ?? -1) === 0`),
+          'keyboard Home returns to team heading');
+        report.longPanel.push({ width, height, ...bounds, finalMemberVisible, homeReturnedToStart: true });
+      }
+      await call('Emulation.clearDeviceMetricsOverride');
+      report.checks.longPanelKeyboardScrollAndUnobscuredReceipt = true;
     }
     report.checks.structuredMemberDetails = true;
   }

@@ -9,6 +9,38 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+
+class TeamLongPanelTests(unittest.TestCase):
+    def test_bounded_member_panel_evidence_keeps_runtime_and_visual_scope_truthful(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-long-panel.json').read_text())
+        self.assertEqual(e['status'], 'bounded-member-panel-layout-accepted-normal-exit-blocked-not-installed')
+        for path, digest in e['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertEqual(len(e['build']['sourcePackageMatches']), 6)
+        self.assertTrue(all(a['match'] for a in e['build']['sourcePackageMatches'].values()))
+        for name in ('success-final', 'blocked-final'):
+            a = e['acceptance'][name]
+            r = json.loads((ROOT / a['report']).read_text())
+            self.assertEqual(r['status'], 'failed')
+            self.assertTrue(all(r['checks'].values()))
+            self.assertIsNone(r['shutdown']['exitCode'])
+            self.assertIn('normal QA quit', r['error'])
+            self.assertEqual(len(r['longPanel']), 2)
+            for b in r['longPanel']:
+                for k in ('bounded', 'fits', 'focused', 'finalMemberVisible', 'finalReceiptVisible', 'panelAboveComposer', 'homeReturnedToStart'):
+                    self.assertTrue(b[k])
+            self.assertFalse(r['normalGUI']); self.assertFalse(r['externalModel'])
+        self.assertFalse(e['allRegressionsGreen'])
+        self.assertFalse(e['installed']); self.assertFalse(e['rootCauseRepaired'])
+        self.assertFalse(e['backendModified']); self.assertFalse(e['overallP0314Complete'])
+        self.assertEqual(len(e['remainingScenarios']), 6)
+        for a in e['screenshots']:
+            self.assertTrue(a['visuallyReviewed'])
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+        for k, v in e['protection'].items(): self.assertFalse(v, k)
+        self.assertIn('成员长面板收尾检查点', (ROOT / 'PLAN.md').read_text())
+
+
 class TeamQaNativeCalibrationTests(unittest.TestCase):
     def test_real_native_fixture_calibration_does_not_claim_electron_quit_repair(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-calibration.json').read_text())
@@ -44,7 +76,7 @@ class TeamQaNativeFramesTests(unittest.TestCase):
     def test_native_frame_diagnostic_is_bounded_private_and_not_a_root_cause_claim(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-frames.json').read_text())
         for path, digest in e['implementation']['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            self.assertEqual(hashlib.sha256(subprocess.check_output(['git', 'show', 'c945b55:' + path], cwd=ROOT)).hexdigest(), digest)
         self.assertEqual(len(e['implementation']['boundaryKeys']), 8)
         self.assertEqual((e['implementation']['exitDeadlineMs'], e['implementation']['normalExitCode']), (10000, 0))
         self.assertEqual((e['implementation']['sampleTimeoutMs'], e['implementation']['maxBytes']), (3000, 2097152))
@@ -275,7 +307,7 @@ class TeamQaNativeSampleTests(unittest.TestCase):
         self.assertFalse(e['build']['rebuilt'])
         self.assertEqual(len(e['build']['sourceSha256UnchangedSinceUsageCandidate']), 6)
         for path, digest in e['build']['sourceSha256UnchangedSinceUsageCandidate'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            self.assertEqual(hashlib.sha256(subprocess.check_output(['git', 'show', 'd7cf54a:' + path], cwd=ROOT)).hexdigest(), digest)
         self.assertTrue(all(value is False for value in e['protection'].values()))
         plan = (ROOT / 'PLAN.md').read_text()
         self.assertIn('QA退出原生采样检查点', plan)
@@ -335,7 +367,7 @@ class TeamMemberUsageTests(unittest.TestCase):
         self.assertFalse(e['build']['installed'])
         self.assertEqual(len(e['build']['sourceArchiveMatches']), 6)
         for p, digest in e['build']['sourceArchiveMatches'].items():
-            self.assertEqual(hashlib.sha256((ROOT / p).read_bytes()).hexdigest(), digest)
+            self.assertEqual(hashlib.sha256(subprocess.check_output(['git', 'show', '023cc22:' + p], cwd=ROOT)).hexdigest(), digest)
         for item in e['screenshots']:
             self.assertTrue(item['visuallyReviewed'])
             data = (ROOT / item['path']).read_bytes()

@@ -2632,3 +2632,15 @@
 - 对应 Git 提交：唯一说明 `test(P03.14): calibrate native sample boundaries with owned fixture`；查询 `git log --all --oneline --grep="calibrate native sample boundaries with owned fixture"`；源码推送非部署，提交后核对远程main=HEAD。
 
 验证补记（2026-11-16 15:19:37 +08:00，同唯一提交说明）：新增契约后python3 -m unittest discover -s tests -v 154/154、1.228s；git diff --check通过。元数据补齐后提交前再执行文档与暂存差异检查；默认失败/串行成功/离线阻塞保留，不宣称全仓通过。
+
+
+## 2026-11-16 16:20:22 +08:00｜P03.14 成员长面板收尾候选（退出受阻、未安装）
+
+- 修改或新增内容：client团队卡限高内部滚动/可聚焦region/焦点轮廓/滚动隔离；六节点VM及QA opt-in两种视口End/Home、末成员与验收回执各自可见测试。历史hash契约改查对应提交，不重写历史证据。新增证据、PLAN、指南7.29、文档契约。
+- 遇到的难题：历史面板底部被固定输入框覆盖；新脚本首用textarea选错DSH composer，两场失败；阻塞场景最后未执行依赖节点与末条回执不同位置，不能要求End同时露出。旧退出失败多次自然复现；全仓桌面helper和实际Node sample超时。
+- 处理方式：保留失败；改data-composer-input，End验证最后成员后scrollIntoView nearest另查验收回执，仍要求整体可见且高于输入框、不降低退出标准。曾误判增加180px真实空白并隔离重建NVYXAT，进一步核对后取消，最终源码六项匹配原YFupls；首重建shell缺npm无构建，PATH更正才执行。最终未反复刷绿或改Host/main/桌面守卫/10000ms/actual exit0；不继续扩退出诊断。
+- 验证结果：提交前工作区对应证据sourceSha256；完整命令、时长、日志hash、失败reports见新JSON与artifacts/team-long-panel。build:app88.53s、codesign strict9.82s、六项源码包内一致，落盘691684KiB（非安装器/运行时下载测量）。两最终长面板980×720/760×620键盘滚动和可见性全真/760截图已审，gui-eBSgRB、gui-8y8Ov1严格退出null而失败，原报告保留；早期gui-mx2jHK曾正常exit0/914ms非修复。六其他场景Stop0/36.51s，其余五normal quit失败。npm test297通过2失败/299、69.88s；串行299/299、215.29s非并发修复；源码Electron127通过10skip/24.91s、包内136通过1skip/46.04s；Rust离线101/0.19s缺tauri。最终文档/专项另记。
+- 遗留问题：界面本轮仅结构化内联长卡片，不是完整成员原文/右侧面板/文件预览；正常可见GUI、原生输入、外部模型和六节点实际视觉未验；正常退出/全仓非全绿，P03.14整体验收未完不勾。未安装/退出重启正式版、未碰真实配置聊天。
+- 对应 Git 提交：唯一说明 `fix(P03.14): bound member receipts with keyboard scrolling`；查询 `git log --all --oneline --grep="bound member receipts with keyboard scrolling"`。仅候选代码推送，不称部署；远程提交将与本地HEAD核对。
+
+验证补记（2026-11-16 16:28:56 +08:00，同唯一提交说明）：最终源码与YFupls client再次逐字节匹配（图标占位按构建替换）；清继承环境并指定候选DSH，node --test apps/electron/client.test.mjs apps/electron/pi-team-client.test.mjs scripts/verify-electron-team.test.mjs 18/18、1398.382208ms/墙钟1.52s；python3 -m unittest discover -s tests -v 初155/155、1.963s（证据引用此日志），补元数据后155/155、1.690s。git diff --check通过。没有为退出刷绿复跑；两个最终长卡片场景仍保留失败，不声称全仓通过或正式更新。

@@ -407,7 +407,7 @@ window.__ModuleLoader__.load({
     }
     function TeamProgress({ team }) {
       if (!team) return null;
-      return createElement('section', { 'data-moos-team-progress': '', 'aria-label': '团队协作进度' },
+      return createElement('section', { 'data-moos-team-progress': '', 'aria-label': '团队协作进度（可滚动查看成员结果）', role: 'region', tabIndex: 0 },
         createElement('strong', null, '团队协作 · ', teamPhases[team.phase] ?? '状态未知'),
         teamRoles[team.member] ? createElement('span', null, ' · ', teamRoles[team.member]) : null,
         createElement('ul', null, team.nodes.map(node => createElement('li', { key: node.id },
@@ -644,7 +644,7 @@ window.__ModuleLoader__.load({
         [data-moos-pi-process], [data-moos-file-fallback] { padding: 8px 12px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 10px; font-size: 13px; }
         [data-moos-team-mode] { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; padding: 2px 7px; border-radius: 8px; background: var(--dsw-alias-bg-module-platform); }
         [data-moos-team-mode] button { color: inherit; background: transparent; border: 0; cursor: pointer; font: inherit; padding: 2px 4px; }
-        [data-moos-team-progress] { box-sizing: border-box; max-width: 100%; min-width: 0; margin-block: 8px; padding: 12px; border-radius: 8px; color: CanvasText; background: Canvas; overflow-wrap: anywhere; }
+        [data-moos-team-progress] { box-sizing: border-box; max-width: 100%; min-width: 0; margin-block: 8px; padding: 12px; border-radius: 8px; color: CanvasText; background: Canvas; overflow-wrap: anywhere; max-block-size: min(50vh, 420px); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scroll-margin-block: 24px 180px; }
         [data-moos-pi-process] { margin-block-end: 8px; }
         [data-moos-pi-process] summary { cursor: pointer; }
         [data-moos-desktop-shots] { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
@@ -667,6 +667,7 @@ window.__ModuleLoader__.load({
         /* Team receipts are full-width rows, not a fourth column of the action-list flex layout. */
         [data-moos-pi-process] [data-moos-team-progress] li { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 5px; padding: 10px 0; border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
         [data-moos-pi-process] [data-moos-team-progress] li small { margin-inline-start: 0; white-space: normal; }
+        [data-moos-team-progress]:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
         [data-moos-team-node-details] { min-width: 0; max-width: 100%; }
         [data-moos-team-node-details] summary { font-weight: 600; }
         [data-moos-team-node-details] p { margin: 6px 0; }

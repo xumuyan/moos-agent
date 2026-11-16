@@ -1,0 +1,1165 @@
+{
+  "status": "bounded-member-panel-layout-accepted-normal-exit-blocked-not-installed",
+  "recordedAt": "2026-11-16T16:20:22.643326+08:00",
+  "baseCommit": "4b65ed60dcc0e12e21eeb6907a61e4d8212c047f",
+  "workspaceState": "final client equals build-YFupls source; final QA script distinguishes last unexecuted node from last receipt; document contract added after regression",
+  "sourceSha256": {
+    "apps/electron/plugin/client.js": "ac6044b695f2505357ff9398a22b8342b98b76dc0bf57c9440bf0880e88c065d",
+    "apps/electron/client.test.mjs": "baa1dc220df21f6cf478d0aec44afbfc9d8e0d277b02ebbc7f6484696607fb47",
+    "scripts/verify-electron-team.mjs": "7a8f37d0a41e8e982bae4c17bfceb6d412d6b134000dbc872b5c7aa745d0b899",
+    "scripts/verify-electron-team.test.mjs": "c087a7fc85776e5bfca523bd89f5e1017e7e054d064240a7b469cdadcd49a635"
+  },
+  "environment": "arm64/macOS27.0.1/Node24.15.0/TMPDIR=/private/tmp/; drivers clear inherited Electron, DSH, QA environment",
+  "implementation": {
+    "scrollHeight": "min(50vh,420px)",
+    "overflow": "auto",
+    "keyboardFocusable": true,
+    "focusVisibleOutline": true,
+    "overscrollContain": true,
+    "scrollbarStable": true,
+    "scrollMargin": "24px 180px",
+    "newPolling": false,
+    "claim": "bounded inline structured member receipts, not full private messages or new right-side panel"
+  },
+  "build": {
+    "path": ".generated/moos-electron/build-YFupls/沐码.app",
+    "version": "0.1.49",
+    "seconds": 88.53,
+    "runtime": {
+      "dshVersion": "0.2.2-rc.1",
+      "includesPiFixture": false
+    },
+    "sourcePackageMatches": {
+      "apps/electron/pi-turn.mjs": {
+        "sourceSha256": "77782f543bf40aa0e353b96688fb9de8899607ab5131e76927967033088582d6",
+        "packagedSha256": "77782f543bf40aa0e353b96688fb9de8899607ab5131e76927967033088582d6",
+        "match": true
+      },
+      "packages/pi-runtime/team-runtime.mjs": {
+        "sourceSha256": "7967b4fea4c230bdcf33f6106115973d698785af64e53eedca3798683e5702b6",
+        "packagedSha256": "7967b4fea4c230bdcf33f6106115973d698785af64e53eedca3798683e5702b6",
+        "match": true
+      },
+      "apps/electron/plugin/pi-route.js": {
+        "sourceSha256": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+        "packagedSha256": "9d4bd88d7b12be9fd69cd18eaf9ea1920635978ee71b840cbd3c2c7f4149b1eb",
+        "match": true
+      },
+      "apps/electron/plugin/host.js": {
+        "sourceSha256": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+        "packagedSha256": "dc773f19d70ffdefe0ec5498fd634b47e526b292223caf985eaf907f6613329b",
+        "match": true
+      },
+      "apps/electron/plugin/pi-tasks.js": {
+        "sourceSha256": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+        "packagedSha256": "8589dbaa9e11cbc93790001c2e124b2784c5be3f07a3b52dbebbf2abce9ccc66",
+        "match": true
+      },
+      "apps/electron/plugin/client.js": {
+        "sourceSha256": "ac6044b695f2505357ff9398a22b8342b98b76dc0bf57c9440bf0880e88c065d",
+        "packagedSha256": "bce488a875a092140556bc6da5240c7ddb517315b9ebe8bc8b044484a57cfc23",
+        "match": true
+      }
+    },
+    "strictSignature": {
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 9.82
+    },
+    "diskKiB": 691684,
+    "installerMeasured": false,
+    "runtimeDownloadMeasured": false,
+    "firstLaunch": "isolated synthetic profile only, not production first launch",
+    "rejectedIntermediateBuild": "build-NVYXAT had extra180px spacing, later removed without installation; final source matches original YFupls; rebuild log retained, npm absent on first attempt before PATH corrected",
+    "logicalBytes": 818615903
+  },
+  "acceptance": {
+    "success-final": {
+      "report": "artifacts/team-ui/gui-eBSgRB/report.json",
+      "sha256": "aac8303c86b9aa4814631fa7f44709ac17b38f5488ab616453a7ff1750bd46a2",
+      "status": "failed",
+      "checks": 12,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false,
+      "observedReport": {
+        "scenario": "success",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "longPanelKeyboardScrollAndUnobscuredReceipt": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": true,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "longPanel": [
+          {
+            "width": 980,
+            "height": 720,
+            "panelHeight": 360,
+            "viewportHeight": 720,
+            "scrollTop": 352,
+            "scrollHeight": 712,
+            "clientHeight": 360,
+            "bounded": true,
+            "fits": true,
+            "focused": true,
+            "finalReceiptVisible": true,
+            "panelAboveComposer": true,
+            "finalMemberVisible": true,
+            "homeReturnedToStart": true
+          },
+          {
+            "width": 760,
+            "height": 620,
+            "panelHeight": 310,
+            "viewportHeight": 620,
+            "scrollTop": 402,
+            "scrollHeight": 712,
+            "clientHeight": 310,
+            "bounded": true,
+            "fits": true,
+            "focused": true,
+            "finalReceiptVisible": true,
+            "panelAboveComposer": true,
+            "finalMemberVisible": true,
+            "homeReturnedToStart": true
+          }
+        ],
+        "status": "failed",
+        "requests": 9,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794816545539,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794816545579
+            },
+            {
+              "event": "window-closed",
+              "at": 1794816545580
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794816545581
+            },
+            {
+              "event": "before-quit",
+              "at": 1794816545581
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794816545581
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794816545770
+            },
+            {
+              "event": "before-quit",
+              "at": 1794816545770
+            },
+            {
+              "event": "will-quit",
+              "at": 1794816545770
+            },
+            {
+              "event": "quit",
+              "at": 1794816545770
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 20550,
+                "ppid": 19268,
+                "state": "R"
+              },
+              {
+                "pid": 20571,
+                "ppid": 20550,
+                "state": "R"
+              },
+              {
+                "pid": 20572,
+                "ppid": 20550,
+                "state": "R"
+              },
+              {
+                "pid": 20576,
+                "ppid": 20550,
+                "state": "Rs"
+              },
+              {
+                "pid": 20769,
+                "ppid": 20550,
+                "state": "R"
+              }
+            ]
+          },
+          "closeDispatchedAt": 1794816545574,
+          "observedAt": 1794816555577,
+          "exitCode": null,
+          "failureAt": 1794816555578,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 20550,
+                "ppid": 19268,
+                "state": "R"
+              },
+              {
+                "pid": 20571,
+                "ppid": 20550,
+                "state": "R"
+              },
+              {
+                "pid": 20572,
+                "ppid": 20550,
+                "state": "R"
+              }
+            ]
+          },
+          "failureSample": {
+            "status": "observed",
+            "boundary": {
+              "idleLoop": false,
+              "singletonCleanup": false,
+              "nodeTeardown": false,
+              "browserContextTeardown": false,
+              "chromiumShutdown": false,
+              "launchServicesCheckOut": false,
+              "synchronousXpc": false,
+              "processExit": false
+            },
+            "mainThread": {
+              "appKitRunLoop": false,
+              "coreFoundationRunLoop": false,
+              "machMessageWait": true,
+              "keventWait": false,
+              "mutexWait": false,
+              "semaphoreWait": false
+            }
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n",
+        "cleanup": {
+          "status": "exited-after-cleanup",
+          "termSent": true,
+          "killSent": true
+        }
+      }
+    },
+    "blocked-final": {
+      "report": "artifacts/team-ui/gui-8y8Ov1/report.json",
+      "sha256": "95c6894629d03124296cf7b17f922780b72cb7dd8d3ea6e8b204340e85b875ee",
+      "status": "failed",
+      "checks": 14,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false,
+      "observedReport": {
+        "scenario": "blocked",
+        "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "downstreamBlockerDetails": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "longPanelKeyboardScrollAndUnobscuredReceipt": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "noFalseDeliveryOrDownstream": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "productionTouched": false,
+        "normalGUI": false,
+        "externalModel": false,
+        "memberUsage": {
+          "providerReported": false,
+          "nodes": [
+            {
+              "id": "build",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "check",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            },
+            {
+              "id": "final",
+              "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：未报告\n\n上下文压缩：未报告"
+            }
+          ]
+        },
+        "longPanel": [
+          {
+            "width": 980,
+            "height": 720,
+            "panelHeight": 360,
+            "viewportHeight": 720,
+            "scrollTop": 627,
+            "scrollHeight": 1083,
+            "clientHeight": 360,
+            "bounded": true,
+            "fits": true,
+            "focused": true,
+            "finalReceiptVisible": true,
+            "panelAboveComposer": true,
+            "finalMemberVisible": true,
+            "homeReturnedToStart": true
+          },
+          {
+            "width": 760,
+            "height": 620,
+            "panelHeight": 310,
+            "viewportHeight": 620,
+            "scrollTop": 627,
+            "scrollHeight": 1083,
+            "clientHeight": 310,
+            "bounded": true,
+            "fits": true,
+            "focused": true,
+            "finalReceiptVisible": true,
+            "panelAboveComposer": true,
+            "finalMemberVisible": true,
+            "homeReturnedToStart": true
+          }
+        ],
+        "status": "failed",
+        "requests": 8,
+        "shutdown": {
+          "injectedQuitBlock": false,
+          "requestedAt": 1794816600870,
+          "events": [
+            {
+              "event": "webcontents-destroyed",
+              "at": 1794816600920
+            },
+            {
+              "event": "window-closed",
+              "at": 1794816600923
+            },
+            {
+              "event": "window-all-closed",
+              "at": 1794816600924
+            },
+            {
+              "event": "before-quit",
+              "at": 1794816600924
+            },
+            {
+              "event": "host-stop-start",
+              "at": 1794816600924
+            },
+            {
+              "event": "host-stop-settled",
+              "at": 1794816601123
+            },
+            {
+              "event": "before-quit",
+              "at": 1794816601123
+            },
+            {
+              "event": "will-quit",
+              "at": 1794816601123
+            },
+            {
+              "event": "quit",
+              "at": 1794816601123
+            }
+          ],
+          "beforeClose": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 23610,
+                "ppid": 22293,
+                "state": "R"
+              },
+              {
+                "pid": 23630,
+                "ppid": 23610,
+                "state": "R"
+              },
+              {
+                "pid": 23631,
+                "ppid": 23610,
+                "state": "R"
+              },
+              {
+                "pid": 23635,
+                "ppid": 23610,
+                "state": "Rs"
+              },
+              {
+                "pid": 23828,
+                "ppid": 23610,
+                "state": "R"
+              }
+            ]
+          },
+          "closeDispatchedAt": 1794816600917,
+          "observedAt": 1794816610918,
+          "exitCode": null,
+          "failureAt": 1794816610919,
+          "failureProcesses": {
+            "status": "observed",
+            "processes": [
+              {
+                "pid": 23610,
+                "ppid": 22293,
+                "state": "R"
+              }
+            ]
+          },
+          "failureSample": {
+            "status": "observed",
+            "boundary": {
+              "idleLoop": false,
+              "singletonCleanup": false,
+              "nodeTeardown": false,
+              "browserContextTeardown": false,
+              "chromiumShutdown": false,
+              "launchServicesCheckOut": false,
+              "synchronousXpc": false,
+              "processExit": false
+            },
+            "mainThread": {
+              "appKitRunLoop": false,
+              "coreFoundationRunLoop": false,
+              "machMessageWait": true,
+              "keventWait": false,
+              "mutexWait": false,
+              "semaphoreWait": false
+            }
+          }
+        },
+        "error": "normal QA quit\n\nnull !== 0\n",
+        "cleanup": {
+          "status": "exited-after-cleanup",
+          "termSent": true,
+          "killSent": true
+        }
+      }
+    }
+  },
+  "preservedEarlier": {
+    "success-initial": {
+      "report": "artifacts/team-ui/gui-4eQ3L7/report.json",
+      "sha256": "6fa1907da7bfcff9eacb9ca88cb3bffef6cf1ad1f7f0f94bacc2e3860d685b91",
+      "status": "failed",
+      "checks": 6,
+      "exitCode": null,
+      "error": "{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":4,\"columnNumber\":82,\"scriptId\":\"45\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of null (reading 'getBoundingClientRect')\\n    at <anonymous>:5:83\\n    at <anonymous>:12:11\",\"objectId\":\"4972672710971514369.3.2\"}}",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "blocked-initial": {
+      "report": "artifacts/team-ui/gui-QN3NFe/report.json",
+      "sha256": "fdbd147b7be64da07eac9f27aed785e2ea23613456797a546bf8940f42eb7b96",
+      "status": "failed",
+      "checks": 7,
+      "exitCode": null,
+      "error": "{\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":4,\"columnNumber\":82,\"scriptId\":\"44\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of null (reading 'getBoundingClientRect')\\n    at <anonymous>:5:83\\n    at <anonymous>:12:11\",\"objectId\":\"1146435806901752658.3.2\"}}",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "success-corrected": {
+      "report": "artifacts/team-ui/gui-mx2jHK/report.json",
+      "sha256": "b38fc5e600a8bd38bec9fadbbf26c6527d8061d73f417430e14f7356546e2a36",
+      "status": "passed",
+      "checks": 12,
+      "exitCode": 0,
+      "error": null,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "blocked-corrected": {
+      "report": "artifacts/team-ui/gui-COa3J8/report.json",
+      "sha256": "21b7ba3b98b0c292d3badb6524064c4aea445d456c1557efa1813d8b1ecbab98",
+      "status": "failed",
+      "checks": 7,
+      "exitCode": null,
+      "error": "long panel is scrollable and not obscured by composer: {\"panelHeight\":360,\"viewportHeight\":720,\"scrollTop\":723,\"scrollHeight\":1083,\"clientHeight\":360,\"bounded\":true,\"fits\":true,\"focused\":true,\"finalReceiptVisible\":false,\"panelAboveComposer\":true}",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "intermediate-no-long-optin-success": {
+      "report": "artifacts/team-ui/gui-WQX3Ws/report.json",
+      "sha256": "fd520e1a291406f1de8c86a5e8484fb5995381b96ff1bd34c8a89db465a19514",
+      "status": "passed",
+      "checks": 11,
+      "exitCode": 0,
+      "error": null,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "intermediate-no-long-optin-blocked": {
+      "report": "artifacts/team-ui/gui-h6evE8/report.json",
+      "sha256": "07a797dedb8cfed158995cec708f70d694d7c872eb0390eb425c9031147969cc",
+      "status": "failed",
+      "checks": 13,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    }
+  },
+  "remainingScenarios": {
+    "stop": {
+      "report": "artifacts/team-ui/gui-7oPRSY/report.json",
+      "sha256": "523a9072e87b774ccfcf5833a14af97460382c98372b0df2a25e413d4f5913b4",
+      "status": "passed",
+      "checks": 8,
+      "exitCode": 0,
+      "error": null,
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "retry": {
+      "report": "artifacts/team-ui/gui-8h5MJp/report.json",
+      "sha256": "faafadbcba926ebbfae844ef967562a4937744e569493af966c7595745a7a330",
+      "status": "failed",
+      "checks": 16,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "attachments": {
+      "report": "artifacts/team-ui/gui-SQcCdH/report.json",
+      "sha256": "19cb95b93605d3d5578735469c89b5cb1121c35a6f2ea887603a7b62822afa71",
+      "status": "failed",
+      "checks": 15,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "stop-retry": {
+      "report": "artifacts/team-ui/gui-SlEN0s/report.json",
+      "sha256": "21221dd220a75880a80a9dace1c119716c5f364fabb393bd46a59bab9cd1f7d6",
+      "status": "failed",
+      "checks": 17,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "interrupt-retry": {
+      "report": "artifacts/team-ui/gui-SyrzTy/report.json",
+      "sha256": "0f41e384300b39cb123facd0e8433b544e0fad99aaee2ea1ce8862d714771cdc",
+      "status": "failed",
+      "checks": 20,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    },
+    "shell-stop": {
+      "report": "artifacts/team-ui/gui-JDlj4Z/report.json",
+      "sha256": "009eaaa847162580c1d14cfd3fde0e7afbd58ae3f10810a1b9d9e37e639bdf70",
+      "status": "failed",
+      "checks": 11,
+      "exitCode": null,
+      "error": "normal QA quit\n\nnull !== 0\n",
+      "normalGUI": false,
+      "externalModel": false
+    }
+  },
+  "commands": {
+    "results.json": {
+      "targeted": {
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/client.test.mjs",
+          "apps/electron/pi-team-client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 2.0
+      },
+      "build": {
+        "command": [
+          "npm",
+          "run",
+          "build:app"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 88.53
+      }
+    },
+    "regression-results.json": {
+      "core": {
+        "command": [
+          "npm",
+          "test"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 69.88
+      },
+      "core-serial": {
+        "command": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "packages/pi-adapter/adapter.test.mjs",
+          "packages/pi-adapter/process-stop.test.mjs",
+          "packages/pi-runtime/context-compaction.test.mjs",
+          "packages/pi-runtime/context-image-relief.test.mjs",
+          "packages/pi-runtime/desktop-focus-settle.test.mjs",
+          "packages/pi-runtime/desktop-queue.test.mjs",
+          "packages/pi-runtime/desktop-sdk.test.mjs",
+          "packages/pi-runtime/desktop-tools.test.mjs",
+          "packages/pi-runtime/desktop-transaction.test.mjs",
+          "packages/pi-runtime/image-policy.test.mjs",
+          "packages/pi-runtime/image-tool.test.mjs",
+          "packages/pi-runtime/team-runtime.test.mjs",
+          "probes/m01/desktop-ui.test.mjs",
+          "probes/m01/mobile.test.mjs",
+          "probes/m01/native.test.mjs",
+          "probes/m01/owned-processes.test.mjs",
+          "probes/m01/pi-rpc.test.mjs",
+          "probes/nsh-validation/bootstrap.test.mjs",
+          "probes/nsh-validation/host.test.mjs",
+          "probes/nsh-validation/pairing-entry.test.mjs",
+          "probes/nsh-validation/pairing-flow.test.mjs",
+          "probes/nsh-validation/pairing-network.test.mjs",
+          "probes/nsh-validation/pairing-review.test.mjs",
+          "probes/nsh-validation/pairing.test.mjs",
+          "scripts/packaging.test.mjs",
+          "scripts/team-qa-native-calibration.test.mjs",
+          "scripts/team-qa-shutdown.test.mjs",
+          "scripts/verify-electron-recovery.test.mjs",
+          "scripts/verify-electron-team.test.mjs",
+          "services/agent/acceptance.test.mjs",
+          "services/agent/controller.test.mjs",
+          "services/agent/errors.test.mjs",
+          "services/agent/provider-diagnostics.test.mjs",
+          "services/agent/scheduler.test.mjs",
+          "services/agent/store.test.mjs",
+          "services/agent/task-policy.test.mjs",
+          "services/agent/timeline-view.test.mjs",
+          "services/agent/usage.test.mjs"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 215.29
+      },
+      "electron": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 24.91
+      },
+      "native": {
+        "command": [
+          "cargo",
+          "+1.100.0",
+          "test",
+          "--release",
+          "--offline",
+          "--manifest-path",
+          "probes/m01/desktop/src-tauri/Cargo.toml"
+        ],
+        "env": {},
+        "exit": 101,
+        "seconds": 0.19
+      }
+    },
+    "acceptance-results.json": {
+      "signature": {
+        "command": [
+          "/usr/bin/codesign",
+          "--verify",
+          "--deep",
+          "--strict",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 9.82
+      },
+      "success": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1",
+          "MOOS_QA_REPORTED_USAGE": "1"
+        },
+        "exit": 1,
+        "seconds": 56.82
+      },
+      "blocked": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1"
+        },
+        "exit": 1,
+        "seconds": 53.86
+      },
+      "packaged": {
+        "command": [
+          "npm",
+          "run",
+          "test:electron"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 46.04
+      }
+    },
+    "corrected-results.json": {
+      "success-corrected": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1",
+          "MOOS_QA_REPORTED_USAGE": "1"
+        },
+        "exit": 0,
+        "seconds": 43.31
+      },
+      "blocked-corrected": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1"
+        },
+        "exit": 1,
+        "seconds": 35.63
+      },
+      "targeted-final": {
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/client.test.mjs",
+          "apps/electron/pi-team-client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 1.25
+      }
+    },
+    "remaining-results.json": {
+      "stop": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "stop"
+        ],
+        "env": {},
+        "exit": 0,
+        "seconds": 36.51
+      },
+      "retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "retry"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 51.87
+      },
+      "attachments": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "attachments"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 57.4
+      },
+      "stop-retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "stop-retry"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 58.02
+      },
+      "interrupt-retry": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "interrupt-retry"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 64.19
+      },
+      "shell-stop": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "shell-stop"
+        ],
+        "env": {},
+        "exit": 1,
+        "seconds": 50.47
+      }
+    },
+    "final-results.json": {
+      "success-final": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "success"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1",
+          "MOOS_QA_REPORTED_USAGE": "1"
+        },
+        "exit": 1,
+        "seconds": 53.62
+      },
+      "blocked-final": {
+        "command": [
+          "node",
+          "scripts/verify-electron-team.mjs",
+          "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app",
+          "blocked"
+        ],
+        "env": {
+          "MOOS_QA_LONG_PANEL": "1"
+        },
+        "exit": 1,
+        "seconds": 55.46
+      },
+      "targeted-delivery": {
+        "command": [
+          "node",
+          "--test",
+          "apps/electron/client.test.mjs",
+          "apps/electron/pi-team-client.test.mjs",
+          "scripts/verify-electron-team.test.mjs"
+        ],
+        "env": {
+          "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-YFupls/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+        },
+        "exit": 0,
+        "seconds": 1.78
+      }
+    }
+  },
+  "logs": {
+    "artifacts/team-long-panel/shell-stop.log": {
+      "sha256": "cfab0e66a96c5f3f1a69e4ac9b8af9c6e144eff64d7c1cd0ac2d2d26975bf68d",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/core.log": {
+      "sha256": "02b82c46321b3da410fa2080fa488525f54bdbe0fb1f50788dd35f32bada0727",
+      "summary": {
+        "tests": 299,
+        "pass": 297,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "artifacts/team-long-panel/targeted-final.log": {
+      "sha256": "d8410252b3fb46091ee05fad5efecc1e3eec20a1d29d84ad7171fefb819b0625",
+      "summary": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1
+      }
+    },
+    "artifacts/team-long-panel/signature.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/electron.log": {
+      "sha256": "e0cfe0c14c6485eeeca4ebf9ff1e273ce470c6f65dae78ae6bf7d44b99c9ab27",
+      "summary": {
+        "tests": 137,
+        "pass": 127,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 10
+      }
+    },
+    "artifacts/team-long-panel/blocked-corrected.log": {
+      "sha256": "ad21078d3f4073ab37c2a2fb94fba624acffde1c6c6f3948cb199e1f37293eff",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/accept-driver.log": {
+      "sha256": "6d67cfcb53d7df0e22f4f3247efa1fceaa61ee970c8d8c4af5bf9910dc75dfb4",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/stop-retry.log": {
+      "sha256": "58b6d2388476557d265a09fe89d0d5b62c464bb886615bd9149fe16489924f2e",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/docs-after-historical.log": {
+      "sha256": "11e32e951424bfc7975095c2e5f5ffe5e8a6387690c139e05b53af6bad3eb0ef",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/final-driver.log": {
+      "sha256": "f2f40be4f7ea585c031b4fe04251ebaf1cb813a57211f220726e823d80a69790",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/packaged.log": {
+      "sha256": "aee8bad19054aed7d26cbd24e6d9ff36ad22550a5699eac54ce020357b8116f8",
+      "summary": {
+        "tests": 137,
+        "pass": 136,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1
+      }
+    },
+    "artifacts/team-long-panel/targeted.log": {
+      "sha256": "0555adf2cb969218e8c01180fce2ba07bf5d6b6d71e5facfb96e6db1f6fe0b02",
+      "summary": {
+        "tests": 18,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1
+      }
+    },
+    "artifacts/team-long-panel/success.log": {
+      "sha256": "e2459e3d9c754c5dfa968565ed63c2670973a2344a543c262d68f05ea298f0c3",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/blocked.log": {
+      "sha256": "8c68714836794af646644fed47d59fe252d07b7d3f9eec2a4575f0122f034872",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/rebuild.log": {
+      "sha256": "0829cedbab002b56192ac273f085c2e3f4783683018e3944c8c73af243d1ccb6",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/attachments.log": {
+      "sha256": "0db292ecacf802532a6ce9da99eb5db2c16968162c506ecb28d1d5dcd2a6ec2b",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/native.log": {
+      "sha256": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/regress-driver.log": {
+      "sha256": "534173b1dfd2aecf82cf84576a9e0b491bb1c210bd7662f643c06aeb31ca8989",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/remaining-driver.log": {
+      "sha256": "119dbf7154551ac97afc48f9ba4d84b19e20718fbdc0c53ca7f8b8fc6ecb7a82",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/queue.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/prepare.log": {
+      "sha256": "52a9830febd195bc08f0700fccb7e6d5125b5442dcfc6fc798551ba7fa6b7833",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/docs-initial.log": {
+      "sha256": "00d75b2ab4279b90ab1e3750514de83b8cd43d4beb7a213c03b618d9d02bf174",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/final-queue.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/targeted-delivery.log": {
+      "sha256": "2a7ead07bc841e213d3838f77ef71be6c332518ebb5af9298da8e3f714f089e0",
+      "summary": {
+        "tests": 18,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "artifacts/team-long-panel/corrected-driver.log": {
+      "sha256": "f6788835d5e4ce18626e9aeab6fdcf1dd8018ef50c350843d84c5c86d93e28c1",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/stop.log": {
+      "sha256": "82374d72d46e321b531875c4caa5990351cecdf3a8e37b8a4f3c90fda2bd6276",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/success-corrected.log": {
+      "sha256": "8245b0cc862445cbe38c11bf9cbc1a47c20a7afeb7aca6e9d73cdc0ed8236abf",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/retry.log": {
+      "sha256": "dbf1c9308bd283c62d06e41959cacee5cb5af2e740a435dbf0aa22bd20bb1589",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/build.log": {
+      "sha256": "fcbbc1a9a5ab1530c724e17c260c7f305852f0eb94f59b95bf3afc5da685fd05",
+      "summary": {}
+    },
+    "artifacts/team-long-panel/core-serial.log": {
+      "sha256": "0528f371d7135989c7f43bdd6b30ad1b2ebfeb9ffaf36a720d34dbe500da9bcc",
+      "summary": {
+        "tests": 299,
+        "pass": 299,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "artifacts/team-long-panel/interrupt-retry.log": {
+      "sha256": "90e18dfbe9beb2cc028386203ad5a719c0afbe03553450a8aa7be371cc82353c",
+      "summary": {}
+    }
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/team-ui/gui-eBSgRB/team-long-panel-760.png",
+      "sha256": "6fe257eac80c180dff43ff91612470dbe44b494d3f6bd3e3c898a57f5d3bb3ae",
+      "encoding": "png",
+      "visuallyReviewed": true,
+      "scope": "entire760x620viewport; receipt above composer; not full expanded scroll contents at once"
+    },
+    {
+      "path": "artifacts/team-ui/gui-8y8Ov1/team-long-panel-760.png",
+      "sha256": "383458874625bcd017e09c292f3c43255a7ee8aedd113cdd2ef5ce1d80675a55",
+      "encoding": "png",
+      "visuallyReviewed": true,
+      "scope": "entire760x620viewport; receipt above composer; not full expanded scroll contents at once"
+    }
+  ],
+  "findings": [
+    "At980x720 and760x620 actual keyboard End/Home scroll the team card; final node and last receipt checked independently; last receipt fully inside card and above composer.",
+    "First selector incorrectly used textarea; DSH uses data-composer-input; two failures retained.",
+    "Blocked team ends with queued final node; End is not guaranteed to expose preceding rejected receipt; inspect final node first then scroll receipt nearest, without removing visibility assertions.",
+    "Successful corrected run gui-mx2jHK actually exited0/914ms; final two layout runs both business checks true but frozen strict exitnull; no repeated run to erase natural shutdown failure.",
+    "Other six scenario business checks true; stop exit0; five others strict exitnull.",
+    "Current final-results command metadata preserved; success-final.log/blocked-final.log were later reused for rejected intermediate no-optin build; authoritative original long-panel reports and screenshots remain at gui-eBSgRB/gui-8y8Ov1.",
+    "Default core297pass2fail/299: geometry helper timeout and owned Node sample observed vs unavailable; serial299/299 not repair.",
+    "Source Electron127pass10skip; packaged136pass1skip. Rust offline exit101 missing tauri.",
+    "Historical hashes now checked at c945b55/d7cf54a/023cc22; historical evidence JSON unchanged."
+  ],
+  "limits": [
+    "CDP keyboard and screenshots are hidden isolated renderer acceptance, not native keyboard/visible window/external model use.",
+    "Two/three actual nodes exercised; VM6-node rendering test is not six-node visual acceptance.",
+    "Scrolling structured receipts does not implement full member-message/right-side UI or safe file preview.",
+    "Natural exit failures remain unresolved; eight boundary booleans false exclude no phase.",
+    "No back-end change, no guard/deadline change, no production install/restart or real data modification.",
+    "Full repository not green; this is a bounded UI candidate checkpoint, not completed P03.14."
+  ],
+  "allRegressionsGreen": false,
+  "backendModified": false,
+  "installed": false,
+  "rootCauseRepaired": false,
+  "overallP0314Complete": false,
+  "protection": {
+    "productionTouched": false,
+    "realDataModified": false,
+    "productionRestarted": false,
+    "desktopGuardsChanged": false,
+    "exitDeadlineChanged": false,
+    "legacyExecutorEnabled": false,
+    "rawSampleExported": false
+  },
+  "finalTargeted": {
+    "command": [
+      "node",
+      "--test",
+      "apps/electron/client.test.mjs",
+      "apps/electron/pi-team-client.test.mjs",
+      "scripts/verify-electron-team.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 1.52,
+    "log": "artifacts/team-long-panel/targeted-delivery-final.log",
+    "sha256": "afe005b81018f105688a9634bc03c1b3f73762698271bc12d5a7e3194b3df6ef"
+  },
+  "documentationVerification": {
+    "command": "python3 -m unittest discover -s tests -v",
+    "tests": 155,
+    "pass": 155,
+    "seconds": 1.963,
+    "log": "artifacts/team-long-panel/docs.log",
+    "sha256": "3e715414512692be2a4184de1f12ed0fc9a42125f0f76dcd0a4b0060c9f01600"
+  }
+}
