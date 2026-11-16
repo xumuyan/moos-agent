@@ -10,6 +10,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 
+class OptionalTeamBudgetDesignTests(unittest.TestCase):
+    def test_budget_design_preserves_confirmed_scope_and_goal_boundary(self):
+        spec = (ROOT / 'docs/superpowers/specs/2026-11-17-optional-team-budget-design.md').read_text()
+        for text in ('默认不设置上限', '正安全整数', '旧客户端', '实际开始时', '2–6', '不是跨轮次持久目标'):
+            self.assertIn(text, spec)
+        self.assertIn('P03.14.11', (ROOT / 'PLAN.md').read_text())
+
+
 class ElectronResourceReviewTests(unittest.TestCase):
     def test_resource_checkpoint_does_not_claim_unmeasured_memory_or_hidden_window_gains(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/electron-polling-cache-review.json').read_text())

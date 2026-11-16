@@ -2785,3 +2785,12 @@
 - 对应 Git 提交：唯一说明 `perf(P03.14.10): avoid redundant polling renders and bound screenshot cache`；查询 `git log --oneline --grep='avoid redundant polling renders and bound screenshot cache'`；团队前提交5db24a7已推送并核对，当前提交推送后再核对远程HEAD。
 
 资源验证补记（2026-11-17 01:11:15 +08:00，同P03.14.10提交说明）：最终复核补首个读取失败仍清空上一次快照的回归，避免去重器初值undefined误保留旧状态；客户端最终14/14。重新`npm run build:app`生成build-e30oHT/沐码.app，严格签名与包内四源码核对通过；最终带此包运行时/审定皮肤的Electron完整串行141/141（47.413s，无跳过），`MOOS_QA_REPORTED_USAGE=1 node scripts/verify-electron-team.mjs '.generated/moos-electron/build-e30oHT/沐码.app' success`passed/9请求/正常退出exit0，报告gui-jf2BMC。短A/B属更早0.1.51草稿，未借此宣称最终CPU/RSS降低。仅清理本次三个中间构建dDhImq/zq1RIH/CG8JHg、三个已结束gui测试App/data和benchmark App/data，保留最终e30oHT及数值/截图/报告；未触碰生产目录或他人NSH产物。最终文档162/162随后复核。对应唯一Git说明 `perf(P03.14.10): bound screenshot cache and deduplicate UI polling`，查询 `git log --oneline --grep='bound screenshot cache and deduplicate UI polling'`；较早文档补记01:04:00为人工约记时间，未独立核实秒数，以本条实时时钟及工具报告为准。
+
+## 2026-11-17 07:25:44 +08:00｜P03.14.11 可选团队预算设计（用户已确认，未实现）
+
+- 修改或新增内容：记录用户「默认不设置上限，但是可以设置」的明确要求，设计预算留空不限、正整数校验、Host启动快照、旧权限配置兼容、两种触顶原因及现有团队目标语义边界；PLAN新增待办，不勾完成。
+- 遇到的难题：真实生产两次团队累计非缓存约200万触顶（不是缓存误计），请求上限又与Token上限共用误导错误码；当前代码仍写死2M/200且没有设置入口。
+- 处理方式：按用户已确认的可选预算实施，不擅自改成1000万；保留时间/取消/失败保护，不把默认不限解释成无限时间执行，不承诺Goal或节点恢复。
+- 验证结果：仅设计和文档检查，`npm run test:docs`随后运行；功能尚未实现/验收，不宣称通过。未改正式应用、数据、模型配置、NSH源码。
+- 遗留问题：按设计补实现、回归、构建与隔离UI验收，完成后另记；本提交只保存已授权范围。
+- 对应 Git 提交：唯一说明 `docs(P03.14.11): specify optional team budgets and goal boundaries`，查询 `git log --oneline --grep='specify optional team budgets and goal boundaries'`；推送后核对远程与本地HEAD。
