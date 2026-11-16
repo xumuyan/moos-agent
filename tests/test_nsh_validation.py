@@ -8,6 +8,21 @@ PROBE = ROOT / 'probes/nsh-validation'
 
 
 class NshValidationScopeTests(unittest.TestCase):
+    def test_desktop_first_pauses_mobile_without_claiming_ui_pi_integration(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        current = plan.split('#### 当前优先级：NSH 桌面优先，手机暂停', 1)[1].split('以下为历史检查点', 1)[0]
+        for marker in ('手机端暂停开发、构建、安装', '保留已有手机代码',
+                       '手机配对/TLS证书分发不再作为本机桌面闭环的前置依赖',
+                       '- [ ] N01-D1', '- [ ] N01-D2', '- [ ] N01-D3',
+                       '尚未实现NSH桌面UI到真实PI任务的完整闭环',
+                       '不安装、替换或重启正式应用', '同业务同负载'):
+            self.assertIn(marker, current)
+        readme = (PROBE / 'README.md').read_text()
+        for marker in ('当前安排：桌面优先，手机暂停', '恢复须用户重新指定',
+                       '尚未接通NSH桌面UI→真实PI任务', 'N01-D1→D2→D3',
+                       'N01继续未完成'):
+            self.assertIn(marker, readme)
+
     def test_local_flow_keeps_explicit_actions_and_native_evidence_bounded(self):
         report = (PROBE / 'PAIRING-FLOW.md').read_text()
         for marker in ('N01未完成', 'phoneVerified:false', 'humanConfirmationVerified:false',
