@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, writeFile, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 // Instrument only the copied QA entry. Never emit URLs, tokens or user content.
 export function instrumentQaShutdown(source, { blockQuit = false } = {}) {
@@ -98,6 +99,30 @@ export async function sampleQaProcess(child, run = promisify(execFile)) {
       catch { return { status: 'unavailable', reason: 'cleanup' }; }
     }
   }
+}
+
+// Post-evidence teardown only, never an application quit-success criterion.
+// Accept the exact spawned child, not PIDs discovered by global enumeration.
+export async function cleanupQaChild(child, closed, wait = sleep) {
+  if (!child || !Number.isSafeInteger(child.pid) || child.pid <= 1
+    || typeof child.kill !== 'function' || !closed || typeof closed.then !== 'function') {
+    throw new Error('Invalid QA child cleanup');
+  }
+  const exited = () => child.exitCode !== null || child.signalCode != null;
+  const result = { status: 'already-exited', termSent: false, killSent: false };
+  if (exited()) return result;
+  try {
+    result.termSent = child.kill('SIGTERM');
+    await Promise.race([closed, wait(5000)]);
+    if (!exited()) {
+      result.killSent = child.kill('SIGKILL');
+      await Promise.race([closed, wait(5000)]);
+    }
+    result.status = exited() ? 'exited-after-cleanup' : 'still-running';
+  } catch {
+    result.status = 'unavailable';
+  }
+  return result;
 }
 
 export async function snapshotQaProcesses(rootPid) {

@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
 import { EventEmitter } from 'node:events';
-import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses, summarizeQaSample, sampleQaProcess } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, selectQaProcesses, snapshotQaProcesses, summarizeQaSample, sampleQaProcess, cleanupQaChild } from './team-qa-shutdown.mjs';
 import { readFile, writeFile, stat } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 
 test('QA shutdown instrumentation preserves awaited Host cleanup and records ordered lifecycle', async () => {
   let release; const pending = new Promise(resolve => { release = resolve; });
@@ -119,4 +121,39 @@ test('sample failure reasons are fixed enums, not native command stderr', async 
     { status: 'unavailable', reason: 'command' });
   assert.deepEqual(await sampleQaProcess(child, async (_command, args) => writeFile(args[4], 'secret')),
     { status: 'unavailable', reason: 'unrecognized-sample' });
+});
+
+test('QA child cleanup is bounded, escalates only its spawned child and cannot mark normal quit passed', async () => {
+  for (const mode of ['already', 'term', 'kill', 'stuck', 'throw']) {
+    const signals = [], waits = []; let release;
+    const closed = new Promise(r => { release = r; });
+    const child = { pid: 123, exitCode: mode === 'already' ? 0 : null, signalCode: null,
+      kill(signal) {
+        signals.push(signal);
+        if (mode === 'throw') throw new Error('private error');
+        if ((mode === 'term' && signal === 'SIGTERM') || (mode === 'kill' && signal === 'SIGKILL')) {
+          this.signalCode = signal; release();
+        }
+        return true;
+      } };
+    const result = await cleanupQaChild(child, closed, async ms => { waits.push(ms); });
+    assert.deepEqual(signals, mode === 'already' ? [] : ['term', 'throw'].includes(mode) ? ['SIGTERM'] : ['SIGTERM', 'SIGKILL']);
+    assert.ok(waits.every(ms => ms === 5000));
+    assert.equal(result.status, mode === 'already' ? 'already-exited' : mode === 'stuck' ? 'still-running' : mode === 'throw' ? 'unavailable' : 'exited-after-cleanup');
+    assert.equal(child.exitCode, mode === 'already' ? 0 : null);
+    assert.doesNotMatch(JSON.stringify(result), /private|error/);
+  }
+  await assert.rejects(cleanupQaChild({ pid: 1 }, Promise.resolve()), /Invalid QA child cleanup/);
+});
+
+test('actual owned SIGTERM-ignoring child is reaped by post-evidence cleanup, not normal quit', { timeout: 15000 }, async () => {
+  const child = spawn(process.execPath, ['-e', "process.on('SIGTERM',()=>{}); console.log('ready'); setInterval(()=>{},1000)"], { stdio: ['ignore', 'pipe', 'ignore'] });
+  const closed = once(child, 'exit');
+  try {
+    await once(child.stdout, 'data');
+    const result = await cleanupQaChild(child, closed, async () => new Promise(r => setTimeout(r, 50)));
+    assert.deepEqual(result, { status: 'exited-after-cleanup', termSent: true, killSent: true });
+    assert.equal(child.exitCode, null); assert.equal(child.signalCode, 'SIGKILL');
+    assert.throws(() => process.kill(child.pid, 0), { code: 'ESRCH' });
+  } finally { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); }
 });

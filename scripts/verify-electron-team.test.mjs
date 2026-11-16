@@ -15,7 +15,8 @@ test('team renderer acceptance refuses production bundle before creating or laun
   assert.ok(source.indexOf("assert.equal(child.exitCode, 0, 'normal QA quit')") < source.indexOf('failureSample = await sampleQaProcess(child)'));
   const failure = source.slice(source.indexOf('report.shutdown.failureAt ='));
   assert.ok(failure.indexOf('report.shutdown.exitCode = child.exitCode') < failure.indexOf('failureProcesses ='));
-  assert.ok(failure.indexOf('failureSample =') < failure.indexOf('child.kill(\'SIGTERM\')'));
+  assert.ok(failure.indexOf('failureSample =') < failure.indexOf('cleanupQaChild(child, closed)'));
+  assert.ok(failure.indexOf("writeFile(join(scratch, 'report.json')") < failure.indexOf('cleanupQaChild(child, closed)'));
   for (const condition of ['realpath(inputApp)', 'normalGUI: false', 'externalModel: false',
     'instrumentQaShutdown(main, { blockQuit })', 'parseQaShutdown(line)', 'report.shutdown', 'snapshotQaProcesses(child.pid)', 'failureProcesses', 'failureSample = await sampleQaProcess(child)', 'sleep(10000)',
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',

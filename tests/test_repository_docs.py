@@ -9,6 +9,58 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaCleanupTests(unittest.TestCase):
+    def test_qa_cleanup_preserves_strict_failure_and_reaps_only_owned_child(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-cleanup.json').read_text())
+        self.assertFalse(e['runtimeModified'])
+        self.assertFalse(e['build']['installed'])
+        self.assertFalse(e['build']['rebuilt'])
+        for path, digest in e['implementation']['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        i = e['implementation']
+        self.assertEqual((i['termWaitMs'], i['killWaitMs'], i['normalQuitMs'], i['normalQuitCode']), (5000, 5000, 10000, 0))
+        self.assertTrue(i['postEvidenceOnly'])
+        self.assertFalse(i['forceCleanupIsSuccess'])
+        self.assertFalse(i['exitSnapshotOverwritten'])
+        self.assertEqual(i['resultKeys'], ['status', 'termSent', 'killSent'])
+        for n, a in e['acceptance'].items():
+            self.assertEqual(hashlib.sha256((ROOT / a['path']).read_bytes()).hexdigest(), a['sha256'])
+            r = a['report']
+            self.assertTrue(all(r['checks'].values()))
+            for key in ('productionTouched', 'normalGUI', 'externalModel'):
+                self.assertFalse(r[key])
+            if n == 'injected':
+                self.assertEqual(a['command']['exit'], 1)
+                self.assertEqual(r['status'], 'failed')
+                self.assertIsNone(r['shutdown']['exitCode'])
+                self.assertIn('normal QA quit', r['error'])
+                self.assertEqual(r['cleanup'], {'status': 'exited-after-cleanup', 'termSent': True, 'killSent': True})
+            else:
+                self.assertEqual((a['command']['exit'], r['shutdown']['exitCode']), (0, 0))
+        self.assertEqual(len(e['acceptance']), 9)
+        self.assertTrue(e['findings']['qaCleanupDefectFixedAndScopedAccepted'])
+        for key in ('nativeQuitRootCauseConfirmed', 'nativeQuitRootCauseRepaired', 'normalStopRerunIsRepair', 'overallAcceptanceComplete'):
+            self.assertFalse(e['findings'][key])
+        for observed in e['postCleanupObservations'].values():
+            self.assertEqual(observed['stillPresent'], [])
+        self.assertTrue(e['exploration']['residuals']['finalAllHistoricalObservedPidsAbsent'])
+        self.assertFalse(e['exploration']['resourceObservation']['causalConclusionConfirmed'])
+        self.assertEqual(e['exploration']['failure']['report']['shutdown']['failureSample']['reason'], 'command')
+        c = e['regression']['counts']
+        self.assertEqual(c['targeted']['pass'], 14)
+        self.assertEqual((c['core']['pass'], c['core']['fail']), (290, 1))
+        self.assertEqual(c['core-serial']['pass'], 291)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        for path, digest in e['logs'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertTrue(all(v is False for v in e['protection'].values()))
+        plan = (ROOT / 'PLAN.md').read_text()
+        self.assertIn('QA失败后清理检查点', plan)
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', plan)
+        self.assertIn('### 7.24 QA失败后有界清理', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamQaNativeSampleTests(unittest.TestCase):
     def test_native_qa_sample_is_sanitized_and_preserves_failed_stop(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-native-sample.json').read_text())
@@ -16,7 +68,8 @@ class TeamQaNativeSampleTests(unittest.TestCase):
         self.assertFalse(e['runtimeModified'])
         i = e['implementation']
         for path, digest in i['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+            content = subprocess.check_output(['git', 'show', 'd7cf54a:' + path], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(content).hexdigest(), digest)
         self.assertEqual((i['strictExitMs'], i['strictExitCode'], i['sampleTimeoutMs'], i['sampleMaxBytes']), (10000, 0, 3000, 2097152))
         for key in ('samplingAfterFailureOnly', 'temporaryFileRemovedInFinally', 'failureExitCodeCapturedBeforeDiagnostics'):
             self.assertTrue(i[key])

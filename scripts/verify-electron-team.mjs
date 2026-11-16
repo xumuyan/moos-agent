@@ -1,6 +1,6 @@
 // Isolated hidden-window renderer/Host/PI acceptance. Not normal desktop-input QA.
 import assert from 'node:assert/strict';
-import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses, sampleQaProcess } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses, sampleQaProcess, cleanupQaChild } from './team-qa-shutdown.mjs';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
@@ -632,5 +632,7 @@ try {
 finally {
   await writeFile(join(scratch, 'report.json'), JSON.stringify(report, null, 2)); console.log(scratch, JSON.stringify(report));
   socket?.close(); lines.close(); server.closeAllConnections(); server.close();
-  if (child.exitCode === null) { child.kill('SIGTERM'); await Promise.race([closed, sleep(5000)]); }
+  report.cleanup = await cleanupQaChild(child, closed);
+  // Append teardown outcome without overwriting the pre-cleanup failure snapshot.
+  await writeFile(join(scratch, 'report.json'), JSON.stringify(report, null, 2));
 }
