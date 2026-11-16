@@ -1,5 +1,13 @@
 # 操作日志
 
+## 2026-11-16 23:25:00 +08:00｜build-IfR8Pr 预算上限放宽版安装完成（E84 流程，用户授权）
+
+- 修改或新增内容：一次性更新脚本（artifacts/installed-update-0.1.50-IfR8Pr/）将 /Applications/沐码.app 换为含 TEAM_LIMITS 放宽（requests 200 / tokens 200 万 chargeable，commit 7cfc234）的 build-IfR8Pr；换包后应用启动，单实例，codesign 严格通过，包内 team-runtime 与候选 sha256 一致且含 requests: 200。
+- 遇到的难题：首轮 swap 被脚本守卫正确拦截——上一轮保留的旧包 .muma-old-0.1.50-eUCp8Q 已存在，拒绝覆盖（数据零影响，用户重开的是旧包 eGqLI7）；确认 eGqLI7 已实际使用验证后删除该旧包与对应备份重跑成功。launch 步再次 60 秒误报无进程（Gatekeeper 延迟，应用实际已运行），沿用既有已知问题记录。
+- 处理方式：停机备份 ~/.muma-update-backup-0.1.50-IfR8Pr-bak（消息 1342/任务 710/事件 497702 逐项核对）；数据目录零改动，安装后 providers.json 与 private/credentials.json 逐字节一致，SQLite 仅正常增长（1344/712/497799，integrity ok）。
+- 验证结果：本轮更新已安装并核对通过；三层修复（流中断 network 归因+重试、预算 chargeable 计数+team_budget 码、上限放宽 200/200 万）现均在生产包内。
+- 遗留问题：备份与旧包待用户使用确认后清理；launch 步误报待下次更新脚本修正；严格退出故障与既有 3 失败随版本保留。
+- 对应 Git 提交：修复见 7cfc234；本条目唯一提交说明含 IfR8Pr installed；查询 `git log --oneline --grep='IfR8Pr'`。
 ## 2026-11-16 23:20:00 +08:00｜团队预算上限按真实成本放宽（P03.14.8b，候选未安装）
 
 - 修改或新增内容：build-eGqLI7 安装后团队任务连报 team_budget。诊断生产：计数已诚实（input+output），590a5050 真实 44.6 万 chargeable/36 请求、e4036014 40 万/34 请求、cada8651 48 请求触请求数分支——是上限本身太紧，不是误判。旧 totalTokens 口径（含缓存重放）等效只容约 8 次请求，是此前团队任务屡败的根因。放宽 TEAM_LIMITS：requests 48→200、tokens 40 万→200 万（chargeable 口径），nodes/resultChars 不变。
