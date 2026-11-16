@@ -629,6 +629,46 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertIn('7.16 双项目活跃 shell 停止隔离',
                       (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_qa_shutdown_diagnostics_keep_strict_exit_and_unknown_root_cause(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-shutdown.json').read_text())
+        self.assertEqual(e['status'], 'qa-shutdown-instrumentation-timeout-not-reproduced')
+        self.assertFalse(e['runtimeModified'])
+        self.assertTrue(e['instrumentation']['normalExitRequired'])
+        self.assertEqual(e['instrumentation']['exitWindowMs'], 10000)
+        self.assertFalse(e['instrumentation']['exitGuardChanged'])
+        self.assertEqual(e['instrumentation']['fields'], ['event', 'at'])
+        self.assertEqual(len(e['acceptance']), 8)
+        for report in e['acceptance'].values():
+            self.assertEqual(report['status'], 'passed')
+            self.assertEqual(report['command']['exit'], 0)
+            self.assertTrue(all(report['checks'].values()))
+            self.assertEqual(report['shutdown']['exitCode'], 0)
+            self.assertGreaterEqual(report['hostStopMs'], 0)
+            events = [x['event'] for x in report['shutdown']['events']]
+            self.assertLess(events.index('host-stop-start'), events.index('host-stop-settled'))
+            self.assertLess(events.index('host-stop-settled'), events.index('quit'))
+            self.assertRegex(report['reportSha256'], r'^[0-9a-f]{64}$')
+            self.assertFalse(report['productionTouched'])
+            self.assertFalse(report['normalGUI'])
+            self.assertFalse(report['externalModel'])
+        self.assertFalse(any(e['diagnosis'][key] for key in
+                             ['timeoutReproduced', 'rootCauseConfirmed', 'rootCauseRepaired']))
+        self.assertFalse(any(e['protection'].values()))
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        failure = e['preservedFailures'][0]
+        self.assertEqual(failure['firstCommand']['exit'], 1)
+        self.assertEqual(failure['unchangedSerialRerun']['exit'], 0)
+        self.assertFalse(failure['rootCauseConfirmed'])
+        self.assertFalse(failure['desktopSafeguardsChanged'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertTrue(e['build']['sourceMatches'])
+        self.assertFalse(e['build']['installed'])
+        plan = (ROOT / 'PLAN.md').read_text().split('## P03.14｜', 1)[1].split('\n## ', 1)[0]
+        self.assertIn('QA退出诊断检查点', plan)
+        self.assertNotIn('- [x] P03.14.', plan)
+        self.assertIn('7.17 QA退出时间线', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')

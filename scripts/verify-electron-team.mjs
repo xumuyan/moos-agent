@@ -1,5 +1,6 @@
 // Isolated hidden-window renderer/Host/PI acceptance. Not normal desktop-input QA.
 import assert from 'node:assert/strict';
+import { instrumentQaShutdown, parseQaShutdown } from './team-qa-shutdown.mjs';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
@@ -27,7 +28,7 @@ execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
 const resources = join(app, 'Contents/Resources'), entry = join(resources, 'app/main.mjs');
 let main = await readFile(entry, 'utf8');
 assert.ok(main.includes("app.setName('沐码');"));
-await writeFile(entry, main.replace("app.setName('沐码');", "BrowserWindow.prototype.show = function () {};\napp.setName('沐码');"));
+await writeFile(entry, instrumentQaShutdown(main).replace("app.setName('沐码');", "BrowserWindow.prototype.show = function () {};\napp.setName('沐码');"));
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
@@ -125,13 +126,14 @@ const env = { ...process.env, TMPDIR: '/private/tmp/' };
 for (const key of Object.keys(env)) if (key.startsWith('MOOS_ELECTRON_') || key.startsWith('DSH_') || ['ELECTRON_RUN_AS_NODE', 'NODE_OPTIONS', 'NODE_PATH'].includes(key)) delete env[key];
 env.MOOS_ELECTRON_DATA = data;
 let child, closed, lines, port, socket;
+const shutdownEvents = [];
 function launch() {
   port = undefined;
   child = spawn(join(app, 'Contents/MacOS/MuMa'), ['--remote-debugging-port=0'], { env, stdio: ['ignore', 'ignore', 'pipe'] });
   const own = child;
   closed = new Promise(r => own.once('exit', r));
   lines = createInterface({ input: own.stderr });
-  lines.on('line', line => { const m = line.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)/); if (m) port = m[1]; void appendFile(join(scratch, 'app.log'), line + '\n'); });
+  lines.on('line', line => { const shutdown = parseQaShutdown(line); if (shutdown) shutdownEvents.push(shutdown); const m = line.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)/); if (m) port = m[1]; void appendFile(join(scratch, 'app.log'), line + '\n'); });
 }
 launch();
 async function until(fn, label) {
@@ -467,8 +469,11 @@ try {
   report.status = 'passed'; report.requests = requests.length;
   // Closing the last window can terminate Electron before CDP acknowledges
   // Page.close. A normal child exit is authoritative, not a lost CDP reply.
+  report.shutdown = { requestedAt: Date.now(), events: shutdownEvents };
   await Promise.race([call('Page.close'), closed]);
   await Promise.race([closed, sleep(10000)]);
+  report.shutdown.observedAt = Date.now();
+  report.shutdown.exitCode = child.exitCode;
   assert.equal(child.exitCode, 0, 'normal QA quit');
 } catch (error) { report.status = 'failed'; report.error = error.message; throw error; }
 finally {

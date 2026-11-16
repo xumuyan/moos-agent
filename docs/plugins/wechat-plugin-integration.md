@@ -202,3 +202,10 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 2026-11-16 双项目活跃shell停止隔离检查点（保留历史）：扩展既有Host/PI双项目测试，A bash/direct sleep120和B bash/direct cat FIFO均实际运行，四PID不同，ps父子及祖先归属本次隔离Host。只abort A，A cancelled/两PID ESRCH；1秒后B原PID存活/直接父子不变/任务running/控制器未abort/完整事件快照不变。只向FIFO写RELEASE_B数据，B原命令自然退出并写B_ONLY_42，独立read/verdict/summary成功；取消A事件不变、产物及每条事件归属正确，A下一ordinary成功。源码/未改包内各12请求11检查真，既有挂起模型场景仍通过；源码专项12通过1skip/13，包内新专项2/2，核心277/277；源码Electron119通过10skip、包内128通过1skip；Rust离线缺tauri exit101/皮肤材料缺失，全仓未全绿。八隐藏renderer场景最终通过；shell-stop/stop-retry/attachments首轮业务全过但正常退出超时，失败保留、原样串行重跑，不改门限且根因未确认。首测试脚本缺引号导致解析失败（未运行Host）保留并修正。复用build-39USi2严格验签/runtime及client归档字节核对，无runtime修改或重建。证据`docs/evidence/desktop/agent-teams-dual-shell-isolation.json`。仅合成Cordis/本地模型的真实Host链路，无双项目renderer或原生Stop；只覆盖两项目当前直接子进程拓扑/一秒窗口，不外推永久隔离、任意进程树/桌面取消/恰好一次。正常GUI/外部模型/完整成员面板/恢复及QA退出/helper超时根因待做，P03.14.1–6不勾；正式应用/用户数据未动。
 
 复验命令 `node --test apps/electron/team-stop-isolation.test.mjs` 同时执行既有B挂起模型和新增B活跃shell两场景。指定 `MOOS_ELECTRON_TEST_DSH_CLI=<generated-app>/Contents/Resources/host-runtime/bin/dsh` 复验包内Host/runtime；均使用独立临时数据，不修改正式应用。B使用非阻塞FIFO打开确认读取者仍存在，测试只写同步数据，不通过信号终止或重启B命令来制造完成。
+
+
+### 7.17 QA退出时间线（2026-11-16，未复现超时，未安装）
+
+2026-11-16 QA退出诊断检查点（保留历史失败）：只在复制QA main加入白名单退出事件/时间戳，记录window/webcontents销毁、before/will/quit及host.stop开始/settled；生产源码main/Host及候选包不改，原host.stop Promise和最终exitCode0/10秒门限保留。新增VM测试验证未放行Host清理前不退出、settled后原quit仍执行，解析器只保留event/at并拒绝未知入口/事件。八隐藏renderer场景带时间线均exit0，Host停止154–223ms；本轮QA退出未复现超时；首核心278通过1失败（既有geometry drift断言实际helper超时），保留首日志并原样串行复跑，不改桌面门限；不据成功测量宣称历史退出延迟根因已确认或修复，日志可能影响时序，既有失败证据保留。专项3/3、核心279/279，源码Electron119通过10skip、包内128通过1skip；Rust离线tauri缺失exit101/皮肤材料缺失，全仓未全绿。复用build-39USi2严格验签/runtime及client归档匹配，未重建/安装。证据`docs/evidence/desktop/agent-teams-qa-shutdown.json`。正常GUI/外部模型、完整成员面板/恢复、双项目renderer/桌面取消及QA退出/helper时限根因继续待做，P03.14.1–6不勾，正式应用/真实数据未动。
+
+命令仍为 `node scripts/verify-electron-team.mjs <generated-app> <scenario>`。报告shutdown.events包含白名单事件及Date.now毫秒；退出失败仍判失败并保留时间线，不从Host settled推断任意后代均退出，不从CDP回执推断正常退出。新增scripts/team-qa-shutdown.mjs仅由隔离验收脚本使用，不打入正式应用。
