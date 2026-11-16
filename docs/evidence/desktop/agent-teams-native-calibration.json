@@ -1,0 +1,279 @@
+{
+  "status": "native-fixture-sample-format-calibrated-not-electron-root-cause-not-installed",
+  "recordedAt": "2026-11-16T15:19:05.767988+08:00",
+  "baseCommit": "c945b55d6ef571761c289219938098a25e04ec3f",
+  "workspaceState": "new native calibration fixture and test final; docs/evidence recorded after targeted and complete regression attempts; no existing runtime or QA helper edits",
+  "environment": {
+    "system": "arm64/macOS27.0.1 (26A434)",
+    "node": "24.15.0",
+    "compiler": "Apple clang21.0.0/clang-2100.3.34.2",
+    "tmpdir": "/private/tmp/",
+    "inheritedRuntimeEnvironmentCleared": true
+  },
+  "sourceSha256": {
+    "scripts/fixtures/qa-native-boundary.cc": "28e7ffc8097eb8a77ecd8c4f8cedb4ee2dd797811732213db1326751b908345e",
+    "scripts/team-qa-native-calibration.test.mjs": "70d4d211fed8e0a6de2116bcacf9a8778900aef386fc0237bc16d73b70df6912",
+    "scripts/team-qa-shutdown.mjs": "7cee113c10ce492dcc330f850b493e6a7250ad4bf5e7f6035df0fa8db1701a57"
+  },
+  "acceptance": {
+    "command": "node --test scripts/team-qa-native-calibration.test.mjs scripts/team-qa-shutdown.test.mjs scripts/verify-electron-team.test.mjs",
+    "positiveBoundaryKeys": [
+      "idleLoop",
+      "singletonCleanup",
+      "nodeTeardown",
+      "browserContextTeardown",
+      "chromiumShutdown"
+    ],
+    "sameBinaryNegativeControl": true,
+    "negativeBoundaryValues": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "normalExitCodes": [
+      0,
+      0
+    ],
+    "sampleRemovedBeforeRelease": true,
+    "processStillAliveAfterClassification": true,
+    "implementation": "compile independent noinline fixture with -O0 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls; real /usr/bin/sample exact spawned child; production sampleQaProcess wrapper used unchanged",
+    "sampleTimeoutMs": 3000,
+    "maxBytes": 2097152,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "processBackstopSeconds": 12,
+    "testTimeoutMs": 30000,
+    "temporaryFixtureRemoved": true
+  },
+  "initialPositiveOnly": {
+    "log": "artifacts/team-native-calibration/initial.log",
+    "sha256": "c56894923675f306239664d745d3689eced6c2aeac61f780bb733eafd775e5a4",
+    "pass": 1,
+    "durationMs": 2081.409333
+  },
+  "regression": {
+    "targeted": {
+      "command": [
+        "node",
+        "--test",
+        "scripts/team-qa-native-calibration.test.mjs",
+        "scripts/team-qa-shutdown.test.mjs",
+        "scripts/verify-electron-team.test.mjs"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 3.28,
+      "log": "artifacts/team-native-calibration/targeted.log",
+      "logSha256": "1275e01194999c0667a51ad06340a92662e188a1b46ed1926e98cb41103d246e",
+      "summary": {
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "signature": {
+      "command": [
+        "/usr/bin/codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 6.86,
+      "log": "artifacts/team-native-calibration/signature.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": {}
+    },
+    "core": {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "env": {},
+      "exit": 1,
+      "seconds": 69.79,
+      "log": "artifacts/team-native-calibration/core.log",
+      "logSha256": "eec588ef1c46cd8b6f5d6acf490b71ecefa22bf25c5faa62d9bddbd14ec0dd52",
+      "summary": {
+        "tests": 298,
+        "pass": 297,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "core-serial": {
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "packages/pi-adapter/adapter.test.mjs",
+        "packages/pi-adapter/process-stop.test.mjs",
+        "packages/pi-runtime/context-compaction.test.mjs",
+        "packages/pi-runtime/context-image-relief.test.mjs",
+        "packages/pi-runtime/desktop-focus-settle.test.mjs",
+        "packages/pi-runtime/desktop-queue.test.mjs",
+        "packages/pi-runtime/desktop-sdk.test.mjs",
+        "packages/pi-runtime/desktop-tools.test.mjs",
+        "packages/pi-runtime/desktop-transaction.test.mjs",
+        "packages/pi-runtime/image-policy.test.mjs",
+        "packages/pi-runtime/image-tool.test.mjs",
+        "packages/pi-runtime/team-runtime.test.mjs",
+        "probes/m01/desktop-ui.test.mjs",
+        "probes/m01/mobile.test.mjs",
+        "probes/m01/native.test.mjs",
+        "probes/m01/owned-processes.test.mjs",
+        "probes/m01/pi-rpc.test.mjs",
+        "probes/nsh-validation/bootstrap.test.mjs",
+        "probes/nsh-validation/host.test.mjs",
+        "probes/nsh-validation/pairing-entry.test.mjs",
+        "probes/nsh-validation/pairing-flow.test.mjs",
+        "probes/nsh-validation/pairing-network.test.mjs",
+        "probes/nsh-validation/pairing-review.test.mjs",
+        "probes/nsh-validation/pairing.test.mjs",
+        "scripts/packaging.test.mjs",
+        "scripts/team-qa-native-calibration.test.mjs",
+        "scripts/team-qa-shutdown.test.mjs",
+        "scripts/verify-electron-recovery.test.mjs",
+        "scripts/verify-electron-team.test.mjs",
+        "services/agent/acceptance.test.mjs",
+        "services/agent/controller.test.mjs",
+        "services/agent/errors.test.mjs",
+        "services/agent/provider-diagnostics.test.mjs",
+        "services/agent/scheduler.test.mjs",
+        "services/agent/store.test.mjs",
+        "services/agent/task-policy.test.mjs",
+        "services/agent/timeline-view.test.mjs",
+        "services/agent/usage.test.mjs"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 156.91,
+      "log": "artifacts/team-native-calibration/core-serial.log",
+      "logSha256": "b7a11d92aa71fa8a0688add4ec908c41065ab9aaddbaf9fe43b4f59aae364a20",
+      "summary": {
+        "tests": 298,
+        "pass": 298,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "electron": {
+      "command": [
+        "npm",
+        "run",
+        "test:electron"
+      ],
+      "env": {},
+      "exit": 0,
+      "seconds": 25.54,
+      "log": "artifacts/team-native-calibration/electron.log",
+      "logSha256": "5ab43c9d4751733b42cb200de37b8ddb17d7a6cdca42748742960989c6e71bb7",
+      "summary": {
+        "tests": 136,
+        "pass": 126,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 10
+      }
+    },
+    "packaged": {
+      "command": [
+        "npm",
+        "run",
+        "test:electron"
+      ],
+      "env": {
+        "MOOS_ELECTRON_TEST_DSH_CLI": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/.generated/moos-electron/build-QWEhD0/沐码.app/Contents/Resources/host-runtime/bin/dsh"
+      },
+      "exit": 0,
+      "seconds": 39.7,
+      "log": "artifacts/team-native-calibration/packaged.log",
+      "logSha256": "1d9f8d1bfce3e50106dcea9be9c4e7a91b5f66dd00d0253c844177036c357b8d",
+      "summary": {
+        "tests": 136,
+        "pass": 135,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1
+      }
+    },
+    "native": {
+      "command": [
+        "cargo",
+        "+1.100.0",
+        "test",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "probes/m01/desktop/src-tauri/Cargo.toml"
+      ],
+      "env": {},
+      "exit": 101,
+      "seconds": 0.18,
+      "log": "artifacts/team-native-calibration/native.log",
+      "logSha256": "252d196c58c8c53ceb9781958c427510feb06252c78b8af783a73d21b9d28f49",
+      "summary": {}
+    }
+  },
+  "allRegressionsGreen": false,
+  "findings": [
+    "Five C++ frame families recognized in a real macOS sample from an intentionally named fixture, not Electron code.",
+    "The same binary plain path leaves all eight families false while named functions still exist in binary.",
+    "Default core297pass1fail/298: same geometry drift case now exact reads5 versus expected6; guards unchanged.",
+    "Serial298/298 supplements but does not repair default concurrency.",
+    "Electron source126pass10skip; packaged135pass1skip; missing reviewed skin materials remain skips.",
+    "Rust offline exit101 missing tauri; no downloads."
+  ],
+  "limits": [
+    "Fixture functions intentionally share reviewed symbol-family names; they are not real Electron/Node/Chromium implementations or lifecycle ordering.",
+    "Five-family fixture co-occurrence calibrates symbolization/parser plumbing only; it is not a blocked phase, causal diagnosis, liveness or deadlock proof.",
+    "LaunchServices, synchronous XPC and process-exit families still have synthetic-positive coverage only.",
+    "No natural copied-QA exit failure observed this round; historical gui-nex2zX/gui-aprEHG/gui-lS0geG remain unresolved.",
+    "No new Electron scenario run simply to seek a failure or green; no GUI/native keyboard/external model acceptance.",
+    "Compile/sample deadlines are timers, not hard-real-time guarantees; process12s alarm is fixture-only.",
+    "Existing sample privacy and exact-child/PID-reuse limitations remain.",
+    "Candidate signature rechecked; no rebuild or new source/archive comparison."
+  ],
+  "protection": {
+    "productionTouched": false,
+    "realDataModified": false,
+    "rawSampleExported": false,
+    "desktopGuardsChanged": false,
+    "exitDeadlineChanged": false
+  },
+  "productRuntimeModified": false,
+  "parserModified": false,
+  "rebuilt": false,
+  "installed": false,
+  "naturalFailureObserved": false,
+  "rootCauseConfirmed": false,
+  "rootCauseRepaired": false,
+  "overallP0314Complete": false,
+  "documentationVerification": {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-v"
+    ],
+    "exit": 0,
+    "pass": 154,
+    "seconds": 1.228,
+    "log": "artifacts/team-native-calibration/docs.log",
+    "sha256": "345a2d2308cb65428bc7a995aa1712e4ac7d7f63b589b2fd401c1454e2c23516"
+  }
+}

@@ -267,3 +267,8 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 true仅为聚合样本中的函数族出现，不代表具体等待根因、排他阶段、先后或死锁；false不代表排除（符号剥离/别名/版本或格式可能漏识别）。合成测试逐类阳性，真实自有Node采样验证私有异步链路，实际注入复制QA报告只验证schema：gui-WQNQOr故意阻退出仍exit1/null，10003ms后失败，AppKit/CF/Mach真且八类false，清理TERM+KILL不是通过。一次无注入gui-aXOBDN 20项业务真/exit0/263ms，没有故障采样，不消除三个历史自然失败。
 
 专项20/20；其他全量回归结果及默认helper失败/Rust离线依赖/皮肤skip如实保留于 `docs/evidence/desktop/agent-teams-native-frames.json`。仅QA helper/tests改动，候选QWEhD0重新验签，未重建/安装、不动main/Host或用户数据；自然退出根因/全仓/完整P03.14仍受阻，后续实需验收中遇自然失败才使用新诊断，不重复跑场景刷绿。
+
+
+### 7.28 原生采样格式校准
+
+2026-11-16 原生采样格式校准检查点（仅独立测试、非Electron退出根因、未安装）：新增独立C++ noinline夹具及macOS实际sample测试，临时编译/O0/g/保留帧与禁止尾调用。人为命名的5类函数在主线程等待stdin时被真实采样识别；同一二进制普通等待路径八类全false，证明不是按镜像含符号就判真。沿用未改sampleQaProcess的异步3秒/2MiB/0700/0600，删除采样文件后仍活，再stdin释放，两路径actual exit0并删除夹具目录；12秒alarm只约束夹具。此为真实格式校准，不是Electron/Node实现、实际退出阶段或自然故障复现；其余3类仍仅合成阳性。专项21/21，默认核心297通过1失败/298（geometry drift读取5预期6），完整原清单串行298/298非并发修复；源码Electron126通过10skip、包内135通过1skip，Rust离线缺tauri exit101，全仓未全绿。证据`docs/evidence/desktop/agent-teams-native-calibration.json`。不重复QA刷绿，不改parser/main/Host/桌面守卫/10000ms/actual exit0，不重建安装或动正式数据；历史自然退出失败和P03.14.1–6仍未解决/未勾，待必要验收出现真实失败时再诊断。

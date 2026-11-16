@@ -9,6 +9,37 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class TeamQaNativeCalibrationTests(unittest.TestCase):
+    def test_real_native_fixture_calibration_does_not_claim_electron_quit_repair(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-calibration.json').read_text())
+        self.assertEqual(e['status'], 'native-fixture-sample-format-calibrated-not-electron-root-cause-not-installed')
+        for path, digest in e['sourceSha256'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
+        self.assertEqual(e['acceptance']['positiveBoundaryKeys'], ['idleLoop', 'singletonCleanup', 'nodeTeardown', 'browserContextTeardown', 'chromiumShutdown'])
+        self.assertTrue(e['acceptance']['sameBinaryNegativeControl'])
+        self.assertEqual(e['acceptance']['normalExitCodes'], [0, 0])
+        self.assertTrue(e['acceptance']['sampleRemovedBeforeRelease'])
+        self.assertTrue(e['acceptance']['processStillAliveAfterClassification'])
+        for k in ('productRuntimeModified', 'parserModified', 'rebuilt', 'installed', 'naturalFailureObserved', 'rootCauseConfirmed', 'rootCauseRepaired', 'overallP0314Complete'):
+            self.assertFalse(e[k])
+        self.assertEqual(e['regression']['targeted']['summary']['pass'], 21)
+        for name, a in e['regression'].items():
+            log = ROOT / a['log']
+            self.assertEqual(hashlib.sha256(log.read_bytes()).hexdigest(), a['logSha256'])
+        self.assertEqual(e['regression']['native']['exit'], 101)
+        self.assertFalse(e['allRegressionsGreen'])
+        for k in ('productionTouched', 'realDataModified', 'rawSampleExported', 'desktopGuardsChanged', 'exitDeadlineChanged'):
+            self.assertFalse(e['protection'][k])
+        source = (ROOT / 'scripts/team-qa-native-calibration.test.mjs').read_text()
+        for anchor in ("'/usr/bin/clang++'", "'/usr/bin/sample'", 'sampleQaProcess(child', "child.stdin.end('release')", 'samplePath', '0o600', '0o700', 'positive ? []'):
+            self.assertIn(anchor, source)
+        self.assertNotIn('/Applications/', source)
+        self.assertIn('原生采样格式校准检查点', (ROOT / 'PLAN.md').read_text())
+        for n in range(1, 7):
+            self.assertIn(f'- [ ] P03.14.{n}', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('### 7.28 原生采样格式校准', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
+
 class TeamQaNativeFramesTests(unittest.TestCase):
     def test_native_frame_diagnostic_is_bounded_private_and_not_a_root_cause_claim(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-native-frames.json').read_text())

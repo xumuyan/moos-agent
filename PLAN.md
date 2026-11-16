@@ -209,6 +209,8 @@ E38 已验证本机 Electron 应用、独立数据、Moos 窗口与 Finder 图�
 
 2026-11-16 原生主线程分类检查点（仅隔离QA诊断、非根因修复、未安装）：在现有异步sample/失败后采样/私有文件清理上增加主线程函数帧8类固定布尔boundary（idleLoop/singletonCleanup/nodeTeardown/browserContextTeardown/chromiumShutdown/launchServicesCheckOut/synchronousXpc/processExit），不输出符号或路径。专项20/20，含逐类合成帧阳性/近名与元数据和worker阴性、异步等待、真实自有Node采样；实际正分类仅合成测试，不冒充自然故障。故意阻退出gui-WQNQOr仍原判exit1/null、关闭后10003ms，AppKit/CF/Mach真但8新分类全false，清理TERM+KILL独立；不据false排除阶段。一次无注入interrupt-retry gui-aXOBDN业务20项真/actual exit0/263ms，未触发采样，不当历史修复、不再刷绿。默认核心既有helper超时仍失败，串行/源码及包内Electron/Rust离线实际结果见证据`docs/evidence/desktop/agent-teams-native-frames.json`；全仓未全绿。QA-only不改main/Host/10000ms/exit0/桌面守卫，不重建安装或动真实数据；P03.14.1–6不勾，真实失败阶段证据和因果回归仍为解除条件。
 
+2026-11-16 原生采样格式校准检查点（仅独立测试、非Electron退出根因、未安装）：新增独立C++ noinline夹具及macOS实际sample测试，临时编译/O0/g/保留帧与禁止尾调用。人为命名的5类函数在主线程等待stdin时被真实采样识别；同一二进制普通等待路径八类全false，证明不是按镜像含符号就判真。沿用未改sampleQaProcess的异步3秒/2MiB/0700/0600，删除采样文件后仍活，再stdin释放，两路径actual exit0并删除夹具目录；12秒alarm只约束夹具。此为真实格式校准，不是Electron/Node实现、实际退出阶段或自然故障复现；其余3类仍仅合成阳性。专项21/21，默认核心297通过1失败/298（geometry drift读取5预期6），完整原清单串行298/298非并发修复；源码Electron126通过10skip、包内135通过1skip，Rust离线缺tauri exit101，全仓未全绿。证据`docs/evidence/desktop/agent-teams-native-calibration.json`。不重复QA刷绿，不改parser/main/Host/桌面守卫/10000ms/actual exit0，不重建安装或动正式数据；历史自然退出失败和P03.14.1–6仍未解决/未勾，待必要验收出现真实失败时再诊断。
+
 依赖：先完成 P03.14.1，再依次推进 P03.14.2–P03.14.6；复用 P03.13.3 的 PI 任务入口、P03.13.4 的执行权限、P03.13.5 的模型/凭据管理和 P03.13.7 的按需插件管理，但不据既有子集验证宣称这些阶段全部完成。涉及原生桌面/截图时，相关能力另依赖 P06.3a、P06.5a、P06.6；只含文本/代码的部分不无条件等待整个 M06。此项不是暂缓到 M09 后的 D01 Git 插件；来源解除后评估可独立开发的最小闭环，当前不停止 P06.5a。
 
 - [ ] P03.14.1 **确认插件与最小使用场景**：取得文章正文、截图或作者官方仓库地址；交叉核对作者/包名/版本或提交/许可证/安装来源/支持平台/外部服务与费用。把用户要用的实际功能转成输入→工具执行→产物验收样例；未明确功能前不编造样例或承诺兼容。

@@ -2620,3 +2620,15 @@
 本轮验证补记（2026-11-16 14:59:38 +08:00，同唯一提交说明）：默认核心296通过/1失败/297、62.60s，仍是geometry drift实际helper超时；完整原清单串行297/297、132.61s，不当并发修复。源码Electron126通过10skip/20.80s；指定候选包内135通过1skip/31.25s；Rust离线exit101/0.18s缺tauri。新增文档契约后python3 -m unittest discover -s tests -v 153/153、1.020s；元数据补齐后再次检查。全仓未全绿，相关诊断测试和故障注入链路限定通过，不声称应用根因修复/部署。
 
 最终核对（2026-11-16 14:59:58 +08:00，同唯一提交说明）：同专项20/20、1760.650750ms，文档153/153、0.961s，git diff --check通过。元数据仅补记已执行结果，提交前再运行文档检查及暂存差异检查；源码推送非部署。
+
+
+## 2026-11-16 15:19:05 +08:00｜P03.14 原生采样格式校准（非退出修复、未安装）
+
+- 修改或新增内容：新增scripts/fixtures/qa-native-boundary.cc及team-qa-native-calibration.test.mjs，真实clang++编译/系统sample/正负对照/私有权限与删除/正常退出测试；新增脱敏证据、PLAN、指南7.28和文档契约。现有parser及产品runtime不改。
+- 遇到的难题：旧五类阳性仅文本合成，不证明sample真实符号格式；真实故障又不可为刷绿/钓失败反复重跑。
+- 处理方式：独立人为同名C++函数链停在stdin，5类在栈中为真、同一binary不调用时八类全false；明确不是实际Electron/Node代码或因果阶段。复用原异步sample、精确自有child、3秒2MiB/0700/0600及finally清理；只有失败teardown才KILL自身夹具，不碰生产。其余三类不冒充真实阳性。
+- 验证结果：提交前新增测试最终工作区、arm64/macOS27.0.1/Node24.15.0/clang21/TMPDIR=/private/tmp/清继承环境。初positive-only1/1，最终正负对照专项21/21、3190.594375ms；两路径文件先删/进程仍活，释放后exit0，夹具目录删除。实际命令/时长/日志hash见新证据regression与artifacts/team-native-calibration/results.json。npm test 297通过1失败/298、69.79s，geometry drift reads5预期6，完整原清单串行298/298、156789.608416ms仅补充。源码Electron126通过10skip/25.54s、指定候选DSH135通过1skip/39.70s；codesign严格验签exit0/6.86s，无新归档核对；Rust离线exit101/0.18s缺tauri。文档落盘后检查另记。
+- 遗留问题：全仓未全绿；自然退出根因/桌面时序/皮肤材料/可见GUI和外部模型未解决，P03.14.1–6不勾。独立真实格式校准不修复历史三自然失败；未重新跑Electron场景/重建/安装/退出重启生产，不改聊天配置。
+- 对应 Git 提交：唯一说明 `test(P03.14): calibrate native sample boundaries with owned fixture`；查询 `git log --all --oneline --grep="calibrate native sample boundaries with owned fixture"`；源码推送非部署，提交后核对远程main=HEAD。
+
+验证补记（2026-11-16 15:19:37 +08:00，同唯一提交说明）：新增契约后python3 -m unittest discover -s tests -v 154/154、1.228s；git diff --check通过。元数据补齐后提交前再执行文档与暂存差异检查；默认失败/串行成功/离线阻塞保留，不宣称全仓通过。
