@@ -1,6 +1,6 @@
 // Isolated hidden-window renderer/Host/PI acceptance. Not normal desktop-input QA.
 import assert from 'node:assert/strict';
-import { instrumentQaShutdown, parseQaShutdown } from './team-qa-shutdown.mjs';
+import { instrumentQaShutdown, parseQaShutdown, snapshotQaProcesses } from './team-qa-shutdown.mjs';
 import { createServer } from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, realpath, writeFile, appendFile, readdir } from 'node:fs/promises';
@@ -22,13 +22,14 @@ const partial = stopping || interrupted;
 const successful = ['success', 'attachments'].includes(scenario);
 const repo = process.cwd(), allowed = join(repo, '.generated/moos-electron') + sep;
 assert.ok(resolve(inputApp).startsWith(allowed) && (await realpath(inputApp)).startsWith(allowed));
+const blockQuit = process.env.MOOS_QA_BLOCK_QUIT === '1';
 const scratch = await mkdtemp(join(repo, 'artifacts/team-ui/gui-'));
 const app = join(scratch, 'QA.app');
 execFileSync('/usr/bin/ditto', [resolve(inputApp), app]);
 const resources = join(app, 'Contents/Resources'), entry = join(resources, 'app/main.mjs');
 let main = await readFile(entry, 'utf8');
 assert.ok(main.includes("app.setName('沐码');"));
-await writeFile(entry, instrumentQaShutdown(main).replace("app.setName('沐码');", "BrowserWindow.prototype.show = function () {};\napp.setName('沐码');"));
+await writeFile(entry, instrumentQaShutdown(main, { blockQuit }).replace("app.setName('沐码');", "BrowserWindow.prototype.show = function () {};\napp.setName('沐码');"));
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
 const data = join(scratch, 'data'); await seedHome(resources, join(data, 'dsh'));
 const errors = [], requests = [];
@@ -469,13 +470,22 @@ try {
   report.status = 'passed'; report.requests = requests.length;
   // Closing the last window can terminate Electron before CDP acknowledges
   // Page.close. A normal child exit is authoritative, not a lost CDP reply.
-  report.shutdown = { requestedAt: Date.now(), events: shutdownEvents };
+  report.shutdown = { injectedQuitBlock: blockQuit, requestedAt: Date.now(), events: shutdownEvents,
+    beforeClose: await snapshotQaProcesses(child.pid) };
   await Promise.race([call('Page.close'), closed]);
   await Promise.race([closed, sleep(10000)]);
   report.shutdown.observedAt = Date.now();
   report.shutdown.exitCode = child.exitCode;
   assert.equal(child.exitCode, 0, 'normal QA quit');
-} catch (error) { report.status = 'failed'; report.error = error.message; throw error; }
+} catch (error) {
+  report.status = 'failed'; report.error = error.message;
+  if (report.shutdown) {
+    report.shutdown.failureAt = Date.now();
+    report.shutdown.failureProcesses = await snapshotQaProcesses(child.pid);
+    report.shutdown.exitCode = child.exitCode;
+  }
+  throw error;
+}
 finally {
   await writeFile(join(scratch, 'report.json'), JSON.stringify(report, null, 2)); console.log(scratch, JSON.stringify(report));
   socket?.close(); lines.close(); server.closeAllConnections(); server.close();

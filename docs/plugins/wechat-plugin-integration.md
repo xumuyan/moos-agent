@@ -209,3 +209,8 @@ P03.14.1 资料/最小场景 → P03.14.2 适配设计 → P03.14.3 执行桥 �
 2026-11-16 QA退出诊断检查点（保留历史失败）：只在复制QA main加入白名单退出事件/时间戳，记录window/webcontents销毁、before/will/quit及host.stop开始/settled；生产源码main/Host及候选包不改，原host.stop Promise和最终exitCode0/10秒门限保留。新增VM测试验证未放行Host清理前不退出、settled后原quit仍执行，解析器只保留event/at并拒绝未知入口/事件。八隐藏renderer场景带时间线均exit0，Host停止154–223ms；本轮QA退出未复现超时；首核心278通过1失败（既有geometry drift断言实际helper超时），保留首日志并原样串行复跑，不改桌面门限；不据成功测量宣称历史退出延迟根因已确认或修复，日志可能影响时序，既有失败证据保留。专项3/3、核心279/279，源码Electron119通过10skip、包内128通过1skip；Rust离线tauri缺失exit101/皮肤材料缺失，全仓未全绿。复用build-39USi2严格验签/runtime及client归档匹配，未重建/安装。证据`docs/evidence/desktop/agent-teams-qa-shutdown.json`。正常GUI/外部模型、完整成员面板/恢复、双项目renderer/桌面取消及QA退出/helper时限根因继续待做，P03.14.1–6不勾，正式应用/真实数据未动。
 
 命令仍为 `node scripts/verify-electron-team.mjs <generated-app> <scenario>`。报告shutdown.events包含白名单事件及Date.now毫秒；退出失败仍判失败并保留时间线，不从Host settled推断任意后代均退出，不从CDP回执推断正常退出。新增scripts/team-qa-shutdown.mjs仅由隔离验收脚本使用，不打入正式应用。
+
+
+### 7.18 QA退出失败进程快照（2026-11-16，故障注入，未安装）
+
+2026-11-16 QA退出失败进程诊断检查点（保留历史）：只扩隔离脚本，在关闭窗口前与退出失败后/清理前采集本次QA PID后代的pid/ppid/state，ps只请求这三列，最多128行/1.5秒/1MiB，无命令行/环境。解析/真实ps及QA专用quit阻止VM测试通过。明确MOOS_QA_BLOCK_QUIT=1仅在生产路径拒绝后的复制QA main注入before-quit preventDefault：实际write/read/verdict/汇总及9业务检查全过，但Host settled后应用未退出，原10秒/exitCode0严格判失败，清理前快照保留根和2后代；不把注入当历史故障复现。八正常场景均无注入exit0并有关闭前快照；默认npm test两次同一geometry drift实际helper超时，首日志和原样复跑均保留；首完整串行新增真实ps测试超时返回unavailable亦保留，最后完整原测试清单--test-concurrency=1原样复跑282/282通过，不等于默认npm test或ps时序故障修复；专项6/6，包内双项目专项2/2，核心单文件并发完整清单282/282，源码Electron119通过10skip、包内128通过1skip；Rust离线缺tauri exit101/皮肤材料缺失，全仓未全绿。复用build-39USi2严格验签及runtime/client源码归档匹配，无runtime修改/重建安装。证据`docs/evidence/desktop/agent-teams-qa-quit-process.json`。PID快照非跨PID复用身份/脱离后代/全进程清理证明；历史QA/helper超时根因未确认，P03.14.1–6不勾，正常GUI/外部模型/完整成员界面与恢复待做，正式应用/真实数据未改。

@@ -13,7 +13,7 @@ test('team renderer acceptance refuses production bundle before creating or laun
   const source = await readFile(new URL('./verify-electron-team.mjs', import.meta.url), 'utf8');
   assert.ok(source.indexOf('assert.ok(resolve(inputApp)') < source.indexOf('const scratch ='));
   for (const condition of ['realpath(inputApp)', 'normalGUI: false', 'externalModel: false',
-    'instrumentQaShutdown(main)', 'parseQaShutdown(line)', 'report.shutdown', 'sleep(10000)',
+    'instrumentQaShutdown(main, { blockQuit })', 'parseQaShutdown(line)', 'report.shutdown', 'snapshotQaProcesses(child.pid)', 'failureProcesses', 'sleep(10000)',
     'modeClearDoesNotCancel', 'independentReadAndArtifact', 'ordinaryAfterClear',
     'explicitStopCancels', 'heldRequestClosed', 'noFalseDeliveryOrDownstream', 'nodeProjection',
     'retryRetainsModeAndGoal', 'freshParentAndRoleContexts', 'artifactInspectedNotRewritten',

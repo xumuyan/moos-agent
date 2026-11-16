@@ -669,6 +669,55 @@ class RepositoryDocsTests(unittest.TestCase):
         self.assertNotIn('- [x] P03.14.', plan)
         self.assertIn('7.17 QA退出时间线', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
 
+    def test_qa_quit_failure_preserves_bounded_process_snapshot_before_cleanup(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/agent-teams-qa-quit-process.json').read_text())
+        self.assertEqual(e['status'], 'isolated-qa-quit-failure-process-diagnostics-not-installed')
+        self.assertFalse(e['runtimeModified'])
+        self.assertEqual(e['implementation']['processFields'], ['pid', 'ppid', 'state'])
+        self.assertEqual(e['implementation']['maxRows'], 128)
+        self.assertEqual(e['implementation']['snapshotTimeoutMs'], 1500)
+        self.assertEqual(e['implementation']['exitWindowMs'], 10000)
+        self.assertTrue(e['implementation']['normalExitRequired'])
+        self.assertFalse(e['implementation']['exitGuardChanged'])
+        injected = e['injectedAcceptance']
+        self.assertEqual(injected['expectedCommandExit'], 1)
+        r = injected['report']
+        self.assertEqual(r['status'], 'failed')
+        self.assertTrue(all(r['checks'].values()))
+        self.assertEqual(r['requests'], 9)
+        self.assertTrue(r['shutdown']['injectedQuitBlock'])
+        self.assertIsNone(r['shutdown']['exitCode'])
+        events = [event['event'] for event in r['shutdown']['events']]
+        self.assertIn('host-stop-settled', events)
+        self.assertNotIn('quit', events)
+        self.assertEqual(r['shutdown']['failureProcesses']['status'], 'observed')
+        self.assertEqual(len(r['shutdown']['failureProcesses']['processes']), 3)
+        self.assertEqual(len(e['normalAcceptance']), 8)
+        for r in [injected['report'], *e['normalAcceptance'].values()]:
+            self.assertFalse(r['productionTouched'])
+            self.assertFalse(r['normalGUI'])
+            self.assertFalse(r['externalModel'])
+            self.assertRegex(r['sha256'], r'^[0-9a-f]{64}$')
+            for row in r['shutdown']['beforeClose']['processes']:
+                self.assertEqual(set(row), {'pid', 'ppid', 'state'})
+        for r in e['normalAcceptance'].values():
+            self.assertEqual(r['status'], 'passed')
+            self.assertEqual(r['shutdown']['exitCode'], 0)
+            self.assertFalse(r['shutdown']['injectedQuitBlock'])
+        self.assertFalse(any(e['diagnosis'][k] for k in
+                             ['historicalTimeoutReproduced', 'historicalRootCauseConfirmed', 'historicalRootCauseRepaired']))
+        self.assertFalse(any(e['protection'].values()))
+        self.assertEqual(e['regression']['commands']['native']['exit'], 101)
+        self.assertFalse(e['regression']['allRegressionsGreen'])
+        self.assertFalse(e['build']['installed'])
+        self.assertEqual(e['build']['strictCodesign']['exit'], 0)
+        self.assertEqual(e['defaultConcurrencyRerun']['command']['exit'], 1)
+        self.assertEqual(e['serialFirstFailure']['command']['exit'], 1)
+        self.assertEqual(e['serialFirstFailure']['unchangedFullSerialRerun']['exit'], 0)
+        self.assertFalse(e['serialFirstFailure']['snapshotTimeoutChanged'])
+        self.assertIn('QA退出失败进程诊断检查点', (ROOT / 'PLAN.md').read_text())
+        self.assertIn('7.18 QA退出失败进程快照', (ROOT / 'docs/plugins/wechat-plugin-integration.md').read_text())
+
     def test_m06_transactions_keep_native_acceptance_and_deployment_pending(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/m06-desktop-transactions.json').read_text())
         self.assertEqual(e['id'], 'E122')
