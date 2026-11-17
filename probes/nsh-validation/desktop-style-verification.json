@@ -1,0 +1,778 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3/style_evidence",
+  "captureKind": "NSH macOS native development test-host content capture",
+  "productionScreenshot": false,
+  "manualGui": false,
+  "visualAccepted": false,
+  "performanceConclusion": false,
+  "reference": "static source CSS/token facts with independent Pillow diagrams/text; NOT Electron/DOM/computed style rendering",
+  "source": {
+    "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/probes/nsh-validation/skin-source.json",
+    "bytes": 70105,
+    "sha256": "d988514bf5eb713b557298383bea7d5ea26b3847a20dc2539b477399673e8c18"
+  },
+  "boardFont": {
+    "path": "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    "bytes": 23278008,
+    "sha256": "876af2cd4854644e7f3e7feb2f688997fdb3343c6df6693611209c9dfb47ccec"
+  },
+  "images": [
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/light-idle.png",
+      "bytes": 1608979,
+      "sha256": "abc9f4f17397b52dd199dcbc0c58243eced2bcb730d60b1ef2cc2c30b74e42b2",
+      "scene": "light-idle",
+      "pixels": [
+        1240,
+        820
+      ],
+      "frame": {
+        "name": "light-idle",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 1240,
+              "height": 848
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 1240,
+              "height": 820
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 1240,
+                "height": 848
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 1240,
+          "height": 820
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/light-chat.png",
+      "bytes": 1472371,
+      "sha256": "4f4681e4ffc05c488a876acc363feef10c4594076933ba68c432c969949d53f1",
+      "scene": "light-chat",
+      "pixels": [
+        1240,
+        820
+      ],
+      "frame": {
+        "name": "light-chat",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 1240,
+              "height": 848
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 1240,
+              "height": 820
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 1240,
+                "height": 848
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 1240,
+          "height": 820
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/light-details.png",
+      "bytes": 1229210,
+      "sha256": "48864e85e9a1fdc69da019b3fa1726da6b564499aa9b093a61eaf9aef562e760",
+      "scene": "light-details",
+      "pixels": [
+        1240,
+        820
+      ],
+      "frame": {
+        "name": "light-details",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 1240,
+              "height": 848
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 1240,
+              "height": 820
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 1240,
+                "height": 848
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 1240,
+          "height": 820
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/narrow-sidebar.png",
+      "bytes": 742188,
+      "sha256": "48fdcc8a1d188377b3de4b8d641ff41de7d2f27a9062255498851ca156fa6b8d",
+      "scene": "narrow-sidebar",
+      "pixels": [
+        680,
+        720
+      ],
+      "frame": {
+        "name": "narrow-sidebar",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 680,
+              "height": 748
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 680,
+              "height": 720
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 680,
+                "height": 748
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 680,
+          "height": 720
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/narrow-chat.png",
+      "bytes": 668700,
+      "sha256": "f89d21613d2651aa33a3f0bec742b3f66e40cf0bfa0ef37c41e7e25e2f38eae6",
+      "scene": "narrow-chat",
+      "pixels": [
+        680,
+        720
+      ],
+      "frame": {
+        "name": "narrow-chat",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 680,
+              "height": 748
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 680,
+              "height": 720
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 680,
+                "height": 748
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 680,
+          "height": 720
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/dark-details.png",
+      "bytes": 1175279,
+      "sha256": "6e3e121ce826fa53a5e530a158594e048dc9de3a3908f620465ab981f448cd93",
+      "scene": "dark-details",
+      "pixels": [
+        1240,
+        820
+      ],
+      "frame": {
+        "name": "dark-details",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 1240,
+              "height": 848
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 1240,
+              "height": 820
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 1240,
+                "height": 848
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 1240,
+          "height": 820
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    },
+    {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-JGWPko/dark-chat.png",
+      "bytes": 1391993,
+      "sha256": "c5ea39359fe7534c979a88ee202e284955beb386412b64ec66b2762d49cb05bb",
+      "scene": "dark-chat",
+      "pixels": [
+        1240,
+        820
+      ],
+      "frame": {
+        "name": "dark-chat",
+        "state": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 1240,
+              "height": 848
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 1240,
+              "height": 820
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 1240,
+                "height": 848
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        },
+        "expectedContent": {
+          "width": 1240,
+          "height": 820
+        },
+        "capture": "NSH native test host content; excludes outer frame",
+        "synthetic": true
+      }
+    }
+  ],
+  "boards": [
+    {
+      "region": "background",
+      "scene": "light-idle",
+      "cropContentRect": [
+        280,
+        75,
+        1240,
+        650
+      ],
+      "crop": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/background-native.png",
+        "bytes": 761380,
+        "sha256": "34e529dcf973c4a4a2ec5e5a478870f1b292c6889ce6f8e1993d71ad73cd0459"
+      },
+      "comparison": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/background-comparison.jpg",
+        "bytes": 123132,
+        "sha256": "f89fe175397e52874b1a39f5e24e96b0729a3ad458fa1014fae862cc80d3e716"
+      },
+      "facts": [
+        {
+          "file": "patches.css",
+          "selector": "body:before",
+          "line": 35,
+          "conditions": [],
+          "declarations": "content: \"\";\n  position: fixed;\n  z-index: -1;\n  pointer-events: none;\n  left: calc(var(--maid-sidebar-width, 280px) + clamp(8px, 1.3vw, 24px));\n  bottom: clamp(-34px, -2.4vh, -12px);\n  width: clamp(280px, 28vw, 480px);\n  height: clamp(560px, 96vh, 1180px);\n  background: url(assets/maid-atelier-maid-left-v5.webp) no-repeat center bottom / contain;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  transition: opacity .42s ease, height .62s ease, bottom .62s ease;\n  display: block;"
+        }
+      ]
+    },
+    {
+      "region": "sidebar",
+      "scene": "light-chat",
+      "cropContentRect": [
+        0,
+        0,
+        280,
+        820
+      ],
+      "crop": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/sidebar-native.png",
+        "bytes": 219099,
+        "sha256": "327112c9c81b95adfd25085beb0246ccbe291d11c0052fcf49fc4ad49a34d600"
+      },
+      "comparison": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/sidebar-comparison.jpg",
+        "bytes": 113948,
+        "sha256": "1c6deeae056db38440189d8d424f4253886d38aa93daf0870f1728fa448834b7"
+      },
+      "facts": [
+        {
+          "file": "patches.css",
+          "selector": ":is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"])",
+          "line": 370,
+          "conditions": [],
+          "declarations": "--dsw-alias-label-primary: #f8f3e8;\n  --dsw-alias-label-secondary: #d7def0;\n  --dsw-alias-label-tertiary: #b5c1dd;\n  --dsw-alias-label-caption: #96a8ce;\n  --dsw-alias-border-l1: #e1cfaa33;\n  --dsw-alias-border-l2: #e1cfaa52;\n  --dsw-alias-button-elevated-fill: #fffcf321;\n  --dsw-alias-button-floating-hover: #fffcf32e;\n  --dsw-alias-interactive-bg-hover: #fffcf31a;\n  --dsw-alias-interactive-bg-active: #c5a4684d;\n  z-index: auto;\n  background: #0a173b;\n  border-right: 0;\n  position: relative;\n  box-shadow: 8px 0 34px #08113038, inset -1px 0 #fff5d7d1, inset -3px 0 #e2cfa6b8;"
+        }
+      ]
+    },
+    {
+      "region": "messages-tools",
+      "scene": "light-chat",
+      "cropContentRect": [
+        390,
+        105,
+        1130,
+        525
+      ],
+      "crop": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/messages-tools-native.png",
+        "bytes": 292036,
+        "sha256": "1cf442e68101213f8c1e2de1ebb716801f2053d54ac336a55584fd286b25a289"
+      },
+      "comparison": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/messages-tools-comparison.jpg",
+        "bytes": 81891,
+        "sha256": "c9c6813b4927971dc8c4ca00d733859cf77a90392be26751f11f9865f1c9be62"
+      },
+      "facts": [
+        {
+          "file": "patches.css",
+          "selector": "[class*=\"userRow\"] [class*=\"bubble\"]",
+          "line": 1964,
+          "conditions": [],
+          "declarations": "background: #e8edf9f2;\n  border: 1px solid #c5a4687a;\n  box-shadow: 0 6px 20px #1326571a;"
+        }
+      ]
+    },
+    {
+      "region": "composer",
+      "scene": "light-chat",
+      "cropContentRect": [
+        380,
+        615,
+        1145,
+        810
+      ],
+      "crop": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/composer-native.png",
+        "bytes": 164274,
+        "sha256": "aa8aaa3c996d610b32b5a3ebd413394a25e64127b19f53acb75b9bee9edd4709"
+      },
+      "comparison": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/composer-comparison.jpg",
+        "bytes": 85711,
+        "sha256": "171d58d973c402e4210d227ee8d184fb48f3cc01e1d8050b58ddb06f5265436b"
+      },
+      "facts": [
+        {
+          "file": "patches.css",
+          "selector": "[data-composer-card],\n[data-phase=\"hero\"] [data-composer-card]",
+          "line": 1517,
+          "conditions": [],
+          "declarations": "isolation: isolate;\n  backdrop-filter: blur(8px) saturate(.88);\n  background: linear-gradient(#1b2c54f0, #0a173ae6), #0d193bb8 !important;\n  min-height: 0;\n  box-shadow: 0 18px 52px #1d305e2e, inset 0 1px #ffffff14;\n  border: 0;\n  border-radius: clamp(26px, 2vw, 34px);\n  padding-top: 34px;\n  overflow: visible;"
+        }
+      ]
+    },
+    {
+      "region": "details",
+      "scene": "light-details",
+      "cropContentRect": [
+        980,
+        0,
+        1240,
+        820
+      ],
+      "crop": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/details-native.png",
+        "bytes": 36700,
+        "sha256": "cb9d527ace713f7c81e282803d642adfa193b1fb2d99638f6bb91c171ae24bb1"
+      },
+      "comparison": {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/details-comparison.jpg",
+        "bytes": 59146,
+        "sha256": "af1895f9de577ce410d550d72d72664d07433220192d2f2199c1f915812ed575"
+      },
+      "facts": [
+        {
+          "file": "patches.css",
+          "selector": ":is([data-pane=\"details\"], [class*=\"detailsCol\"])",
+          "line": 481,
+          "conditions": [],
+          "declarations": "background: #f2f6fdd1;\n  border-left-color: #c5a46885;"
+        }
+      ]
+    }
+  ],
+  "statesBoard": {
+    "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/style-evidence/review-final/states.jpg",
+    "bytes": 203003,
+    "sha256": "e56d5598c45cc53b1d344c47ddbd42284539c1a2f05b29d85901f3cd93f889f1"
+  },
+  "visualBytes": 10429040,
+  "budgetBytes": 16777216,
+  "readOnlyProductionCapture": {
+    "status": "blocked",
+    "reason": "desktop_permissions: screen recording and accessibility not granted; no bypass attempted"
+  },
+  "rights": {
+    "artCommitted": false,
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "上善 → zipzip → Small-tailqwq",
+    "distributionReviewPending": true
+  },
+  "createdAt": "2026-11-17T22:19:32.238664+08:00",
+  "baseCommit": "fa37db417f438a8b80b1c01a314e889642a65272",
+  "worktree": "mixed worktree; 7 pre-existing untracked integration/controller files preserved; not clean-checkout acceptance",
+  "protectedFiles": {
+    "probes/nsh-validation/DesktopApp.tsx": {
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "bytes": 94
+    },
+    "probes/nsh-validation/DesktopUIHost.swift": {
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "bytes": 5261
+    },
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": {
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "bytes": 4138
+    },
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "bytes": 10935
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "bytes": 729
+    },
+    "probes/nsh-validation/desktop-ui.test.mjs": {
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "bytes": 8328
+    },
+    "probes/nsh-validation/verify-desktop-ui.mjs": {
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "bytes": 6362
+    },
+    "probes/nsh-validation/verify-desktop-native.mjs": {
+      "sha256": "6869428e40e78d46b3c858531711488ab2f4e20ee39e5aa93b50ecb459f36321",
+      "bytes": 9434
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "sha256": "74287790a985431a7966e6dc720799004c38a89acda0246d2fe67cfc9fb17411",
+      "bytes": 3582
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "sha256": "9bc14a6217e2cb517cc283a89a51cb134b843ea52aa7b62d7ea6443187167b85",
+      "bytes": 15098
+    }
+  },
+  "evidenceLogs": {
+    "artifacts/nsh-validation/style-evidence/capture-fixed.log": {
+      "sha256": "d3c174cc32a6432debed0162d8b1a70e7219d40c6fc64817bc48688716fa3f49",
+      "bytes": 4191
+    },
+    "artifacts/nsh-validation/style-evidence/boards-final.log": {
+      "sha256": "9b1b5627a75c968f2fb85f3218425f31a98baeb76d83f770fee3021b8d949b6e",
+      "bytes": 210
+    },
+    "artifacts/nsh-validation/style-evidence/targeted.log": {
+      "sha256": "9c8c14d4e00325c94cb7871da493bcd41ecb7335e0542d08a218b79ae77be762",
+      "bytes": 1666
+    },
+    "artifacts/nsh-validation/style-evidence/targeted-final.log": {
+      "sha256": "0395a983d7bdb7907b66e1a2de86a3851642090be132d825fa107e05145349fa",
+      "bytes": 432
+    },
+    "artifacts/nsh-validation/style-evidence/core.log": {
+      "sha256": "37195717a4759a30e5292e7f7898e1703c512e87e393edabb2fed5b5d54fcf72",
+      "bytes": 36753
+    },
+    "artifacts/nsh-validation/style-evidence/core-final.log": {
+      "sha256": "fa0c3aa7a40a9174fc7d33050ed6c06d434c2351ec0e1e064bd2fef21e1fed1e",
+      "bytes": 35529
+    },
+    "artifacts/nsh-validation/style-evidence/headless.log": {
+      "sha256": "77785205e6246556212304380697c6a9b0719d58037395e2f8ff835c54634a58",
+      "bytes": 2148
+    },
+    "artifacts/nsh-validation/style-evidence/native.log": {
+      "sha256": "b25bd98872f4fc461eebc53d93031b4f8edc2103cf62231a9fa9570c39e33b78",
+      "bytes": 1015
+    },
+    "artifacts/nsh-validation/style-evidence/electron.log": {
+      "sha256": "deb95952e1b8c7d9608ce460c3c5a3cfe93ad1625137f7574ecdb8f4c50af01f",
+      "bytes": 21411
+    },
+    "artifacts/nsh-validation/style-evidence/rust.log": {
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc",
+      "bytes": 799
+    },
+    "artifacts/nsh-validation/style-evidence/build.log": {
+      "sha256": "f8b69aeab5c5929eec25a5e3b11445a8759df398cb1482f4e6422b2c14d5551c",
+      "bytes": 190
+    },
+    "artifacts/nsh-validation/style-evidence/fonts-displays.log": {
+      "sha256": "08bb178d1f6aca790319a011872c7eba9019f0b67902713c2bf079becf8f6baa",
+      "bytes": 266
+    },
+    "artifacts/nsh-validation/style-evidence/source-recheck.json": {
+      "sha256": "5067f0162cd47382258caf7d726013ac5537fcdebf8a35a218135e555f9d1023",
+      "bytes": 192
+    },
+    "artifacts/nsh-validation/style-evidence/docs.log": {
+      "sha256": "f4d72e5027921706149bccaf8673f1a441a8c00100a7114122ca38e88e77a391",
+      "bytes": 320045
+    },
+    "artifacts/nsh-validation/style-evidence/docs-final.log": {
+      "sha256": "d5a0a4ff0dc1de53bc90244fac0cca4c749d005b000f28150fcbd4d064ac2ff3",
+      "bytes": 25461
+    },
+    "artifacts/nsh-validation/style-evidence/docs-recheck.log": {
+      "sha256": "50300ed947ac070c5550e6a431f7172de0432d41fb5eaca23e16fe2f696e8208",
+      "bytes": 20334
+    }
+  },
+  "acceptance": {
+    "sourceVerified": true,
+    "nativeContentCapture": true,
+    "pngDimensionsVerified": true,
+    "manualGui": false,
+    "visualAccepted": false,
+    "cleanCheckoutIntegrated": false,
+    "performanceMeasured": false,
+    "installed": false,
+    "deployed": false,
+    "overallN01Complete": false
+  },
+  "tests": {
+    "core": {
+      "passed": 354,
+      "failed": 0,
+      "initialPassed": 353,
+      "initialFailed": 1,
+      "initialFailure": "new style test used URL.pathname instead of fileURLToPath on Chinese directory; corrected"
+    },
+    "targeted": {
+      "passed": 3
+    },
+    "pythonHelpers": {
+      "passed": 3
+    },
+    "headless": {
+      "passed": 9
+    },
+    "native": {
+      "passed": 4
+    },
+    "capture": {
+      "passed": 1,
+      "scenes": 7
+    },
+    "electron": {
+      "passed": 133,
+      "skipped": 10,
+      "reason": "packaged DSH CLI input unavailable"
+    },
+    "rust": {
+      "status": "blocked",
+      "exitCode": 101,
+      "reason": "offline defmt dependency missing"
+    },
+    "docs": {
+      "passed": 173,
+      "failed": 0,
+      "initialFailures": "173 tests, 1 failed before root entries; second 173/1 failed because operation-log audit labels incomplete; corrected labels and reran"
+    }
+  },
+  "knownDifferences": [
+    "Idle top lace intersects title baseline",
+    "Preview footer overlaps or abuts decorative bottom border",
+    "Message/tool views are native approximations; no DOM/computed-style or pixel metric",
+    "Sidebar corner clipping/mirroring, full animations, IME not validated",
+    "CSS reference boards use selected source rules and alpha swatches, not complete production composition"
+  ],
+  "commitSubject": "test(N01-D3): add reproducible native style evidence and source boards",
+  "commitQuery": "git log --all --oneline --grep='reproducible native style evidence and source boards'"
+}

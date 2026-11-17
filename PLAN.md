@@ -27,6 +27,8 @@
 
 - 2026-11-17 skin_source / native_style 检查点：经用户窄范围只读授权核实持久选择 maid-atelier0.3.2（CC BY-NC-SA 4.0）、皮肤中心0.4.16、DSH0.2.2-rc.1、安装壳0.1.52；`SKIN-SOURCE.md` / `skin-source.json` 保留17图hash/尺寸、109条样式事实及运行态未知边界。E139仍为历史几何参考，不代表当前持久皮肤。主题有界接管原有视图，实现深蓝金色、明暗、原生九宫格/渐变/人物响应式及显式本机素材预览，未提交原图/字体/hooks。证据 `probes/nsh-validation/desktop-theme-verification.json`、差异 `desktop-theme-review.md`；核心351/351、默认Electron133通过/10跳过、headless9/9、素材5/5、原生专项4/4、保存截图场景2/2（合成六方法响应，不是实际PI任务），文档结果见日志。Rust离线缺defmt。没有用户视觉认可、正式运行态同尺寸对照或同业务全进程资源测量；动画/部分侧栏装饰/输入法/历史重启/完整集成未完成。集成owner仍需将新增主题依赖加入verify-desktop-ui复制清单并提交原有未跟踪控制器/入口等，当前证据为混合工作区、非干净检出交付。D1/D2/D3与N01均未勾选；仅源码检查点，不部署、不安装/退出/重启正式应用，不恢复手机路线。
 
+- 2026-11-17 style_evidence 样式证据检查点：独立截图入口不复制他人DesktopApp/Swift/业务入口，仍使用原有controller/transport接口；10份保护输入原字节一致，7份他人未跟踪文件不纳入。NSH原生development test host内容捕获7图：1240×820/680×720、scale1，外框1240×848/680×748；5类组件裁图与静态CSS/token并排板，合成文字、不执行PI。见DESKTOP-STYLE-EVIDENCE.md及desktop-style-verification.json，图像约9.95MiB，不提交艺术。录屏/辅助功能均未授权，未安全取得Electron实时参考，静态参考不冒充同皮肤运行图或人工GUI。首次日志stderr漏记/中文URL路径测试错误如实保留，修正后核心354/354、主题9/9、原生4/4、捕获1/1含7场景、专项3/3，Electron133通过/10跳过，Rust缺defmt受阻；文档最终173/173（保留首次缺根条目及审计标签失败）。idle标题/蕾丝及底部说明叠边保留，用户视觉认可/干净业务集成/同业务全进程资源比较未完成，D1/D2/D3保持未勾；轻量目标不变，无性能收益结论，不安装/部署/重启正式应用，手机暂停。
+
 以下为历史检查点；其中手机“下一步”由上面的暂停决定覆盖，不代表当前仍安排手机任务。N01整体验收保持未完成。
 
 - [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。
