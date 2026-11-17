@@ -25,6 +25,8 @@
 
 - 2026-11-17 desktop_baseline 子项：范围/所有权/六方法兼容接口与真实视觉来源已固定在 `probes/nsh-validation/DESKTOP-BASELINE.md`、`desktop-baseline.json`，初始9个他人未跟踪文件hash保留且未编辑/暂存。主参考为历史隔离Electron E139的1240×820截图（左栏约280、顶栏约75、浅蓝透明壁纸），不是本轮NSH图；完整目标美术资产/字体与许可未找到，不从正式用户数据提取。`desktop-baseline.mjs`/`desktop-baseline.test.mjs` 为同业务三组/五负载/完整进程树与安装及运行时落盘报告门禁，缺字段/不等价/强退阻塞，抖动内收益不算证明。当前没有本轮资源测量/主题认可，真实PI+回环夹具不等于外部模型；D1/D2/D3及整体继续未勾选。相关命令、实际结果及遗留依赖见本轮operatelog，不修改正式Electron/共用PI/手机，不部署。专项8/8、文档167/167；显式独立TMPDIR完整核心345项343通过/2失败，Electron143项132通过/1失败/10跳过，Rust离线缺tauri，因此仅源码基线检查点，不是全仓验收完成。解除条件为定位helper/原生采样/Host超时并在同状态完整回归及对应实际验收通过。
 
+- 2026-11-17 skin_source / native_style 检查点：经用户窄范围只读授权核实持久选择 maid-atelier0.3.2（CC BY-NC-SA 4.0）、皮肤中心0.4.16、DSH0.2.2-rc.1、安装壳0.1.52；`SKIN-SOURCE.md` / `skin-source.json` 保留17图hash/尺寸、109条样式事实及运行态未知边界。E139仍为历史几何参考，不代表当前持久皮肤。主题有界接管原有视图，实现深蓝金色、明暗、原生九宫格/渐变/人物响应式及显式本机素材预览，未提交原图/字体/hooks。证据 `probes/nsh-validation/desktop-theme-verification.json`、差异 `desktop-theme-review.md`；核心351/351、默认Electron133通过/10跳过、headless9/9、素材5/5、原生专项4/4、保存截图场景2/2（合成六方法响应，不是实际PI任务），文档结果见日志。Rust离线缺defmt。没有用户视觉认可、正式运行态同尺寸对照或同业务全进程资源测量；动画/部分侧栏装饰/输入法/历史重启/完整集成未完成。集成owner仍需将新增主题依赖加入verify-desktop-ui复制清单并提交原有未跟踪控制器/入口等，当前证据为混合工作区、非干净检出交付。D1/D2/D3与N01均未勾选；仅源码检查点，不部署、不安装/退出/重启正式应用，不恢复手机路线。
+
 以下为历史检查点；其中手机“下一步”由上面的暂停决定覆盖，不代表当前仍安排手机任务。N01整体验收保持未完成。
 
 - [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。

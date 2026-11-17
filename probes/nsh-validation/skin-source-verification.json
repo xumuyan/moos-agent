@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3/skin_source",
+  "recordedAt": "2026-11-17T21:16:32.785264+08:00",
+  "worktree": {
+    "baseHead": "381868ba2bb1876fbdb55d3d605bdee9f4c6ade0",
+    "currentHead": "381868ba2bb1876fbdb55d3d605bdee9f4c6ade0",
+    "state": "uncommitted skin-source additions plus preserved pre-existing untracked UI files; no tracked changes",
+    "ownedFiles": {
+      "SKIN-SOURCE.md": "0a34e51a5df30a9eaf86dd92f3fc017c25277930d8ed6e75a9c5260ebb7cbcd0",
+      "skin-source.json": "d988514bf5eb713b557298383bea7d5ea26b3847a20dc2539b477399673e8c18",
+      "skin_source.py": "baf961685142f90784f625bc5f8c1db8933a15907120d6338e9bcc1ffe112595",
+      "skin_source_test.py": "0bd36d5b664d86c5db87f9f51126fb42979d350e794352d4abf6ae16bf048e55",
+      "skin-source.test.mjs": "3eadefec661927e06877c5d8e875b175aa2de7abd796133148c9823aaed6d52e"
+    },
+    "protectedUntracked": [
+      {
+        "path": "probes/nsh-validation/DesktopApp.test.tsx",
+        "sha256Before": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+        "sha256After": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/DesktopApp.tsx",
+        "sha256Before": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+        "sha256After": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/DesktopUIHost.swift",
+        "sha256Before": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+        "sha256After": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/DesktopView.tsx",
+        "sha256Before": "8aeb4d53d6c0cc302cc75c85d2dcadae900dac31a16092f1c2930e76e8519280",
+        "sha256After": "8aeb4d53d6c0cc302cc75c85d2dcadae900dac31a16092f1c2930e76e8519280",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/assets/desktop/sidebar-icon.png",
+        "sha256Before": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf",
+        "sha256After": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme-capture.tsx",
+        "sha256Before": "642092f2e24d0a07583331b81b64777d5ec42a34f6c97df6ee9f9c0504622279",
+        "sha256After": "642092f2e24d0a07583331b81b64777d5ec42a34f6c97df6ee9f9c0504622279",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme-fixture.ts",
+        "sha256Before": "95bd0302f56ee3f0e825c5d85cc53b7d001e3a2efea0d6c1dd3805423fb7341d",
+        "sha256After": "95bd0302f56ee3f0e825c5d85cc53b7d001e3a2efea0d6c1dd3805423fb7341d",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme-native-check.tsx",
+        "sha256Before": "90f3bc2b394e7b5659da0669f748b0a7bd739f1b86cca2c02a11c4b271e19d82",
+        "sha256After": "90f3bc2b394e7b5659da0669f748b0a7bd739f1b86cca2c02a11c4b271e19d82",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme.test.tsx",
+        "sha256Before": "067a6ce7cad488428daa32261f9d6df370540a21175615e600eb7c06f98575e4",
+        "sha256After": "067a6ce7cad488428daa32261f9d6df370540a21175615e600eb7c06f98575e4",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme.ts",
+        "sha256Before": "d27a9ed5ec8dd6ddfa8fd107168baf8e414ad5ac21603905840505e2b9c71f98",
+        "sha256After": "d27a9ed5ec8dd6ddfa8fd107168baf8e414ad5ac21603905840505e2b9c71f98",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-acceptance.tsx",
+        "sha256Before": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+        "sha256After": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-controller.ts",
+        "sha256Before": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+        "sha256After": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-transport.ts",
+        "sha256Before": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+        "sha256After": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui.test.mjs",
+        "sha256Before": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+        "sha256After": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/verify-desktop-theme.mjs",
+        "sha256Before": "6d39d823577980fdea845d6dc4800054ec51b2d7a57995eba334848e87a68ece",
+        "sha256After": "6d39d823577980fdea845d6dc4800054ec51b2d7a57995eba334848e87a68ece",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/verify-desktop-ui.mjs",
+        "sha256Before": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+        "sha256After": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+        "unchanged": true
+      }
+    ]
+  },
+  "system": {
+    "os": "27.0.1",
+    "machine": "arm64",
+    "python": "3.9.6",
+    "node": "24.15.0",
+    "testIsolation": "Explicit fresh /private/tmp directory mode0700; no production TMPDIR; same directory used for core/Electron/docs"
+  },
+  "inspection": {
+    "method": "read-only local selection projection + selected skin metadata/assets + installed plugin/frontend source; no hooks executed",
+    "sourceSnapshotMatchesSecondCollection": true,
+    "sourceInventoryAssets": 17,
+    "styleFacts": 109,
+    "artworkCopied": false,
+    "productionSelectionOrSkinWritten": false,
+    "runningAppExitedRestartedOrInstalled": false,
+    "runtimeDOMOrComputedStyleVerified": false,
+    "runtimeThemeMode": "unknown",
+    "networkFetchesForSource": 0,
+    "chatProvidersCredentialsDatabasesRead": false
+  },
+  "results": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 probes/nsh-validation/skin_source_test.py",
+      "exit": 0,
+      "tests": 11,
+      "pass": 11,
+      "log": "targeted-delivery.log"
+    },
+    {
+      "command": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
+      "exit": 0,
+      "tests": 346,
+      "pass": 346,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 181725.904041,
+      "log": "core-delivery.log"
+    },
+    {
+      "command": "npm run test:electron",
+      "exit": 0,
+      "tests": 143,
+      "pass": 133,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 10,
+      "durationMs": 28350.927917,
+      "log": "electron-delivery.log",
+      "limits": "Default test mode; no isolated build DSH CLI provided; ten package-dependent checks skipped, not passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "exit": 0,
+      "tests": 167,
+      "pass": 167,
+      "log": "docs-delivery.log"
+    },
+    {
+      "command": "/Users/xuguopeng/.cargo/bin/cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml",
+      "exit": 101,
+      "status": "blocked",
+      "reason": "no matching package defmt in offline cache, via tauri -> serde_with -> jiff",
+      "log": "rust.log"
+    },
+    {
+      "command": "Initial core/Electron launch using installed runtime/bin/node wrapper",
+      "exit": 127,
+      "status": "failed-to-start",
+      "reason": "DSH_DESKTOP_NODE_EXECUTABLE unset for wrapper and npm absent from PATH; no tests ran. Retained output; resolved by explicit already-installed Node24.15.0, not environment mutation.",
+      "logs": [
+        "core.log",
+        "electron.log"
+      ]
+    },
+    {
+      "command": "Local collector explicit dsh-home/app to ignored recheck.json; compare parsed metadata",
+      "exit": 0,
+      "status": "passed",
+      "evidence": "Snapshot exactly equals second collection after adding manifest requires/stylesheet/patches keys; all source identity, CSS/script/material hashes unchanged"
+    },
+    {
+      "command": "Compare initial untracked SHA-256; git diff --name-only; git diff --check",
+      "exit": 0,
+      "status": "passed",
+      "evidence": "All pre-existing untracked files retained byte-identical; no tracked changes. Does not prove GUI or unrestricted privacy audit."
+    }
+  ],
+  "localEvidenceRoot": "artifacts/nsh-validation/skin-source",
+  "localLogs": {
+    "targeted-delivery.log": {
+      "sha256": "0cd35fa0420251e1aa76e4b22c78ac03258989cfd0df2adcd1ac5a01f10e3bf8",
+      "bytes": 930
+    },
+    "core-delivery.log": {
+      "sha256": "891ad4d0012ce8213d4e4b36361403160b21379f1d8d8d84bbb9cb29af8939d9",
+      "bytes": 34819
+    },
+    "electron-delivery.log": {
+      "sha256": "e06ced2cd82ecf3c63c039c42cb038ca5a63968fd0f795c8a48c380c958db08b",
+      "bytes": 21464
+    },
+    "docs-delivery.log": {
+      "sha256": "d236adf78e40652ef5fe204a5d69a71483afcad191e6058ba1c36772c233461f",
+      "bytes": 19613
+    },
+    "rust.log": {
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc",
+      "bytes": 799
+    },
+    "core.log": {
+      "sha256": "4078ecfc10a68519d61b84bf70f590478be12213be24d51afc7239a42badfec0",
+      "bytes": 101
+    },
+    "electron.log": {
+      "sha256": "d744dcfdf9fd95833add14dc27a7da7bad9924a9677e1e3992733bcdc9b398e0",
+      "bytes": 42
+    },
+    "exits.txt": {
+      "sha256": "3fcdaa10db11aab252b3ec4b3f113f1e72a3c3e7a6777397dc0ef31400d9f8df",
+      "bytes": 229
+    }
+  },
+  "actualAcceptance": {
+    "sourceIdentity": "persisted selection maid-atelier0.3.2, skin-center0.4.16, default-theme0.2.2-rc.1 and installed shell0.1.52 verified from files",
+    "sourceCollector": "Read-only actual local collector ran twice; no artistic files exported; synthetic collector test confirms no writes and irrelevant selection keys are not emitted",
+    "visual": "not performed; no live screenshot or runtime dark/light identity",
+    "gui": "not performed",
+    "performance": "not measured",
+    "buildInstallDeployment": "not performed"
+  },
+  "handoff": {
+    "owner": "Third integration member as assigned; do not overwrite teammates UI or race Git staging",
+    "rootPlanLogUpdatedByThisMember": false,
+    "commitCreatedByThisMember": false,
+    "pushPerformedByThisMember": false,
+    "proposedUniqueCommitSubject": "docs(N01-D3): inventory persisted maid skin sources and migration gaps",
+    "queryAfterCommit": "git log --all --oneline --grep='inventory persisted maid skin sources and migration gaps'",
+    "requiredBeforeClaimingDelivered": [
+      "Append actual Beijing-time results and old-failure-preserving correction to operatelog.md",
+      "Update PLAN N01-D3 source checkpoint only; do not check visual/full N01 complete",
+      "Include only owned source files plus integration-approved files; revalidate integrated state and record skips/blocked Rust",
+      "Review diff including new files; commit, push GitHub and compare remote branch HEAD; do not deploy"
+    ]
+  },
+  "remaining": [
+    "Runtime active skin stamp / preview / dark-light / hooks and final cascade unknown",
+    "Restricted CC BY-NC-SA art not redistributed; separate rights review needed for bundling or public/commercial distribution",
+    "Current teal/light-blue NSH mock is not maid reproduction",
+    "Full visual same-size user acceptance and equivalent-business all-process resource measurements absent",
+    "Electron package tests skipped and Rust blocked, so do not claim every repository acceptance passed"
+  ]
+}

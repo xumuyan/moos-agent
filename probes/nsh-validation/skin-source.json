@@ -1,0 +1,1530 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3/skin_source",
+  "method": "read-only static inspection; no hooks executed; no GUI/computed styles",
+  "authorization": "User explicitly permitted narrow reading of production skin selection and skin files for this task; does not authorize other private data or redistribution.",
+  "sourcePaths": {
+    "dshHome": "$REAL_USER/Library/Application Support/dev.moos.agent.electron/dsh",
+    "selection": "skin-center-active.json",
+    "skin": "skins/maid-atelier",
+    "skinCenter": "profiles/web/node_modules/@linxin666/dsh-client-ui-skin-center",
+    "frontend": "/Applications/沐码.app/Contents/Resources/host-runtime/dsh/node_modules/@deepseek-ai/dsh-web-frontend"
+  },
+  "selection": {
+    "active": "maid-atelier",
+    "initialized": true,
+    "backgroundOverridePresent": false,
+    "sha256": "58e6e5046d965ef6d496055571e758b9447dd79d7dd78749ec50fc731fd96101",
+    "runtimeActiveVerified": false,
+    "runtimeThemeMode": "unknown",
+    "runtimePreviewOrOtherWallpaper": "unknown"
+  },
+  "identity": {
+    "id": "maid-atelier",
+    "name": "深海女仆工坊",
+    "version": "0.3.2",
+    "author": "Small-tailqwq",
+    "license": "CC BY-NC-SA 4.0",
+    "sourceUrl": "https://github.com/Small-tailqwq/dsh-deep-whale/tree/main/maid-atelier",
+    "licenseUrl": "https://github.com/Small-tailqwq/dsh-deep-whale/blob/main/maid-atelier/LICENSE",
+    "noticeUrl": "https://github.com/Small-tailqwq/dsh-deep-whale/blob/main/maid-atelier/NOTICE",
+    "attribution": "上善 → zipzip → Small-tailqwq",
+    "skinManifestVersion": 2
+  },
+  "skinCenter": {
+    "name": "@linxin666/dsh-client-ui-skin-center",
+    "version": "0.4.16",
+    "license": "Apache-2.0",
+    "files": {
+      "package.json": {
+        "bytes": 2787,
+        "sha256": "39444cb1e7829d3f72541d9a151f051e5e688841de570845e2984620c42c769b"
+      },
+      "lib/index.js": {
+        "bytes": 144466,
+        "sha256": "23d4c9415c91a24727cf0f955b66c7be56624c0d7150c100d580f159dd035299"
+      },
+      "lib/client.js": {
+        "bytes": 291173,
+        "sha256": "57ca7e5e76d6274ac97179fdd065727573d767fc0ba39aa4ef095678df4c8666"
+      }
+    }
+  },
+  "frontend": {
+    "name": "@deepseek-ai/dsh-web-frontend",
+    "version": "0.2.2-rc.1",
+    "files": {
+      "package.json": {
+        "bytes": 2824,
+        "sha256": "cc96c62c5bfacfd153d8de41009839180fd6cb16d65eee639a201a6f94cba7e7"
+      },
+      "LICENSE": {
+        "bytes": 1065,
+        "sha256": "ebb4f09972aee8608be255debaf78451a68e95c290f55c240dec2ecfa16ea6be"
+      }
+    }
+  },
+  "defaultTheme": {
+    "name": "@deepseek-ai/dsh-client-ui-theme",
+    "version": "0.2.2-rc.1",
+    "license": "MIT",
+    "source": "installed host-runtime/dsh/node_modules/@deepseek-ai/dsh-client-ui-theme/lib/client.js",
+    "files": {
+      "package.json": {
+        "bytes": 2351,
+        "sha256": "f0b3c14ce19ac5dd381e6057d06696710fe2b28725bff6f9b7f1eaf2f96a9ce7"
+      },
+      "lib/client.js": {
+        "bytes": 140148,
+        "sha256": "b6ebe44a4b52d81c4cc4f4d03a86481e875c77c7792fa03d2d8a64ca1f94dca4"
+      }
+    },
+    "declarations": [
+      "--dsh-font-family-text-default:-apple-system, BlinkMacSystemFont, \\\"Segoe UI\\\", \\\"PingFang SC\\\", \\\"Hiragino Sans GB\\\", \\\"Microsoft YaHei\\\", \\\"Helvetica Neue\\\", Helvetica, Arial, sans-serif",
+      "--dsw-font-family:var(--dsh-font-family-text-default)",
+      "--dsh-font-family-code-default:\\\"SF Mono\\\", \\\"JetBrains Mono\\\", \\\"Fira Code\\\", Consolas, \\\"Liberation Mono\\\", Menlo, Courier, \\\"PingFang SC\\\", \\\"Microsoft YaHei\\\"",
+      "--dsw-radius-xs:4px",
+      "--dsw-radius-sm:8px",
+      "--dsw-radius-md:12px",
+      "--dsw-radius-lg:16px",
+      "--dsw-radius-xl:20px",
+      "--dsw-radius-panel:28px",
+      "--dsw-font-family:var(--dsh-font-family-text,var(--dsh-font-family-text-default)), var(--dsh-font-family-text-default)",
+      "--dsw-font-s-14:14px/22px var(--dsw-font-family)"
+    ]
+  },
+  "electronShell": {
+    "name": "moos-electron-shell",
+    "version": "0.1.52",
+    "source": "DSH_HOME/profiles/web/node_modules/moos-electron-shell/client.js",
+    "file": {
+      "bytes": 51512,
+      "sha256": "ae59b62fc6145c01187af9ad1780f36aaf18842a509428a27c55cb5625f95d03"
+    }
+  },
+  "files": {
+    "skin.json": {
+      "bytes": 2073,
+      "sha256": "7596a704bce65006381d27417d4c12bb09d7e5ede038a6f486cfa58e62314aa5"
+    },
+    "skin.css": {
+      "bytes": 4083,
+      "sha256": "df43829fd428e4c294c4ce24612bd2c1cea553501e323d7659973632a77a6dad"
+    },
+    "patches.css": {
+      "bytes": 82748,
+      "sha256": "b18e8eb467493c7993a2ed45ba2acea7a76c9bfe365eb680dff12c7784469ed7"
+    },
+    "hooks.mjs": {
+      "bytes": 51115,
+      "sha256": "1f2e0f12c19c8b07301d290dc8d8ca5428f0051fe9417b50c8951919f8136e74"
+    },
+    "LICENSE": {
+      "bytes": 20849,
+      "sha256": "1349a4b6148492b44f629e64eed676612e234fe9a839e4f3b277c1482c8849f1"
+    },
+    "NOTICE": {
+      "bytes": 1441,
+      "sha256": "ca42fd8e4b877137d965afa51ee108d833fa0d6b8f5c7397d7dfcebdddcf5ef6"
+    }
+  },
+  "requires": {
+    "contracts": [
+      {
+        "apiVersion": "x-org.linxin666.skin-center/v1alpha1",
+        "kind": "SkinHooks",
+        "optional": true
+      }
+    ]
+  },
+  "stylesheet": "skin.css",
+  "patches": "patches.css",
+  "backgroundMedia": {
+    "light": {
+      "type": "image",
+      "src": "assets/maid-atelier-palace-day-v4.webp",
+      "scrim": "linear-gradient(rgba(248, 250, 255, 0.12) 0%, rgba(235, 240, 250, 0.18) 55%, rgba(220, 230, 245, 0.25) 100%)"
+    },
+    "dark": {
+      "type": "image",
+      "src": "assets/maid-atelier-palace-night-v4.webp",
+      "scrim": "linear-gradient(rgba(9, 19, 51, 0.15) 0%, rgba(16, 32, 77, 0.25) 60%, rgba(8, 15, 39, 0.35) 100%)"
+    }
+  },
+  "assets": [
+    {
+      "path": "assets/maid-atelier-icon.webp",
+      "bytes": 10348,
+      "sha256": "be7ea360355b13213250b5920c69d2036f10db003c4bcc8756366f409656b6b0",
+      "pixels": [
+        132,
+        99
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-atelier-maid-left-v5.webp",
+      "bytes": 286224,
+      "sha256": "af7bfd2e18505fc9d6f94cefd9febc92b31c1b2b66c756982d91fc7b93fb184c",
+      "pixels": [
+        1122,
+        2019
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-atelier-maid-right-v6.webp",
+      "bytes": 520206,
+      "sha256": "34b55580ada4af5b9d519f5ae09e8656164197a3cbadceace73d98f3da278ca7",
+      "pixels": [
+        1394,
+        2649
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-atelier-palace-day-v4.webp",
+      "bytes": 279480,
+      "sha256": "52e7dce6993e3f955c3fbb2875885e7ab60fb38ca89adb15d977c7a85d58c073",
+      "pixels": [
+        1586,
+        992
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-atelier-palace-night-v4.webp",
+      "bytes": 270544,
+      "sha256": "ae6917bb1aafa71e6a10cfcaa1289f13e265aa7f32d3fb7c1988004bf50f8983",
+      "pixels": [
+        1586,
+        992
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-bottom-crest-v1.webp",
+      "bytes": 45398,
+      "sha256": "24f2fb04ce2d38574a3817f6d675b8c1ee5d9322588eec651271f67aabfcb48d",
+      "pixels": [
+        720,
+        412
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-bottom-trim-tile-v1.webp",
+      "bytes": 972,
+      "sha256": "47072d2d652f09e857dbc8555ff5c1917c926ef5d4581641f7018b1607c42fda",
+      "pixels": [
+        386,
+        30
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-bow-v1.webp",
+      "bytes": 10910,
+      "sha256": "dcf64a43ad6b9e71c24c91fb9b1d7fe8af534497fd421213472bea96e6bc04b5",
+      "pixels": [
+        268,
+        121
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-chibi-v1.webp",
+      "bytes": 91476,
+      "sha256": "405917afdb68d725624bbf7e4f1619a35fc4004039b7d553c5528ca5f65308d3",
+      "pixels": [
+        620,
+        553
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-composer-frame-v4.webp",
+      "bytes": 95486,
+      "sha256": "3135deb5d14d3ea44940edcf296ba2ffa14e242d5342a1a94618df0c57979482",
+      "pixels": [
+        1800,
+        588
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-new-session-v1.webp",
+      "bytes": 73142,
+      "sha256": "fa6d49a717c04651fd7d1afb30b853f63cbaa5bf483e58cb4bfe5ef69fc6ff50",
+      "pixels": [
+        1400,
+        308
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-settings-frame-v1.webp",
+      "bytes": 32358,
+      "sha256": "3d2b126caf0549c2e86684dcbc0ff4443b887e5e1684190710d2df7940466d98",
+      "pixels": [
+        2172,
+        320
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-sidebar-corner-v1.webp",
+      "bytes": 31196,
+      "sha256": "707f05bf4abed25405ca45c5c32bcf95ab7cb3a6dae3e53da29f814a8495665c",
+      "pixels": [
+        1254,
+        1254
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-sidebar-swag-v1.webp",
+      "bytes": 111004,
+      "sha256": "cd728ce5c1794ec4958ef75c4cdd60a3d513b871bea99e3b526656f14089fd74",
+      "pixels": [
+        1200,
+        303
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-top-trim-tile-v1.webp",
+      "bytes": 39106,
+      "sha256": "e49115f3942ea5c5034c81016c61944b5261c8ea410318cb0419b445c990b063",
+      "pixels": [
+        386,
+        321
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-workspace-ribbon-v2.webp",
+      "bytes": 44178,
+      "sha256": "e2b04c3eca1871c5e73417674582a09b13de60119ca9bb9c112317232c5049fa",
+      "pixels": [
+        1185,
+        240
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    },
+    {
+      "path": "assets/maid-workspace-shield-v2.webp",
+      "bytes": 22220,
+      "sha256": "b59aa9d4ecfbbae6e62d872c964bce8ec870ed500e7cbc7a7f02bbdd0b93e87e",
+      "pixels": [
+        230,
+        320
+      ],
+      "license": "CC BY-NC-SA 4.0",
+      "redistributed": false
+    }
+  ],
+  "styleFacts": [
+    {
+      "file": "skin.css",
+      "selector": ":root",
+      "line": 1,
+      "conditions": [],
+      "declarations": "color: #172347;\n  --maid-navy-950: #091333;\n  --maid-navy-900: #10204d;\n  --maid-navy-800: #1c326b;\n  --maid-indigo: #526aa8;\n  --maid-periwinkle: #8ea5da;\n  --maid-porcelain: #f8f6f0;\n  --maid-gold: #c5a468;\n  --maid-gold-soft: #e2cfaa;\n  --maid-ink: #172347;\n  --maid-glass: #f8faffad;\n  --maid-shadow: 0 18px 54px #0f1e4833, 0 2px 8px #0f1e481f;\n  --maid-top-trim-art: url(assets/maid-top-trim-tile-v1.webp);\n  --maid-bottom-trim-art: url(assets/maid-bottom-trim-tile-v1.webp);\n  --maid-bottom-crest-art: url(assets/maid-bottom-crest-v1.webp);\n  --maid-bow-art: url(assets/maid-bow-v1.webp);\n  --maid-new-session-art: url(assets/maid-new-session-v1.webp);\n  --maid-sidebar-swag-art: url(assets/maid-sidebar-swag-v1.webp);\n  --maid-sidebar-corner-art: url(assets/maid-sidebar-corner-v1.webp);\n  --maid-composer-frame-art: url(assets/maid-composer-frame-v4.webp);\n  --maid-settings-frame-art: url(assets/maid-settings-frame-v1.webp);\n  --maid-workspace-crest-art: url(assets/maid-workspace-shield-v2.webp);\n  --maid-workspace-ribbon-art: url(assets/maid-workspace-ribbon-v2.webp);\n  --maid-sidebar-width: 280px;\n  --maid-sidebar-swag-height: 72px;\n  --maid-sidebar-mascot-width: 230px;\n  --maid-titlebar-height: 0px;\n  --dsw-alias-bg-base: transparent;\n  --dsw-alias-bg-layer-1: #f8faffb8;\n  --dsw-alias-bg-layer-2: #ebf0fad6;\n  --dsw-alias-bg-layer-3: #e0e7f6e0;\n  --dsw-alias-bg-overlay: #f8fafff5;\n  --dsw-alias-border-l1: #475b912e;\n  --dsw-alias-border-l2-darkmode-thin: #475b9140;\n  --dsw-alias-border-l2: #475b914d;\n  --dsw-alias-border-l3: #c5a468a3;\n  --dsw-alias-brand-primary: #526aa8;\n  --dsw-alias-brand-text: #172347;\n  --dsw-alias-button-elevated-fill: #fffdf8e0;\n  --dsw-alias-button-floating-fill: #fffdf8f0;\n  --dsw-alias-button-floating-hover: #ece6d8;\n  --dsw-alias-button-info-fill: #536eae;\n  --dsw-alias-button-info-hover: #405a99;\n  --dsw-alias-interactive-bg-active: #c5a4683d;\n  --dsw-alias-interactive-bg-hover: #677eb71f;\n  --dsw-alias-interactive-bg-hover-solid: #e2e8f5;\n  --dsw-alias-label-primary: #172347;\n  --dsw-alias-label-primary-bluish: #243866;\n  --dsw-alias-label-secondary: #2d3a55;\n  --dsw-alias-label-tertiary: #404d67;\n  --dsw-alias-label-caption: #53607c;\n  --dsw-alias-state-business-primary: #536eae;\n  --dsw-alias-state-business-tertiary: #e1e7f5;\n  --dsw-shadow-lv2: var(--maid-shadow);\n  --dsw-specific-input-major: #fffdf8d1;\n  --dsw-specific-menu: var(--dsw-alias-bg-layer-3);\n  --dsw-specific-selector: #e2e8f6e6;\n  --dsw-specific-sidebar-fill: #0b1942e0;\n  background-color: #dce6f5;"
+    },
+    {
+      "file": "skin.css",
+      "selector": "body[data-ds-dark-theme]",
+      "line": 63,
+      "conditions": [],
+      "declarations": "color: #e5eaf6;\n  --maid-glass: #0d193bbd;\n  --maid-shadow: 0 18px 58px #00000061, 0 2px 10px #0000004d;\n  --dsw-alias-bg-base: transparent;\n  --dsw-alias-bg-layer-1: #121f43e6;\n  --dsw-alias-bg-layer-2: #182850eb;\n  --dsw-alias-bg-layer-3: #20315bf0;\n  --dsw-alias-bg-overlay: #0d193bf7;\n  --dsw-alias-border-l1: #97a9d833;\n  --dsw-alias-border-l2-darkmode-thin: #97a9d84d;\n  --dsw-alias-border-l2: #97a9d857;\n  --dsw-alias-border-l3: #d3b477a8;\n  --dsw-alias-brand-primary: #9bb0e1;\n  --dsw-alias-brand-text: #e7ecf7;\n  --dsw-alias-button-elevated-fill: #1c2c54f0;\n  --dsw-alias-button-floating-fill: #1f315cf5;\n  --dsw-alias-button-floating-hover: #354d88;\n  --dsw-alias-button-info-fill: #8ca4dc;\n  --dsw-alias-button-info-hover: #a3b7e5;\n  --dsw-alias-interactive-bg-active: #d3b4773d;\n  --dsw-alias-interactive-bg-hover: #a4b7e524;\n  --dsw-alias-interactive-bg-hover-solid: #293f78;\n  --dsw-alias-label-primary: #e7ecf7;\n  --dsw-alias-label-primary-bluish: #d5dff3;\n  --dsw-alias-label-secondary: #bdc9e3;\n  --dsw-alias-label-tertiary: #96a6c9;\n  --dsw-alias-label-caption: #899cc2;\n  --dsw-alias-state-business-primary: #9bb0e1;\n  --dsw-alias-state-business-tertiary: #293d73;\n  --dsw-specific-input-major: #111e42e0;\n  --dsw-specific-menu: var(--dsw-alias-bg-layer-3);\n  --dsw-specific-selector: #2d406fe6;\n  --dsw-specific-sidebar-fill: #050d28e6;\n  --shiki-foreground: var(--dsw-alias-label-primary);\n  --shiki-background: var(--dsw-alias-markdown-code-block);\n  background-color: #080f27;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[id=\"root\"]",
+      "line": 1,
+      "conditions": [],
+      "declarations": "background: none;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body",
+      "line": 22,
+      "conditions": [],
+      "declarations": "isolation: isolate;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:before",
+      "line": 35,
+      "conditions": [],
+      "declarations": "content: \"\";\n  position: fixed;\n  z-index: -1;\n  pointer-events: none;\n  left: calc(var(--maid-sidebar-width, 280px) + clamp(8px, 1.3vw, 24px));\n  bottom: clamp(-34px, -2.4vh, -12px);\n  width: clamp(280px, 28vw, 480px);\n  height: clamp(560px, 96vh, 1180px);\n  background: url(assets/maid-atelier-maid-left-v5.webp) no-repeat center bottom / contain;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  transition: opacity .42s ease, height .62s ease, bottom .62s ease;\n  display: block;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:after",
+      "line": 50,
+      "conditions": [],
+      "declarations": "content: \"\";\n  position: fixed;\n  z-index: -1;\n  pointer-events: none;\n  right: 0;\n  bottom: clamp(-26px, -1.8vh, -8px);\n  width: clamp(270px, 27vw, 460px);\n  height: clamp(540px, 92vh, 1120px);\n  background: url(assets/maid-atelier-maid-right-v6.webp) no-repeat center bottom / contain;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  transition: opacity .42s ease, height .62s ease, bottom .62s ease;\n  display: block;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"character-stage\"]",
+      "line": 70,
+      "conditions": [],
+      "declarations": "z-index: 0;\n  pointer-events: none;\n  position: fixed;\n  inset: 0;\n  overflow: hidden;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-character]",
+      "line": 83,
+      "conditions": [],
+      "declarations": "z-index: 1;\n  object-fit: contain;\n  object-position: center bottom;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  width: auto;\n  max-width: none;\n  transition: translate .62s cubic-bezier(.22, .78, .2, 1), bottom .62s cubic-bezier(.22, .78, .2, 1), height .62s cubic-bezier(.22, .78, .2, 1), opacity .42s;\n  display: block;\n  position: absolute;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-character=\"left\"]",
+      "line": 95,
+      "conditions": [],
+      "declarations": "translate: calc(var(--maid-sidebar-width, 280px) + clamp(8px, 1.3vw, 24px)) 0;\n  height: clamp(560px, 96vh, 1180px);\n  bottom: clamp(-34px, -2.4vh, -12px);\n  left: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-character=\"right\"]",
+      "line": 102,
+      "conditions": [],
+      "declarations": "height: clamp(540px, 92vh, 1120px);\n  bottom: clamp(-26px, -1.8vh, -8px);\n  right: 0;\n  translate: clamp(-8px, -.2vw, 0px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-chat-active]:before,\nbody[data-maid-chat-active] [data-maid-character=\"left\"]",
+      "line": 116,
+      "conditions": [],
+      "declarations": "translate: calc(var(--maid-sidebar-width, 280px) + clamp(8px, 1.3vw, 24px)) 0;\n  opacity: .9;\n  height: clamp(420px, 64vh, 760px);\n  bottom: clamp(-24px, -1.5vh, -8px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-chat-active]:after,\nbody[data-maid-chat-active] [data-maid-character=\"right\"]",
+      "line": 124,
+      "conditions": [],
+      "declarations": "opacity: .9;\n  height: clamp(420px, 62vh, 730px);\n  bottom: clamp(-24px, -1.5vh, -8px);\n  translate: clamp(-8px, -.5vw, 0px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:not([data-maid-chat-active]) [data-maid-character=\"left\"]",
+      "line": 132,
+      "conditions": [
+        "@media (width <= 1080px)"
+      ],
+      "declarations": "translate: var(--maid-sidebar-width, 280px) 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:not([data-maid-chat-active]) [data-maid-character=\"right\"]",
+      "line": 136,
+      "conditions": [
+        "@media (width <= 1080px)"
+      ],
+      "declarations": "translate: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-character]",
+      "line": 140,
+      "conditions": [
+        "@media (width <= 1080px)"
+      ],
+      "declarations": "opacity: .74;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-chat-active] [data-maid-character=\"left\"]",
+      "line": 146,
+      "conditions": [
+        "@media (width <= 700px)"
+      ],
+      "declarations": "translate: var(--maid-sidebar-width) 0;\n    height: clamp(300px, 46vh, 410px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-chat-active] [data-maid-character=\"right\"]",
+      "line": 151,
+      "conditions": [
+        "@media (width <= 700px)"
+      ],
+      "declarations": "height: clamp(300px, 44vh, 390px);\n    translate: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-better-sidebar-open] [data-maid-character=\"right\"]",
+      "line": 157,
+      "conditions": [],
+      "declarations": "translate: clamp(-460px, -24vw, -320px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-better-sidebar-open][data-maid-chat-active] [data-maid-character=\"right\"]",
+      "line": 161,
+      "conditions": [],
+      "declarations": "opacity: .86;\n  height: clamp(360px, 56vh, 680px);\n  translate: clamp(-460px, -24vw, -320px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-better-sidebar-open] [data-maid-character=\"right\"]",
+      "line": 168,
+      "conditions": [
+        "@media (width <= 700px)"
+      ],
+      "declarations": "opacity: 0;\n    translate: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-viewport-resizing] [data-maid-character]",
+      "line": 174,
+      "conditions": [],
+      "declarations": "filter: none;\n  transition: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-low-power] [data-maid-character]",
+      "line": 179,
+      "conditions": [],
+      "declarations": "filter: none;\n  transition: opacity .18s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"top-trim\"]",
+      "line": 193,
+      "conditions": [],
+      "declarations": "z-index: 1;\n  pointer-events: none;\n  contain: paint;\n  height: 76px;\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: auto;\n  left: var(--maid-sidebar-width, 280px);\n  width: auto;\n  overflow: hidden;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-trim-layer=\"landing\"]",
+      "line": 213,
+      "conditions": [],
+      "declarations": "background: var(--maid-top-trim-art) left -2px / auto 51px repeat-x;\n  height: 48px;\n  transform: translateY(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-trim-layer=\"workspace\"]",
+      "line": 219,
+      "conditions": [],
+      "declarations": "background: var(--maid-top-trim-art) left -4px / auto 149px repeat-x;\n  height: 76px;\n  transform: translateY(-100%);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"bottom-trim\"]",
+      "line": 274,
+      "conditions": [],
+      "declarations": "translate: var(--maid-sidebar-width, 280px) 0;\n  z-index: 19;\n  pointer-events: none;\n  background: var(--maid-bottom-trim-art) left bottom / auto 30px repeat-x;\n  contain: paint;\n  height: 60px;\n  transition: transform .52s cubic-bezier(.22, .78, .2, 1);\n  position: fixed;\n  inset: auto 0 0;\n  transform: translateY(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "header:has([role=\"tablist\"]), [data-maid-workspace-active]:before, [data-maid-workspace-active] > [class*=\"folder\"], [data-maid-workspace-active] [class*=\"projectText\"]",
+      "line": 319,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": ":is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"])",
+      "line": 370,
+      "conditions": [],
+      "declarations": "--dsw-alias-label-primary: #f8f3e8;\n  --dsw-alias-label-secondary: #d7def0;\n  --dsw-alias-label-tertiary: #b5c1dd;\n  --dsw-alias-label-caption: #96a8ce;\n  --dsw-alias-border-l1: #e1cfaa33;\n  --dsw-alias-border-l2: #e1cfaa52;\n  --dsw-alias-button-elevated-fill: #fffcf321;\n  --dsw-alias-button-floating-hover: #fffcf32e;\n  --dsw-alias-interactive-bg-hover: #fffcf31a;\n  --dsw-alias-interactive-bg-active: #c5a4684d;\n  z-index: auto;\n  background: #0a173b;\n  border-right: 0;\n  position: relative;\n  box-shadow: 8px 0 34px #08113038, inset -1px 0 #fff5d7d1, inset -3px 0 #e2cfa6b8;"
+    },
+    {
+      "file": "patches.css",
+      "selector": ":is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) > div",
+      "line": 388,
+      "conditions": [],
+      "declarations": "isolation: auto;\n  background: radial-gradient(circle at 50% 14%, #5b77bc3b, #0000 31%), linear-gradient(#102456f7, #050e2bf5), repeating-linear-gradient(135deg, #ffffff07 0 1px, #0000 1px 7px);\n  position: relative;\n  overflow: hidden;\n  box-shadow: inset 9px 0 16px #ffffff05, inset -8px 0 18px #00000042;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"sidebar-corners\"]",
+      "line": 411,
+      "conditions": [],
+      "declarations": "--maid-sidebar-frame-line-x: 1.35px;\n  --maid-sidebar-frame-line-y: 1.25px;\n  z-index: 4;\n  background: linear-gradient(90deg, #eed299f0, #be914bf5, #eed299f0) left 62px top 8.875px / calc(100% - 124px) var(--maid-sidebar-frame-line-y) no-repeat, linear-gradient(90deg, #eed299f0, #be914bf5, #eed299f0) left 62px bottom 8.875px / calc(100% - 124px) var(--maid-sidebar-frame-line-y) no-repeat, linear-gradient(180deg, #eed299f0, #be914bf5, #eed299f0) left 8.05px top 62px / var(--maid-sidebar-frame-line-x) calc(100% - 124px) no-repeat, linear-gradient(180deg, #eed299f0, #be914bf5, #eed299f0) right 8.05px top 62px / var(--maid-sidebar-frame-line-x) calc(100% - 124px) no-repeat;\n  pointer-events: none;\n  position: absolute;\n  inset: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"sidebar-corners\"] > [data-skin-corner]",
+      "line": 421,
+      "conditions": [],
+      "declarations": "background: var(--maid-sidebar-corner-art) top right / 130px 130px no-repeat;\n  filter: drop-shadow(0 1px 1px #0207186b);\n  transform-origin: 50%;\n  width: 62px;\n  height: 62px;\n  position: absolute;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"sidebar-mascot\"]",
+      "line": 457,
+      "conditions": [],
+      "declarations": "left: 52%;\n  bottom: calc(var(--maid-sidebar-swag-height) + 94px);\n  z-index: 1;\n  width: var(--maid-sidebar-mascot-width);\n  object-fit: contain;\n  object-position: center bottom;\n  pointer-events: none;\n  opacity: .22;\n  filter: saturate() brightness(1.08) contrast(1.04) drop-shadow(0 5px 12px #0207183d);\n  height: auto;\n  max-height: 38%;\n  position: absolute;\n  transform: translate(-50%) translateZ(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": ":is([data-pane=\"details\"], [class*=\"detailsCol\"])",
+      "line": 481,
+      "conditions": [],
+      "declarations": "background: #f2f6fdd1;\n  border-left-color: #c5a46885;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-ds-dark-theme] :is([data-pane=\"details\"], [class*=\"detailsCol\"])",
+      "line": 486,
+      "conditions": [],
+      "declarations": "background: #0b1737e6;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-skin-chrome=\"sidebar-corners\"], body[data-maid-sidebar-size=\"rail\"] [data-skin-chrome=\"sidebar-mascot\"]",
+      "line": 529,
+      "conditions": [],
+      "declarations": "display: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [class*=\"logoRow\"]",
+      "line": 533,
+      "conditions": [],
+      "declarations": "min-height: 54px;\n  box-shadow: none;\n  background: none;\n  border: 0;\n  border-radius: 0;\n  justify-content: center;\n  align-items: center;\n  margin: 0;\n  padding: 7px;\n  display: flex;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [class*=\"logoRow\"] [class*=\"toggle\"]",
+      "line": 546,
+      "conditions": [],
+      "declarations": "color: #ebd29e;\n  background: linear-gradient(145deg, #4d67a97a, #071234d1);\n  border: 1px solid #e1bf7cc2;\n  border-radius: 50%;\n  width: 38px;\n  height: 38px;\n  box-shadow: inset 0 0 0 2px #050f2dc2, 0 3px 10px #01071847;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "button[class*=\"newSession\"]",
+      "line": 556,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  color: #152246;\n  border-style: solid;\n  border-width: 0 40px;\n  border-image-source: var(--maid-new-session-art);\n  letter-spacing: 0;\n  min-height: 58px;\n  box-shadow: none;\n  filter: drop-shadow(0 5px 9px #02081c38);\n  background: none;\n  border-image-slice: 0 210 fill;\n  border-image-width: 0 40px;\n  border-image-repeat: stretch;\n  border-radius: 0;\n  margin-block: 4px 8px;\n  font-family: Georgia, Times New Roman, serif;\n  font-size: 16px;\n  font-weight: 600;\n  transition: filter .15s, transform .15s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-sidebar-footer]",
+      "line": 588,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  isolation: auto;\n  min-height: calc(var(--maid-sidebar-swag-height) + 82px);\n  padding: calc(var(--maid-sidebar-swag-height) + 2px) 18px 22px;\n  box-shadow: none;\n  background: none;\n  border: 0;\n  flex: none;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-sidebar-footer]:before",
+      "line": 600,
+      "conditions": [],
+      "declarations": "content: \"\";\n  z-index: 0;\n  height: var(--maid-sidebar-swag-height);\n  background: var(--maid-sidebar-swag-art) center top / 100% 100% no-repeat;\n  pointer-events: none;\n  filter: brightness(1.1) saturate(1.04) contrast(1.04) drop-shadow(0 4px 9px #02081c42);\n  position: absolute;\n  inset: 0 0 auto;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:not([data-maid-sidebar-size=\"rail\"]) [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"])",
+      "line": 633,
+      "conditions": [],
+      "declarations": "flex: auto;\n  justify-content: center;\n  gap: 8px;\n  width: 100%;\n  margin-inline: 0;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:not([data-maid-sidebar-size=\"rail\"]) [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"]) [data-slot=\"settings.trigger\"]",
+      "line": 642,
+      "conditions": [],
+      "declarations": "line-height: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:is([data-maid-sidebar-size=\"rail\"], [data-maid-sidebar-size=\"narrow\"]) button[class*=\"newSession\"]",
+      "line": 663,
+      "conditions": [],
+      "declarations": "letter-spacing: 0;\n  border-width: 0 32px;\n  border-image-width: 0 32px;\n  padding-inline: 0;\n  font-size: 14px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] button[class*=\"newSession\"]",
+      "line": 671,
+      "conditions": [],
+      "declarations": "color: #ebd29e;\n  filter: drop-shadow(0 3px 7px #01071842);\n  border: 1px solid #e1cfaab8;\n  border-image: ;\n  background: linear-gradient(145deg, #4d67a966, #071234c7);\n  border-radius: 50%;\n  align-self: center;\n  width: 38px;\n  min-width: 38px;\n  min-height: 38px;\n  margin: 6px 0 10px;\n  padding: 0;\n  box-shadow: inset 0 0 0 2px #050f2db3;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] button[class*=\"newSession\"] svg",
+      "line": 687,
+      "conditions": [],
+      "declarations": "color: #efd7a1;\n  stroke-width: 1.9px;\n  filter: drop-shadow(0 1px 2px #0107187a);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"iconButton\"], [class*=\"searchButton\"]):not([class*=\"toggle\"]):not([role=\"dialog\"] *)",
+      "line": 693,
+      "conditions": [],
+      "declarations": "color: #dfbf7c;\n  background: none;\n  border: 1px solid #0000;\n  border-radius: 50%;\n  width: 38px;\n  min-width: 38px;\n  height: 38px;\n  margin-inline: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"iconButton\"], [class*=\"searchButton\"]):not([class*=\"toggle\"]):not([role=\"dialog\"] *):is(:hover, :focus-visible)",
+      "line": 704,
+      "conditions": [],
+      "declarations": "color: #fff1ce;\n  background: #5775be47;\n  border-color: #e1bf7cad;\n  outline: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-maid-sidebar-footer]",
+      "line": 711,
+      "conditions": [],
+      "declarations": "min-height: 54px;\n  box-shadow: none;\n  background: none;\n  flex-basis: 54px;\n  justify-content: center;\n  align-items: center;\n  padding: 5px;\n  display: flex;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-maid-sidebar-footer]:before",
+      "line": 722,
+      "conditions": [],
+      "declarations": "display: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"])",
+      "line": 726,
+      "conditions": [],
+      "declarations": "border: 1px solid #e1bf7cc2;\n  border-image: ;\n  background: linear-gradient(145deg, #4d67a97a, #071234d1);\n  border-radius: 50%;\n  width: 38px;\n  min-width: 38px;\n  min-height: 38px;\n  margin: 0;\n  padding: 0;\n  box-shadow: inset 0 0 0 2px #050f2dc2, 0 3px 9px #0107183d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"]):before",
+      "line": 739,
+      "conditions": [],
+      "declarations": "display: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-maid-sidebar-footer]:has([data-cordis-badge])",
+      "line": 743,
+      "conditions": [],
+      "declarations": "flex-direction: column;\n  flex-basis: 100px;\n  gap: 2px;\n  min-height: 100px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [data-cordis-badge]",
+      "line": 774,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  border-radius: 50%;\n  width: 36px;\n  min-width: 36px;\n  height: 36px;\n  min-height: 36px;\n  padding: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] [class*=\"sectionHeader\"], body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) [class*=\"search\"]:has( > [class*=\"searchButton\"])",
+      "line": 998,
+      "conditions": [],
+      "declarations": "justify-content: center;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"])",
+      "line": 1002,
+      "conditions": [],
+      "declarations": "--maid-rail-control-size: 36px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"logoRow\"] [class*=\"toggle\"], button[class*=\"newSession\"], [class*=\"sectionHeader\"] [class*=\"iconButton\"], [class*=\"search\"] [class*=\"searchButton\"], [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"]))",
+      "line": 1006,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  width: var(--maid-rail-control-size);\n  min-width: var(--maid-rail-control-size);\n  height: var(--maid-rail-control-size);\n  min-height: var(--maid-rail-control-size);\n  flex: 0 0 var(--maid-rail-control-size);\n  color: #ebd29e;\n  filter: none;\n  border: 1px solid #e1bf7cc2;\n  border-image: ;\n  background: linear-gradient(145deg, #4d67a97a, #071234d1);\n  border-radius: 50%;\n  margin-inline: 0;\n  padding: 0;\n  transition: color .15s, border-color .15s, background .15s, box-shadow .15s;\n  overflow: visible;\n  transform: none;\n  box-shadow: inset 0 0 0 2px #050f2dc2, 0 3px 9px #0107183d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"logoRow\"] [class*=\"toggle\"], button[class*=\"newSession\"], [class*=\"sectionHeader\"] [class*=\"iconButton\"], [class*=\"search\"] [class*=\"searchButton\"], [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"])):is(:hover, :focus-visible)",
+      "line": 1027,
+      "conditions": [],
+      "declarations": "color: #fff1ce;\n  filter: none;\n  background: linear-gradient(145deg, #6281cd94, #0b1b46e6);\n  border-color: #f4daa4f0;\n  outline: none;\n  transform: none;\n  box-shadow: inset 0 0 0 2px #050f2db3, 0 0 0 2px #e1bf7c1f, 0 4px 11px #0107184d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"logoRow\"], [class*=\"sectionHeader\"], [class*=\"search\"]:has( > [class*=\"searchButton\"]), [class*=\"regionArea\"])",
+      "line": 1037,
+      "conditions": [],
+      "declarations": "overflow: visible;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) [class*=\"search\"]:has( > [class*=\"searchButton\"])",
+      "line": 1041,
+      "conditions": [],
+      "declarations": "box-shadow: none;\n  background: none;\n  border: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row]",
+      "line": 1047,
+      "conditions": [],
+      "declarations": "isolation: isolate;\n  color: #f4ead5;\n  background: none;\n  border: 0;\n  border-radius: 0;\n  height: 54px;\n  padding: 7px 10px 7px 7px;\n  font-family: Georgia, Times New Roman, serif;\n  position: relative;\n  overflow: visible;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row]:hover",
+      "line": 1060,
+      "conditions": [],
+      "declarations": "background: #5b77bc1f;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row] > *",
+      "line": 1064,
+      "conditions": [],
+      "declarations": "z-index: 2;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row] > [class*=\"folder\"]",
+      "line": 1069,
+      "conditions": [],
+      "declarations": "background: var(--maid-workspace-crest-art) center / contain no-repeat;\n  color: #0000;\n  filter: drop-shadow(0 2px 3px #02081c7a);\n  width: 28px;\n  height: 34px;\n  margin: 4px 0 0 -7px;\n  display: inline-flex;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row] > [class*=\"folder\"] svg",
+      "line": 1079,
+      "conditions": [],
+      "declarations": "display: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row]:hover > [class*=\"folder\"]",
+      "line": 1083,
+      "conditions": [],
+      "declarations": "display: inline-flex;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row]:hover > [class*=\"chevron\"]",
+      "line": 1087,
+      "conditions": [],
+      "declarations": "display: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row] [class*=\"title\"]",
+      "line": 1091,
+      "conditions": [],
+      "declarations": "font-size: 15px;\n  font-weight: 500;\n  line-height: 20px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-row] [class*=\"meta\"]",
+      "line": 1097,
+      "conditions": [],
+      "declarations": "color: #d9bd83;\n  font-size: 12px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active]",
+      "line": 1102,
+      "conditions": [],
+      "declarations": "isolation: isolate;\n  color: #fff8e8;\n  text-shadow: 0 1px 2px #02081c8a;\n  background: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active] > [class*=\"folder\"]",
+      "line": 1109,
+      "conditions": [],
+      "declarations": "width: 30px;\n  height: 38px;\n  margin-block-start: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active] [class*=\"projectText\"]",
+      "line": 1115,
+      "conditions": [],
+      "declarations": "margin-inline-start: -4px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active]:hover",
+      "line": 1119,
+      "conditions": [],
+      "declarations": "background: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active]:before",
+      "line": 1123,
+      "conditions": [],
+      "declarations": "content: \"\";\n  box-sizing: border-box;\n  z-index: 0;\n  border-style: solid;\n  border-width: 0 36px 0 35px;\n  border-image-source: var(--maid-workspace-ribbon-art);\n  filter: drop-shadow(0 5px 8px #02081c66);\n  pointer-events: none;\n  border-image-slice: 0 145 0 140 fill;\n  border-image-width: 0 36px 0 35px;\n  border-image-repeat: stretch;\n  animation: .42s cubic-bezier(.2, .74, .22, 1) both QElLiW_maidAtelierWorkspaceRibbonEnter;\n  position: absolute;\n  inset: -3px 0 -3px -12px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active] > [class*=\"folder\"], [data-maid-workspace-active] [class*=\"projectText\"]",
+      "line": 1140,
+      "conditions": [],
+      "declarations": "animation: .26s cubic-bezier(.2, .74, .22, 1) 90ms both QElLiW_maidAtelierWorkspaceRibbonContentEnter;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]",
+      "line": 1144,
+      "conditions": [],
+      "declarations": "color: #d7c8a8;\n  height: 32px;\n  box-shadow: none;\n  background: none;\n  border: 0;\n  border-radius: 0;\n  padding: 0 8px 0 24px;\n  font-family: Georgia, Times New Roman, serif;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row][aria-selected=\"true\"]",
+      "line": 1156,
+      "conditions": [],
+      "declarations": "color: #fff8e8;\n  box-shadow: none;\n  background: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row][aria-selected=\"true\"] [class*=\"title\"]",
+      "line": 1162,
+      "conditions": [],
+      "declarations": "color: #fffaf0;\n  text-shadow: 0 1px 3px #02081cb8;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row][aria-selected=\"true\"] [class*=\"time\"]",
+      "line": 1167,
+      "conditions": [],
+      "declarations": "color: #ead29c;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]:hover:not([aria-selected=\"true\"])",
+      "line": 1171,
+      "conditions": [],
+      "declarations": "box-shadow: none;\n  background: #617ab71a;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] > [class*=\"slot\"]",
+      "line": 1176,
+      "conditions": [],
+      "declarations": "z-index: 2;\n  position: absolute;\n  left: 6px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"]",
+      "line": 1182,
+      "conditions": [],
+      "declarations": "color: #e2bd6e;\n  filter: drop-shadow(0 0 2px #e7c7809e);\n  shape-rendering: geometricprecision;\n  background: radial-gradient(circle at 44% 40%, #fffffff5 0 .55px, #0000 .7px), radial-gradient(circle, #a9bce8 0 1.15px, #5e79b9 1.3px 2px, #1a356f 2.15px 3px, #0000 3.15px);\n  border-radius: 50%;\n  width: 12px;\n  height: 12px;\n  overflow: visible;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect",
+      "line": 1193,
+      "conditions": [],
+      "declarations": "fill: currentColor;\n  opacity: .18;\n  rx: 1px;\n  ry: 1px;\n  animation: 1s linear infinite QElLiW_maidAtelierSessionJewelChase;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]:before",
+      "line": 1201,
+      "conditions": [],
+      "declarations": "content: \"\";\n  z-index: 1;\n  pointer-events: none;\n  background: repeating-linear-gradient(90deg, #e0be78c2 0 3px, #0000 3px 5px) 0 / 100% 1px no-repeat, repeating-linear-gradient(#e0be78c7 0 3px, #0000 3px 7px) 0 0 / 1px 100% no-repeat;\n  width: 10px;\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 8px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-last]:before",
+      "line": 1213,
+      "conditions": [],
+      "declarations": "background: repeating-linear-gradient(90deg, #e0be78c2 0 3px, #0000 3px 5px) 0 / 100% 1px no-repeat, repeating-linear-gradient(#e0be78c7 0 3px, #0000 3px 7px) 0 0 / 1px 50% no-repeat;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]:not(:last-child):after",
+      "line": 1217,
+      "conditions": [],
+      "declarations": "content: \"\";\n  pointer-events: none;\n  background: #b7c4e252;\n  height: 1px;\n  position: absolute;\n  bottom: 0;\n  left: 28px;\n  right: 8px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]:not([data-maid-session-flat])[aria-selected=\"true\"]:after",
+      "line": 1228,
+      "conditions": [],
+      "declarations": "content: \"\";\n  z-index: 0;\n  pointer-events: none;\n  background: linear-gradient(90deg, #526fb8bd, #2b468b9e 72%, #142a5e80);\n  border: 1px solid #e2be70b8;\n  border-radius: 8px;\n  width: auto;\n  height: auto;\n  position: absolute;\n  inset: 0 0 0 18px;\n  box-shadow: inset 0 1px #fff4d72e, inset 0 -1px #0713373d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row]:not([data-maid-session-flat])[aria-selected=\"true\"] > :is([class*=\"title\"], [class*=\"time\"], [class*=\"rowActions\"])",
+      "line": 1242,
+      "conditions": [],
+      "declarations": "z-index: 2;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] [class*=\"title\"]",
+      "line": 1247,
+      "conditions": [],
+      "declarations": "font-size: 13px;\n  font-weight: 400;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] [class*=\"time\"]",
+      "line": 1252,
+      "conditions": [],
+      "declarations": "color: #c8b891;\n  font-size: 12px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat]",
+      "line": 1257,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  border-radius: 7px;\n  height: 36px;\n  margin-inline: 2px;\n  padding-inline: 26px 9px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat]:before",
+      "line": 1265,
+      "conditions": [],
+      "declarations": "content: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat]:not(:last-child):after",
+      "line": 1269,
+      "conditions": [],
+      "declarations": "background: linear-gradient(90deg, #b7c4e242, #b7c4e214);\n  left: 26px;\n  right: 9px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat][aria-selected=\"true\"]",
+      "line": 1275,
+      "conditions": [],
+      "declarations": "background: linear-gradient(90deg, #526fb8bd, #2b468b9e 72%, #142a5e80);\n  border: 1px solid #e2be70b8;\n  box-shadow: inset 0 1px #fff4d733, inset 0 -1px #07133747, 0 3px 9px #02081c4d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat][aria-selected=\"true\"]:before",
+      "line": 1281,
+      "conditions": [],
+      "declarations": "content: \"\";\n  background: linear-gradient(#fff0c5, #d4a951);\n  border-radius: 999px;\n  width: 3px;\n  display: block;\n  position: absolute;\n  inset: 7px auto 7px 5px;\n  box-shadow: 0 0 5px #e7c780b8;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat][aria-selected=\"true\"]:after",
+      "line": 1292,
+      "conditions": [],
+      "declarations": "content: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-flat]:hover:not([aria-selected=\"true\"])",
+      "line": 1296,
+      "conditions": [],
+      "declarations": "background: linear-gradient(90deg, #617ab729, #617ab70f);\n  border-radius: 7px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-composer-card],\n[data-phase=\"hero\"] [data-composer-card]",
+      "line": 1517,
+      "conditions": [],
+      "declarations": "isolation: isolate;\n  backdrop-filter: blur(8px) saturate(.88);\n  background: linear-gradient(#1b2c54f0, #0a173ae6), #0d193bb8 !important;\n  min-height: 0;\n  box-shadow: 0 18px 52px #1d305e2e, inset 0 1px #ffffff14;\n  border: 0;\n  border-radius: clamp(26px, 2vw, 34px);\n  padding-top: 34px;\n  overflow: visible;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-composer-card]:before",
+      "line": 1634,
+      "conditions": [],
+      "declarations": "content: \"\";\n  box-sizing: border-box;\n  z-index: 1;\n  border-style: solid;\n  border-width: 72px 54px 52px;\n  border-image-source: var(--maid-composer-frame-art);\n  filter: drop-shadow(0 9px 18px #050d2638);\n  pointer-events: none;\n  border-image-slice: 170 120 115;\n  border-image-width: 72px 54px 52px;\n  border-image-repeat: stretch;\n  position: absolute;\n  inset: -20px -14px -18px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-composer-card]:after",
+      "line": 1662,
+      "conditions": [],
+      "declarations": "content: \"\";\n  \n  z-index: -1;\n  background: inherit;\n  pointer-events: none;\n  border-radius: 38px;\n  position: absolute;\n  inset: 0 -.52% -2%;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-composer-card] [class*=\"trailing\"] button[aria-haspopup=\"menu\"]",
+      "line": 1822,
+      "conditions": [],
+      "declarations": "color: #314979;\n  max-width: min(240px, 38vw);\n  height: 32px;\n  font-family: Georgia, \"Times New Roman\", var(--dsw-font-family);\n  letter-spacing: 0;\n  border-radius: 10px;\n  padding: 0 5px 0 8px;\n  font-size: 12px;\n  font-weight: 600;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[class*=\"userRow\"] [class*=\"bubble\"]",
+      "line": 1964,
+      "conditions": [],
+      "declarations": "background: #e8edf9f2;\n  border: 1px solid #c5a4687a;\n  box-shadow: 0 6px 20px #1326571a;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-ds-dark-theme] [class*=\"userRow\"] [class*=\"bubble\"]",
+      "line": 1970,
+      "conditions": [],
+      "declarations": "background: #1e2f5af7;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-chat-flow-kind=\"assistant-step\"] > * > * > * > div[class*=\"markdown\"]",
+      "line": 1974,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  background: #f8fafff0;\n  border: 1px solid #c5a4686b;\n  border-radius: 18px 18px 18px 7px;\n  align-self: flex-start;\n  width: fit-content;\n  max-width: min(680px, 96%);\n  padding: 14px 18px;\n  box-shadow: 0 4px 14px #13265714;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-ds-dark-theme] [data-chat-flow-kind=\"assistant-step\"] > * > * > * > div[class*=\"markdown\"]",
+      "line": 1986,
+      "conditions": [],
+      "declarations": "background: #121f43f0;\n  border-color: #d3b47766;\n  box-shadow: 0 4px 16px #00000038;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"top-trim\"]",
+      "line": 2430,
+      "conditions": [],
+      "declarations": "top: var(--maid-titlebar-height, 0px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect",
+      "line": 2455,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "opacity: .2;\n    animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect:first-child",
+      "line": 2460,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "opacity: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect:nth-child(2)",
+      "line": 2464,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "opacity: .7;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect:nth-child(3)",
+      "line": 2468,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "opacity: .4;"
+    }
+  ],
+  "animationFacts": [
+    {
+      "file": "patches.css",
+      "selector": "body:before",
+      "line": 35,
+      "conditions": [],
+      "declarations": "content: \"\";\n  position: fixed;\n  z-index: -1;\n  pointer-events: none;\n  left: calc(var(--maid-sidebar-width, 280px) + clamp(8px, 1.3vw, 24px));\n  bottom: clamp(-34px, -2.4vh, -12px);\n  width: clamp(280px, 28vw, 480px);\n  height: clamp(560px, 96vh, 1180px);\n  background: url(assets/maid-atelier-maid-left-v5.webp) no-repeat center bottom / contain;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  transition: opacity .42s ease, height .62s ease, bottom .62s ease;\n  display: block;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body:after",
+      "line": 50,
+      "conditions": [],
+      "declarations": "content: \"\";\n  position: fixed;\n  z-index: -1;\n  pointer-events: none;\n  right: 0;\n  bottom: clamp(-26px, -1.8vh, -8px);\n  width: clamp(270px, 27vw, 460px);\n  height: clamp(540px, 92vh, 1120px);\n  background: url(assets/maid-atelier-maid-right-v6.webp) no-repeat center bottom / contain;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  transition: opacity .42s ease, height .62s ease, bottom .62s ease;\n  display: block;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-character]",
+      "line": 83,
+      "conditions": [],
+      "declarations": "z-index: 1;\n  object-fit: contain;\n  object-position: center bottom;\n  filter: drop-shadow(0 20px 24px #1b2c5b24);\n  width: auto;\n  max-width: none;\n  transition: translate .62s cubic-bezier(.22, .78, .2, 1), bottom .62s cubic-bezier(.22, .78, .2, 1), height .62s cubic-bezier(.22, .78, .2, 1), opacity .42s;\n  display: block;\n  position: absolute;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-viewport-resizing] [data-maid-character]",
+      "line": 174,
+      "conditions": [],
+      "declarations": "filter: none;\n  transition: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-low-power] [data-maid-character]",
+      "line": 179,
+      "conditions": [],
+      "declarations": "filter: none;\n  transition: opacity .18s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-trim-layer]",
+      "line": 207,
+      "conditions": [],
+      "declarations": "transition: transform .52s cubic-bezier(.4, 0, .2, 1);\n  position: absolute;\n  inset: 0;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-chrome=\"bottom-trim\"]",
+      "line": 274,
+      "conditions": [],
+      "declarations": "translate: var(--maid-sidebar-width, 280px) 0;\n  z-index: 19;\n  pointer-events: none;\n  background: var(--maid-bottom-trim-art) left bottom / auto 30px repeat-x;\n  contain: paint;\n  height: 60px;\n  transition: transform .52s cubic-bezier(.22, .78, .2, 1);\n  position: fixed;\n  inset: auto 0 0;\n  transform: translateY(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "header:has([role=\"tablist\"])",
+      "line": 307,
+      "conditions": [],
+      "declarations": "z-index: 21;\n  border-bottom: 0;\n  animation: .32s .11s both QElLiW_maidAtelierWorkspaceHeaderEnter;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-skin-trim-layer], [data-skin-chrome=\"top-trim\"], [data-skin-chrome=\"bottom-trim\"]",
+      "line": 315,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "transition: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "header:has([role=\"tablist\"]), [data-maid-workspace-active]:before, [data-maid-workspace-active] > [class*=\"folder\"], [data-maid-workspace-active] [class*=\"projectText\"]",
+      "line": 319,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "button[class*=\"brand\"] > svg",
+      "line": 505,
+      "conditions": [],
+      "declarations": "filter: drop-shadow(0 1px 2px #02081cb8);\n  flex: none;\n  width: min(182px, 100%);\n  height: auto;\n  transition: color .15s, filter .15s;\n  display: block;\n  overflow: visible;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "button[class*=\"brand\"] > svg > rect",
+      "line": 515,
+      "conditions": [],
+      "declarations": "fill: #d7b46a;\n  transition: fill .15s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "button[class*=\"newSession\"]",
+      "line": 556,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  color: #152246;\n  border-style: solid;\n  border-width: 0 40px;\n  border-image-source: var(--maid-new-session-art);\n  letter-spacing: 0;\n  min-height: 58px;\n  box-shadow: none;\n  filter: drop-shadow(0 5px 9px #02081c38);\n  background: none;\n  border-image-slice: 0 210 fill;\n  border-image-width: 0 40px;\n  border-image-repeat: stretch;\n  border-radius: 0;\n  margin-block: 4px 8px;\n  font-family: Georgia, Times New Roman, serif;\n  font-size: 16px;\n  font-weight: 600;\n  transition: filter .15s, transform .15s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"])",
+      "line": 611,
+      "conditions": [],
+      "declarations": "z-index: 1;\n  color: #f2dfba;\n  border-style: solid;\n  border-width: 0 34px;\n  border-image-source: var(--maid-settings-frame-art);\n  letter-spacing: 0;\n  width: 100%;\n  min-height: 50px;\n  box-shadow: none;\n  filter: drop-shadow(0 4px 10px #02081c42);\n  background: none;\n  border-image-slice: 0 220 fill;\n  border-image-width: 0 34px;\n  border-image-repeat: stretch;\n  border-radius: 0;\n  padding-inline: 34px;\n  font-family: Georgia, Times New Roman, serif;\n  transition: color .15s, filter .15s, transform .15s;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[class*=\"sectionHeader\"] [class*=\"iconButton\"]",
+      "line": 940,
+      "conditions": [],
+      "declarations": "color: #d9bd83;\n  background: none;\n  border: 1px solid #0000;\n  transition: color .15s, border-color .15s, background .15s;\n  position: relative;"
+    },
+    {
+      "file": "patches.css",
+      "selector": ":is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) [class*=\"search\"][class*=\"searchExpanded\"]:has( > input[class*=\"searchInput\"])",
+      "line": 966,
+      "conditions": [],
+      "declarations": "--dsh-search-input-fill: transparent;\n  color: #d8bc80;\n  background: linear-gradient(#07143780, #09193f52);\n  border: 1px solid #e1bf7cb8;\n  height: 42px;\n  margin: 0 2px;\n  padding-inline: 14px;\n  transition: border-color .15s, background .15s, box-shadow .15s;\n  box-shadow: inset 0 0 0 1px #06102cb3, 0 3px 9px #02071824;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-sidebar-size=\"rail\"] :is([data-pane=\"sidebar\"], [class*=\"sidebarCol\"]) :is([class*=\"logoRow\"] [class*=\"toggle\"], button[class*=\"newSession\"], [class*=\"sectionHeader\"] [class*=\"iconButton\"], [class*=\"search\"] [class*=\"searchButton\"], [data-maid-sidebar-footer] [data-slot=\"sidebar.settings\"] > :is(button, [role=\"button\"]))",
+      "line": 1006,
+      "conditions": [],
+      "declarations": "box-sizing: border-box;\n  width: var(--maid-rail-control-size);\n  min-width: var(--maid-rail-control-size);\n  height: var(--maid-rail-control-size);\n  min-height: var(--maid-rail-control-size);\n  flex: 0 0 var(--maid-rail-control-size);\n  color: #ebd29e;\n  filter: none;\n  border: 1px solid #e1bf7cc2;\n  border-image: ;\n  background: linear-gradient(145deg, #4d67a97a, #071234d1);\n  border-radius: 50%;\n  margin-inline: 0;\n  padding: 0;\n  transition: color .15s, border-color .15s, background .15s, box-shadow .15s;\n  overflow: visible;\n  transform: none;\n  box-shadow: inset 0 0 0 2px #050f2dc2, 0 3px 9px #0107183d;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active]:before",
+      "line": 1123,
+      "conditions": [],
+      "declarations": "content: \"\";\n  box-sizing: border-box;\n  z-index: 0;\n  border-style: solid;\n  border-width: 0 36px 0 35px;\n  border-image-source: var(--maid-workspace-ribbon-art);\n  filter: drop-shadow(0 5px 8px #02081c66);\n  pointer-events: none;\n  border-image-slice: 0 145 0 140 fill;\n  border-image-width: 0 36px 0 35px;\n  border-image-repeat: stretch;\n  animation: .42s cubic-bezier(.2, .74, .22, 1) both QElLiW_maidAtelierWorkspaceRibbonEnter;\n  position: absolute;\n  inset: -3px 0 -3px -12px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-workspace-active] > [class*=\"folder\"], [data-maid-workspace-active] [class*=\"projectText\"]",
+      "line": 1140,
+      "conditions": [],
+      "declarations": "animation: .26s cubic-bezier(.2, .74, .22, 1) 90ms both QElLiW_maidAtelierWorkspaceRibbonContentEnter;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect",
+      "line": 1193,
+      "conditions": [],
+      "declarations": "fill: currentColor;\n  opacity: .18;\n  rx: 1px;\n  ry: 1px;\n  animation: 1s linear infinite QElLiW_maidAtelierSessionJewelChase;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-input-mirror]",
+      "line": 1529,
+      "conditions": [],
+      "declarations": "min-height: 0;\n  transition: min-height .52s cubic-bezier(.22, .78, .2, 1);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-settings-open] :is([data-composer-seat], [data-slot=\"conversation.composer\"], [data-composer-card])",
+      "line": 1604,
+      "conditions": [],
+      "declarations": "z-index: 0 !important;\n  opacity: .75;\n  pointer-events: none;\n  animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-composer-motion=\"dock\"] [data-phase=\"active\"] [data-composer-card]",
+      "line": 1650,
+      "conditions": [],
+      "declarations": "animation: .52s cubic-bezier(.22, .78, .2, 1) both QElLiW_maidAtelierComposerDock;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "body[data-maid-composer-motion=\"rise\"] [data-phase=\"hero\"] [data-composer-card]",
+      "line": 1654,
+      "conditions": [],
+      "declarations": "animation: .52s cubic-bezier(.22, .78, .2, 1) both QElLiW_maidAtelierComposerRise;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-composer-card] button",
+      "line": 1763,
+      "conditions": [],
+      "declarations": "transition: transform .14s, background-color .14s, box-shadow .14s;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-variant=\"think\"][data-state=\"running\"] [class*=\"row\"]:after",
+      "line": 2107,
+      "conditions": [],
+      "declarations": "will-change: transform, opacity;\n  background: linear-gradient(90deg, #0000, #e1cfaa4d 46%, #8ea5da3d 62%, #0000);\n  width: 240px;\n  animation: 2.8s ease-in-out infinite QElLiW_maid-atelier-reasoning-sweep;\n  left: -240px;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-maid-session-row] svg[data-state=\"ongoing\"] > rect",
+      "line": 2455,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "opacity: .2;\n    animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "[data-variant=\"think\"][data-state=\"running\"] [class*=\"row\"]:after, [data-composer-card] button, [data-composer-card], [data-input-mirror]",
+      "line": 2472,
+      "conditions": [
+        "@media (prefers-reduced-motion: reduce)"
+      ],
+      "declarations": "transition: none;\n    animation: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2479,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceHeaderEnter"
+      ],
+      "declarations": "opacity: 0;\n    transform: translateY(-6px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2484,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceHeaderEnter"
+      ],
+      "declarations": "opacity: 1;\n    transform: translateY(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2491,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonEnter"
+      ],
+      "declarations": "opacity: 0;\n    clip-path: inset(0 100% 0 0);\n    transform: translate(-8px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "60%",
+      "line": 2497,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonEnter"
+      ],
+      "declarations": "opacity: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "70%",
+      "line": 2501,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonEnter"
+      ],
+      "declarations": "clip-path: inset(0 12% 0 0);\n    transform: translate(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "92%",
+      "line": 2506,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonEnter"
+      ],
+      "declarations": "clip-path: inset(0);\n    transform: translate(2px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2511,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonEnter"
+      ],
+      "declarations": "opacity: 1;\n    clip-path: inset(0);\n    transform: translate(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2519,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonContentEnter"
+      ],
+      "declarations": "opacity: .32;\n    transform: translate(-4px);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2524,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierWorkspaceRibbonContentEnter"
+      ],
+      "declarations": "opacity: 1;\n    transform: translate(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2531,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierSessionJewelChase"
+      ],
+      "declarations": "opacity: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "18%",
+      "line": 2535,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierSessionJewelChase"
+      ],
+      "declarations": "opacity: .72;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "36%",
+      "line": 2539,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierSessionJewelChase"
+      ],
+      "declarations": "opacity: .42;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "55%, to",
+      "line": 2543,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierSessionJewelChase"
+      ],
+      "declarations": "opacity: .18;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2549,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierComposerDock"
+      ],
+      "declarations": "opacity: .94;\n    transform: translateY(clamp(-240px, -26vh, -150px));"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2554,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierComposerDock"
+      ],
+      "declarations": "opacity: 1;\n    transform: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2561,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierComposerRise"
+      ],
+      "declarations": "opacity: .94;\n    transform: translateY(clamp(150px, 26vh, 240px));"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2566,
+      "conditions": [
+        "@keyframes QElLiW_maidAtelierComposerRise"
+      ],
+      "declarations": "opacity: 1;\n    transform: none;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "0%",
+      "line": 2573,
+      "conditions": [
+        "@keyframes QElLiW_maid-atelier-reasoning-sweep"
+      ],
+      "declarations": "opacity: 0;\n    transform: translate(0);"
+    },
+    {
+      "file": "patches.css",
+      "selector": "15%",
+      "line": 2578,
+      "conditions": [
+        "@keyframes QElLiW_maid-atelier-reasoning-sweep"
+      ],
+      "declarations": "opacity: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "88%",
+      "line": 2582,
+      "conditions": [
+        "@keyframes QElLiW_maid-atelier-reasoning-sweep"
+      ],
+      "declarations": "opacity: 1;"
+    },
+    {
+      "file": "patches.css",
+      "selector": "to",
+      "line": 2586,
+      "conditions": [
+        "@keyframes QElLiW_maid-atelier-reasoning-sweep"
+      ],
+      "declarations": "opacity: 0;\n    transform: translate(calc(100vw + 240px));"
+    }
+  ],
+  "blocked": [
+    "Runtime DOM skin stamp, dark/light mode, preview and hooks health not observed",
+    "Native renderer fidelity, runtime fonts and visual acceptance not tested",
+    "Art not bundled or redistributed; publication/commercial licensing requires separate review"
+  ]
+}

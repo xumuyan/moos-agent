@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3/native_style",
+  "recordedAt": "2026-11-17T21:57:40.945260+08:00",
+  "worktree": {
+    "baseHead": "381868ba2bb1876fbdb55d3d605bdee9f4c6ade0",
+    "state": "uncommitted owned presentation/source checkpoint plus preserved pre-existing untracked integration/controller files; tests include that mixed worktree, not a clean-checkout delivery"
+  },
+  "source": {
+    "skin": "maid-atelier",
+    "version": "0.3.2",
+    "license": "CC BY-NC-SA 4.0",
+    "basis": "persisted selection and static files; runtime identity and computed style unknown",
+    "inventory": "skin-source.json"
+  },
+  "system": {
+    "os": "macOS 27.0.1",
+    "machine": "arm64",
+    "node": "24.15.0",
+    "nsh": "0.5.0 (f4d68f7)",
+    "testTmp": "explicit dedicated /private/tmp/n01-native-style.* 0700"
+  },
+  "acceptance": {
+    "visualAccepted": false,
+    "resourcesMeasured": false,
+    "installed": false,
+    "deployed": false,
+    "externalModel": false,
+    "cleanCheckoutIntegrated": false,
+    "overallN01Complete": false,
+    "thirdPartyArtCommitted": false
+  },
+  "protectedWorktree": {
+    "allNonOwnedUnchanged": true,
+    "files": [
+      {
+        "path": "probes/nsh-validation/DesktopApp.test.tsx",
+        "sha256Before": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+        "sha256After": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/DesktopApp.tsx",
+        "sha256Before": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+        "sha256After": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/DesktopUIHost.swift",
+        "sha256Before": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+        "sha256After": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/assets/desktop/sidebar-icon.png",
+        "sha256Before": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf",
+        "sha256After": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-theme-fixture.ts",
+        "sha256Before": "95bd0302f56ee3f0e825c5d85cc53b7d001e3a2efea0d6c1dd3805423fb7341d",
+        "sha256After": "95bd0302f56ee3f0e825c5d85cc53b7d001e3a2efea0d6c1dd3805423fb7341d",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-acceptance.tsx",
+        "sha256Before": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+        "sha256After": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-controller.ts",
+        "sha256Before": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+        "sha256After": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui-transport.ts",
+        "sha256Before": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+        "sha256After": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/desktop-ui.test.mjs",
+        "sha256Before": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+        "sha256After": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+        "unchanged": true
+      },
+      {
+        "path": "probes/nsh-validation/verify-desktop-ui.mjs",
+        "sha256Before": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+        "sha256After": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+        "unchanged": true
+      }
+    ],
+    "note": "Source handoff files are owned by this combined provenance/style checkpoint; protected list is non-owned integration/controller plus unchanged brand and theme fixture/test inputs."
+  },
+  "results": {
+    "assets": {
+      "pass": 5,
+      "fail": 0,
+      "log": "assets-checkpoint.log"
+    },
+    "headless": {
+      "pass": 9,
+      "fail": 0,
+      "log": "headless-cleanup.log"
+    },
+    "native": {
+      "pass": 4,
+      "fail": 0,
+      "log": "native-cleanup.log",
+      "scope": "NSH macOS development host with synthetic six-method bridge; no PI task"
+    },
+    "capture": {
+      "pass": 2,
+      "fail": 0,
+      "log": "capture-cleanup.log",
+      "run": "artifacts/nsh-validation/desktop-theme/run-TuMwh2",
+      "scope": "saved synthetic scenes, PNG original magic/dimensions verified; not live screen or production app"
+    },
+    "core": {
+      "pass": 351,
+      "fail": 0,
+      "skipped": 0,
+      "log": "core-recheck.log",
+      "durationMs": 120133.958125
+    },
+    "electron": {
+      "pass": 133,
+      "fail": 0,
+      "skipped": 10,
+      "log": "electron-handoff.log",
+      "limit": "no isolated packaged DSH CLI supplied; not all 143 passed"
+    },
+    "docsBeforeCheckpoint": {
+      "pass": 167,
+      "fail": 0,
+      "log": "docs-first.log"
+    },
+    "rust": {
+      "status": "blocked",
+      "exit": 101,
+      "reason": "offline cache missing defmt via jiff/serde_with/tauri",
+      "log": "rust-final.log"
+    },
+    "coreIntermediateFailure": {
+      "pass": 350,
+      "fail": 1,
+      "log": "core-handoff.log",
+      "reason": "scheduler timeout clock queued budget test did not reach failed state; not modified or root-caused here"
+    },
+    "schedulerRecheck": {
+      "pass": 12,
+      "fail": 0,
+      "log": "scheduler-recheck.log",
+      "limit": "passing rerun does not establish cause or stability"
+    },
+    "docs": {
+      "pass": 170,
+      "fail": 0,
+      "log": "docs-checkpoint.log"
+    },
+    "source": {
+      "pass": 11,
+      "fail": 0,
+      "log": "source-recheck.log"
+    }
+  },
+  "evidenceRoot": "artifacts/nsh-validation/native-style",
+  "remaining": [
+    "integration owner must commit controller/transport/entry fixtures and copy new theme dependencies in verify-desktop-ui.mjs",
+    "same-size production runtime comparison and user visual acceptance",
+    "animations, sidebar corner mirror crop and CSS/native equivalence",
+    "real input method, shortcuts, persistence and full business GUI",
+    "equivalent-business full-process resources and full disk",
+    "Electron package-dependent tests and M01 Rust dependency block"
+  ],
+  "commit": {
+    "subject": "feat(N01-D3): add source-verified native maid theme checkpoint",
+    "query": "git log --all --oneline --grep='source-verified native maid theme checkpoint'",
+    "push": "verify actual remote HEAD after commit; no application deployment"
+  },
+  "visualReview": {
+    "status": "partial saved image review, not user acceptance",
+    "knownRemaining": [
+      "Idle top lace still intersects the title baseline; not strict title/trim parity",
+      "footer preview caption can overlap lower art border",
+      "narrow navigation and flat session list are deliberate adaptations"
+    ],
+    "rawImages": "PNG file magic; 1240x820 standard and 680x720 narrow"
+  },
+  "logs": {
+    "core-final.log": {
+      "sha256": "27979addc6727ed213db804177c145a717fc5c8afc47ac3f9ba06d391cecee13",
+      "bytes": 35302
+    },
+    "core-handoff.log": {
+      "sha256": "e2f5df02f18fca8f6d47ff4be0ac97c60bb89555c5b20b8da7573514d10b8235",
+      "bytes": 36105
+    },
+    "core-recheck.log": {
+      "sha256": "a5871947fad2fe5b1ed2e63ba62aa557cb6898e414ae93e35f7e4db7b1371dbe",
+      "bytes": 35201
+    },
+    "electron-handoff.log": {
+      "sha256": "fbd074956ba3d198ff8cc029c97cce3bdb8e9e86ed646ed9d89930e45be7840e",
+      "bytes": 21422
+    },
+    "headless-cleanup.log": {
+      "sha256": "5c37dfaeea03954c92ab580a973ef0eff88861c99778f5c0730533f20e3e1a1c",
+      "bytes": 2147
+    },
+    "native-cleanup.log": {
+      "sha256": "ef6e0dd2d17ce716cfaf751e95582b78f2c62d5e5f1aa219fc9b9d6da6dcaef8",
+      "bytes": 1015
+    },
+    "capture-cleanup.log": {
+      "sha256": "5bfed3ee9d3cbf04ce342ebf4ac6e9adf9b936c9825d127c959ca4e289a8c82c",
+      "bytes": 615
+    },
+    "docs-delivery.log": {
+      "sha256": "8ae6dce97060fb8a5651c91e8bfd8f65e10a03ecc136312ca425101bfb1639cb",
+      "bytes": 19970
+    },
+    "source-recheck.log": {
+      "sha256": "05c32bca2d67be2abb35bb8ad784356df29ee0922d40e38f9a0112790707630b",
+      "bytes": 930
+    },
+    "scheduler-recheck.log": {
+      "sha256": "57872a4e74d1d20c55cee7166462daa20934c1e5387617d82e01b82c28a883fa",
+      "bytes": 1928
+    },
+    "rust-final.log": {
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc",
+      "bytes": 799
+    },
+    "docs-checkpoint.log": {
+      "sha256": "24d0fdaa8ed267a1f369b5b82e1d7395d4a3d48b99a62ab65b8a02e432f0b731",
+      "bytes": 19970
+    },
+    "assets-checkpoint.log": {
+      "sha256": "17c16d4d89502aed22caaff0df4f5b389dde4ef6d7bf950b10ba59c49c048daa",
+      "bytes": 574
+    }
+  }
+}
