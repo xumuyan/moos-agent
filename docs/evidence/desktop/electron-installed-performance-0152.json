@@ -1,0 +1,563 @@
+{
+  "task": "P03.14.12",
+  "recordedAt": "2026-11-17T09:34:14.706992+08:00",
+  "sourceCommit": "1bd5bc3d15f97127446c6e334e4ad753c6b6204e",
+  "system": "arm64/macOS 27.0.1, Electron 44.7.0, PI 1.5.0",
+  "status": "installed-and-measured-low-resource-target-not-accepted",
+  "update": {
+    "state": "success",
+    "targetVersion": "0.1.52",
+    "productionDataReset": false,
+    "automaticDataRestore": false,
+    "stoppedActiveTasks": false,
+    "stagedVerified": true,
+    "originalVersion": "0.1.50",
+    "at": "2026-11-17T01:12:21.330Z",
+    "independentPid": 17318,
+    "backupVerified": true,
+    "beforeCounts": {
+      "messages": 1352,
+      "conversations": 10,
+      "tasks": 717,
+      "events": 502797
+    },
+    "installedVersion": "0.1.52",
+    "loadedShellVersion": "0.1.52",
+    "singleMainPid": 55787,
+    "modelCount": 6,
+    "apiAndCredentialsIdentical": true,
+    "chatFilesRetained": true,
+    "piHistoryRetained": true,
+    "skinsRetained": true,
+    "workspaceRetained": true,
+    "userPluginDependenciesRetained": true,
+    "databaseRows": {
+      "messages": {
+        "before": 1352,
+        "after": 1352,
+        "originalRowsChangedOrMissing": 0
+      },
+      "conversations": {
+        "before": 10,
+        "after": 10,
+        "originalRowsChangedOrMissing": 0
+      },
+      "tasks": {
+        "before": 717,
+        "after": 717,
+        "originalRowsChangedOrMissing": 0
+      },
+      "events": {
+        "before": 502797,
+        "after": 502797,
+        "originalRowsChangedOrMissing": 0
+      }
+    },
+    "backupAndOldAppRemoved": true,
+    "guiVerified": true
+  },
+  "measurements": [
+    {
+      "version": "0.1.50",
+      "workload": "long chat idle",
+      "artifact": "artifacts/performance-0.1.52/old-long-idle-repeat.json",
+      "started": "2026-11-17T00:57:18.766Z",
+      "ended": "2026-11-17T00:57:39.202Z",
+      "cpuPercentMean": 2.6914287716526983,
+      "cpuPercentPeak": 3.4293494698477427,
+      "rssMiBMean": 440.6703125,
+      "footprint": {
+        "status": "measured",
+        "totalMiB": 847.3519668579102,
+        "scope": "macOS footprint tool total for the selected application processes",
+        "processes": [
+          {
+            "pid": 54003,
+            "footprintMiB": 274.7987518310547
+          },
+          {
+            "pid": 54183,
+            "footprintMiB": 267.0802307128906
+          },
+          {
+            "pid": 53991,
+            "footprintMiB": 224.29813385009766
+          },
+          {
+            "pid": 53967,
+            "footprintMiB": 71.73636627197266
+          },
+          {
+            "pid": 53994,
+            "footprintMiB": 10.704109191894531
+          }
+        ]
+      },
+      "processChurn": false,
+      "artifactSha256": "bb07cbbd149b6a1ac33fc20815b01d6159c71cf7745402d550417985e32d6c37"
+    },
+    {
+      "version": "0.1.50",
+      "workload": "eight native scrolls",
+      "artifact": "artifacts/performance-0.1.52/old-long-scrolling-measured.json",
+      "started": "2026-11-17T00:59:31.716Z",
+      "ended": "2026-11-17T00:59:52.188Z",
+      "cpuPercentMean": 3.466715504998831,
+      "cpuPercentPeak": 11.711167242226841,
+      "rssMiBMean": 430.1015625,
+      "footprint": {
+        "status": "measured",
+        "totalMiB": 845.7113418579102,
+        "scope": "macOS footprint tool total for the selected application processes",
+        "processes": [
+          {
+            "pid": 54003,
+            "footprintMiB": 272.9706268310547
+          },
+          {
+            "pid": 54183,
+            "footprintMiB": 266.6739807128906
+          },
+          {
+            "pid": 53991,
+            "footprintMiB": 224.59500885009766
+          },
+          {
+            "pid": 53967,
+            "footprintMiB": 72.03324127197266
+          },
+          {
+            "pid": 53994,
+            "footprintMiB": 10.704109191894531
+          }
+        ]
+      },
+      "processChurn": false,
+      "artifactSha256": "da94d73b9ddbbfdf623b5427ff4540c75942cbe45eb183d7052d2158229f6123"
+    },
+    {
+      "version": "0.1.52",
+      "workload": "long chat idle",
+      "artifact": "artifacts/performance-0.1.52/new-long-idle.json",
+      "started": "2026-11-17T01:12:10.332Z",
+      "ended": "2026-11-17T01:12:31.388Z",
+      "cpuPercentMean": 2.6157942560091465,
+      "cpuPercentPeak": 3.393645072357632,
+      "rssMiBMean": 557.94375,
+      "footprint": {
+        "status": "measured",
+        "totalMiB": 549.679084777832,
+        "scope": "macOS footprint tool total for the selected application processes",
+        "processes": [
+          {
+            "pid": 55827,
+            "footprintMiB": 187.06366729736328
+          },
+          {
+            "pid": 56117,
+            "footprintMiB": 163.5330810546875
+          },
+          {
+            "pid": 55953,
+            "footprintMiB": 125.79829406738281
+          },
+          {
+            "pid": 55787,
+            "footprintMiB": 63.9862060546875
+          },
+          {
+            "pid": 55830,
+            "footprintMiB": 10.579086303710938
+          }
+        ]
+      },
+      "processChurn": false,
+      "artifactSha256": "52cc95af79edf1b529c4d45e13d4946a940602c77169aa089d3964f48e98fd32"
+    },
+    {
+      "version": "0.1.52",
+      "workload": "eight native scrolls",
+      "artifact": "artifacts/performance-0.1.52/new-long-scrolling-measured.json",
+      "started": "2026-11-17T01:13:54.964Z",
+      "ended": "2026-11-17T01:14:15.588Z",
+      "cpuPercentMean": 4.975776683110566,
+      "cpuPercentPeak": 26.955505069563277,
+      "rssMiBMean": 554.459375,
+      "footprint": {
+        "status": "measured",
+        "totalMiB": 572.210334777832,
+        "scope": "macOS footprint tool total for the selected application processes",
+        "processes": [
+          {
+            "pid": 55827,
+            "footprintMiB": 203.40741729736328
+          },
+          {
+            "pid": 56117,
+            "footprintMiB": 169.0018310546875
+          },
+          {
+            "pid": 55953,
+            "footprintMiB": 123.73579406738281
+          },
+          {
+            "pid": 55787,
+            "footprintMiB": 66.7205810546875
+          },
+          {
+            "pid": 55830,
+            "footprintMiB": 10.625961303710938
+          }
+        ]
+      },
+      "processChurn": false,
+      "artifactSha256": "b390871517e8936b35b83b62a2bcea7a72632626757f49e94581e2a1addb58c6"
+    },
+    {
+      "version": "0.1.52",
+      "workload": "after explicit native minimize action",
+      "artifact": "artifacts/performance-0.1.52/new-after-minimize-action.json",
+      "started": "2026-11-17T01:19:34.287Z",
+      "ended": "2026-11-17T01:19:55.632Z",
+      "cpuPercentMean": 0.8922519856946888,
+      "cpuPercentPeak": 1.8931387835757296,
+      "rssMiBMean": 297.1640625,
+      "footprint": {
+        "status": "measured",
+        "totalMiB": 445.38220977783203,
+        "scope": "macOS footprint tool total for the selected application processes",
+        "processes": [
+          {
+            "pid": 56117,
+            "footprintMiB": 170.8143310546875
+          },
+          {
+            "pid": 55953,
+            "footprintMiB": 127.70454406738281
+          },
+          {
+            "pid": 55827,
+            "footprintMiB": 71.46991729736328
+          },
+          {
+            "pid": 55787,
+            "footprintMiB": 66.0487060546875
+          },
+          {
+            "pid": 55830,
+            "footprintMiB": 10.594711303710938
+          }
+        ]
+      },
+      "processChurn": false,
+      "artifactSha256": "28c309e0eb585d832723bfe344dbf9f1e74b10dc79836634151a8f61df30500d"
+    }
+  ],
+  "controlledTeamWorkload": {
+    "normalGUI": false,
+    "externalModel": false,
+    "productionTouched": false,
+    "description": "Two isolated signed QA copies, fresh synthetic workspace/model; same write answer.txt=42 and independent read/verdict, nine loopback model requests; 3 second delay before each response, first 20 seconds sampled; original show suppressed harness plus read-only metric helper.",
+    "driver": "artifacts/performance-0.1.52/team-measure.mjs",
+    "driverSha256": "2aba7a2acde2c175d8a5a3973cd27c9d6e46a41e85c62319cfef5da253acf662",
+    "runs": [
+      {
+        "version": "0.1.50",
+        "report": "artifacts/team-ui/gui-BUH3Kx/report.json",
+        "status": "passed",
+        "requests": 9,
+        "normalExit": 0,
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "performance": {
+          "started": "2026-11-17T01:19:31.355Z",
+          "ended": "2026-11-17T01:19:52.744Z",
+          "mainPid": 20473,
+          "sampleSeconds": 20,
+          "scope": "main and descendant application executables; external build/tool processes excluded",
+          "cpuPercentMean": 34.73818674805807,
+          "cpuPercentPeak": 70.60800338506415,
+          "cpuScale": "100% = one CPU core",
+          "rssMiBMean": 790.446875,
+          "rssCaveat": "RSS sum double-counts shared pages; do not describe it as exclusive app memory",
+          "footprint": {
+            "status": "measured",
+            "totalMiB": 675.4446411132812,
+            "scope": "macOS footprint tool total for the selected application processes",
+            "processes": [
+              {
+                "pid": 20535,
+                "footprintMiB": 217.9855194091797
+              },
+              {
+                "pid": 20547,
+                "footprintMiB": 206.6733856201172
+              },
+              {
+                "pid": 20918,
+                "footprintMiB": 199.40787506103516
+              },
+              {
+                "pid": 20473,
+                "footprintMiB": 45.47062683105469
+              },
+              {
+                "pid": 20537,
+                "footprintMiB": 10.172859191894531
+              }
+            ]
+          },
+          "processChurn": false,
+          "perProcess": [
+            {
+              "pid": 20473,
+              "role": "main",
+              "cpuPercentMean": 1.5751010819577864,
+              "rssMiB": 154.5
+            },
+            {
+              "pid": 20535,
+              "role": "helper",
+              "cpuPercentMean": 16.175877479614634,
+              "rssMiB": 87.5625
+            },
+            {
+              "pid": 20537,
+              "role": "helper",
+              "cpuPercentMean": 0.18448924791232818,
+              "rssMiB": 49.609375
+            },
+            {
+              "pid": 20547,
+              "role": "host",
+              "cpuPercentMean": 2.64945647323857,
+              "rssMiB": 243.953125
+            },
+            {
+              "pid": 20918,
+              "role": "renderer",
+              "cpuPercentMean": 14.153262465334752,
+              "rssMiB": 257.8125
+            }
+          ]
+        },
+        "reportSha256": "31c862d532d07e872d96e49210e7a7481eee039eb06e260b1a11ca344d7a9fe6"
+      },
+      {
+        "version": "0.1.52",
+        "report": "artifacts/team-ui/gui-3Vt1Iu/report.json",
+        "status": "passed",
+        "requests": 9,
+        "normalExit": 0,
+        "checks": {
+          "menuAndTag": true,
+          "liveProgress": true,
+          "nodeProjection": true,
+          "readableMemberLayout": true,
+          "reportedMemberUsageOrExplicitUnknown": true,
+          "memberFileIndexNavigation": true,
+          "structuredMemberDetails": true,
+          "independentReadAndArtifact": true,
+          "modeClearDoesNotCancel": true,
+          "persistedTerminalState": true,
+          "ordinaryAfterClear": true
+        },
+        "performance": {
+          "started": "2026-11-17T01:22:09.362Z",
+          "ended": "2026-11-17T01:22:31.418Z",
+          "mainPid": 30017,
+          "sampleSeconds": 20,
+          "scope": "main and descendant application executables; external build/tool processes excluded",
+          "cpuPercentMean": 35.97634700605248,
+          "cpuPercentPeak": 67.86885810397214,
+          "cpuScale": "100% = one CPU core",
+          "rssMiBMean": 774.4796875,
+          "rssCaveat": "RSS sum double-counts shared pages; do not describe it as exclusive app memory",
+          "footprint": {
+            "status": "measured",
+            "totalMiB": 648.9914703369141,
+            "scope": "macOS footprint tool total for the selected application processes",
+            "processes": [
+              {
+                "pid": 30055,
+                "footprintMiB": 206.5167694091797
+              },
+              {
+                "pid": 30743,
+                "footprintMiB": 204.45477294921875
+              },
+              {
+                "pid": 30061,
+                "footprintMiB": 185.4546356201172
+              },
+              {
+                "pid": 30017,
+                "footprintMiB": 46.704933166503906
+              },
+              {
+                "pid": 30056,
+                "footprintMiB": 10.141609191894531
+              }
+            ]
+          },
+          "processChurn": false,
+          "perProcess": [
+            {
+              "pid": 30017,
+              "role": "main",
+              "cpuPercentMean": 1.6696293205150998,
+              "rssMiB": 150.578125
+            },
+            {
+              "pid": 30055,
+              "role": "helper",
+              "cpuPercentMean": 16.4198948686712,
+              "rssMiB": 84.78125
+            },
+            {
+              "pid": 30056,
+              "role": "helper",
+              "cpuPercentMean": 0.13598969446966963,
+              "rssMiB": 48.078125
+            },
+            {
+              "pid": 30061,
+              "role": "host",
+              "cpuPercentMean": 3.2435923711527628,
+              "rssMiB": 242.53125
+            },
+            {
+              "pid": 30743,
+              "role": "renderer",
+              "cpuPercentMean": 14.507240751243739,
+              "rssMiB": 256.34375
+            }
+          ]
+        },
+        "reportSha256": "2b1c911c976693035a6088d08aac6696c314fcb058ba4dd445d75a8d99f0c5a1"
+      }
+    ]
+  },
+  "limitations": {
+    "restartConfoundsMemoryComparison": true,
+    "longDurationLeakFreedomProven": false,
+    "randomizedRepeatedAB": false,
+    "systemLoadControlled": false,
+    "concurrentOtherTests": true,
+    "rssSumIsExclusiveMemory": false,
+    "footprint": "macOS footprint total for selected app processes, not unique allocations; external compilers/tools and system services excluded",
+    "animatedProductionSkinAndFreshFixtureAreDifferentWorkloads": true
+  },
+  "excludedOrQualifiedSamples": [
+    {
+      "artifact": "old-long-idle.json",
+      "reason": "Initial footprint parser expected bytes; macOS reported byte; CPU/RSS retained, footprint unavailable, not zero."
+    },
+    {
+      "artifact": "old-long-scroll.json",
+      "reason": "No scroll action in the sample; idle only, excluded from scroll comparison."
+    },
+    {
+      "artifact": "new-long-scrolling.json",
+      "reason": "Action overlap not validated; excluded from scroll A/B."
+    },
+    {
+      "artifact": "new-background.json / new-minimized-measured.json",
+      "reason": "Intermediate samples not used for final background conclusion; use explicit minimize action sample."
+    },
+    {
+      "artifact": "new-long-idle-later.json",
+      "reason": "After Raise, foreground restoration not independently observed at sample start; not a foreground repeat or soak proof."
+    },
+    {
+      "artifact": "old-team-run.log",
+      "reason": "First fixture driver import path incorrect; no application launched. Fixed driver then both versions passed."
+    }
+  ],
+  "cpuMemoryTargetAccepted": false,
+  "nshModified": false,
+  "conclusion": "No material active-task CPU gain demonstrated: 34.74% vs 35.98%; fresh fixture footprint 675.44 vs 648.99 MiB is modest. Current visible long chat about 550-572 MiB and after minimize about 445 MiB. Low constant memory goal remains unaccepted; preserve PI execution layer if pursuing native UI.",
+  "tests": {
+    "metricUnitPassed": 4,
+    "electronPassed": 143,
+    "electronSkipped": 0,
+    "coreFirst": {
+      "tests": 337,
+      "passed": 335,
+      "failed": 1,
+      "cancelled": 1,
+      "seconds": 328.129,
+      "failures": [
+        "adapter active upstream cancellation timeout (15 seconds)",
+        "NSH native pairing count assertion 0 != 1"
+      ]
+    },
+    "rerun": {
+      "failedFilesPassed": 17,
+      "failed": 0,
+      "seconds": 35.624,
+      "fullSerial": "337/337 passed on final stable metric source"
+    },
+    "docs": {
+      "passed": 165,
+      "artifact": "artifacts/performance-0.1.52/docs-tests-stable.log",
+      "initialFormatFailureRetained": true
+    },
+    "metricMalformedReportRegression": {
+      "beforeFix": "artifacts/performance-0.1.52/metric-regression-red.log (failed as expected)",
+      "afterFix": "artifacts/performance-0.1.52/metric-tests-final.log (4/4 passed)",
+      "actualInstalledReadOnlySmoke": "artifacts/performance-0.1.52/final-metric-smoke.json (measured finite footprint)"
+    },
+    "coreSecond": {
+      "tests": 337,
+      "passed": 336,
+      "failed": 1,
+      "cancelled": 0,
+      "seconds": 197.396,
+      "failure": "New malformed-footprint assertion deliberately added during the run before its matching helper validation was applied; this mixed transitional run is not final acceptance."
+    },
+    "coreFinal": {
+      "tests": 337,
+      "passed": 337,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "seconds": 172.339,
+      "artifact": "artifacts/performance-0.1.52/core-tests-final.log"
+    }
+  },
+  "commands": {
+    "metrics": "node scripts/measure-electron-processes.mjs MAIN_PID 20 OUTPUT_JSON",
+    "core": "node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs",
+    "electron": "MOOS_ELECTRON_TEST_DSH_CLI=<guiGYH runtime/bin/dsh> MOOS_ELECTRON_TEST_SKIN_CENTER=<installed plugin> MOOS_ELECTRON_TEST_REVIEWED_MAID=<installed reviewed skin> node --test --test-concurrency=1 apps/electron/*.test.mjs",
+    "docs": "npm run test:docs"
+  },
+  "cleanup": {
+    "updateBackupAndOldAppRemoved": true,
+    "syntheticQaAppsAndDataRemoved": true,
+    "baselineProgramCopyRemoved": true
+  },
+  "sourceFiles": {
+    "scripts/measure-electron-processes.mjs": "731b70ae616eca1fe5dc5b4868fb2f2658a60daae17f1373940c06038c71144d",
+    "scripts/measure-electron-processes.test.mjs": "1f06356489dca953cd5016e2b67d736aaff1a057abde57b7f77139ab4db4bcd5"
+  },
+  "updateVerification": {
+    "finalStrictCodesignPassed": true,
+    "oneInstalledMainProcess": true,
+    "removedUpdateRootConfirmed": true,
+    "nativeOldChatAndModelsReadable": true,
+    "visibleExistingChatScreenshotObserved": true,
+    "e84NoForcedTermination": true
+  }
+}

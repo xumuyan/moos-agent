@@ -39,6 +39,27 @@ class OptionalTeamBudgetEvidenceTests(unittest.TestCase):
             self.assertFalse(e[field])
 
 
+class InstalledElectronPerformanceTests(unittest.TestCase):
+    def test_update_and_performance_evidence_preserves_data_and_measurement_limits(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/electron-installed-performance-0152.json').read_text())
+        self.assertEqual(e['update']['installedVersion'], '0.1.52')
+        for field in ('backupVerified', 'apiAndCredentialsIdentical', 'guiVerified', 'backupAndOldAppRemoved'):
+            self.assertTrue(e['update'][field])
+        self.assertTrue(all(row['originalRowsChangedOrMissing'] == 0 for row in e['update']['databaseRows'].values()))
+        self.assertFalse(e['cpuMemoryTargetAccepted'])
+        self.assertFalse(e['nshModified'])
+        self.assertFalse(e['controlledTeamWorkload']['normalGUI'])
+        self.assertFalse(e['controlledTeamWorkload']['externalModel'])
+        self.assertTrue(e['limitations']['restartConfoundsMemoryComparison'])
+        self.assertFalse(e['limitations']['longDurationLeakFreedomProven'])
+        self.assertGreaterEqual(len(e['excludedOrQualifiedSamples']), 3)
+        for row in e['controlledTeamWorkload']['runs']:
+            self.assertEqual(row['status'], 'passed')
+            self.assertEqual(row['requests'], 9)
+            self.assertEqual(row['normalExit'], 0)
+        self.assertIn('P03.14.12', (ROOT / 'PLAN.md').read_text())
+
+
 class ElectronResourceReviewTests(unittest.TestCase):
     def test_resource_checkpoint_does_not_claim_unmeasured_memory_or_hidden_window_gains(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/electron-polling-cache-review.json').read_text())
