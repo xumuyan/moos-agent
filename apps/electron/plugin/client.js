@@ -251,13 +251,14 @@ window.__ModuleLoader__.load({
     }
 
     function ExecutionSettings({ styles }) {
-      const [state, setState] = useState({ status: 'loading', mode: null });
+      const [state, setState] = useState({ status: 'loading', mode: null, teamTokens: '', teamRequests: '' });
       const [busy, setBusy] = useState(false);
       const [message, setMessage] = useState();
       useEffect(() => {
         let closed = false;
         window.moosExecutionPolicy.status().then(row => {
-          if (!closed) setState({ status: 'ready', mode: row?.mode ?? 'workspace-write' });
+          if (!closed) setState({ status: 'ready', mode: row?.mode ?? 'workspace-write',
+            teamTokens: row?.teamBudget?.tokens ?? '', teamRequests: row?.teamBudget?.requests ?? '' });
         }).catch(() => { if (!closed) setState(value => ({ ...value, status: 'error' })); });
         return () => { closed = true; };
       }, []);
@@ -266,10 +267,12 @@ window.__ModuleLoader__.load({
         event?.preventDefault();
         setBusy(true); setMessage(undefined);
         try {
-          const next = await window.moosExecutionPolicy.save({ mode: state.mode });
-          setState(value => ({ ...value, status: 'ready', mode: next.mode }));
-          setMessage({ ok: true, text: next.mode === 'danger-full-access'
-            ? '已切换为完全访问，对新任务生效。' : '已恢复沙盒内执行，对新任务生效。' });
+          const limit = value => value === '' || value == null ? null : Number(value);
+          const next = await window.moosExecutionPolicy.save({ mode: state.mode,
+            teamBudget: { tokens: limit(state.teamTokens), requests: limit(state.teamRequests) } });
+          setState(value => ({ ...value, status: 'ready', mode: next.mode,
+            teamTokens: next.teamBudget?.tokens ?? '', teamRequests: next.teamBudget?.requests ?? '' }));
+          setMessage({ ok: true, text: '命令执行与团队预算已保存，对之后开始的新任务生效。' });
         } catch { setMessage({ ok: false, text: '保存失败，请重试。' }); }
         finally { setBusy(false); }
       }
@@ -289,6 +292,20 @@ window.__ModuleLoader__.load({
             '命令以机器正常权限直接执行（与 Codex 完全访问一致）：真实用户目录与网络，构建工具（swiftc、xcodebuild、npm）可访问 ~/Library，不再弹批准。')),
         createElement('p', { role: 'note', style: noteStyle },
           '完全访问下命令不再受沙盒限制，可读写全盘并联网；仅对可信任务开启。保存后对之后开始的新任务生效，进行中的任务保持原有权限。'),
+        createElement('h3', { 'data-moos-team-budget-settings': '' }, '团队任务预算'),
+        createElement('p', { role: 'note', style: noteStyle },
+          '默认不设置累计预算。留空表示不限，填写正整数设置上限；对之后开始的团队任务生效，进行中任务保持原设置。'),
+        ...[['teamTokens', '累计非缓存 Token 上限'], ['teamRequests', '模型请求次数上限']].map(([key, label]) =>
+          providerField(styles, label, createElement('input', {
+            className: styles.input, type: 'number', min: 1, step: 1,
+            value: state[key] ?? '', placeholder: '不设上限', 'aria-label': label,
+            disabled: busy || state.status !== 'ready',
+            onChange: event => setState(value => ({ ...value, [key]: event.target.value })),
+          }))),
+        createElement('p', { role: 'note', style: noteStyle },
+          'Token 预算累计模型报告的非缓存输入与输出，缓存读取不计入；在每次模型返回后检查，可能超出一次请求的用量。任务仍受运行时长限制，可随时停止。'),
+        createElement('p', { role: 'note', style: noteStyle },
+          '团队按本轮目标拆分任务、顺序执行并独立验收，验收失败会停止。当前没有跨轮自动续跑和节点恢复。'),
         createElement(Button, { type: 'submit', size: 'sm', disabled: busy || state.status !== 'ready' },
           busy ? '正在保存…' : '保存'),
         message ? createElement('p', { role: 'status', style: noteStyle }, message.text) : null,

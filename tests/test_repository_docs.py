@@ -18,6 +18,27 @@ class OptionalTeamBudgetDesignTests(unittest.TestCase):
         self.assertIn('P03.14.11', (ROOT / 'PLAN.md').read_text())
 
 
+class OptionalTeamBudgetEvidenceTests(unittest.TestCase):
+    def test_optional_budget_acceptance_keeps_limits_and_goal_scope_truthful(self):
+        e = json.loads((ROOT / 'docs/evidence/desktop/optional-team-budget.json').read_text())
+        self.assertEqual(e['configuration']['default'], {'tokens': None, 'requests': None})
+        self.assertEqual(e['configuration']['failureCodes'], ['team_budget', 'team_request_budget'])
+        self.assertTrue(all(row['packagedMatch'] for row in e['sourcePackageChecks'].values()))
+        self.assertTrue(e['configuration']['snapshotAtTaskStart'])
+        self.assertTrue(e['configuration']['httpGateIncludesCompactionAndRetries'])
+        self.assertEqual(e['tests']['coreSerial']['passed'], 333)
+        self.assertEqual(e['tests']['electronPackagedSerial']['passed'], 143)
+        self.assertEqual(e['rendererAcceptance']['status'], 'passed')
+        self.assertEqual(e['rendererAcceptance']['shutdown']['exitCode'], 0)
+        self.assertTrue(e['rendererAcceptance']['checks']['budgetSettingsPersistAndClear'])
+        self.assertGreater(e['syntheticUsage']['nonCachedInputPlusOutput'], 2000000)
+        self.assertFalse(e['syntheticUsage']['realPaidModel'])
+        self.assertFalse(e['goalSemantics']['persistentGoalLoop'])
+        self.assertFalse(e['goalSemantics']['nodeResume'])
+        for field in ('installed', 'productionWritten', 'productionRestarted', 'normalGUI', 'externalModel', 'nshModified', 'overallP0314Complete'):
+            self.assertFalse(e[field])
+
+
 class ElectronResourceReviewTests(unittest.TestCase):
     def test_resource_checkpoint_does_not_claim_unmeasured_memory_or_hidden_window_gains(self):
         e = json.loads((ROOT / 'docs/evidence/desktop/electron-polling-cache-review.json').read_text())

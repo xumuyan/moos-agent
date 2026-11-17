@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -457,4 +457,27 @@ test('execution policy round-trips through private storage and rejects unknown m
   assert.deepEqual(await models.executionPolicy(), { mode: 'workspace-write' });
   // 模型配置文件不受影响。
   assert.deepEqual(await models.list(), []);
+});
+
+
+test('team budget configuration persists, preserves legacy permission saves and rejects malformed limits', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'moos-team-budget-'));
+  t.after(() => rm(data, { recursive: true, force: true }));
+  const models = piModels(data, checkedProvider);
+  const teamBudget = { tokens: 3000000, requests: null };
+  assert.deepEqual(await models.saveExecutionPolicy({ mode: 'workspace-write', teamBudget }), { mode: 'workspace-write', teamBudget });
+  assert.deepEqual((await piModels(data, checkedProvider).executionPolicy()).teamBudget, teamBudget);
+  await models.saveExecutionPolicy({ mode: 'danger-full-access' });
+  assert.deepEqual((await models.executionPolicy()).teamBudget, teamBudget, 'old client permission saves retain budgets');
+  for (const value of [null, [], { tokens: 0 }, { requests: -1 }, { tokens: 1.1 }, { requests: '20' }, { extra: 1 }]) {
+    await assert.rejects(models.saveExecutionPolicy({ mode: 'workspace-write', teamBudget: value }), /Invalid team budget/);
+  }
+  assert.equal((await models.executionPolicy()).mode, 'danger-full-access', 'failed saves do not alter permissions');
+  const none = { tokens: null, requests: null };
+  await models.saveExecutionPolicy({ mode: 'workspace-write', teamBudget: none });
+  assert.deepEqual((await models.executionPolicy()).teamBudget, none);
+  await writeFile(join(data, 'private/execution-policy.json'), JSON.stringify({ mode: 'workspace-write', teamBudget: { tokens: 0 } }));
+  await assert.rejects(models.executionPolicy(), /Invalid team budget/, 'corruption must not silently mean unlimited');
+  await writeFile(join(data, 'private/execution-policy.json'), 'null');
+  await assert.rejects(models.executionPolicy(), /Invalid Moos execution policy/, 'JSON null is corrupt, not a missing file');
 });

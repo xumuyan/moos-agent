@@ -303,3 +303,25 @@ test('the long-context proxy forwards a JSON body larger than the former 2 MiB l
   assert.equal(response.status, 200);
   await response.text();
 });
+
+
+test('request budget hook runs only at authenticated upstream dispatch and can prevent sending', async t => {
+  let sent = 0, checks = 0, allow = true;
+  const f = await fixture(t, (_req, res) => { sent++; res.end('{}'); });
+  const { proxyFor } = await load();
+  const proxy = await proxyFor(f.provider, f.provider.baseUrl, f.apiKey, {
+    beforeRequest() { checks++; if (!allow) throw new Error('private budget detail'); },
+  });
+  t.after(() => proxy.close());
+  const url = proxy.baseUrl + '/chat/completions';
+  const options = { method: 'POST', headers: { authorization: 'Bearer ' + proxy.token }, body: '{}' };
+  assert.equal((await fetch(url, { method: 'POST', body: '{}' })).status, 401);
+  assert.equal(checks, 0);
+  const response = await fetch(url, options); await response.text();
+  assert.equal(checks, 1); assert.equal(sent, 1);
+  allow = false;
+  const blocked = await fetch(url, options);
+  assert.equal(blocked.status, 503);
+  assert.equal(checks, 2); assert.equal(sent, 1);
+  assert.equal((await blocked.text()).includes('private budget detail'), false);
+});

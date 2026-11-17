@@ -19,6 +19,16 @@ async function json(path, missing) {
   }
 }
 
+function checkedTeamBudget(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || Object.keys(value).some(key => !['tokens', 'requests'].includes(key))) throw new Error('Invalid team budget');
+  const limits = { tokens: value.tokens ?? null, requests: value.requests ?? null };
+  for (const limit of Object.values(limits)) {
+    if (limit !== null && (!Number.isSafeInteger(limit) || limit <= 0)) throw new Error('Invalid team budget');
+  }
+  return limits;
+}
+
 export function piModels(data, checkedProvider) {
   const privateRoot = join(data, 'private');
   const profilePath = join(data, 'providers.json');
@@ -378,8 +388,11 @@ export function piModels(data, checkedProvider) {
   }
 
   async function executionPolicy() {
-    const rows = await json(executionPolicyPath, null);
-    return rows && (rows.mode === 'workspace-write' || rows.mode === 'danger-full-access') ? { mode: rows.mode } : null;
+    const rows = await json(executionPolicyPath, undefined);
+    if (rows === undefined) return null;
+    if (!rows || typeof rows !== 'object' || Array.isArray(rows)) throw new Error('Invalid Moos execution policy');
+    if (rows.mode !== 'workspace-write' && rows.mode !== 'danger-full-access') throw new Error('Invalid Moos execution policy');
+    return { mode: rows.mode, ...(Object.hasOwn(rows, 'teamBudget') ? { teamBudget: checkedTeamBudget(rows.teamBudget) } : {}) };
   }
 
   function saveExecutionPolicy(input) {
@@ -389,8 +402,11 @@ export function piModels(data, checkedProvider) {
         throw new Error('Invalid Moos execution policy');
       }
       await mkdir(privateRoot, { recursive: true, mode: 0o700 });
-      await replace(executionPolicyPath, { mode });
-      return { mode };
+      const previous = await json(executionPolicyPath, null);
+      const rawBudget = Object.hasOwn(input, 'teamBudget') ? input.teamBudget : previous?.teamBudget;
+      const next = { mode, ...(rawBudget !== undefined ? { teamBudget: checkedTeamBudget(rawBudget) } : {}) };
+      await replace(executionPolicyPath, next);
+      return next;
     });
   }
 

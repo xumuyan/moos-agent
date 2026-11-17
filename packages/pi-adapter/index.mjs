@@ -65,7 +65,8 @@ export async function context(cwd) {
   if (Buffer.byteLength(instructions) > 256 * 1024) throw new Error('Project instructions exceed limit');
   return instructions;
 }
-export async function proxyFor(provider, baseUrl, apiKey) {
+export async function proxyFor(provider, baseUrl, apiKey, { beforeRequest } = {}) {
+  if (beforeRequest !== undefined && typeof beforeRequest !== 'function') throw new Error('Invalid request budget hook');
   const token = randomBytes(32).toString('hex');
   const path = provider.api === 'openai-responses' ? '/responses' : '/chat/completions';
   const upstreams = new Set();
@@ -99,6 +100,9 @@ export async function proxyFor(provider, baseUrl, apiKey) {
       }
       const body = Buffer.concat(chunks);
       JSON.parse(body.toString('utf8'));
+      // Count every real model dispatch, including compaction and retries, after authentication.
+      try { beforeRequest?.(); }
+      catch { failure = 'cancelled'; return reject(503); }
       const target = new URL(baseUrl + path);
       const upstream = (target.protocol === 'https:' ? httpsRequest : httpRequest)(target, { method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', 'content-length': body.length, accept: 'text/event-stream' } });
       upstreams.add(upstream);

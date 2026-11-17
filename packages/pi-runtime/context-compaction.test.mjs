@@ -48,6 +48,7 @@ test('pre-compaction runs before the prompt when the last real usage crosses the
   const root = await mkdtemp(join(tmpdir(), 'moos-context-compaction-'));
   await mkdir(join(root, 'shared'));
   const sequence = [];
+  let countedRequests = 0;
   const server = createServer(async (req, res) => {
     try {
       let raw = ''; for await (const chunk of req) raw += chunk;
@@ -64,6 +65,7 @@ test('pre-compaction runs before the prompt when the last real usage crosses the
   const run = text => runPiSdk({ task: { text, timeoutMs: 600000 },
     project: { path: join(root, 'shared') }, conversation: { id: 'shared' }, dataDir: join(root, 'sessions'),
     apiKey: 'synthetic-local-only', imageGen: null,
+    sessionPolicy: { beforeRequest: () => { countedRequests++; } },
     provider: { id: 'fixture', name: 'Local fixture', model: 'fixture-model', api: 'openai-completions', imageInput: true,
       baseUrl: `http://127.0.0.1:${server.address().port}/v1`, contextWindow: CONTEXT_WINDOW, maxTokens: 2048 } });
   const first = await run(bigTask);
@@ -76,6 +78,7 @@ test('pre-compaction runs before the prompt when the last real usage crosses the
   assert.equal(third.text, 'DONE');
   assert.deepEqual(sequence, ['task', 'task', 'compact', 'task'],
     'the third task must pre-compact before its prompt because the last usage crossed the safety line');
+  assert.equal(countedRequests, sequence.length, 'request budget must include compaction, not only assistant replies');
 });
 // 复刻生产形态的预检分支：前两轮大文本建立可压缩历史，第三个任务提交前预检发现上一轮
 // 真实 usage 超安全线。

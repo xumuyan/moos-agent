@@ -8,10 +8,17 @@ import { taskTimeout } from '../../services/agent/task-policy.mjs';
 // throughout; all child turns execute directly, sequentially inside that lease.
 // Never submit a child back into the same Scheduler (captain/child self-deadlock).
 // This is our own bounded implementation, not the upstream DSH executor/plugin.
-// P03.14.8b：tokens 只计 chargeable（input+output，不含缓存重放，见 budget()）。生产实测真实团队
-// 任务一次完整执行需 40–45 万 chargeable/36–48 请求，旧 40 万/48 次曾因缓存重放虚增等效只容 ~8 请求；
-// 诚实计数后按真实成本放宽，避免正常开发任务被闸停。
-export const TEAM_LIMITS = Object.freeze({ nodes: 6, requests: 200, tokens: 2000000, resultChars: 16000 });
+// Cumulative budgets are optional. Runtime duration/cancellation still bound execution.
+export const TEAM_LIMITS = Object.freeze({ nodes: 6, requests: null, tokens: null, resultChars: 16000 });
+export function checkedTeamBudget(value = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || Object.keys(value).some(key => !['tokens', 'requests'].includes(key))) throw new Error('Invalid team budget');
+  const limits = { tokens: value.tokens ?? null, requests: value.requests ?? null };
+  for (const limit of Object.values(limits)) {
+    if (limit !== null && (!Number.isSafeInteger(limit) || limit <= 0)) throw new Error('Invalid team budget');
+  }
+  return limits;
+}
 const idPattern = /^[a-z][a-z0-9_-]{0,31}$/;
 const text = (value, max) => typeof value === 'string' && value.trim() && value.length <= max;
 
@@ -65,8 +72,9 @@ export async function runPiTeam(options, run = runPiSdk) {
   const { task, conversation, signal, emit = () => {} } = options;
   if (!text(task?.text, 100000) || !text(task?.id, 160) || !text(conversation?.id, 100)) throw new Error('Invalid team owner');
   const duration = taskTimeout(task.timeoutMs);
+  const limits = checkedTeamBudget(options.teamBudget);
   const controller = new AbortController();
-  let timedOut = false, closed = false, requests = 0, usedTokens = 0, budgetExceeded = false, plan;
+  let timedOut = false, closed = false, requests = 0, usedTokens = 0, budgetExceeded, plan;
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, duration);
   const abort = () => controller.abort();
   signal?.addEventListener('abort', abort, { once: true });
@@ -77,11 +85,19 @@ export async function runPiTeam(options, run = runPiSdk) {
   const check = () => { if (controller.signal.aborted) throw failure(); };
   const publish = (phase, extra = {}) => { if (!closed && !controller.signal.aborted) emit('team_state', { teamId, phase, ...extra }); };
   const results = new Map();
+  const stopForBudget = reason => {
+    if (budgetExceeded) return;
+    budgetExceeded = reason;
+    emit('team_budget', { version: 1, teamId, phase: 'exceeded', reason, limits: { ...limits }, usedTokens, requests });
+    controller.abort();
+  };
   const budget = () => {
     check();
-    if (++requests > TEAM_LIMITS.requests) {
-      budgetExceeded = true; controller.abort(); throw new TaskFailure('team_budget');
+    if (limits.requests !== null && requests >= limits.requests) {
+      stopForBudget('team_request_budget');
+      throw new TaskFailure('team_request_budget');
     }
+    requests++;
   };
   async function turn(member, prompt, { tools, allowedTools, readonly = false, instructions = '', onToolEnd, nodeId } = {}) {
     check();
@@ -117,7 +133,7 @@ export async function runPiTeam(options, run = runPiSdk) {
               + (Number.isSafeInteger(usage.outputTokens) ? usage.outputTokens : 0);
             usedTokens += chargeable;
             emit(type, { ...payload, teamId, member, attemptId });
-            if (usedTokens > TEAM_LIMITS.tokens) { budgetExceeded = true; controller.abort(); }
+            if (limits.tokens !== null && usedTokens >= limits.tokens) stopForBudget('team_budget');
           } else if (type !== 'text_delta' && type !== 'pi_checkpoint') {
             if (type === 'tool_end') onToolEnd?.(payload);
             // Tool IDs must remain unique across independent PI sessions.
@@ -143,6 +159,7 @@ export async function runPiTeam(options, run = runPiSdk) {
   }
   try {
     check();
+    emit('team_budget', { version: 1, teamId, phase: 'configured', limits: { ...limits }, usedTokens: 0, requests: 0 });
     publish('planning');
     const recovery = options.retry ? '\n这是用户显式重试的团队任务；前次可能已有副作用。先用read/ls检查现有产物，在计划中要求成员核对已有工作，禁止盲目重复安装、提交、发送或部署。不能确认可安全继续时报告阻塞。' : '';
     const submitPlan = tool('team_plan', '提交自动执行的任务DAG，最后必须有依赖全部工作的验证任务。仅规划，不执行。',
@@ -213,7 +230,7 @@ export async function runPiTeam(options, run = runPiSdk) {
     return { text: answer.text };
   } catch (error) {
     if (!controller.signal.aborted) publish('failed');
-    throw budgetExceeded ? new TaskFailure('team_budget') : controller.signal.aborted ? failure() : error;
+    throw budgetExceeded ? new TaskFailure(budgetExceeded) : controller.signal.aborted ? failure() : error;
   } finally {
     closed = true; clearTimeout(timer); signal?.removeEventListener('abort', abort);
   }

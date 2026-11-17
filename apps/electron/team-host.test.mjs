@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -33,6 +33,7 @@ test('production Host dispatches mode snapshots to real PI team sessions without
   const workspace = join(data, 'workspace');
   await mkdir(workspace, { recursive: true });
   const requests = [], errors = [];
+  let budgetChanged = false;
   const plan = { tasks: [
     { id: 'build', role: 'implementer', goal: 'Write answer.txt containing 42', dependsOn: [] },
     { id: 'check', role: 'verifier', goal: 'Read answer.txt to verify 42', dependsOn: ['build'] },
@@ -44,6 +45,10 @@ test('production Host dispatches mode snapshots to real PI team sessions without
       const user = body.messages.filter(item => item.role === 'user').at(-1);
       const prompt = typeof user.content === 'string' ? user.content : user.content.map(part => part.text ?? '').join('');
       const names = body.tools?.map(item => item.function.name) ?? [];
+      if (names.includes('team_plan') && !budgetChanged) {
+        budgetChanged = true;
+        await writeFile(join(data, 'private/execution-policy.json'), JSON.stringify({ mode: 'workspace-write', teamBudget: { tokens: null, requests: 1 } }));
+      }
       const latest = body.messages.at(-1).role === 'tool' ? body.messages.at(-1) : undefined;
       let name, args, content;
       if (prompt.includes('只根据已有工具/成员证据')) {
@@ -96,16 +101,22 @@ test('production Host dispatches mode snapshots to real PI team sessions without
       approval: { request: () => { throw new Error('Unexpected approval'); } },
       on(event, fn) { if (event === 'dispose') disposers.push(fn); }, emit() {},
     };
+    await models.saveExecutionPolicy({ mode: 'workspace-write', teamBudget: { tokens: 100000, requests: 100 } });
     await apply(ctx);
     try {
       assert.deepEqual(executor.describe(), { schemas: [], knownNames: [] });
       await assert.rejects(executor.execute(), /由 PI 执行/);
-      for (const mode of ['team', 'ordinary']) {
+      for (const mode of ['team', 'ordinary', 'limited']) {
         const events = [];
         for await (const event of adapter.stream({ sessionId: session.id, model: 'local', messages: [{
-          role: 'user', source: { kind: 'user', rpcId: 'moos-pi-mode:v1:' + mode + ':' + randomUUID() },
+          role: 'user', source: { kind: 'user', rpcId: 'moos-pi-mode:v1:' + (mode === 'limited' ? 'team' : mode) + ':' + randomUUID() },
           content: [{ type: 'text', text: mode === 'team' ? 'Produce answer.txt with 42 and independently verify it' : 'hello' }],
         }] })) events.push(event);
+        if (mode === 'limited') {
+          assert.equal(events.at(-1).reason.failure.code, 'TEAM_REQUEST_BUDGET');
+          assert.match(events.at(-1).reason.failure.message, /请求次数预算/);
+          continue;
+        }
         assert.equal(events.at(-1).reason.kind, 'stop', JSON.stringify(events.at(-1)));
         assert.ok(events.some(event => event.text?.includes(mode === 'team' ? 'TEAM_HOST_DELIVERED_42' : 'ORDINARY_HOST_REPLY')));
       }
@@ -113,11 +124,13 @@ test('production Host dispatches mode snapshots to real PI team sessions without
     const store = new Store({ dbPath: data + '/pi/moos.sqlite' });
     try {
       const tasks = store.listTasks();
-      assert.equal(tasks.length, 2);
-      assert.ok(tasks.every(task => task.status === 'succeeded'));
-      assert.deepEqual(tasks.map(task => store.lastTaskEvent(task.id, 'task_submission').mode), ['ordinary', 'team']);
-      const team = tasks[1];
+      assert.equal(tasks.length, 3);
+      assert.equal(tasks[0].errorCode, 'team_request_budget');
+      assert.ok(tasks.slice(1).every(task => task.status === 'succeeded'));
+      assert.deepEqual(tasks.map(task => store.lastTaskEvent(task.id, 'task_submission').mode), ['team', 'ordinary', 'team']);
+      const team = tasks[2];
       const events = store.listEvents(team.id);
+      assert.deepEqual(events.find(event => event.type === 'team_budget').payload.limits, { tokens: 100000, requests: 100 }, 'active team retains start-time snapshot after settings change');
       assert.ok(events.some(event => event.type === 'team_state' && event.payload.phase === 'succeeded'));
       for (const [member, tool] of [['implementer', 'write'], ['verifier', 'read']]) {
         assert.ok(events.some(event => event.type === 'tool_end' && event.payload.member === member && event.payload.toolName === tool));
@@ -127,6 +140,6 @@ test('production Host dispatches mode snapshots to real PI team sessions without
   await promisify(execFile)(process.execPath, ['--input-type=module', '-e', script], { env, timeout: 25000 });
   assert.deepEqual(errors, []);
   assert.equal(await readFile(join(workspace, 'answer.txt'), 'utf8'), '42\n');
-  assert.equal((await readdir(join(data, 'pi/sessions'))).filter(name => name.startsWith('team-')).length, 3);
+  assert.equal((await readdir(join(data, 'pi/sessions'))).filter(name => name.startsWith('team-')).length, 4);
   assert.ok(requests.length >= 8);
 });

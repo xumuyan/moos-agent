@@ -1,0 +1,297 @@
+{
+  "task": "P03.14.11",
+  "recordedAt": "2026-11-17T07:47:38+08:00",
+  "status": "optional-team-budgets-validated-candidate-not-installed",
+  "baseCommit": "466c9e6cb8207a3205354b232c12c3c93fee3cda",
+  "version": "0.1.52",
+  "sourcePackageChecks": {
+    "apps/electron/plugin/client.js": {
+      "sha256": "58d72b70a69003a44ad93d61ac06ad189757f6d8b913ddfab1d89ce7e3960550",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/host.js": {
+      "sha256": "aa40af3b5be46018fab521b08b915faa43077cd30ecb68fed3adf70dd3ada19f",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/pi-models.js": {
+      "sha256": "a0943be52574851920691f4176780c5cfcb3f3ce989027ca89779b19d8e814ff",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/pi-route.js": {
+      "sha256": "2f83813ebd47487e393024a8bb3a5ae4d3be62690b9c204988ff401175ed63dd",
+      "packagedMatch": true
+    },
+    "packages/pi-runtime/team-runtime.mjs": {
+      "sha256": "c4556c2598a1ff5fd677f9a7992f7fe3b536a5474842809639be3f157322af32",
+      "packagedMatch": true
+    },
+    "packages/pi-runtime/sdk-runtime.mjs": {
+      "sha256": "c104d23ac84fcf52cdc5e306f4946b0e1e10266a31f16f254b99c63a9dedc249",
+      "packagedMatch": true
+    },
+    "packages/pi-adapter/index.mjs": {
+      "sha256": "0ccc1b9e6c679a9aa0cd45c38bb609adcc50ea75baaf9d12fdcc92c63357afa2",
+      "packagedMatch": true
+    },
+    "services/agent/errors.mjs": {
+      "sha256": "fd6924dbdd864238dc59293b54117b226a44cc50453767784e4147dfd922ce05",
+      "packagedMatch": true
+    },
+    "apps/electron/plugin/pi-fork.js": {
+      "sha256": "c58d6fa50cb9c06a9480f351f5b44a481c68cdea7f082b89dffd7c253645f16f",
+      "packagedMatch": true
+    }
+  },
+  "mainSettingsModuleMatchesProfile": true,
+  "rootCause": {
+    "previousDefaults": {
+      "tokens": 2000000,
+      "requests": 200
+    },
+    "realFailureChargeableTotals": [
+      2002396,
+      2002775
+    ],
+    "cacheReadExcluded": true,
+    "productionWasReadOnly": true,
+    "formerRequestCountDidNotIncludeCompaction": true
+  },
+  "configuration": {
+    "location": "private/execution-policy.json",
+    "field": "teamBudget",
+    "default": {
+      "tokens": null,
+      "requests": null
+    },
+    "limits": "positive safe integers or null; empty UI means null; missing legacy settings mean unlimited",
+    "modeOnlySavesPreserveBudget": true,
+    "invalidConfigFailsClosed": true,
+    "snapshotAtTaskStart": true,
+    "inFlightChangesIgnored": true,
+    "cacheReadNotCharged": true,
+    "httpGateIncludesCompactionAndRetries": true,
+    "tokenCheck": "after reported usage, may exceed by one model request",
+    "requestCheck": "before authorized upstream model POST",
+    "failureCodes": [
+      "team_budget",
+      "team_request_budget"
+    ],
+    "missingFileVersusCorruptJsonNull": "missing file adopts default; JSON null and non-object configuration reject",
+    "requestScope": "PI chat/responses provider proxy, including compaction/retries; not arbitrary tool network traffic or separate image generation billing"
+  },
+  "goalSemantics": {
+    "current": "one submitted goal -> bounded DAG -> sequential members -> independent tool verification -> summary",
+    "persistentGoalLoop": false,
+    "nodeResume": false,
+    "stopTimeoutAndVerificationGuardsRetained": true
+  },
+  "tests": {
+    "preFixRegression": "new default/config validation and compaction request-count assertions failed before the fix",
+    "targetedRuntime": {
+      "passed": 40,
+      "seconds": 49.337
+    },
+    "targetedSettings": {
+      "passed": 24,
+      "seconds": 11.864
+    },
+    "finalTeamAndHost": {
+      "passed": 20,
+      "seconds": 1.726
+    },
+    "coreSerial": {
+      "passed": 333,
+      "failed": 0,
+      "cancelled": 0,
+      "seconds": 127.734,
+      "scope": "full pre-commit working tree, including other ongoing untracked NSH tests; those files are excluded from this commit"
+    },
+    "electronPackagedSerial": {
+      "passed": 143,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 54.926
+    },
+    "docsBeforeNewEvidenceCheck": {
+      "passed": 163
+    },
+    "docsFinal": {
+      "passed": 164
+    },
+    "finalPolicyCorruption": {
+      "passed": 9,
+      "seconds": 2.228
+    }
+  },
+  "rendererAcceptance": {
+    "scenario": "success",
+    "scope": "isolated copied QA bundle with show suppressed; CDP input; synthetic local model",
+    "checks": {
+      "budgetUiSaveReloadClear": true,
+      "budgetSettingsPersistAndClear": true,
+      "menuAndTag": true,
+      "liveProgress": true,
+      "nodeProjection": true,
+      "readableMemberLayout": true,
+      "reportedMemberUsageOrExplicitUnknown": true,
+      "memberFileIndexNavigation": true,
+      "structuredMemberDetails": true,
+      "independentReadAndArtifact": true,
+      "modeClearDoesNotCancel": true,
+      "persistedTerminalState": true,
+      "ordinaryAfterClear": true,
+      "defaultUnlimitedAcceptsReportedUsageOver2M": true
+    },
+    "productionTouched": false,
+    "normalGUI": false,
+    "externalModel": false,
+    "memberUsage": {
+      "providerReported": true,
+      "nodes": [
+        {
+          "id": "build",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：2 条记录；输入 20；输出 4；总计 24 token\n\n上下文压缩：未报告"
+        },
+        {
+          "id": "check",
+          "text": "本节点已报告用量（非完整账单，不估算缺失请求）\n\n成员回复：3 条记录；输入 30；输出 6；总计 36 token\n\n上下文压缩：未报告"
+        }
+      ]
+    },
+    "status": "passed",
+    "requests": 9,
+    "syntheticLargeUsageOnly": true,
+    "shutdown": {
+      "injectedQuitBlock": false,
+      "requestedAt": 1794873207535,
+      "events": [
+        {
+          "event": "webcontents-destroyed",
+          "at": 1794873207569
+        },
+        {
+          "event": "window-closed",
+          "at": 1794873207570
+        },
+        {
+          "event": "window-all-closed",
+          "at": 1794873207570
+        },
+        {
+          "event": "before-quit",
+          "at": 1794873207570
+        },
+        {
+          "event": "host-stop-start",
+          "at": 1794873207570
+        },
+        {
+          "event": "host-stop-settled",
+          "at": 1794873207776
+        },
+        {
+          "event": "before-quit",
+          "at": 1794873207776
+        },
+        {
+          "event": "will-quit",
+          "at": 1794873207776
+        },
+        {
+          "event": "quit",
+          "at": 1794873207776
+        }
+      ],
+      "beforeClose": {
+        "status": "observed",
+        "processes": [
+          {
+            "pid": 21444,
+            "ppid": 19808,
+            "state": "S"
+          },
+          {
+            "pid": 21465,
+            "ppid": 21444,
+            "state": "S"
+          },
+          {
+            "pid": 21466,
+            "ppid": 21444,
+            "state": "S"
+          },
+          {
+            "pid": 21471,
+            "ppid": 21444,
+            "state": "Ss"
+          },
+          {
+            "pid": 21708,
+            "ppid": 21444,
+            "state": "S"
+          }
+        ]
+      },
+      "closeDispatchedAt": 1794873207562,
+      "observedAt": 1794873208353,
+      "exitCode": 0
+    },
+    "cleanup": {
+      "status": "already-exited",
+      "termSent": false,
+      "killSent": false
+    }
+  },
+  "syntheticUsage": {
+    "nonCachedInputPlusOutput": 2100086,
+    "budgetEvents": [
+      {
+        "version": 1,
+        "teamId": "8974c706-f16d-40b4-95bb-c5d665e0fbe2",
+        "phase": "configured",
+        "limits": {
+          "tokens": null,
+          "requests": null
+        },
+        "usedTokens": 0,
+        "requests": 0
+      }
+    ],
+    "realPaidModel": false,
+    "claim": "local fixture reports a large final summary usage only; not a 2.1M-context model capability test",
+    "allFixtureTaskTotals": 2100098
+  },
+  "visualEvidence": [
+    {
+      "path": "artifacts/team-ui/gui-VsV9CL/budget-configured.png",
+      "visuallyReviewed": true,
+      "scope": "same build; settings saved before old close-selector QA failure"
+    },
+    {
+      "path": "artifacts/team-ui/gui-IT3c6n/budget-unlimited.png",
+      "visuallyReviewed": true
+    }
+  ],
+  "earlierFailure": {
+    "report": "artifacts/team-ui/gui-VsV9CL/report.json",
+    "error": "Missing close settings",
+    "resolution": "upstream close icon has no matching label; use isolated renderer reload to verify persistence; no application source change required"
+  },
+  "build": ".generated/moos-electron/build-guiGYH/沐码.app",
+  "strictSignatureVerified": true,
+  "installed": false,
+  "productionWritten": false,
+  "productionRestarted": false,
+  "normalGUI": false,
+  "externalModel": false,
+  "nshModified": false,
+  "overallP0314Complete": false,
+  "qaAppAndDataRemoved": true,
+  "signatureVerified": true,
+  "earlierRendererReports": [
+    "artifacts/team-ui/gui-IT3c6n/report.json",
+    "artifacts/team-ui/gui-VsV9CL/report.json"
+  ],
+  "finalRendererReport": "artifacts/team-ui/gui-dZ5U2V/report.json",
+  "intermediateBuildRemoved": "build-LnzLc5"
+}

@@ -99,8 +99,10 @@ export async function apply(ctx) {
         const key = await models.credential(options.backup.provider).catch(() => undefined);
         if (key) backup = { ...options.backup, apiKey: key };
       }
+      // Snapshot once when the queued task actually starts; invalid config fails closed.
+      const teamBudget = options.mode === 'team' && models ? (await models.executionPolicy())?.teamBudget : undefined;
       const execute = options.mode === 'team' ? runPiTeam : runPiSdk;
-      return execute({ ...options, provider, apiKey, dataDir: join(dataDir, 'sessions'),
+      return execute({ ...options, teamBudget, provider, apiKey, dataDir: join(dataDir, 'sessions'),
         // M06 桌面工具：包内 Resources/bin 的 Swift helper；开发检出不打包时文件不存在，工具自动不挂载。
         desktop: { helperPath: desktopHelperPath(runtime) },
         // 设置页图片服务配置优先；未配置时 sdk-runtime 回退读 private/image-gen.json（无则不挂载工具）。

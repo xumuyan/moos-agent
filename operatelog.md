@@ -2794,3 +2794,19 @@
 - 验证结果：仅设计和文档检查，`npm run test:docs`随后运行；功能尚未实现/验收，不宣称通过。未改正式应用、数据、模型配置、NSH源码。
 - 遗留问题：按设计补实现、回归、构建与隔离UI验收，完成后另记；本提交只保存已授权范围。
 - 对应 Git 提交：唯一说明 `docs(P03.14.11): specify optional team budgets and goal boundaries`，查询 `git log --oneline --grep='specify optional team budgets and goal boundaries'`；推送后核对远程与本地HEAD。
+
+## 2026-11-17 07:47:38 +08:00｜P03.14.11 团队预算默认不限与可配置实现
+
+- 修改或新增内容：按用户明确确认移除默认2M Token/200请求硬上限，两个额度独立可选，缺省/null/界面留空表示不限，仅正安全整数有效；设置放在原命令执行页，存原private策略文件，旧mode-only保存保留预算。Host实际开始时快照，记录配置和触顶事件，准确区分team_budget/令牌与team_request_budget/请求次数；默认不限仍保留任务超时、取消、验证失败停止与网络有界重试。版本0.1.52，界面明确本轮目标DAG，无持久Goal/节点续跑。
+- 遇到的难题：真实停止累计非缓存分别2002396、2002775，原硬上限确实触发而非缓存误计；原prepareRequest仅计成员回复，漏了压缩调用。新增配置测试初轮缺writeFile导入，修正后通过；旧GUI关闭设置选择器匹配不到无标签X图标，首轮Missing close settings保留失败证据，非产品保存失败。
+- 处理方式：有效模型HTTP请求发往上游前执行预算门，涵盖压缩和重试；Token只累计实际报告的非缓存输入+输出，返回后可超一次调用，不伪造缺失数据。非法或损坏配置拒绝，不静默降为不限。GUI改用隔离渲染器刷新检查持久性，再清空额度；未改上游关闭按钮或生产应用。
+- 验证结果：提交前混合工作区，macOS27.0.1/arm64/Node24.15.0/PI1.5.0；新增默认>2M/>200、非法值及快照测试在旧实现失败；`node --test --test-concurrency=1 packages/pi-runtime/team-runtime.test.mjs packages/pi-runtime/context-compaction.test.mjs packages/pi-adapter/adapter.test.mjs apps/electron/team-host.test.mjs`40/40；settings相关24/24，最后team+Host20/20。完整核心`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs`333/333（127.734s，包含他人未提交NSH测试，不将其纳入本提交）；带build-LnzLc5/沐码.app/Contents/Resources/host-runtime/bin/dsh及审定皮肤环境变量的Electron完整串行143/143（46.973s，无跳过）。`npm run build:app`、`codesign --verify --deep --strict`成功，八个源文件与包内逐项匹配，main/profile模型设置模块一致。文档前轮163/163，新证据检查后补记。
+- 实际验收：`MOOS_QA_REPORTED_USAGE=1 node artifacts/team-budget/gui.mjs '.generated/moos-electron/build-LnzLc5/沐码.app' success`报告gui-IT3c6n passed：原样式设置页默认空值、保存5M/500、刷新后保留、清空恢复不限；真实PI+仅回环模拟模型9请求、写answer.txt并独立读取42、模拟累计2100086非缓存Token不再撞旧限、正常退出exit0。只人为报告末轮大用量以测预算，不是210万上下文能力/外部模型/正常可见GUI证明。旧失败报告gui-VsV9CL原样保留；截图已查看。
+- 遗留问题：不实现持续Goal目标迭代、节点级自动恢复或重新执行已失败任务。尚未安装0.1.52，不中断当前正式任务，不修改生产数据/密钥/原任务文件，不动NSH其他文件。Rust独立M01本轮未重跑，历史工具链缺manifest失败不在本轮宣称解除，不冒充全部平台通过；实际用户体验待明确更新指令后验证。
+- 对应 Git 提交：设计466c9e6已推送核对；本实现唯一说明 `feat(P03.14.11): make team budgets optional and configurable`；查询 `git log --oneline --grep='make team budgets optional and configurable'`，推送后核对远程main与本地HEAD。
+
+验收收尾补记（2026-11-17 07:50:02 +08:00，同P03.14.11实现说明）：文档新增证据边界检查后164/164通过；按已结束进程路径确认，仅删除本轮gui-VsV9CL和gui-IT3c6n的QA.app/data，保留报告、截图和build-LnzLc5最终包。模拟用量经按teamId过滤复核：团队2100086、含之后普通任务总计2100098，以上正文已按团队值修正，未当作真实模型上下文能力。设计提交466c9e6远程main已核对一致；本实现提交后再推送核对。
+
+最终配置校验补记（2026-11-17 07:56:45 +08:00，同P03.14.11实现说明）：最终审查区分缺失策略文件与已存在的JSON null；只有缺文件采用默认不限，JSON null/非对象/非法预算拒绝，相关配置9/9通过。重建最终build-guiGYH/沐码.app，严格签名、九源码到包及主/插件设置模块一致性核对通过；最终含此包的Electron串行143/143（54.926s，无跳过），最终GUI报告gui-dZ5U2V passed、保存/刷新/清空/超过旧限/9模拟请求/正常退出exit0。运行时代码自此未再改动；前一build-LnzLc5属中间候选，原成功/失败记录仍保留。正式安装仍未进行。
+
+清理补记（同P03.14.11实现说明）：最终gui-dZ5U2V退出后按进程路径确认，仅删除其QA.app/data及本轮中间构建build-LnzLc5；保留build-guiGYH、报告和截图。当前PLAN候选指向guiGYH，较早LnzLc5成功验收记录作为历史保留。

@@ -122,18 +122,22 @@ test('cancel drains active member, suppresses late events, and starts no downstr
 test('model requests and reported token use are bounded, never emit successful delivery', async () => {
   for (const kind of ['requests', 'tokens']) {
     const events = [];
-    await assert.rejects(runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
-      if (kind === 'requests') for (let i = 0; i <= TEAM_LIMITS.requests; i++) options.sessionPolicy.beforeRequest();
-      else options.emit('usage', { inputTokens: TEAM_LIMITS.tokens, outputTokens: 1 });
+    await assert.rejects(runPiTeam({ ...base(), teamBudget: { [kind]: 3 }, emit: (type, payload) => events.push({ type, payload }) }, async options => {
+      if (kind === 'requests') for (let i = 0; i < 4; i++) options.sessionPolicy.beforeRequest();
+      else options.emit('usage', { inputTokens: 3, outputTokens: 1 });
       return { text: '' };
-    }), error => error.code === 'team_budget');
+    }), error => error.code === (kind === 'requests' ? 'team_request_budget' : 'team_budget'));
+    const stopped = events.find(event => event.type === 'team_budget' && event.payload.phase === 'exceeded');
+    assert.equal(stopped.payload.limits[kind], 3);
+    assert.equal(stopped.payload.reason, kind === 'requests' ? 'team_request_budget' : 'team_budget');
+    if (kind === 'requests') assert.equal(stopped.payload.requests, 3, 'fourth upstream request is prevented');
     assert.ok(!events.some(event => event.payload.phase === 'succeeded'));
   }
 });
 
 test('token budget counts only chargeable tokens, ignoring cacheRead replay', async () => {
   const events = [];
-  const result = await runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
+  const result = await runPiTeam({ ...base(), teamBudget: { tokens: 5000 }, emit: (type, payload) => events.push({ type, payload }) }, async options => {
     if (options.task.text.includes('你是队长。')) { await submit(options, 'team_plan', plan); }
     else if (options.task.text.includes('独立验证')) {
       evidence(options);
@@ -405,4 +409,38 @@ test('every member receives bounded parent text and original images in its own s
     assert.deepEqual(call.images, images);
     assert.notEqual(call.conversation.id, 'chat-a');
   }
+});
+
+
+test('default team budget does not stop at the former 200 requests or 2M token caps', async () => {
+  const events = [];
+  let calls = 0;
+  const result = await runPiTeam({ ...base(), emit: (type, payload) => events.push({ type, payload }) }, async options => {
+    calls++;
+    for (let i = 0; i < 70; i++) options.sessionPolicy.beforeRequest();
+    options.emit('usage', { inputTokens: 2100000, outputTokens: 1, cacheReadTokens: 5000000 });
+    return fakeRun()(options);
+  });
+  assert.equal(result.text, 'real member result');
+  assert.equal(calls, 4);
+  assert.ok(events.some(e => e.type === 'team_budget' && e.payload.phase === 'configured'
+    && e.payload.limits.tokens === null && e.payload.limits.requests === null));
+});
+
+test('optional team budget validates limits before execution and snapshots caller values', async () => {
+  for (const budget of [null, [], { tokens: 0 }, { tokens: -1 }, { tokens: 1.5 },
+    { tokens: '100' }, { requests: Infinity }, { requests: Number.MAX_SAFE_INTEGER + 1 }, { unknown: 5 }]) {
+    let called = false;
+    await assert.rejects(runPiTeam({ ...base(), teamBudget: budget }, async () => { called = true; }), /Invalid team budget/);
+    assert.equal(called, false);
+  }
+  const teamBudget = { tokens: 10, requests: 10 };
+  let rounds = 0;
+  await assert.rejects(runPiTeam({ ...base(), teamBudget }, async options => {
+    teamBudget.tokens = null;
+    rounds++;
+    options.emit('usage', { inputTokens: 11, outputTokens: 0 });
+    return fakeRun()(options);
+  }), error => error.code === 'team_budget');
+  assert.equal(rounds, 1, 'changing a shared object cannot remove the active budget');
 });

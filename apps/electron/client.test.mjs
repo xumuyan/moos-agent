@@ -31,12 +31,16 @@ async function loadClient(overrides = {}, contextOverrides = {}, runtimeOverride
     },
     ...runtimeOverrides,
   });
-  const plugin = entry.factory(() => ({
+  const plugin = entry.factory(name => name === '@deepseek-ai/dsh-client-ui-settings-models'
+    ? { moosEditor: { styles: { input: 'input', field: 'field', fieldLabel: 'label' } } } : ({
     createElement: (element, props, ...children) => ({ element, props, children }),
     useState: init => {
       const key = stateIndex++;
       if (!stateStore.has(key)) stateStore.set(key, typeof init === 'function' ? init() : init);
-      return [stateStore.get(key), value => { updates.push(value); stateStore.set(key, value); }];
+      return [stateStore.get(key), value => {
+        const next = typeof value === 'function' ? value(stateStore.get(key)) : value;
+        updates.push(next); stateStore.set(key, next);
+      }];
     },
     useEffect: (callback, dependencies) => effects.push({ callback, dependencies }),
     useRef: () => ({ current: undefined }),
@@ -721,4 +725,37 @@ test('a first failed read after polling dependencies change clears the previous 
   await flush();
   assert.equal(harness.updates.length, 2);
   assert.equal(harness.updates.at(-1), undefined, 'an undefined first value is a real reset, not an unchanged snapshot');
+});
+
+
+test('team budget fields load as unlimited, save numeric limits, and can clear them without changing permissions', async () => {
+  const saved = [];
+  const harness = await loadClient({ moosExecutionPolicy: {
+    status: async () => ({ mode: 'danger-full-access' }),
+    save: async value => { saved.push(value); return value; },
+  } });
+  const render = () => {
+    const wrapper = harness.renderComponent('moos-execution', {});
+    return wrapper.element(wrapper.props);
+  };
+  const inputs = tree => tree.children.filter(node => node?.element === 'label')
+    .map(node => node.children.find(child => child?.element === 'input')).filter(Boolean);
+  render();
+  harness.effects.shift().callback(); await flush();
+  let tree = render(), fields = inputs(tree);
+  assert.equal(fields.length, 2);
+  assert.ok(fields.every(input => input.props.value === '' && input.props.placeholder === '不设上限'));
+  fields[0].props.onChange({ target: { value: '5000000' } });
+  fields[1].props.onChange({ target: { value: '500' } });
+  tree = render();
+  await tree.props.onSubmit({ preventDefault() {} });
+  assert.equal(saved[0].mode, 'danger-full-access');
+  assert.equal(saved[0].teamBudget.tokens, 5000000);
+  assert.equal(saved[0].teamBudget.requests, 500);
+  tree = render(); fields = inputs(tree);
+  fields.forEach(input => input.props.onChange({ target: { value: '' } }));
+  await render().props.onSubmit({ preventDefault() {} });
+  assert.equal(saved[1].teamBudget.tokens, null);
+  assert.equal(saved[1].teamBudget.requests, null);
+  assert.match(JSON.stringify(tree), /当前没有跨轮自动续跑和节点恢复/);
 });

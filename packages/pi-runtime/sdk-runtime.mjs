@@ -131,7 +131,7 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
     const modelsPath = join(agentDir, 'models.json');
     const configs = {};
     async function add(profile, baseUrl, key) {
-      const proxy = await proxyFor(profile, baseUrl, key);
+      const proxy = await proxyFor(profile, baseUrl, key, { beforeRequest: sessionPolicy?.beforeRequest });
       const thinkingLevel = profile.thinkingLevel ?? 'off';
       routes.set(profile.id, { profile, proxy, thinkingLevel });
       configs[profile.id] = {
@@ -209,13 +209,6 @@ export async function runPiSdk({ task, project, conversation, signal, emit = () 
             { type: 'text', text: '［先前附带的图片，请重新附加后查看］' }] };
         });
       };
-      if (sessionPolicy?.beforeRequest) {
-        const prepare = session.agent.prepareRequest;
-        session.agent.prepareRequest = async (request, requestSignal) => {
-          sessionPolicy.beforeRequest();
-          return prepare?.(request, requestSignal);
-        };
-      }
       if (repair && active === primary) {
         const prepare = session.agent.prepareRequest;
         session.agent.prepareRequest = async (request, requestSignal) => {
