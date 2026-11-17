@@ -1,5 +1,6 @@
 // View-only runner. No Host/PI or production data. Uses native NSH macOS development host, never web.
-import { mkdtemp, mkdir, cp, writeFile , readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, writeFile , readFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -50,6 +51,31 @@ mount(() => <DesktopView call={async (method, params) => {
  return result;
 }} />);
 `);
+// Hash the exact copied/generated pre-build inputs; do not rely on HEAD alone.
+async function hashTree(root, prefix = '') {
+  const records = {};
+  for (const entry of await readdir(join(root, prefix), { withFileTypes: true })) {
+    const name = join(prefix, entry.name);
+    if (entry.isDirectory()) Object.assign(records, await hashTree(root, name));
+    else if (entry.isFile()) {
+      const bytes = await readFile(join(root, name));
+      records[name] = { bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+    } else throw Error('Unexpected non-file capture input: ' + name);
+  }
+  return records;
+}
+const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(evidence ? ['desktop-style-capture.tsx'] : [])];
+const workspaceHashes = {};
+for (const name of workspaceInputs) {
+  const bytes = await readFile(resolve('probes/nsh-validation', name));
+  workspaceHashes[name] = { bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+}
+const provenance = { head: execFileSync('git', ['rev-parse', 'HEAD'], {encoding:'utf8'}).trim(),
+  status: execFileSync('git', ['status', '--short'], {encoding:'utf8'}), capturedAt: new Date().toISOString(),
+  nsh: execFileSync(nsh, ['--version'], {encoding:'utf8'}).trim(), node: process.version,
+  system: execFileSync('/usr/bin/sw_vers', [], {encoding:'utf8'}), arch: process.arch,
+  synthetic: true, piExecuted: false, workspaceHashes, sourceHashes: await hashTree(source) };
+await writeFile(join(dir, 'capture-inputs.json'), JSON.stringify(provenance, null, 2) + '\n');
 console.log(dir);
 try {
   for (const args of [['check', source], ['test', source, ...(native ? ['--target', 'macos', '--display', '1'] : [])]]) {
@@ -57,6 +83,14 @@ try {
     const out = (child.stdout ?? '') + (child.stderr ?? '');
     await writeFile(join(dir, `${args[0]}.log`), out); console.log(out);
     assert.equal(child.error, undefined); assert.equal(child.status, 0, `${args[0]} failed: see ${dir}/${args[0]}.log`);
+  }
+  for (const [name, expected] of Object.entries(provenance.sourceHashes)) {
+    const bytes = await readFile(join(source, name));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), expected.sha256, 'Capture input mutated: ' + name);
+  }
+  for (const [name, expected] of Object.entries(workspaceHashes)) {
+    const bytes = await readFile(resolve('probes/nsh-validation', name));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), expected.sha256, 'Workspace input changed during capture: ' + name);
   }
   await writeFile(join(dir, 'result.json'), JSON.stringify({ passed: true, platform: native ? 'NSH 0.5.0 macOS development host' : 'headless', fixture: 'synthetic bridge responses; no PI task executed', capture, evidence, artwork, installed: false, files, generatedEntry: true, outerFrame: 'logged by STYLE_FRAME for --evidence; PNG is content only', display: native ? 1 : null }, null, 2));
 } catch (e) {
