@@ -23,7 +23,7 @@ export const clamp = (min: number, value: number, max: number) => Math.min(max, 
 export function desktopLayout(width: number, requestedRight: boolean) {
   // Narrow mode is a deliberate navigation adaptation; it is not a claimed DSH geometry.
   return { compact: width < 760, sidebar: width < 760 ? 184 : desktopTheme.sidebarWidth,
-    right: requestedRight && width >= 1100, inset: width >= 1200 && !requestedRight ? 120 : 20 };
+    right: requestedRight && width >= 1100, inset: width >= 1200 && !(requestedRight && width >= 1100) ? 120 : 20 };
 }
 export function characterLayout(width: number, height: number, sidebar: number, active: boolean, details: boolean) {
   const leftH = active ? (width <= 700 ? clamp(300, height * .46, 410) : clamp(420, height * .64, 760)) : clamp(560, height * .96, 1180);
@@ -43,3 +43,19 @@ export function sliceAxis(length: number, first: number, last: number) {
   const scale = first + last > size ? size / (first + last) : 1;
   return [0, first * scale, size - last * scale, size];
 }
+
+// Native content safe areas, NOT extra Web titlebar offsets or source CSS tokens.
+// The original artwork stays at the source dimensions; layout reserves its envelope.
+export function styleLayout(active: boolean, artwork: boolean) {
+  const trim = artwork ? (active ? 76 : 48) : 0;
+  return { trim, headerTop: trim + (artwork ? 8 : 0), headerBody: 64,
+    composerTop: 24, composerBottom: 24, frameTop: 20, frameBottom: 18,
+    previewHeight: 36, bottom: artwork && !active ? 60 : 8,
+    composerHeight: 158, composerPaddingX: 32, composerPaddingBottom: 28 };
+}
+export const sidebarCorners = [
+  { name: 'top-left', top: 1, left: 1, scaleX: -1, scaleY: 1 },
+  { name: 'top-right', top: 1, right: 1, scaleX: 1, scaleY: 1 },
+  { name: 'bottom-right', bottom: 1, right: 1, scaleX: 1, scaleY: -1 },
+  { name: 'bottom-left', bottom: 1, left: 1, scaleX: -1, scaleY: -1 },
+] as const;

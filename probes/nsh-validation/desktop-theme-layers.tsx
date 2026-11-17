@@ -1,9 +1,9 @@
 import { Image, View, colorScheme, signal, windowSize, type ImageStyle, type ViewStyle } from 'nsh';
 import { art, artAvailable } from './desktop-theme-art';
-import { characterLayout, sliceAxis, desktopTheme as t } from './desktop-theme';
+import { characterLayout, sliceAxis, sidebarCorners, desktopTheme as t } from './desktop-theme';
 const absolute: ViewStyle = { position: 'absolute', pointerEvents: 'none' };
 export function Art(props: { name: string; style?: ImageStyle; testID?: string }) {
-  return art[props.name] ? <Image testID={props.testID} src={art[props.name]} fadeDuration={0} style={{ ...absolute, ...props.style }} /> : null;
+  return art[props.name] ? <Image testID={props.testID} src={art[props.name]} fadeDuration={0} style={{ ...props.style, ...absolute }} /> : null;
 }
 // CSS border-image translated to nine clipped native Images, not a stretched
 // whole-frame bitmap. Source and destination cuts follow patches.css:1634.
@@ -13,7 +13,7 @@ export function NineSlice(props: { name: string; source: [number, number]; cuts:
   const sourceY = sliceAxis(props.source[1], props.cuts[0], props.cuts[2]);
   const destX = () => sliceAxis(size().width, props.edges[3], props.edges[1]);
   const destY = () => sliceAxis(size().height, props.edges[0], props.edges[2]);
-  return <View testID={props.testID} onLayout={e => size.set({ width: e.bounds.size.width, height: e.bounds.size.height })} style={{ ...absolute, ...props.style }}>
+  return <View testID={props.testID} onLayout={e => size.set({ width: e.bounds.size.width, height: e.bounds.size.height })} style={{ ...props.style, ...absolute }}>
     {Array.from({ length: 9 }, (_, i) => {
       const x = i % 3, y = Math.floor(i / 3);
       const w = () => Math.max(0, destX()[x + 1] - destX()[x]);
@@ -43,13 +43,28 @@ export function TopTrim(props: { active: boolean }) {
   const tileWidth = () => 386 * tileHeight() / 321;
   return <View testID="top-trim" style={{ ...absolute, left: 0, right: 0, top: 0, height: props.active ? 76 : 48, overflow: 'hidden', zIndex: 1 }}>
     {Array.from({ length: Math.ceil(windowSize().width / tileWidth()) }, (_, i) => <Art name="top-trim" style={{ left: i * tileWidth(), top: props.active ? -4 : -2, width: tileWidth(), height: tileHeight(), objectFit: 'fill' }} />)}
-    {!props.active && <Art name="bow" style={{ left: '46%', top: -1, width: 80, height: 42, objectFit: 'contain' }} />}
+    {!props.active && <Art name="bow" style={{ left: '50%', transform: 'translateX(-50%)', top: -1, width: 80, height: 42, objectFit: 'contain' }} />}
   </View>;
 }
 export function BottomTrim() {
   return <View testID="bottom-trim" style={{ ...absolute, bottom: 0, left: 0, right: 0, height: 60, overflow: 'hidden' }}>
     {Array.from({ length: Math.ceil(windowSize().width / 386) }, (_, i) => <Art name="bottom-trim" style={{ left: i * 386, bottom: 0, width: 386, height: 30 }} />)}
-    <Art name="bottom-crest" style={{ width: 94, height: 54, bottom: 0, left: '46%', objectFit: 'contain' }} />
+    <Art name="bottom-crest" style={{ width: 94, height: 54, bottom: 0, left: '50%', transform: 'translateX(-50%)', objectFit: 'contain' }} />
+  </View>;
+}
+// patches.css:411–451: crop the TOP RIGHT 62px of a 130px image, then mirror
+// the clipped container about its centre. Scaling the full image to 62 is wrong.
+export function SidebarCorners() {
+  if (!artAvailable) return null;
+  const line = 'linear-gradient(90deg, #eed299f0, #be914bf5, #eed299f0)';
+  return <View testID="sidebar-corners" style={{ ...absolute, top: 0, left: 0, right: 0, bottom: 0, zIndex: 4 }}>
+    <View style={{ ...absolute, left: 62, right: 62, top: 8.875, height: 1.25, backgroundImage: line }} />
+    <View style={{ ...absolute, left: 62, right: 62, bottom: 8.875, height: 1.25, backgroundImage: line }} />
+    <View style={{ ...absolute, top: 62, bottom: 62, left: 8.05, width: 1.35, backgroundImage: line.replace('90deg', '180deg') }} />
+    <View style={{ ...absolute, top: 62, bottom: 62, right: 8.05, width: 1.35, backgroundImage: line.replace('90deg', '180deg') }} />
+    {sidebarCorners.map(c => <View testID={`corner-${c.name}`} style={{ ...absolute, top: 'top' in c ? c.top : undefined, left: 'left' in c ? c.left : undefined, right: 'right' in c ? c.right : undefined, bottom: 'bottom' in c ? c.bottom : undefined, width: 62, height: 62, overflow: 'hidden', transform: [{ scaleX: c.scaleX }, { scaleY: c.scaleY }] }}>
+      <Art name="sidebar-corner" style={{ top: 0, right: 0, width: 130, height: 130, objectFit: 'fill', filter: 'drop-shadow(0 1px 1px #0207186b)' }} />
+    </View>)}
   </View>;
 }
 export { artAvailable };

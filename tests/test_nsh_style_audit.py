@@ -48,21 +48,27 @@ class NSHStyleAuditTests(unittest.TestCase):
             self.assertIn('NOT live Electron', image['source'])
         # No captures, artwork or private application directory required by tests.
 
-    def test_tracked_presentation_bridge_inputs_unchanged_and_testids_preserved(self):
+    def test_historical_audit_protects_non_owned_inputs_and_original_testids(self):
         untracked = self.audit['untrackedOwnedByOthers']
         self.assertEqual(len(untracked), 7)
         self.assertEqual(len(self.audit['protected']), 16)
+        # Audit hashes freeze its old workspace, not a ban on later authorized repairs.
+        repair = json.loads((NSH / 'desktop-style-fix-verification.json').read_text())
+        authorized = set(repair['modifiedAuditInputs'])
+        self.assertEqual(authorized, {str(Path('probes/nsh-validation') / name) for name in (
+            'DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx',
+            'desktop-theme.test.tsx', 'desktop-style-capture.tsx', 'verify-desktop-theme.mjs')})
         for name, record in self.audit['protected'].items():
-            if name in untracked:
+            if name in untracked or name in authorized:
                 continue  # Never require/adopt another owner's untracked inputs.
             data = (ROOT / name).read_bytes()
             self.assertEqual(len(data), record['bytes'], name)
             self.assertEqual(hashlib.sha256(data).hexdigest(), record['sha256'], name)
         view = (NSH / 'DesktopView.tsx').read_text()
         layers = (NSH / 'desktop-theme-layers.tsx').read_text()
-        for token in re.findall(r'testID="([^"]+)"', view + layers):
-            if token not in ('character-left', 'character-right'):
-                self.assertIn(token, self.review)
+        baseline_ids = ('desktop-root sidebar sidebar-brand create-session search-unavailable projects selection sessions sidebar-footer settings-unavailable chat-column chat-header toggle-navigation toggle-details status error empty-state messages message composer composer-frame prompt stop send art-status details-panel skin-layers palace-background wallpaper-scrim character-left character-right top-trim bottom-trim').split()
+        for token in baseline_ids:
+            self.assertIn('testID="' + token + '"', view + layers)
         contract = (NSH / 'desktop-contract.ts').read_text()
         methods = re.findall(r"^  '([^']+)': \{ params:", contract, re.M)
         self.assertEqual(len(methods), 6)

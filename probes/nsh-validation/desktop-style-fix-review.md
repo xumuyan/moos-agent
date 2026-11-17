@@ -1,5 +1,7 @@
 # N01-D3 / style_audit｜本轮可执行的样式修复基准
 
+> 历史审计快照：以下open/pending描述固定于审计提交，不覆盖当时失败。2026-11-18后续已进入 `native_style_fix` 实际修复，最新安全区/四角/消息宽度、新图及长Markdown诊断失败见 [NATIVE-STYLE-FIX.md](NATIVE-STYLE-FIX.md) 和 `desktop-style-fix-verification.json`；并非全部问题已关闭。
+
 ## 1. 范围、证据等级与工作区
 
 本轮交付是**审计基准，不是已修复界面**。开始 HEAD `22552db9380c3aedcd8ce82b4f1b9a5ede2cd28a`；2026-11-18 北京时间开始记录见忽略目录 `artifacts/nsh-validation/style-audit/initial.json`。检查祖先、根与目标目录 AGENTS.md（目标内无嵌套规则），读取 PLAN.md、operatelog.md 和已有主题/来源/证据文档。先前宽范围 find 超时与长输出截断不当作完成读取，改按目标和行段核对。

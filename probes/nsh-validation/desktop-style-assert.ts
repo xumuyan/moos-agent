@@ -1,0 +1,38 @@
+// Runs against actual NSH onLayout bounds, not just design constants.
+import { expect, type App } from 'nsh/test';
+import { styleLayout } from './desktop-theme';
+import { artAvailable } from './desktop-theme-art';
+export async function assertStyleBounds(app: App, active: boolean, height: number) {
+  await app.waitUntil(() => app.texts().some(t => t.startsWith('STYLE_GEOMETRY ') && t.includes('art-status')));
+  const text = app.texts().find(t => t.startsWith('STYLE_GEOMETRY '))!;
+  const b = JSON.parse(text.slice('STYLE_GEOMETRY '.length));
+  const safe = styleLayout(active, artAvailable);
+  const bottom = (r: any) => r.origin.y + r.size.height;
+  // NSH onLayout is parent-local (verified on the real native target).
+  const body = b['chat-body'], outer = b['composer-safe-area'];
+  const composerTop = body.origin.y + outer.origin.y + b.composer.origin.y;
+  const composerBottom = composerTop + b.composer.size.height;
+  const previewTop = body.origin.y + b['art-status'].origin.y;
+  expect(b['chat-header'].origin.y).toBeGreaterThanOrEqual(safe.trim);
+  expect(composerTop - safe.frameTop).toBeGreaterThanOrEqual(bottom(b['chat-header']));
+  expect(previewTop).toBeGreaterThanOrEqual(composerBottom + safe.frameBottom);
+  expect(body.origin.y + bottom(b['art-status'])).toBeLessThanOrEqual(height - safe.bottom);
+  expect(b.prompt.origin.y).toBeGreaterThanOrEqual(52);
+  expect(bottom(b['composer-actions'])).toBeLessThanOrEqual(b.composer.size.height - 24);
+  expect(bottom(b.send)).toBeLessThanOrEqual(b['composer-actions'].size.height);
+  expect(bottom(b.stop)).toBeLessThanOrEqual(b['composer-actions'].size.height);
+  expect(b['composer-actions'].origin.x + b.send.origin.x).toBeGreaterThanOrEqual(24);
+  expect(b['composer-actions'].origin.x + b.send.origin.x + b.send.size.width).toBeLessThanOrEqual(b.composer.size.width - 24);
+  expect(b.prompt.size.width).toBeGreaterThan(100);
+  expect(b.prompt.size.height).toBeGreaterThanOrEqual(28);
+  expect(b.send.size.width).toBeGreaterThan(30);
+  expect(b['composer-actions'].origin.y).toBeGreaterThanOrEqual(bottom(b.prompt));
+  if (active && b.message) {
+    expect(b.message.size.width).toBeLessThanOrEqual(680);
+    expect(b.message.size.width).toBeLessThanOrEqual(b.composer.size.width * .96 + .01);
+  }
+  if (active && b['message-PI 公开文本']) {
+    expect(b['message-PI 公开文本'].size.width).toBeLessThan(b.composer.size.width * .96);
+  }
+  console.log('STYLE_BOUNDS ' + JSON.stringify({ active, height, artAvailable, bounds: b }));
+}

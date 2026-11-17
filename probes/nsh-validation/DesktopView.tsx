@@ -1,12 +1,12 @@
-import { cleanup, colorScheme, host, Image, List, signal, Text, View, windowSize } from 'nsh';
+import { cleanup, colorScheme, host, Image, List, signal, Text, View, windowSize, type Bounds } from 'nsh';
 import { Button, Input, TextView } from 'nsh/base';
 import { DesktopController, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, clamp } from './desktop-theme';
-import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, artAvailable } from './desktop-theme-layers';
+import { desktopTheme as t, desktopLayout, styleLayout, clamp } from './desktop-theme';
+import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
-export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall } = {}) {
+export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void } = {}) {
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const controller = new DesktopController(props.call ?? desktopCall, () => revision.set(revision() + 1));
   function snapshot() { revision(); return controller; }
@@ -28,11 +28,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const muted = () => dark() ? '#b7c3dd' : t.muted;
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
   const active = () => !!snapshot().current?.rows.length;
+  const safe = () => styleLayout(active(), artAvailable);
+  const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
   const sidebarWidth = () => (!layout().compact || navigation()) ? layout().sidebar : 0;
   return (
     <View testID="desktop-root" style={{ flex: 1, flexDirection: 'row', backgroundColor: dark() ? t.dark.canvas : t.canvas, overflow: 'hidden' }}>
       <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
       {(!layout().compact || navigation()) && <View testID="sidebar" style={{ width: layout().sidebar, backgroundColor: t.sidebar, backgroundImage: t.sidebarGradient, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
+        <SidebarCorners />
         <View testID="sidebar-brand" style={{ height: 70, flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 20, paddingHorizontal: 12 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
         <View style={{ height: 58, marginTop: 4, marginBottom: 8 }}>
           <NineSlice name="new-session" source={[1400,308]} cuts={[0,210,0,210]} edges={[0,layout().compact ? 32 : 40,0,layout().compact ? 32 : 40]} fill style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
@@ -41,7 +44,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         <Button testID="search-unavailable" disabled style={{ ...button, borderWidth: 1, borderColor: '#e1cfaa33' }}><Text style={{ color: t.sidebarMuted, fontSize: 12 }}>⌕ 搜索（未接入）</Text></Button>
         <Text style={{ fontSize: 12, color: t.sidebarMuted }}>工作区 / 独立临时项目</Text>
         <List testID="projects" each={snapshot().projects} estimatedItemSize={54} style={{ height: Math.min(snapshot().projects.length * 54, 162), flexShrink: 0 }}>
-          {p => <View style={{ height: 54, marginBottom: 2 }}>
+          {p => <View style={{ height: 54 }}>
             {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
             <Button testID={`project-${p().name}`} style={{ ...button, height: 54, paddingVertical: 7, paddingLeft: 7, paddingRight: 10, flexDirection: 'row', gap: 8 }} onPress={() => void project(p().id)}>
               {snapshot().projectId === p().id && artAvailable && <View style={{ width: 30, height: 38 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
@@ -57,7 +60,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>}
         </List>
         <Art name="chibi" style={{ left: layout().sidebar * .52 - Math.min(320, layout().sidebar * .82) / 2, bottom: 166, width: Math.min(320, layout().sidebar * .82), height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />
-        <View testID="sidebar-footer" style={{ minHeight: 154, paddingTop: 74, paddingHorizontal: 2, gap: 8 }}>
+        <View testID="sidebar-footer" style={{ minHeight: 154, paddingTop: 74, paddingHorizontal: 2, paddingBottom: 6, gap: 8 }}>
           <Art name="sidebar-swag" style={{ top: 0, left: -16, right: -16, height: 72, objectFit: 'fill' }} />
           <View style={{ height: 34 }}><Art name="settings-frame" style={{ top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: 34, objectFit: 'fill' }} /><Button testID="settings-unavailable" disabled style={{ height: 34, justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: t.sidebarMuted, fontSize: 12 }}>设置（未接入）</Text></Button></View>
           <Text style={{ fontSize: 11, color: t.sidebarMuted }}>NSH 0.5.0 · 独立验证</Text>
@@ -65,34 +68,37 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       </View>}
       <View testID="chat-column" style={{ flex: 1, minWidth: 0 }}>
         <TopTrim active={active()} />
-        <View testID="chat-header" style={{ zIndex: 2, height: t.headerHeight, backgroundColor: artAvailable ? '#00000000' : dark() ? t.dark.glass : '#f8faffb8', backdropFilter: artAvailable ? undefined : 'blur(8px)', borderBottomWidth: 1, borderColor: t.line, paddingHorizontal: 20, paddingTop: 14, gap: 6 }}>
+        <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
+        <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, backgroundColor: artAvailable ? '#0a173be6' : dark() ? t.dark.glass : '#f8faffb8', backdropFilter: artAvailable ? undefined : 'blur(8px)', borderBottomWidth: 1, borderColor: t.line, paddingHorizontal: 20, paddingTop: 4, gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {layout().compact && <Button testID="toggle-navigation" style={button} onPress={() => navigation.set(!navigation())}><Text style={{ color: artAvailable ? t.brand : ink() }}>☰</Text></Button>}
             <Text class="line-clamp-1" style={{ flex: 1, color: artAvailable ? t.brand : ink(), fontSize: t.font, fontWeight: '600' }}>{title()}</Text>
-            <Button testID="toggle-details" style={{ padding: 6 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: artAvailable ? t.goldSoft : muted() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
+            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: artAvailable ? t.goldSoft : muted() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
           </View>
-          <Text style={{ fontSize: 12, color: artAvailable ? t.sidebarMuted : muted(), alignSelf: 'flex-start', backgroundColor: artAvailable ? '#0a173be6' : undefined }}>对话  /  公开工具过程 · 本地模型夹具 · 非正式应用</Text>
+          <Text style={{ fontSize: 11, color: artAvailable ? t.sidebarMuted : muted(), alignSelf: 'flex-start', backgroundColor: artAvailable ? '#0a173be6' : undefined }}>对话  /  公开工具过程 · 本地模型夹具 · 非正式应用</Text>
         </View>
-        <View style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, gap: 8 }}>
+        <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
           <Text testID="status" style={{ fontSize: 12, color: muted() }}>{status()}</Text>
           {!!error() && <Text testID="error" style={{ color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
-          {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: 24, gap: 10, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontSize: 20, color: ink() }}>从一个真实任务开始</Text><Text style={{ fontSize: t.font, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
+          {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontSize: 20, color: ink() }}>从一个真实任务开始</Text><Text style={{ fontSize: t.font, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
           <List testID="messages" each={snapshot().current?.rows.map(r => ({ ...r })) ?? []} estimatedItemSize={88} style={{ flex: 1, minHeight: 0 }}>
-            {r => <View testID="message" style={{ paddingVertical: 14, paddingHorizontal: 18, marginBottom: 12, gap: 6, width: '96%', maxWidth: 680, alignSelf: r().role === '你' ? 'flex-end' : 'flex-start', borderRadius: 18, borderBottomLeftRadius: r().role === '你' ? 18 : 7, borderBottomRightRadius: r().role === '你' ? 7 : 18, borderWidth: 1, borderColor: r().role === '你' ? '#c5a4687a' : t.line, backgroundColor: r().role === '你' ? (dark() ? t.dark.user : '#e8edf9f2') : r().role === '工具' ? (dark() ? t.dark.glass : '#f8faffd1') : (dark() ? t.dark.assistant : t.paper), boxShadow: r().role === '你' ? t.userShadow : t.assistantShadow }}>
+            {r => <View testID="message" onLayout={e => { measured('message')(e); measured(`message-${r().role}`)(e); }} style={{ paddingVertical: 14, paddingHorizontal: 18, marginBottom: 12, gap: 6, width: 'fit-content', maxWidth: Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96), alignSelf: r().role === '你' ? 'flex-end' : 'flex-start', borderRadius: 18, borderBottomLeftRadius: r().role === '你' ? 18 : 7, borderBottomRightRadius: r().role === '你' ? 7 : 18, borderWidth: 1, borderColor: r().role === '你' ? '#c5a4687a' : dark() ? '#d3b47766' : t.line, backgroundColor: r().role === '你' ? (dark() ? t.dark.user : '#e8edf9f2') : r().role === '工具' ? (dark() ? t.dark.glass : '#f8faffd1') : (dark() ? t.dark.assistant : t.paper), boxShadow: r().role === '你' ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow }}>
               <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: dark() ? '#b7c3dd' : r().role === '工具' ? t.accent : muted() }}>{r().role}</Text>
               <TextView styles={{ root: { color: ink(), fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight } }} markdown={r().body} selectable />
             </View>}
           </List>
-          <View testID="composer" style={{ minHeight: 134, paddingHorizontal: 18, paddingBottom: 12, paddingTop: 34, gap: 6, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
+          <View testID="composer-safe-area" onLayout={measured('composer-safe-area')} style={{ paddingTop: safe().composerTop, paddingBottom: safe().composerBottom, flexShrink: 0 }}>
+          <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight, flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: 54, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
             <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />
-            <Input testID="prompt" style={{ minHeight: 32, flex: 1, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务（本地模型夹具）" value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Input testID="prompt" onLayout={measured('prompt')} style={{ minHeight: 32, flex: 1, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务（本地模型夹具）" value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
+            <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text class="line-clamp-1" style={{ flex: 1, fontSize: 11, color: t.placeholder }}>PI SDK · 公开事件</Text>
-              <Button testID="stop" style={{ padding: 7, borderRadius: 10, backgroundColor: '#ffffff1f' }} disabled={!snapshot().current?.busy || !snapshot().current?.task || snapshot().current!.stopping} disabledStyle={{ opacity: 0.4 }} onPress={() => void controller.stop()}><Text style={{ color: t.composerInk, fontSize: 12 }}>停止</Text></Button>
-              <Button testID="send" style={{ padding: 7, borderRadius: 10, backgroundColor: t.accent }} disabled={disabled()} disabledStyle={{ opacity: 0.4 }} onPress={send}><Text style={{ color: '#ffffff', fontSize: 12 }}>发送 ↑</Text></Button>
+              <Button testID="stop" onLayout={measured('stop')} style={{ padding: 7, borderRadius: 10, backgroundColor: '#ffffff1f' }} disabled={!snapshot().current?.busy || !snapshot().current?.task || snapshot().current!.stopping} disabledStyle={{ opacity: 0.4 }} onPress={() => void controller.stop()}><Text style={{ color: t.composerInk, fontSize: 12 }}>停止</Text></Button>
+              <Button testID="send" onLayout={measured('send')} style={{ padding: 7, borderRadius: 10, backgroundColor: t.accent }} disabled={disabled()} disabledStyle={{ opacity: 0.4 }} onPress={send}><Text style={{ color: '#ffffff', fontSize: 12 }}>发送 ↑</Text></Button>
             </View>
           </View>
-          <Text testID="art-status" style={{ fontSize: 11, color: muted(), height: 32, textAlign: 'center' }}>{artAvailable ? '本机授权素材预览 · 合成业务不等于实际任务' : '美术未加载：纯样式回归，不是完整皮肤预览'}</Text>
+          </View>
+          <Text testID="art-status" onLayout={measured('art-status')} style={{ flexShrink: 0, fontSize: 11, color: dark() ? t.dark.ink : t.ink, backgroundColor: dark() ? t.dark.details : '#f8fafff0', borderRadius: 6, padding: 4, height: safe().previewHeight, textAlign: 'center' }}>{artAvailable ? '本机授权素材预览 · 合成业务不等于实际任务' : '美术未加载：纯样式回归，不是完整皮肤预览'}</Text>
         </View>
         {!active() && <BottomTrim />}
       </View>
