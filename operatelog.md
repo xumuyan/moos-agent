@@ -2869,3 +2869,14 @@
 - 对应 Git 提交：唯一提交说明 test(N01-D3): add reproducible native style evidence and source boards，查询 git log --all --oneline --grep='reproducible native style evidence and source boards'；后续精确暂存本轮文件、检查差异后创建源码检查点并推送核远端，不能提前声称成功或完整验收。
 
 精确收尾补记（2026-11-17 22:24:05 +08:00，同style_evidence检查点）：新增日志首轮缺规定审计字段标签导致文档173项1失败，已按真实内容补齐字段，不覆盖旧失败；最终docs-recheck.log为173/173、1.219秒。验证JSON已锁该日志hash。前述22:17为约记，不能据此推断精确开始/完成时间；initial.json开始为22:02:33+08:00。图像未入Git、10份保护输入核对一致，源码仍为混合工作区；下一步精确审查/提交/推送，不等于完整产品验收或部署。
+
+## 2026-11-18 02:22:00 +08:00｜N01-D3 style_audit 样式修复基准（时间约记，不是界面修复）
+
+- 修改或新增内容：读取适用规则、PLAN/日志及指定来源/视图/评审，人工打开两张旧图；新增 probes/nsh-validation/desktop-style-fix-review.md、desktop-style-audit.json、tests/test_nsh_style_audit.py 及计划增量。固定SA01–SA09来源行号/修复约束、M01–M12 pending矩阵及后续owner串行边界。开始HEAD 22552db9380c3aedcd8ce82b4f1b9a5ede2cd28a，7份初始他人未跟踪及9份保护文件hash保存于忽略style-audit/initial.json及审计JSON，不收编他人文件，未修改主题/业务源码。
+- 遇到的难题：宽范围find超时和输出截断，改祖先/目标目录和行段核查（目标无嵌套规则）；工具返回JPEG预览但磁盘magic/IHDR核实为PNG1240×820。首次通过bash内Python追加中文根文档未落盘（原因未定），专项4项3过1失败捕获缺style_audit根条目；保留targeted.log，改文件编辑工具精确写入再核对，不能宣称首次通过。
+- 处理方式：仅授权所选maid-atelier0.3.2六文本及17必要素材只读bytes/hash全部匹配，不执行hooks、不复制发布艺术；保留CC BY-NC-SA 4.0和署名链。区分F来源/O观察/U未知，静态CSS板不是Electron。明确idle标题叠蕾丝、底说明叠饰、角饰缺项、flat特例/fit-content及暗idle/暗窄图缺口；保护六方法、testID、控制器/传输/Swift。测试不要求真实数据/艺术/他人未跟踪文件存在。
+- 验证结果：实际验收为旧图观察、6文本/17素材hash、原始PNG/源码行号及矩阵复核，无新图/修复声明。显式0700 /private/tmp/n01-style-audit.* TMPDIR下 `node probes/nsh-validation/verify-desktop-theme.mjs` 9/9通过（纯样式无艺术，无PI）；专项修订后及全仓实际结果后续补记，不提前称通过。
+- 遗留问题：修复全部open/矩阵pending；无人工GUI/真实PI/干净检出集成/性能验收。暗idle/暗窄窗需补图，用户视觉认可/IME/动画/独立包/业务资源仍缺，N01-D1/D2/D3不勾。手机暂停；不改apps/electron、共用PI/services、正式聊天/配置/凭据，不安装、退出、重启现用Moos、不部署、不跑性能专项。
+- 对应 Git 提交：本次唯一说明 `docs(N01-D3): establish actionable native style fix audit`，查询 `git log --all --oneline --grep='establish actionable native style fix audit'`；仅精确暂存5份本轮文件创建源码检查点。推送/远程核对按实际另报，不冒称全部产品验收通过。
+
+验证补记（2026-11-18 02:26:41 +08:00，style_audit同次检查点）：显式独立TMPDIR/Node24.15.0/PYTHONDONTWRITEBYTECODE=1下，`python3 -m unittest discover -s tests -p test_nsh_style_audit.py -v` 4/4；`python3 -m unittest discover -s tests -v` 177/177（4.068秒）；`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 354/354、0失败/取消/跳过（205.043秒）。`npm run test:electron` 143项133通过/10跳过/0失败（27.521秒），缺当前隔离DSH CLI，不能称143全过；`/Users/xuguopeng/.cargo/bin/cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` exit101离线缺defmt，未联网补装。日志artifacts/nsh-validation/style-audit/{targeted-recheck,docs,theme,core,electron,rust}.log。16份保护输入（含7未跟踪）逐一bytes/hash原字节一致；git diff --check通过。对应提交前混合工作区，未运行正式构建/安装/新截图或性能专项；完整验收仍因跳过/离线依赖及真实视觉/业务缺口受阻。下一owner先修SA01/SA02再补矩阵，不据本轮审计勾选样式修复。根文档补记后再跑文档检查；Git提交推送只代表审计源码检查点，不代表已部署或产品验收通过。

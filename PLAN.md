@@ -29,6 +29,8 @@
 
 - 2026-11-17 style_evidence 样式证据检查点：独立截图入口不复制他人DesktopApp/Swift/业务入口，仍使用原有controller/transport接口；10份保护输入原字节一致，7份他人未跟踪文件不纳入。NSH原生development test host内容捕获7图：1240×820/680×720、scale1，外框1240×848/680×748；5类组件裁图与静态CSS/token并排板，合成文字、不执行PI。见DESKTOP-STYLE-EVIDENCE.md及desktop-style-verification.json，图像约9.95MiB，不提交艺术。录屏/辅助功能均未授权，未安全取得Electron实时参考，静态参考不冒充同皮肤运行图或人工GUI。首次日志stderr漏记/中文URL路径测试错误如实保留，修正后核心354/354、主题9/9、原生4/4、捕获1/1含7场景、专项3/3，Electron133通过/10跳过，Rust缺defmt受阻；文档最终173/173（保留首次缺根条目及审计标签失败）。idle标题/蕾丝及底部说明叠边保留，用户视觉认可/干净业务集成/同业务全进程资源比较未完成，D1/D2/D3保持未勾；轻量目标不变，无性能收益结论，不安装/部署/重启正式应用，手机暂停。
 
+- 2026-11-18 style_audit / N01-D3：新增 `probes/nsh-validation/desktop-style-fix-review.md`、`desktop-style-audit.json` 与专项文档测试，固定9项open问题及12项pending矩阵。只读6文本/17素材hash匹配，实际打开旧light-idle/chat并核实原PNG1240×820；明确idle蕾丝标题交叠、底部说明叠框，区分flat/树行及fit-content、未知暗idle/暗窄窗，静态板不冒充Electron。7份他人未跟踪与9份保护输入不编辑/收编；本轮只审计、不修界面、不跑性能、不动正式应用/用户数据、不部署，手机暂停。测试/全仓实际结果见operatelog；修复/用户视觉认可/干净集成/资源验收未通过，D1/D2/D3及N01继续未勾。解除条件：按owner串行修复、补缺状态图/原生几何与用户确认、同状态回归及后续独立业务验收。
+
 以下为历史检查点；其中手机“下一步”由上面的暂停决定覆盖，不代表当前仍安排手机任务。N01整体验收保持未完成。
 
 - [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。
