@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D1/D2/D3 desktop_baseline",
+  "recordedAt": "2026-11-17T15:47:37.844095+08:00",
+  "baseCommit": "1c62372fbd2b10523441974dbc187ba021576e30",
+  "initialTrackedDiff": "",
+  "scope": {
+    "platform": "NSH Mac only; current embedding is Mac Catalyst",
+    "mobile": "paused",
+    "electronChanges": false,
+    "productionDataAccess": false,
+    "deployment": false,
+    "commonPiServicesChanges": false
+  },
+  "status": "baseline-defined-not-visual-or-resource-acceptance",
+  "initialWorktree": [
+    {
+      "path": "probes/nsh-validation/DesktopApp.test.tsx",
+      "sha256": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+      "bytes": 2809,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/DesktopApp.tsx",
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "bytes": 94,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/DesktopUIHost.swift",
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "bytes": 5261,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/DesktopView.tsx",
+      "sha256": "da311d576b73ae246a0eb3de95088e42b5d79e35d04352411e46b682f7ae2e09",
+      "bytes": 4659,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/desktop-ui-acceptance.tsx",
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "bytes": 4138,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/desktop-ui-controller.ts",
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "bytes": 10935,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/desktop-ui-transport.ts",
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "bytes": 729,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/desktop-ui.test.mjs",
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "bytes": 8328,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    },
+    {
+      "path": "probes/nsh-validation/verify-desktop-ui.mjs",
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "bytes": 6362,
+      "ownership": "pre-existing untracked; author unverified; reserved for downstream theme/kernel/integration owners; not edited by desktop_baseline"
+    }
+  ],
+  "references": [
+    {
+      "path": "docs/evidence/desktop/agent-teams-live/success.png",
+      "role": "historical-isolated-electron-screenshot",
+      "sha256": "d7f8aa8a416dca55117a83b41cb723f28260ba36333c5ee3d6f2d4dbc464a32b",
+      "pixels": [
+        1240,
+        820
+      ]
+    },
+    {
+      "path": "docs/evidence/desktop/agent-teams-live/blocked-panel.png",
+      "role": "historical-isolated-electron-screenshot",
+      "sha256": "fadb667da301aebf598d14c184b8dd98415c0d6eaa938b05fcf07a885e7b6a3c",
+      "pixels": [
+        1240,
+        820
+      ]
+    },
+    {
+      "path": "docs/evidence/desktop/agent-teams-live.json",
+      "role": "historical-E139-evidence",
+      "sha256": "407e27c09831aa5fef984d43be115b4d56f6842f8e68ef0e50830d2c12404829"
+    },
+    {
+      "path": "docs/evidence/desktop/p03-dsh-skin-import.json",
+      "role": "historical-skin-source-not-proof-of-current-wallpaper",
+      "sha256": "7175118345306ede337eb0371e186cd114cb4dfac403899e82aa5cdabd87eb04"
+    },
+    {
+      "path": "probes/dsh-electron-skin/evidence.json",
+      "role": "historical-original-skin-review",
+      "sha256": "5e12e029a5eb408c28007ab9b98079079f8c321a5101e9f4f04528899d3f5292"
+    },
+    {
+      "path": "apps/electron/assets/sidebar-icon.png",
+      "role": "tracked-brand-asset-read-only",
+      "sha256": "75400ff4380d00305d10cbfbcc1ae062563f105de116fc0de3cc119e9abb6caf",
+      "pixels": [
+        32,
+        32
+      ]
+    },
+    {
+      "path": "apps/electron/plugin/client.js",
+      "role": "read-only-brand-style-reference",
+      "sha256": "58d72b70a69003a44ad93d61ac06ad189757f6d8b913ddfab1d89ce7e3960550"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "role": "license-reference",
+      "sha256": "d28ec18335444a278b3181c77c0e9cf671888f8ece4fd20a95070c4fa6630325"
+    },
+    {
+      "path": "docs/third-party/dsh-full-frontend-sources.md",
+      "role": "license-source-boundary",
+      "sha256": "c44bfb8fc912dd1a3a61ac24da10918b2e757d3cced2f1093815175a05a96704"
+    },
+    {
+      "path": "probes/nsh-validation/desktop-contract.ts",
+      "role": "wire-v1-six-methods",
+      "sha256": "055a4e0aafd9a79b2dc3ced3d4cb8c6730a7e7f5b2b8609a22ef772be81c135b"
+    }
+  ],
+  "visual": {
+    "contentSize": [
+      1240,
+      820
+    ],
+    "sourceIsNSH": false,
+    "sourceImageEncoding": "PNG",
+    "sidebarWidthApprox": 280,
+    "topbarHeightApprox": 75,
+    "composerApprox": [
+      400,
+      680,
+      714,
+      100
+    ],
+    "fontMetadata": "unavailable; approximate 14px sans-serif body; not exact",
+    "fullThemeAssetsAndLicense": "not located in tracked project; do not extract from production",
+    "accepted": false
+  },
+  "resource": {
+    "measured": false,
+    "accepted": false,
+    "externalModel": false,
+    "repetitions": 3,
+    "warmupSeconds": 20,
+    "idleSampleSeconds": 60,
+    "workloads": [
+      "idle-new",
+      "idle-history",
+      "stream-tools",
+      "cancel-drain",
+      "repeat-cycle"
+    ],
+    "historyRows": 1000,
+    "cycleTasks": 10
+  },
+  "overallN01Complete": false
+}

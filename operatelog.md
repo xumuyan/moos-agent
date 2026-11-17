@@ -2824,3 +2824,21 @@
 本条文档检查补记（P03.14.12，同次提交）：首次日志写入的时区为+0800，不符合仓库要求的+08:00，文档165项中1项失败；已仅修正本次未提交日志的时区格式，保留失败输出在artifacts/performance-0.1.52/docs-tests-final.log，随后重跑。
 
 最终验收补记（2026-11-17 09:34:14 +08:00，P03.14.12同次提交）：稳定采样源码完整核心串行337/337通过（172.339秒、0失败/取消/跳过，含他人未提交NSH测试的混合工作区）；Electron143/143、指标4/4、文档稳定重跑165/165通过。实际已安装只读采样成功，严格签名/唯一正式主进程及备份目录清理再次核对；最终旧聊天截图已观察、原窗口保留。指标源码不属于随包运行时，本次未修改应用运行时代码，沿用此前已构建验签的guiGYH候选并完成本次正式安装。低占用目标继续未完成，未把检查通过解释成性能达标。提交前git diff --check通过；下一步只提交本轮六个文件并推送核对，不纳入NSH文件。
+
+
+## 2026-11-17 15:54:18 +08:00｜N01 桌面基线与兼容接口（desktop_baseline，非迁移验收）
+
+- 修改或新增内容：本任务仅新增NSH桌面范围/视觉/接口/所有权/资源门禁文档与JSON来源清单、可执行比较器及专项测试/Python文档检查。开始HEAD和9个已有他人未跟踪文件逐一SHA-256/字节/保留归属；不编辑、回滚、暂存这些文件。固定E139历史隔离Electron主图1240×820，记录左栏/顶栏/输入框近似几何及字体/透明/右栏证据缺口，未编造主题名称或素材。更新PLAN本任务增量，D1/D2/D3均未勾。
+- 遇到的难题：上级全目录查规则超时/部分读取输出截断，改目标probes/docs/tests查找，无嵌套规则；shell初始无Node路径，显式使用已装24.15.0。观察工具返回JPEG预览，初版误判原图编码使专项6/7，改用原始magic/IHDR核实为PNG并修正文档/JSON/测试，最终8/8。完整目标主题资源和授权文件未在跟踪源码找到，历史maid版本不能证明就是E139壁纸；未从正式数据提取或联网获取未知素材。
+- 处理方式：采用原文件SHA和Git基线锁定来源；照片仅历史视觉参考，不把图中文字当模型输入、不裁壁纸当素材；资源门禁要求同业务三组配对/五负载/进程树/CPU-footprint及全落盘，字段缺失、不等价、强退、不可用阻塞，抖动覆盖改善不得宣称收益。门禁单测为合成数字，不是性能测量，也非外部模型推理。
+- 验证结果：提交前工作区基于desktop-baseline.json所记HEAD，macOS27.0.1 arm64、Node24.15.0；`node --test probes/nsh-validation/desktop-baseline.test.mjs`最终8/8，覆盖来源图真实尺寸、9文件归属、六方法边界、CLI通过/拒绝/错误码及空/缺失/负值/零内存/不可用/隐藏/不等价/生产数据/强退/抖动/回退等拒绝。核心全清单串行及`npm run test:electron`已发起，实际结果后续补记；不提前声称全绿。Python文档检查随后执行。日志仅在忽略目录artifacts/nsh-validation/desktop-baseline，未写凭据/原始模型载荷。
+- 遗留问题：本任务不是NSH主题样板、UI真实PI闭环或资源收益实测；完整皮肤素材及许可/字体元数据待合法独立来源，D2历史重启尚未接通，后续仍需同尺寸实图与用户认可/真实输入法和独立退出清理。手机全部暂停，不改apps/electron、共用PI/services、正式版本/构建/插件/配置；不安装、退出、重启正式应用，不读取聊天或凭据作测试，不部署。所有权表为串行交接约定，不代表他人文件已提交或验收。
+- 对应 Git 提交：本次唯一说明 `docs(N01): define desktop visual baseline and parity gates`，查询 `git log --all --oneline --grep='define desktop visual baseline and parity gates'`；仅精确暂存本任务文件，提交/推送后核对远程HEAD，不提前声称推送或部署成功。
+
+验证补记（2026-11-17 16:00:51 +08:00，N01同次提交）：首次完整核心串行命令为 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs`，345项342通过/2失败/1取消，exit1：adapter.test.mjs会话恢复15000ms超时取消、team-qa-native-calibration编译10000ms超时、team-qa-shutdown真实采样unavailable。不得声称修复或全绿。默认 `npm run test:electron` 143项133通过/0失败/10跳过，exit0（缺隔离DSH CLI/皮肤材料，不读取正式皮肤补测）。`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 167/167；Cargo初始PATH找不到，显式 `/Users/xuguopeng/.cargo/bin/cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` exit101缺tauri离线缓存，未联网安装。日志分别core.log/electron.log/docs.log/rust-explicit.log。
+
+隔离更正与后续复核（同次提交）：发现初轮测试继承现用工具环境TMPDIR为正式应用数据下host-tmp；这些测试只创建并清理自己的随机临时目录，没有读取/覆盖真实聊天、模型、皮肤，但不满足本任务理想目录隔离，不能宣称初轮完全不触及正式数据目录。未扩大清理该目录。已显式创建/private/tmp下0700专用目录（路径仅本机忽略日志），后续专项、完整串行、Electron依次设置TMPDIR，避免正式host-tmp；旧首轮失败仍保留。新增SHA256条件格式、字节安全整数/正安装器、重复PID/非有限warmup拒绝回归，最终专项仍8/8（targeted-isolated.log）；比较器只验证提交摘要，processTreeComplete/functionalPassed声明须独立证据审核，不能用填true替代采样器。尚无新图、资源实测或生产安装。
+
+最终隔离复核（2026-11-17 16:09:57 +08:00，N01同次提交）：完整串行命令设置显式独立TMPDIR后345项343通过/2失败/0取消（444.395秒，exit1，core-isolated.log）：desktop-tools.test.mjs:530预期DESKTOP_FOCUS_CHANGED实际helper超时、team-qa-native-calibration.test.mjs:40采样unavailable。PI会话恢复本轮通过不覆盖首轮超时，未改共用实现也未宣称根因修复。随后相同独立TMPDIR下 `npm run test:electron` 143项132通过/1失败/10跳过（80.111秒，exit1，electron-isolated.log）：host.test.mjs:60测试夹具Host启动超时。文档独立TMPDIR复核167/167（docs-isolated.log及docs-delivery.log）；门禁CLI实际执行仅合成报告通过/阻塞/无收益/格式错误四路径，无新GUI或性能测量。现有单测覆盖了历史手机代码的本地静态/回环夹具，不涉及手机构建、安装、设备联网/配对验收；暂停范围不变。
+
+交付状态：范围与可执行门禁检查点可追踪，但全仓回归仍失败，正式功能与主题验收未完成，不能称完整交付通过。保留失败和当前9个他人文件，后续需相应owner定位helper/采样/测试Host超时，在同状态全套及真实验收通过后再推进；本任务不为此改正式Electron或共用PI。未执行正式构建/安装/部署；推送仅限该基线源码检查点，不代表产品通过或上线运行。最终补记的首次Python命令遇stdin非UTF8错误、没有完成写入，改以UTF8文件工具/追加后重新核对；失败不掩盖。检查差异后按唯一提交说明精确提交，推送结果以远程HEAD核对为准。
