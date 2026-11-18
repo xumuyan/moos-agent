@@ -59,3 +59,16 @@ export const sidebarCorners = [
   { name: 'bottom-right', bottom: 1, right: 1, scaleX: 1, scaleY: -1 },
   { name: 'bottom-left', bottom: 1, left: 1, scaleX: -1, scaleY: -1 },
 ] as const;
+
+// Stable immutable presentation snapshots. The controller may mutate its streaming
+// row in place; status-only polling must not discard native height measurements.
+export function createMessageRows() {
+  type Row = { role: string; body: string };
+  let scope = '', cached: Row[] = [];
+  return (nextScope: string, rows: readonly Row[]): Row[] => {
+    if (scope !== nextScope) { scope = nextScope; cached = []; }
+    if (rows.length !== cached.length || rows.some((r, i) => r.role !== cached[i]?.role || r.body !== cached[i]?.body))
+      cached = rows.map((r, i) => r.role === cached[i]?.role && r.body === cached[i]?.body ? cached[i] : { ...r });
+    return cached;
+  };
+}

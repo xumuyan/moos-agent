@@ -29,7 +29,7 @@ if (native) await cp(resolve('probes/nsh-validation', rich ? 'desktop-theme-rich
 await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel'] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
 await writeFile(join(source, 'App.tsx'), "import './DesktopApp';\n");
 await cp(resolve('probes/nsh-validation/tsconfig.json'), join(source, 'tsconfig.json'));
-for (const [entry, options] of [['ThemeNative', {}], ['ThemeError', { error: true }], ['ThemeLong', { long: true }]]) {
+for (const [entry, options] of [['ThemeNative', {}], ['ThemeError', { error: true }], ['ThemeLong', { long: true }], ['ThemeNames', { longNames: true }]]) {
   await writeFile(join(source, `${entry}.tsx`), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nimport { fixture } from './desktop-theme-fixture';\nconst h = fixture(${JSON.stringify(options)});\nmount(() => <DesktopView call={async (method, params) => (h as any)[method](params).result} />);\n`);
 }
 // Isolated layout diagnostic only: no Host bridge, filesystem or production data.
@@ -41,15 +41,16 @@ mount(() => <View style={{flex:1}}><DesktopView call={async (method, params) => 
  onGeometry={(name, bounds) => { if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds}); }} />
 <Text testID="geometry-readout" style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'STYLE_GEOMETRY ' + JSON.stringify(measured())}</Text></View>);
 `);
-await writeFile(join(source, 'ThemeRich.tsx'), `import { mount } from 'nsh';
+await writeFile(join(source, 'ThemeRich.tsx'), `import { mount, signal, View, Text } from 'nsh';
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
 const h = fixture();
-mount(() => <DesktopView call={async (method, params) => {
+const metrics = signal<any>({});
+mount(() => <View style={{flex:1}}><DesktopView onMessageScroll={e => metrics.set({...metrics(), scroll:e})} onGeometry={(name, bounds) => { if (JSON.stringify(metrics()[name]) !== JSON.stringify(bounds)) metrics.set({...metrics(), [name]:bounds}); }} call={async (method, params) => {
  const result = (h as any)[method](params).result;
  if (method === 'tasks.events') for (const e of result.events) if (e.type === 'text_delta') e.payload.delta = ${JSON.stringify('## 合成 Markdown 长文\n\n' + '长中文边界验证，不是实际用户任务。'.repeat(35) + '\n\n`/isolated/' + 'very-long-segment/'.repeat(30) + 'fixture.txt`\n\n```ts\nconst example = "synthetic";\n```')};
  return result;
-}} />);
+}} /><Text style={{position:'absolute',opacity:0,pointerEvents:'none',fontSize:1}}>{'RICH_METRICS ' + JSON.stringify(metrics())}</Text></View>);
 `);
 // Hash the exact copied/generated pre-build inputs; do not rely on HEAD alone.
 async function hashTree(root, prefix = '') {
@@ -64,7 +65,7 @@ async function hashTree(root, prefix = '') {
   }
   return records;
 }
-const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(evidence ? ['desktop-style-capture.tsx'] : [])];
+const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'] : [])];
 const workspaceHashes = {};
 for (const name of workspaceInputs) {
   const bytes = await readFile(resolve('probes/nsh-validation', name));

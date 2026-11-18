@@ -1,15 +1,20 @@
-import { cleanup, colorScheme, host, Image, List, signal, Text, View, windowSize, type Bounds } from 'nsh';
+import { cleanup, colorScheme, host, Image, List, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
 import { Button, Input, TextView } from 'nsh/base';
 import { DesktopController, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, styleLayout, clamp } from './desktop-theme';
+import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
-export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void } = {}) {
+export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const controller = new DesktopController(props.call ?? desktopCall, () => revision.set(revision() + 1));
   function snapshot() { revision(); return controller; }
+  const cachedRows = createMessageRows();
+  const messageRows = () => {
+    const c = snapshot().current;
+    return cachedRows(c ? `${c.scope.projectId}/${c.scope.sessionId}` : '', c?.rows ?? []);
+  };
   const layout = () => desktopLayout(windowSize().width, right());
   const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
@@ -46,9 +51,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         <List testID="projects" each={snapshot().projects} estimatedItemSize={54} style={{ height: Math.min(snapshot().projects.length * 54, 162), flexShrink: 0 }}>
           {p => <View style={{ height: 54 }}>
             {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
-            <Button testID={`project-${p().name}`} style={{ ...button, height: 54, paddingVertical: 7, paddingLeft: 7, paddingRight: 10, flexDirection: 'row', gap: 8 }} onPress={() => void project(p().id)}>
+            <Button testID={`project-${p().name}`} style={{ ...button, height: 54, paddingVertical: 7, paddingLeft: 7, paddingRight: 36, flexDirection: 'row', gap: 8 }} onPress={() => void project(p().id)}>
               {snapshot().projectId === p().id && artAvailable && <View style={{ width: 30, height: 38 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
-              <Text class="line-clamp-1" style={{ flex: 1, fontSize: t.font, fontFamily: t.ornamentFont, color: '#f4ead5' }}>{`${snapshot().projectId === p().id ? '● ' : '◇ '}${p().name}`}</Text>
+              <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: t.font, fontFamily: t.ornamentFont, color: '#f4ead5' }}>{`${snapshot().projectId === p().id ? '● ' : '◇ '}${p().name}`}</Text>
             </Button>
           </View>}
         </List>
@@ -81,8 +86,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           <Text testID="status" style={{ fontSize: 12, color: muted() }}>{status()}</Text>
           {!!error() && <Text testID="error" style={{ color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
           {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontSize: 20, color: ink() }}>从一个真实任务开始</Text><Text style={{ fontSize: t.font, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
-          <List testID="messages" each={snapshot().current?.rows.map(r => ({ ...r })) ?? []} estimatedItemSize={88} style={{ flex: 1, minHeight: 0 }}>
-            {r => <View testID="message" onLayout={e => { measured('message')(e); measured(`message-${r().role}`)(e); }} style={{ paddingVertical: 14, paddingHorizontal: 18, marginBottom: 12, gap: 6, width: 'fit-content', maxWidth: Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96), alignSelf: r().role === '你' ? 'flex-end' : 'flex-start', borderRadius: 18, borderBottomLeftRadius: r().role === '你' ? 18 : 7, borderBottomRightRadius: r().role === '你' ? 7 : 18, borderWidth: 1, borderColor: r().role === '你' ? '#c5a4687a' : dark() ? '#d3b47766' : t.line, backgroundColor: r().role === '你' ? (dark() ? t.dark.user : '#e8edf9f2') : r().role === '工具' ? (dark() ? t.dark.glass : '#f8faffd1') : (dark() ? t.dark.assistant : t.paper), boxShadow: r().role === '你' ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow }}>
+          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
+            {r => <View testID="message" onLayout={e => { measured('message')(e); measured(`message-${r().role}`)(e); measured(`message-${r().body.startsWith('tool_end') ? 'last-tool' : 'row'}`)(e); }} style={{ paddingVertical: 14, paddingHorizontal: 18, marginBottom: 12, gap: 6, width: 'fit-content', maxWidth: Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96), alignSelf: r().role === '你' ? 'flex-end' : 'flex-start', borderRadius: 18, borderBottomLeftRadius: r().role === '你' ? 18 : 7, borderBottomRightRadius: r().role === '你' ? 7 : 18, borderWidth: 1, borderColor: r().role === '你' ? '#c5a4687a' : dark() ? '#d3b47766' : t.line, backgroundColor: r().role === '你' ? (dark() ? t.dark.user : '#e8edf9f2') : r().role === '工具' ? (dark() ? t.dark.glass : '#f8faffd1') : (dark() ? t.dark.assistant : t.paper), boxShadow: r().role === '你' ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow }}>
               <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: dark() ? '#b7c3dd' : r().role === '工具' ? t.accent : muted() }}>{r().role}</Text>
               <TextView styles={{ root: { color: ink(), fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight } }} markdown={r().body} selectable />
             </View>}

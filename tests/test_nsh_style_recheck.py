@@ -31,12 +31,17 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
         self.assertFalse(m['captureInputs']['piExecuted'])
         self.assertEqual(m['rights']['license'], 'CC BY-NC-SA 4.0')
 
-    def test_current_view_matches_captured_input_without_requiring_private_art(self):
+    def test_historical_capture_is_frozen_and_later_scroll_repair_is_linked(self):
         m = json.loads((NSH / 'desktop-style-recheck-verification.json').read_text())
+        repair = json.loads((NSH / 'desktop-scroll-verification.json').read_text())
         for name in ('DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx',
                      'desktop-style-capture.tsx', 'verify-desktop-theme.mjs', 'desktop-theme-fixture.ts'):
             data = (NSH / name).read_bytes()
-            self.assertEqual(hashlib.sha256(data).hexdigest(), m['captureInputs']['workspaceHashes'][name]['sha256'])
+            if name in repair['historicalInputHashes']:
+                self.assertEqual(repair['historicalInputHashes'][name], m['captureInputs']['workspaceHashes'][name]['sha256'])
+                self.assertEqual(hashlib.sha256(data).hexdigest(), repair['inputs']['probes/nsh-validation/' + name]['sha256'])
+            else:
+                self.assertEqual(hashlib.sha256(data).hexdigest(), m['captureInputs']['workspaceHashes'][name]['sha256'])
         # Do not require another owner's untracked files in a clean checkout.
         self.assertIn('probes/nsh-validation/DesktopUIHost.swift', m['protectedFiles'])
         self.assertEqual(len(m['protectedFiles']), 119)

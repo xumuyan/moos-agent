@@ -24,7 +24,7 @@ test('native theme 1000 public rows recycle and stop after drain', async () => {
   await app.waitFor('text:项目 主题验证 A'); await app.type('id:prompt', 'long'); await app.press('id:send');
   await app.waitUntil(() => app.texts().some(t => t.includes('1000 事件')), { timeout: 15000 });
   expect(app.count('id:message')).toBeGreaterThan(0); expect(app.count('id:message')).toBeLessThan(100);
-  await app.scroll('id:messages', 1200); expect(app.count('id:message')).toBeLessThan(100);
+  await app.scroll('id:messages', -1200); expect(app.count('id:message')).toBeLessThan(100);
   await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
 });
 

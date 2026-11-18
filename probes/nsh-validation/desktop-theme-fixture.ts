@@ -1,10 +1,10 @@
 // Explicit synthetic bridge responses for view verification. No real PI task claim.
-export function fixture(options: { long?: boolean; error?: boolean; empty?: boolean } = {}) {
+export function fixture(options: { long?: boolean; error?: boolean; empty?: boolean; longNames?: boolean } = {}) {
   let stopped = false;
   const ok = (result: unknown) => ({ version: 1, id: 'theme-fixture', ok: true, result });
   const task = (p: any, status: string) => ({ id: p.taskId ?? 'theme-task', projectId: p.projectId, sessionId: p.sessionId, status, errorCode: null });
   return {
-    'projects.list': () => ok({ projects: options.empty ? [] : [{ id: 'a', name: '主题验证 A' }, { id: 'b', name: '主题验证 B' }] }),
+    'projects.list': () => ok({ projects: options.empty ? [] : [{ id: 'a', name: options.longNames ? '主题验证 A 很长的项目名称用于检查丝带文字安全域与截断' : '主题验证 A' }, { id: 'b', name: '主题验证 B' }] }),
     'sessions.list': (p: any) => ok({ sessions: [{ id: `s-${p.projectId}`, projectId: p.projectId, title: '独立会话' }, { id: `other-${p.projectId}`, projectId: p.projectId, title: '第二会话' }] }),
     'sessions.create': (p: any) => ok({ session: { id: 'created', projectId: p.projectId, title: p.title } }),
     'tasks.submit': (p: any) => { if (options.error) throw Error('private-secret'); return ok({ task: task(p, 'queued'), replayed: false }); },
