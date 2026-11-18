@@ -14,8 +14,9 @@ const base = resolve('artifacts/nsh-validation/desktop-theme'); await mkdir(base
 const dir = await mkdtemp(join(base, 'run-')); const source = join(dir, 'source'); await mkdir(source);
 const evidence = process.argv.includes('--evidence');
 const rich = process.argv.includes('--rich');
-const capture = process.argv.includes('--capture') || evidence, native = process.argv.includes('--native') || capture || rich;
-const files = ['DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
+const live = process.argv.includes('--live-sidebar');
+const capture = process.argv.includes('--capture') || evidence, native = process.argv.includes('--native') || capture || rich || live;
+const files = ['DesktopView.tsx', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
 await cp(resolve('probes/nsh-validation/assets/desktop'), join(source, 'assets/desktop'), { recursive: true });
@@ -25,7 +26,7 @@ const artwork = artRoot !== null;
 if (artwork) await prepareArtwork(artRoot, source, JSON.parse(await readFile(resolve('probes/nsh-validation/skin-source.json'), 'utf8')));
 // Self-contained mount entry: do not adopt pre-existing untracked DesktopApp/Host/UI integration.
 await writeFile(join(source, 'DesktopApp.tsx'), "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(DesktopView);\n");
-if (native) await cp(resolve('probes/nsh-validation', rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'), join(source, 'native.test.tsx'));
+if (native) await cp(resolve('probes/nsh-validation', live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'), join(source, 'native.test.tsx'));
 await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel'] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
 await writeFile(join(source, 'App.tsx'), "import './DesktopApp';\n");
 await cp(resolve('probes/nsh-validation/tsconfig.json'), join(source, 'tsconfig.json'));
@@ -65,7 +66,7 @@ async function hashTree(root, prefix = '') {
   }
   return records;
 }
-const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'] : [])];
+const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'] : [])];
 const workspaceHashes = {};
 for (const name of workspaceInputs) {
   const bytes = await readFile(resolve('probes/nsh-validation', name));

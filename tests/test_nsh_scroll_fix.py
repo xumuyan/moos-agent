@@ -29,8 +29,13 @@ class ScrollFixTests(unittest.TestCase):
 
     def test_source_snapshots_and_real_scroll_assertions(self):
         m = json.loads((NSH / 'desktop-scroll-verification.json').read_text())
+        later = json.loads((NSH / 'desktop-live-sidebar-verification.json').read_text())
         for name, record in m['inputs'].items():
-            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), record['sha256'])
+            expected = record['sha256']
+            if name in later['priorScrollInputs']:
+                self.assertEqual(later['priorScrollInputs'][name], expected)
+                expected = later['inputs'][name]['sha256']
+            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         view = (NSH / 'DesktopView.tsx').read_text()
         self.assertIn('each={messageRows()}', view)
         self.assertIn('paddingRight: 36', view)

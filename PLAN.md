@@ -36,6 +36,8 @@
 
 - 2026-11-18 scroll_fix / N01-D3：针对SE01/SE02与长Markdown滚动，保留稳定展示行身份避免状态轮询丢失可变高度测量；项目名右留36px丝带安全域、单行省略，消息贴底阈值48及底部12px留白。旧视图同回归0/4，单独快照修复4/4，最终明暗宽窄rich＋项目名6/6；headless14/14、native9/9、捕获3/3，35张合成原生图（19矩阵＋16长文/长短项目名）。见 `probes/nsh-validation/SCROLL-FIX.md` / `desktop-scroll-verification.json`，历史STYLE-EVIDENCE-RECHECK.md及失败记录保留。已查看contact及3张原尺寸重点图，非35张逐一原尺寸签收/用户认可。核心356/356、Electron133通过10跳过、Rust离线缺defmt；文档收尾结果见operatelog。7份未跟踪业务输入hash未变、不收编，仍非干净集成。未动正式Electron/用户数据，不安装/部署/手机/性能采样。真实IME/2×/动画、用户视觉认可、真实PI主题集成/持久化/完整包及同业务资源收益仍缺；N01-D1/D2/D3保持未勾。
 
+- 2026-11-18 live_sidebar / N01-D3：用户置前台后成功取得当前主显示器只读截图（非AX绑定窗口截图），首次以真实当前Maid页面对照；仅修侧栏透景和独立品牌牌，保存1920×988/680×720明暗4张合成原生候选图与左实窗/右候选裁图板。见 `probes/nsh-validation/LIVE-SIDEBAR.md` / `desktop-live-sidebar-verification.json`；旧静态CSS与scroll失败/证据冻结不改写。核心358/358、headless14/14、native9/9、rich6/6、evidence3/3、新截图2/2；Electron133过10跳过、Rust离线缺defmt，文档结果见operatelog。新会话偏低、导航/项目树/小人物/设置框及其他组件继续待对照，视觉未完成/未获用户认可。7份业务文件原字节保护、不收编；不改正式应用/用户数据、不安装/部署/恢复手机/做资源承诺。N01-D1/D2/D3不勾。
+
 以下为历史检查点；其中手机“下一步”由上面的暂停决定覆盖，不代表当前仍安排手机任务。N01整体验收保持未完成。
 
 - [ ] N01：在 `probes/nsh-validation/` 独立验证 NSH 原生界面及手机路线；不改 `apps/electron`、正式数据/配置/应用标识，不替换、退出或重启现用沐码。工具链固定0.5.0、产物在忽略的 `artifacts/nsh-validation/`；当前是无网络/无PI/不持久化的本地模拟UI，独立ID `dev.muma.probe.nsh`。

@@ -1,0 +1,268 @@
+{
+  "task": "N01-D3/live_sidebar",
+  "base": "8d8e051730cde0905a8a6c92f7cfa7292d88c2d5",
+  "at": "2026-11-18T22:32:49.453732+08:00",
+  "scope": "first sidebar glass and brand-plate pass only; mixed worktree, seven integration inputs untracked",
+  "reference": {
+    "source": "authorized live primary-display screenshot after user foreground confirmation; not a bound AX-window capture",
+    "displayId": 2,
+    "scale": 1,
+    "displayPixels": [
+      1920,
+      1080
+    ],
+    "windowObservedBounds": [
+      0,
+      30,
+      1920,
+      988
+    ],
+    "cropRect": [
+      0,
+      30,
+      280,
+      988
+    ],
+    "crop": {
+      "path": "artifacts/nsh-validation/live-style/reference-sidebar.png",
+      "bytes": 387389,
+      "sha256": "c2df099769e13a7ef1c788a488d18bf7c712f9281e35591a70d441ff03f84ade"
+    },
+    "version": "not re-read this pass",
+    "limitation": "does not prove computed-style, input, or source version; screenshot chat is not copied into fixtures"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "path": "probes/nsh-validation/DesktopView.tsx",
+      "bytes": 17337,
+      "sha256": "0d3deaadb28cc892e5e5484bbfa5f2eb989b1e750bd7ba8876d2994329ac3641"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "path": "probes/nsh-validation/verify-desktop-theme.mjs",
+      "bytes": 8978,
+      "sha256": "9274918d82aabd640e683e601f8b1dc8b0723ca487ab8dfd1baa39f40c5816cc"
+    },
+    "probes/nsh-validation/desktop-live-sidebar.ts": {
+      "path": "probes/nsh-validation/desktop-live-sidebar.ts",
+      "bytes": 859,
+      "sha256": "69a9514422c3878d535127b66012c92e14430632955b2fb1dc2140076e50eb4d"
+    },
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": {
+      "path": "probes/nsh-validation/desktop-live-sidebar-check.tsx",
+      "bytes": 1125,
+      "sha256": "b3b305de53721237b29ae5eff1dc154786b359c8afa3f8a2282a204bf56b7758"
+    },
+    "probes/nsh-validation/desktop-live-sidebar.test.mjs": {
+      "path": "probes/nsh-validation/desktop-live-sidebar.test.mjs",
+      "bytes": 1016,
+      "sha256": "e826f41a499de71226a0aeed25d651c97ee0c6804c8872d8646b7a8201670207"
+    }
+  },
+  "priorScrollInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "91a5570444b071325a6e1a7b1bad1cfa7f3cd5f156a733aa03d6b26eeab4d573",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "836794cf398e53571e207d8442de23479bcf3430dd88cb90ca293f490a97d6e3"
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": {
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "unchanged": true
+    },
+    "probes/nsh-validation/DesktopUIHost.swift": {
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": {
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui.test.mjs": {
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "unchanged": true
+    },
+    "probes/nsh-validation/verify-desktop-ui.mjs": {
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "unchanged": true
+    }
+  },
+  "candidate": {
+    "run": "artifacts/nsh-validation/desktop-theme/run-mtTCNE",
+    "synthetic": true,
+    "piExecuted": false,
+    "contentPixels": [
+      1920,
+      988
+    ],
+    "outerPixels": [
+      1920,
+      1016
+    ],
+    "scale": 1,
+    "contentGlobalOrigin": [
+      0,
+      58
+    ],
+    "captureInputs": {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/capture-inputs.json",
+      "bytes": 8947,
+      "sha256": "d7f333f71d908a0ded521418c9af0b407df016d6de802733b686b61f37669f97"
+    },
+    "result": {
+      "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/result.json",
+      "bytes": 643,
+      "sha256": "25856befb7d265c51eb30d5da5b5d5a9d6256d6b43737aaa3e17a8436fedcde9"
+    },
+    "images": [
+      {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/live-dark-1920.png",
+        "bytes": 2421744,
+        "sha256": "734f15d9353ec6b11e1e209d86d50a886063a0e21daa0cfa0e58194108ecf17b",
+        "pixels": [
+          1920,
+          988
+        ]
+      },
+      {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/live-dark-680.png",
+        "bytes": 754376,
+        "sha256": "7fb7b56d48ae6604c0e222cf4706709e923a11a5b910e0f98ea178222ed0bfbc",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/live-light-1920.png",
+        "bytes": 2665001,
+        "sha256": "a865fe71a40de2daa293ef6a502ce57b8c3159417bf28b0a710fafb871737bd5",
+        "pixels": [
+          1920,
+          988
+        ]
+      },
+      {
+        "path": "/Users/xuguopeng/Documents/徐郭鹏项目/徐-moos-agent/artifacts/nsh-validation/desktop-theme/run-mtTCNE/live-light-680.png",
+        "bytes": 793512,
+        "sha256": "509591384f7597204a109dccad604bcb2e7532317e052f3c4d2a02250fd06165",
+        "pixels": [
+          680,
+          720
+        ]
+      }
+    ]
+  },
+  "comparison": {
+    "path": "artifacts/nsh-validation/live-style/sidebar-comparison.png",
+    "bytes": 698480,
+    "sha256": "765ee3c729018d5fa46474a753d34f7b8c3b280f41189890724d8773c1362b1e",
+    "description": "derived sidebar crop board, left live Electron/right synthetic NSH; not a fresh system capture"
+  },
+  "tests": {
+    "headless": {
+      "passed": 14,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/headless.log",
+        "bytes": 13086,
+        "sha256": "46888dad18b73c58e1277fe7b0a9ed28dac17127f5289b84bbd4eb3d0d60791a"
+      }
+    },
+    "native": {
+      "passed": 9,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/native.log",
+        "bytes": 35308,
+        "sha256": "a37fcf2208cc7211ca76452c2d92118d23c88176ff5b44f3f305130e09ad53fe"
+      }
+    },
+    "rich": {
+      "passed": 6,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/rich.log",
+        "bytes": 7875,
+        "sha256": "e6bc9c2e3ea05b68f116e6e96cbe841e9437d28be87954acd4f068b70219948c"
+      }
+    },
+    "core": {
+      "passed": 358,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/core.log",
+        "bytes": 84327,
+        "sha256": "7964a863891acbe7835fbb9bd015eb7e20a9e7701691c309194028ed8441a679"
+      }
+    },
+    "electron": {
+      "passed": 133,
+      "skipped": 10,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/electron.log",
+        "bytes": 41345,
+        "sha256": "a85d4d2dd2ca8d7d10eff299c6c957826ef461e8a502a791f33f60c17520914c"
+      }
+    },
+    "evidence": {
+      "passed": 3,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/evidence.log",
+        "bytes": 11065,
+        "sha256": "e3cf1de0f11c444d0cfc69710b59b9e2a72f622067ab50b326e6ba4df2cbe15b"
+      }
+    },
+    "capture-final": {
+      "passed": 2,
+      "skipped": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/capture-final.log",
+        "bytes": 1461,
+        "sha256": "2fb2a59826537f8576af3048b32d3a0d7d3aef7deb744e05436dbd4461ac9b68"
+      }
+    },
+    "rust": {
+      "status": "blocked",
+      "exit": 101,
+      "reason": "offline missing defmt; no download",
+      "log": {
+        "path": "artifacts/nsh-validation/live-style/rust.log",
+        "bytes": 799,
+        "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc"
+      }
+    }
+  },
+  "pending": [
+    "new-session vertical alignment",
+    "navigation and project/session tree",
+    "mascot/footer differences",
+    "header/chat/composer/characters live comparison",
+    "manual IME, real 2x, animation, user visual approval",
+    "clean integrated checkout, real PI UI, history, full package and performance"
+  ],
+  "rights": {
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "上善 → zipzip → Small-tailqwq",
+    "artCommitted": false,
+    "hooksExecuted": false
+  },
+  "acceptance": {
+    "sidebarComplete": false,
+    "overallVisualAccepted": false,
+    "manualGui": false,
+    "cleanCheckout": false,
+    "realPiUi": false,
+    "performanceMeasured": false,
+    "allTestsPassed": false,
+    "installed": false,
+    "deployed": false,
+    "N01Complete": false
+  }
+}

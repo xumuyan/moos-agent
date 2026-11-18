@@ -4,6 +4,7 @@ import { DesktopController, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
+import { liveSidebar } from './desktop-live-sidebar';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
@@ -35,13 +36,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const active = () => !!snapshot().current?.rows.length;
   const safe = () => styleLayout(active(), artAvailable);
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
+  const sidebarStyle = () => liveSidebar(artAvailable, dark());
   const sidebarWidth = () => (!layout().compact || navigation()) ? layout().sidebar : 0;
   return (
     <View testID="desktop-root" style={{ flex: 1, flexDirection: 'row', backgroundColor: dark() ? t.dark.canvas : t.canvas, overflow: 'hidden' }}>
       <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
-      {(!layout().compact || navigation()) && <View testID="sidebar" style={{ width: layout().sidebar, backgroundColor: t.sidebar, backgroundImage: t.sidebarGradient, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
+      {(!layout().compact || navigation()) && <View testID="sidebar" style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
         <SidebarCorners />
-        <View testID="sidebar-brand" style={{ height: 70, flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 20, paddingHorizontal: 12 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
+        <View testID="sidebar-brand" style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
         <View style={{ height: 58, marginTop: 4, marginBottom: 8 }}>
           <NineSlice name="new-session" source={[1400,308]} cuts={[0,210,0,210]} edges={[0,layout().compact ? 32 : 40,0,layout().compact ? 32 : 40]} fill style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
           <Button testID="create-session" style={{ height: 58, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: artAvailable ? '#152246' : t.goldSoft }}>⊕ 新会话</Text></Button>

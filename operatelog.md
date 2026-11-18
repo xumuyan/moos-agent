@@ -2914,3 +2914,14 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): stabilize native message scrolling and ribbon text inset`；查询 `git log --all --oneline --grep='stabilize native message scrolling and ribbon text inset'`。精确暂存本轮输入、差异检查后提交推送核远端；源码检查点推送不是应用部署，不提前声称完成。
 
 收尾复核（同scroll_fix检查点，精确命令结束以日志为准）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 186/186、2.730秒（docs-first.log），git diff --check通过；新增文档检查3项保留旧失败/验收限制、源码hash、实际滚动断言及计划未勾，manifest已记录结果。后续日志/manifest同步后再执行文档交付检查，不把文档测试当实际GUI。7份未跟踪文件末次hash核对及精确暂存/提交推送以下按实际工具结果完成；所有skip/阻塞与未完成门禁保持。
+
+## 2026-11-18 22:34:19 +08:00｜N01-D3 live_sidebar 当前页面逐项对照第一步
+
+- 修改或新增内容：基准8d8e051，按用户当前截图逐步对照要求，仅修改DesktopView及runner，新增desktop-live-sidebar样式/2项单元测试/原生截图检查、LIVE-SIDEBAR.md/JSON和3项文档检查。侧栏从近不透明改为仅显式加载艺术时透出宫殿、暗色另设深底；品牌牌独立58高/金边/深蓝，保留无艺术静态fallback。未编辑/收编7份原owner未跟踪业务文件，初末hash一致。
+- 遇到的难题：最新权限已授予，窗口绑定截图此前focus-unavailable安全停止，用户置前台后事务内仍要求当前目标，不能把它写成绑定成功；未抢焦点或输入。之后只读主显示器成功得到当前1920×1080/scale1页面，按窗口列表(0,30,1920,988)裁侧栏；不是computed-style/精确版本证明。静态来源CSS深蓝与当前透景不同，保留历史来源不覆盖。首次bash写出日志追加脚本后执行未落盘，原因未定；文档189项188通过/1失败明确捕获缺LIVE-SIDEBAR.md日志链接，保留docs.log，改精确文件编辑后再验，不声称首次通过。
+- 处理方式：真实截图只作视觉参考，不把聊天正文复制进夹具；参考侧栏裁图与并排仅忽略目录，不入Git。独立0700 /private/tmp/n01-*、Node22.22.0、NSH0.5.0/macOS27.0.1 arm64。显式--art-root只读校验已授权Maid0.3.2素材，CC BY-NC-SA4.0及上善→zipzip→Small-tailqwq署名保留，不执行hooks/联网/发布艺术。新增manifest锁本轮输入/旧scroll哈希过渡，历史失败/截图/测试数字保持。
+- 验证结果：node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs 358/358、228.640秒；node probes/nsh-validation/verify-desktop-theme.mjs 14/14；加--native --art-root [授权目录]9/9、--rich同目录6/6、--evidence同目录3/3、--live-sidebar同目录最终2/2（5.4秒）。最终run-mtTCNE内容1920×988/680×720明暗4图，宽外框1920×1016、content origin(0,58)、scale1，不把参考列表窗口高与候选内容高视为同一外框语义。已打开首次/最终侧栏并排观察：透景与品牌改善，新会话偏低/项目树/小人物/设置框差异仍可见；候选是合成development host、不执行Host/PI、非真实任务/人工GUI。npm run test:electron 133过10跳过、0失败/取消、42.227秒（缺隔离DSH CLI）；cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml exit101缺defmt，未补下载。日志artifacts/nsh-validation/live-style，均对应本次提交前混合工作区；Python全部文档精确同步后运行并补记。
+- 遗留问题：本轮仅完成两项样式改动的源码检查点，侧栏整体/顶部/消息/输入框/底饰继续待对照，用户视觉认可、IME/动画/真实2×、干净集成/真实PI主题UI/持久化/完整包与同业务资源比较仍缺，不称全测试通过或N01完成。不安装、替换、退出、重启正式Moos，不改用户聊天/配置/凭据/皮肤，不部署/开LAN/恢复手机或报资源节省。解除条件为逐项修复重图/用户认可及补齐依赖和独立集成验收。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): match live sidebar translucency and brand plate`，查询 `git log --all --oneline --grep='match live sidebar translucency and brand plate'`；精确审查/暂存/提交后推送核远端，源码检查点不等于应用部署，实际推送另按工具结果报告。
+
+收尾复核（同live_sidebar检查点，命令结束时间以日志为准）：精确补齐日志后 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 189/189、2.277秒（docs-recheck.log），git diff --check通过。首次189项1失败保留，不以重跑抹去。7份业务文件再次核hash，精确暂存仅本轮样式/测试/证据/计划/日志；后续提交和推送结果按实际报告，不视为应用部署或整体视觉验收。
