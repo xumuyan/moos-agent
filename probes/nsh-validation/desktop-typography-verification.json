@@ -1,0 +1,480 @@
+{
+  "task": "N01-D3",
+  "checkpoint": "top title and native typography; not visual sign-off",
+  "baseHead": "00b191d2ed3de5bbfbbf27af4d2154c884041e50",
+  "workspace": "pre-commit mixed checkout; protected files are pre-existing untracked owner inputs",
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "sha256": "e6e348a77d85275347700be43d8b1b70905155660fd6297161909beadff4f0c8",
+      "bytes": 19768
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "sha256": "1444e0a67bb896c5e323708674288fbd51e69262a9dcbd4eb6b5fbe34df3423c",
+      "bytes": 5213
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "sha256": "5315ae84c62b349482669d47e377181089f7927c37225f59447ea98a98f697cb",
+      "bytes": 10267
+    },
+    "probes/nsh-validation/desktop-typography-check.tsx": {
+      "sha256": "60b78f2485a281088aff69c7b82b9f91f7c26f5bc0b5e50a1540ef82788defd2",
+      "bytes": 2290
+    }
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "4de9abd51f8fe9c888344e0c5ab5a20fbcb7a8313f99c55d37ac5d8953399cd7",
+    "probes/nsh-validation/desktop-theme.ts": "e3195b28f4ae345b9217d6f69006feb87df5f95f822590f165502885e0f0c7db",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "fb0d0828853c0f2b2c80d8b6b854bc600b60245609ec2cfd6c8d595c70699b25"
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": {
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "unchanged": true
+    },
+    "probes/nsh-validation/DesktopUIHost.swift": {
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": {
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui.test.mjs": {
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "unchanged": true
+    },
+    "probes/nsh-validation/verify-desktop-ui.mjs": {
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "unchanged": true
+    }
+  },
+  "sourceRules": {
+    "patchesCssSha256": "b18e8eb467493c7993a2ed45ba2acea7a76c9bfe365eb680dff12c7784469ed7",
+    "patchesCssLines": [
+      "572–574",
+      "929–937",
+      "1055",
+      "1092–1094",
+      "1306–1324"
+    ],
+    "dshDefaultText": "14px/22px token; no user override inspected",
+    "candidateOnly": [
+      "Mac family lists",
+      "native chat title 18pt/16pt",
+      "explicit Menlo code"
+    ]
+  },
+  "rights": {
+    "artLicense": "CC BY-NC-SA 4.0",
+    "artCommitted": false,
+    "fontsBundled": false,
+    "hooksExecuted": false
+  },
+  "candidate": {
+    "synthetic": true,
+    "piExecuted": false,
+    "installed": false,
+    "captureInputs": {
+      "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/capture-inputs.json",
+      "sha256": "6e26bbffa800ca3a6a0a226b7e49cfb0e1f33c72e72c253557707b66de1ac4a7",
+      "bytes": 9731
+    },
+    "geometry": [
+      {
+        "scheme": "light",
+        "title": {
+          "origin": {
+            "x": 43,
+            "y": 7
+          },
+          "size": {
+            "width": 332,
+            "height": 24
+          }
+        },
+        "selection": {
+          "origin": {
+            "x": 20,
+            "y": 44
+          },
+          "size": {
+            "width": 82,
+            "height": 16
+          }
+        },
+        "header": {
+          "origin": {
+            "x": 0,
+            "y": 56
+          },
+          "size": {
+            "width": 496,
+            "height": 64
+          }
+        },
+        "window": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 680,
+              "height": 748
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 680,
+              "height": 720
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 680,
+                "height": 748
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        }
+      },
+      {
+        "scheme": "dark",
+        "title": {
+          "origin": {
+            "x": 43,
+            "y": 7
+          },
+          "size": {
+            "width": 332,
+            "height": 24
+          }
+        },
+        "selection": {
+          "origin": {
+            "x": 20,
+            "y": 44
+          },
+          "size": {
+            "width": 82,
+            "height": 16
+          }
+        },
+        "header": {
+          "origin": {
+            "x": 0,
+            "y": 56
+          },
+          "size": {
+            "width": 496,
+            "height": 64
+          }
+        },
+        "window": {
+          "mode": "normal",
+          "minimized": false,
+          "visible": true,
+          "focused": true,
+          "bounds": {
+            "origin": {
+              "x": 340,
+              "y": 100
+            },
+            "size": {
+              "width": 680,
+              "height": 748
+            }
+          },
+          "contentBounds": {
+            "origin": {
+              "x": 340,
+              "y": 128
+            },
+            "size": {
+              "width": 680,
+              "height": 720
+            }
+          },
+          "placement": {
+            "mode": "normal",
+            "bounds": {
+              "origin": {
+                "x": 340,
+                "y": 100
+              },
+              "size": {
+                "width": 680,
+                "height": 748
+              }
+            }
+          },
+          "display": "9b65c93bebb7774a",
+          "scaleFactor": 1
+        }
+      }
+    ],
+    "images": [
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-dark-narrow-chat.png",
+        "pixels": [
+          680,
+          720
+        ],
+        "sha256": "f42226999098faed4a88c8dd0a0f2362b83cf4675319e6e3f0d6c85476d7d6d9",
+        "bytes": 656612
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-dark-narrow-long-title.png",
+        "pixels": [
+          680,
+          720
+        ],
+        "sha256": "142f2df1661c828030f369184ed9178d6acdfadb3b8c6a1105d5ba4f2b81967e",
+        "bytes": 739842
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-dark-wide-chat.png",
+        "pixels": [
+          1240,
+          820
+        ],
+        "sha256": "a1eea54485851ea5a28e3e96a43ae0f0167075aa973d1505b9f748ded672c985",
+        "bytes": 1386715
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-dark-wide-idle.png",
+        "pixels": [
+          1240,
+          820
+        ],
+        "sha256": "217e559be76cfd6dfb609449d02120ef11b0de3d6847eabb693e7f2ceff5f986",
+        "bytes": 1401629
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-light-narrow-chat.png",
+        "pixels": [
+          680,
+          720
+        ],
+        "sha256": "d5c90e344a840aea3e0c141dea64a4a1e70255d653a5cbda07a70f22a27a04eb",
+        "bytes": 679593
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-light-narrow-long-title.png",
+        "pixels": [
+          680,
+          720
+        ],
+        "sha256": "76c1790173051b76428784f2d852c120da3e65b279bf19f95f8157f0d75c2015",
+        "bytes": 798181
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-light-wide-chat.png",
+        "pixels": [
+          1240,
+          820
+        ],
+        "sha256": "f799e4e022d9cf8a952981994691d6064d7352f7770aef5295a85a542501f271",
+        "bytes": 1523600
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-fqMOtc/type-light-wide-idle.png",
+        "pixels": [
+          1240,
+          820
+        ],
+        "sha256": "49e83a51a19f0cae0d81acea3c7890365d8f8822ebf39124fccd4c8486bef734",
+        "bytes": 1562122
+      }
+    ],
+    "comparisonInputs": [
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-light-1920.png",
+        "pixels": [
+          1920,
+          988
+        ],
+        "sha256": "4c5bb58b2372127ce8053d3fa69886ee32da1915d547c11738404ee5f8c5469c",
+        "bytes": 2644089
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-by8mRi/live-light-1920.png",
+        "pixels": [
+          1920,
+          988
+        ],
+        "sha256": "cd6ad03b072df8d69aee0433c15a3a9fffb5167953167a6c7224ab3225336127",
+        "bytes": 2645502
+      }
+    ],
+    "comparisons": [
+      {
+        "path": "artifacts/nsh-validation/desktop-typography/header-before-after.png",
+        "pixels": [
+          1636,
+          426
+        ],
+        "sha256": "3950db8afb8f6a9b0754fb869068312ea6b9d0e48d61be0456f068d304be3654",
+        "bytes": 349974
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-typography/typography-light-dark.png",
+        "pixels": [
+          1476,
+          432
+        ],
+        "sha256": "0cef3c4a48063a4bc0816594ebfb487675a6956dea79156e84bba89032deeff9",
+        "bytes": 547781
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-typography/narrow-title-light-dark.png",
+        "pixels": [
+          1396,
+          301
+        ],
+        "sha256": "b4ca4240670c1651ce5d143d3b183979d8f3d940a55098365825661a01c19cc4",
+        "bytes": 373320
+      }
+    ],
+    "ocr": "successful full Vision run, limited to text recognition; no manual visual sign-off"
+  },
+  "tests": {
+    "core": {
+      "passed": 362,
+      "failed": 0,
+      "skipped": 0
+    },
+    "electron": {
+      "passed": 133,
+      "failed": 0,
+      "skipped": 10
+    },
+    "rust": {
+      "status": "blocked",
+      "missing": "defmt",
+      "initialShellExit": 127
+    },
+    "typographyFirst": {
+      "passed": 0,
+      "failed": 2,
+      "error": "fixture title exceeded existing 100-character limit; invalid_response"
+    },
+    "typography": {
+      "passed": 2,
+      "failed": 0
+    },
+    "headless": 14,
+    "native": 9,
+    "rich": 6,
+    "evidence": 3,
+    "liveSidebar": 3,
+    "ocrFirst": "30 second tool timeout",
+    "docsNsh": {
+      "passed": 51,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 197,
+      "failed": 1,
+      "blockedBy": "E124 historical report.json missing; see operatelog.md correction"
+    }
+  },
+  "logs": {
+    "artifacts/nsh-validation/desktop-typography/core-final.log": {
+      "sha256": "ff360b0b134adc2ce291af83ace2df453ff815b70be09924546268e7a77aa90b",
+      "bytes": 85361
+    },
+    "artifacts/nsh-validation/desktop-typography/core.log": {
+      "sha256": "758aface7416adfa18dac5f76c09bf7f6d8e815aa01f33114162c801f6476a70",
+      "bytes": 85300
+    },
+    "artifacts/nsh-validation/desktop-typography/electron.log": {
+      "sha256": "140dd706fa633df75d8c81c12883b8a8a9092ddb069cc65a9f71ce3899de1c26",
+      "bytes": 41319
+    },
+    "artifacts/nsh-validation/desktop-typography/evidence.log": {
+      "sha256": "84fc578f43c5b00da76bd9b823a236f93950a79382dac13a990504f2b5154baa",
+      "bytes": 11065
+    },
+    "artifacts/nsh-validation/desktop-typography/font-inventory.log": {
+      "sha256": "0ff4f7b944e0ea847fdaa9e338c20f563e1286cf24f2008910b904e4447e18d6",
+      "bytes": 92
+    },
+    "artifacts/nsh-validation/desktop-typography/headless.log": {
+      "sha256": "4c7676c81930c3ecd8742c7b00c2cef723b3afdb815fba06bb4c98a9e9309593",
+      "bytes": 20400
+    },
+    "artifacts/nsh-validation/desktop-typography/live-sidebar.log": {
+      "sha256": "71b1ebb199ad772fe1c383fffe1d8a2e65bf42ed1687f5e19848f6c7d568c467",
+      "bytes": 11083
+    },
+    "artifacts/nsh-validation/desktop-typography/native.log": {
+      "sha256": "55e0526a76173bca25fdd3cfeb75c6f7c974f483e3b436588088521cef621ee1",
+      "bytes": 60928
+    },
+    "artifacts/nsh-validation/desktop-typography/ocr-final.log": {
+      "sha256": "bfe710dae134a70617d415be1aeabbbe6aea2d9582fd01ffe5a71b24021c79db",
+      "bytes": 8877
+    },
+    "artifacts/nsh-validation/desktop-typography/rich.log": {
+      "sha256": "36d583b61c160394bbb75089f4193e79280d4a9d787b2e624d8850bcd75ace18",
+      "bytes": 11535
+    },
+    "artifacts/nsh-validation/desktop-typography/rust-offline.log": {
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc",
+      "bytes": 799
+    },
+    "artifacts/nsh-validation/desktop-typography/rust.log": {
+      "sha256": "fcf786c33c6b2085951e12eed6a97189d5c6bcdd74df343782aabbeb97141a4b",
+      "bytes": 36
+    },
+    "artifacts/nsh-validation/desktop-typography/typography-first.log": {
+      "sha256": "c9fa3914a3573062af9e5031570cab0e6dd5e85824c76405b269cca2ebc79247",
+      "bytes": 7117
+    },
+    "artifacts/nsh-validation/desktop-typography/typography.log": {
+      "sha256": "70072623b8550cc07fcfc6c5c46ac5c34f75421c0a007258edbc5454bdf05b66",
+      "bytes": 1817
+    },
+    "artifacts/nsh-validation/desktop-typography/docs.log": {
+      "sha256": "062cc084c1040cf46d20bc68fc03ed444e309d830ea6a68c41c53981597b9a4b",
+      "bytes": 23504
+    },
+    "artifacts/nsh-validation/desktop-typography/docs-nsh.log": {
+      "sha256": "1a4ee8c869e3f69534e3d75b410a2437eec5acf84db4afd8c098feb98910d6d5",
+      "bytes": 5753
+    }
+  },
+  "acceptance": {
+    "visual": false,
+    "manualGUI": false,
+    "productionDeployment": false,
+    "realPiUI": false,
+    "resourceComparison": false,
+    "allTestsPassed": false
+  }
+}

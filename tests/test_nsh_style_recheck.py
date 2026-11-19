@@ -37,6 +37,7 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
         later = json.loads((NSH / 'desktop-live-sidebar-verification.json').read_text())
         tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
         footer = json.loads((NSH / 'desktop-sidebar-footer-verification.json').read_text())
+        typography = json.loads((NSH / 'desktop-typography-verification.json').read_text())
         for name in ('DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx',
                      'desktop-style-capture.tsx', 'verify-desktop-theme.mjs', 'desktop-theme-fixture.ts'):
             data = (NSH / name).read_bytes()
@@ -53,6 +54,9 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
                 if path in footer['previousInputs']:
                     self.assertEqual(footer['previousInputs'][path], expected)
                     expected = footer['inputs'][path]['sha256']
+                if path in typography['previousInputs']:
+                    self.assertEqual(typography['previousInputs'][path], expected)
+                    expected = typography['inputs'][path]['sha256']
                 self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
             else:
                 self.assertEqual(hashlib.sha256(data).hexdigest(), m['captureInputs']['workspaceHashes'][name]['sha256'])

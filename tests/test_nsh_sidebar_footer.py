@@ -12,9 +12,13 @@ class SidebarFooterTests(unittest.TestCase):
         m = json.loads((NSH / 'desktop-sidebar-footer-verification.json').read_text())
         tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
         self.assertEqual(len(m['inputs']), 5)
+        typography = json.loads((NSH / 'desktop-typography-verification.json').read_text())
         for name, rec in m['inputs'].items():
-            data = (ROOT / name).read_bytes()
-            self.assertEqual(hashlib.sha256(data).hexdigest(), rec['sha256'])
+            expected = rec['sha256']
+            if name in typography['previousInputs']:
+                self.assertEqual(typography['previousInputs'][name], expected)
+                expected = typography['inputs'][name]['sha256']
+            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name, sha in m['previousInputs'].items():
             self.assertEqual(sha, tree['inputs'][name]['sha256'])
         self.assertEqual(len(m['protected']), 7)

@@ -6,8 +6,10 @@ export const desktopTheme = {
   accent: '#536eae', gold: '#c5a468', goldSoft: '#e2cfaa', brand: '#f3e3c0',
   sidebarInk: '#f8f3e8', sidebarMuted: '#d7def0', danger: '#ab3248',
   font: 14, lineHeight: 22,
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
-  ornamentFont: 'Georgia, "Times New Roman", serif',
+  // Translate the web stack to Mac system families; no bundled or downloaded fonts.
+  fontFamily: 'system-ui, "PingFang SC", "Hiragino Sans GB", sans-serif',
+  ornamentFont: 'Georgia, "Times New Roman", "Songti SC", serif',
+  monoFont: 'Menlo, "PingFang SC", monospace',
   sidebarWidth: 280, headerHeight: 75, rightWidth: 260,
   sidebarGradient: 'radial-gradient(circle at 50% 14%, #5b77bc3b, #0000 31%), linear-gradient(#102456f7, #050e2bf5), repeating-linear-gradient(135deg, #ffffff07 0 1px, #0000 1px 7px)',
   sidebarShadow: '8px 0 34px #08113038, inset -1px 0 #fff5d7d1, inset -3px 0 #e2cfa6b8',

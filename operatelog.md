@@ -2963,3 +2963,12 @@
 - 验证结果：python3 -m unittest discover -s tests 当前 195 项中 194 通过、1 失败（test_fork_restart_recovery_evidence_and_plan_state，因上述证据缺失）；本失败与本轮 AGENTS.md 规则新增无逻辑关联，但如实保留为失败项，不视为通过。
 - 遗留问题：待在本机重跑 fork-recovery-restart QA（目录内 validate.sh/gui.mjs 为可复跑入口）重新生成 report.json 与 restart-view.png；若新目录名不同，需同步更新 p03-fork-restart.json 的 evidence.directory 与本条目。重跑需模型与构建环境，属 Moos 工作流任务，本轮不代办。
 - 对应 Git 提交：本条勘误与 AGENTS.md 新规、上一条日志条目同一提交，提交说明「docs: 新增构建产物与验证快照即时清理规则（含 E124 证据误删勘误，1 项文档检查失败如实保留）」。
+
+## 2026-11-19 11:44:49 +08:00 —— N01-D3 顶部标题与字体（源码检查点）
+
+- 修改或新增内容：仅 NSH 候选。Mac 系统正文/苹方回退、Georgia 装饰/宋体回退、Menlo 行内及围栏代码；侧栏工作区/项目排版与欢迎标题对照静态皮肤，顶部会话标题独立适配 18/16pt、24pt 行高、单行省略。保持测试标识、输入/发送/停止路径、丝带文字安全域及稳定消息列表。新增 `--typography` 明暗原生夹具、证据 `probes/nsh-validation/DESKTOP-TYPOGRAPHY.md`、`desktop-typography-verification.json` 与 Python 检查；旧 manifest 冻结、追加 hash 过渡。
+- 遇到的难题：新夹具标题首轮超现有 100 字符限制，明暗均 `invalid_response`（0/2）；尺寸工具未返回可目视像素，OCR 初次调用 30 秒超时。离线 Rust 初次 shell 缺 PATH、用 `$HOME/.cargo/bin/cargo` 复跑仍缺 `defmt`。既有 E124 原始历史报告已误删（见上条），不造替代。
+- 处理方式：改夹具为仍能溢出窄窗、但在契约内的长标题，不放宽协议和几何断言。CoreText 核查本机四字族与抽样字形；复跑 Vision OCR、保存 8 原图和 3 对照板（`artifacts/nsh-validation/desktop-typography/`），仅作为合成画面的几何/文本辅助，不称人工视觉验收。候选运行均 24 小时内活跃保留，本轮无新 Electron 构建且现有 `build-*` 恰两份，无符合本轮收尾规则的产物要删除。
+- 验证结果：Node 22.22.0，`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 最终 362/362 无跳过；`node probes/nsh-validation/verify-desktop-theme.mjs` 14/14（无艺术）；加本机授权 `--art-root` 分别跑 `--typography` 2/2、`--native` 9/9、`--rich` 6/6、`--evidence` 3/3、`--live-sidebar` 3/3。最终明暗长标题盒 332×24，副标题在 64pt 顶栏内；OCR 复跑识别混排正文/代码和长标题省略。`npm run test:electron` 133 过、0 失败、10 跳过；`$HOME/.cargo/bin/cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` exit 101，离线无 `defmt`。`python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 51/51；`python3 -m unittest discover -s tests -v` 198 项 197 过、1 败，唯一失败为 E124 的 `test_fork_restart_recovery_evidence_and_plan_state`（缺 `report.json`）。原始命令日志在 `artifacts/nsh-validation/desktop-typography/`。证据对应提交前混合工作区；七份原 owner 文件 SHA-256 一致。
+- 遗留问题：不部署、不操作正式应用、不改聊天/配置、不恢复手机；字体实际逐 glyph、用户视觉认可、人工 GUI/IME/2×、顶饰/工具卡/输入框对齐、干净检出的真实 PI 及完整包/资源对比仍开放。E124 需单独隔离复验形成新证据；Electron 跳过及 Rust 依赖门禁未解除，不称全量通过。
+- 对应 Git 提交：本轮唯一说明 `fix(N01-D3): refine native title and chat typography`；查询 `git log --all --oneline --grep='refine native title and chat typography'`。

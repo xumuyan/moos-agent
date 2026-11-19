@@ -15,7 +15,9 @@ const dir = await mkdtemp(join(base, 'run-')); const source = join(dir, 'source'
 const evidence = process.argv.includes('--evidence');
 const rich = process.argv.includes('--rich');
 const live = process.argv.includes('--live-sidebar');
-const capture = process.argv.includes('--capture') || evidence, native = process.argv.includes('--native') || capture || rich || live;
+const typography = process.argv.includes('--typography');
+const capture = process.argv.includes('--capture') || evidence || typography, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
 const files = ['DesktopView.tsx', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
@@ -26,7 +28,7 @@ const artwork = artRoot !== null;
 if (artwork) await prepareArtwork(artRoot, source, JSON.parse(await readFile(resolve('probes/nsh-validation/skin-source.json'), 'utf8')));
 // Self-contained mount entry: do not adopt pre-existing untracked DesktopApp/Host/UI integration.
 await writeFile(join(source, 'DesktopApp.tsx'), "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(DesktopView);\n");
-if (native) await cp(resolve('probes/nsh-validation', live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'), join(source, 'native.test.tsx'));
+if (native) await cp(resolve('probes/nsh-validation', nativeCheck), join(source, 'native.test.tsx'));
 await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel'] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
 await writeFile(join(source, 'App.tsx'), "import './DesktopApp';\n");
 await cp(resolve('probes/nsh-validation/tsconfig.json'), join(source, 'tsconfig.json'));
@@ -53,6 +55,23 @@ mount(() => <View style={{flex:1}}><DesktopView onMessageScroll={e => metrics.se
  return result;
 }} /><Text style={{position:'absolute',opacity:0,pointerEvents:'none',fontSize:1}}>{'RICH_METRICS ' + JSON.stringify(metrics())}</Text></View>);
 `);
+if (typography) await writeFile(join(source, 'ThemeTypography.tsx'), `import { mount, signal, View, Text } from 'nsh';
+import { DesktopView } from './DesktopView';
+import { fixture } from './desktop-theme-fixture';
+const h = fixture();
+const measured = signal<Record<string, any>>({});
+mount(() => <View style={{flex:1}}><DesktopView onGeometry={(name, bounds) => {
+  if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds});
+}} call={async (method, params) => {
+  const result = (h as any)[method](params).result;
+  if (method === 'sessions.list') {
+    result.sessions[0].title = 'Maid Atelier · 合成会话';
+    result.sessions[1].title = '很长的会话标题用于验证截断'.repeat(6) + ' · Maid Atelier';
+  }
+  if (method === 'tasks.events') for (const e of result.events) if (e.type === 'text_delta') e.payload.delta = ${JSON.stringify('## 排版验证 Typography\n\n中文正文、英文 Body、数字 012345 与 `file_01.ts`。\n\n```ts\nconst WMWM = "路径";\nconst iiii = "样例";\n```')};
+  return result;
+}} /><Text style={{position:'absolute',opacity:0,pointerEvents:'none',fontSize:1}}>{'TYPE_GEOMETRY ' + JSON.stringify(measured())}</Text></View>);
+`);
 // Hash the exact copied/generated pre-build inputs; do not rely on HEAD alone.
 async function hashTree(root, prefix = '') {
   const records = {};
@@ -66,7 +85,7 @@ async function hashTree(root, prefix = '') {
   }
   return records;
 }
-const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx'] : [])];
+const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [nativeCheck] : [])];
 const workspaceHashes = {};
 for (const name of workspaceInputs) {
   const bytes = await readFile(resolve('probes/nsh-validation', name));

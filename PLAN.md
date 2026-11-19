@@ -2,6 +2,11 @@
 
 ## 范围与状态
 
+### N01-D3 desktop_typography｜顶部标题与字体（2026-11-19，源码检查点）
+
+- 接续侧栏页脚：将候选标题、中文正文/输入、Markdown 代码分别映射为 Georgia/宋体回退、系统字族/苹方回退、Menlo/苹方回退；对照静态皮肤调整工作区、项目和欢迎标题。窄窗长会话单行省略，保留 14/22 正文、丝带安全域及上下装饰留白。明暗原生 2/2、8 张合成图和 OCR/布局记录，非正式窗口对比或用户签收；详见 `probes/nsh-validation/DESKTOP-TYPOGRAPHY.md` 与 `desktop-typography-verification.json`。
+- 核心 362/362、无艺术 headless 14/14、native 9/9、rich 6/6、evidence 3/3、live-sidebar 3/3；Electron 133 过 10 跳，Rust 离线缺 `defmt`，文档 E124 原始报告受阻见 operatelog。七份旧业务输入原字节保留；不部署、不改正式数据、不恢复手机。顶部几何外观、消息与工具卡、输入框外观、用户视觉认可、IME/2×、干净真实 PI 候选与完整包/资源测量继续开放，N01-D1/D2/D3 不勾。
+
 ### N01-D3 sidebar_footer｜当前页面第三步（2026-11-19，源码检查点）
 
 - 接续f75ce67：按皮肤明确树模式隐藏人物规则补显式状态，保留flat-mode资产/函数；底部蕾丝响应54–94、footer贴底、设置透明图标文字/禁用，去额外版本行但保留测试标题/聊天说明。证据 `probes/nsh-validation/desktop-sidebar-footer-verification.json`、`SIDEBAR-FOOTER.md`。明暗宽窄及密集树原生3/3、native9/9、rich6/6、evidence3/3、无艺术headless14/14；核心首361过1败（浮点断言），精度比较修正后362/362；保留误带艺术headless13过1败和单元首败。前轮Scheduler本轮过，不称根因修复。Electron133过10跳、Rust缺defmt仍不能称全部测试通过。七原owner业务文件未收编/原hash，未部署或操作正式应用/真实数据；图标字体/蝴蝶结位置及整个侧栏视觉认可、顶部/消息/输入框/底饰、IME/动画/2×、干净真实PI及完整包/资源比较未完成，D1/D2/D3不勾。文档195项194过1败，E124旧忽略产物report.json缺失，需恢复可核实历史证据，不改断言/造替代产物；详见operatelog。
