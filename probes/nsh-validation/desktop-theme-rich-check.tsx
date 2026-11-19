@@ -25,14 +25,14 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
       const s = metrics(app).scroll;
       return s && s.contentSize.height > s.size.height && s.offset.y + s.size.height >= s.contentSize.height - 1;
     });
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     const end = metrics(app).scroll.offset.y;
     await app.wait(900); // multiple status-only polls must not reset row measurement/position
     expect(Math.abs(metrics(app).scroll.offset.y - end)).toBeLessThan(1);
     await app.screenshot(`${scheme}-${width}-rich-end.png`);
     await app.setViewport(width === 1240 ? 680 : 1240, width === 1240 ? 720 : 820);
     await app.scroll('id:messages', 4000); await app.wait(350);
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     await app.press('id:stop');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await app.screenshot(`${scheme}-${width}-rich-resized.png`);

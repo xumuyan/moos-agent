@@ -4,7 +4,7 @@ for (const scheme of ['light', 'dark'] as const) {
     const app = await open('./ThemeGeometry.tsx', { width: 1920, height: 988, colorScheme: scheme, locale: 'zh-CN', reducedMotion: true });
     await app.waitFor('text:项目 主题验证 A');
     await app.type('id:prompt', '【合成参考】侧栏透景，不读取用户聊天');
-    await app.press('id:send'); await app.waitFor('text:tool_end · read · 错误');
+    await app.press('id:send'); await app.waitFor('text:读取 · 失败');
     await app.press('id:stop');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     const state = app.window('main').state();
@@ -17,11 +17,11 @@ for (const scheme of ['light', 'dark'] as const) {
     await checkTree(app);
     await app.screenshot(`live-${scheme}-680.png`);
     await app.press('id:session-第二会话'); await app.waitFor('id:empty-state');
-    await app.press('id:session-独立会话'); await app.waitFor('text:tool_end · read · 错误');
+    await app.press('id:session-独立会话'); await app.waitFor('text:读取 · 失败');
     await app.press('id:create-session'); await app.waitFor('text:新会话 3');
     await app.press('id:project-主题验证 B'); await app.waitFor('text:项目 主题验证 B');
     expect(app.shows('text:新会话 3')).toBe(false);
-    expect(app.shows('text:tool_end · read · 错误')).toBe(false);
+    expect(app.shows('text:读取 · 失败')).toBe(false);
     await app.screenshot(`live-${scheme}-680-project-b.png`);
   });
 }
@@ -58,12 +58,12 @@ test('native project tree scroll reaches sixteenth session and eighth project in
   for (let i = 0; i < 12 && !app.shows('id:session-合成会话 16'); i++) await app.scroll('id:projects', 140);
   await app.waitFor('id:session-合成会话 16'); await app.press('id:session-合成会话 16');
   await app.type('id:prompt', '合成密集项目树'); await app.press('id:send');
-  await app.waitFor('text:tool_end · read · 错误'); await app.press('id:stop');
+  await app.waitFor('text:读取 · 失败'); await app.press('id:stop');
   await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   await app.screenshot('tree-dense-session-16.png');
   for (let i = 0; i < 8 && !app.shows('id:project-主题验证 H'); i++) await app.scroll('id:projects', 140);
   await app.waitFor('id:project-主题验证 H'); await app.press('id:project-主题验证 H');
-  await app.waitFor('text:项目 主题验证 H'); expect(app.shows('text:tool_end · read · 错误')).toBe(false);
+  await app.waitFor('text:项目 主题验证 H'); expect(app.shows('text:读取 · 失败')).toBe(false);
   // Variable-height group moves on project switch; explicitly scroll, never a test-only jump.
   await app.scroll('id:projects', 2000);
   await app.waitFor('id:session-合成会话 16'); await app.press('id:session-合成会话 16');

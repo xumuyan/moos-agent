@@ -17,6 +17,7 @@ class SidebarTreeTests(unittest.TestCase):
         typography = json.loads((NSH / 'desktop-typography-verification.json').read_text())
         chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         activity = json.loads((NSH / 'desktop-sidebar-activity-verification.json').read_text())
+        cards = json.loads((NSH / 'desktop-chat-cards-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in footer['previousInputs']:
@@ -31,6 +32,9 @@ class SidebarTreeTests(unittest.TestCase):
             if name in activity['previousInputs']:
                 self.assertEqual(activity['previousInputs'][name], expected)
                 expected = activity['inputs'][name]['sha256']
+            if name in cards['previousInputs']:
+                self.assertEqual(cards['previousInputs'][name], expected)
+                expected = cards['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name, sha in m['previousInputs'].items():
             self.assertEqual(sha, (live['inputs'].get(name) or scroll['inputs'][name])['sha256'])

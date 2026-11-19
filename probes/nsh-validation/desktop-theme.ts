@@ -62,6 +62,26 @@ export const sidebarCorners = [
   { name: 'bottom-left', bottom: 1, left: 1, scaleX: -1, scaleY: -1 },
 ] as const;
 
+// Presentation of the controller's public tool projection. Only exact tool rows
+// are recognized; lookalike text in a user/assistant message stays Markdown.
+const toolLabels = { read: '读取', write: '写入', edit: '编辑', bash: '命令', grep: '搜索', find: '查找', ls: '列出目录', other: '其他工具' } as const;
+const toolPattern = /^(?:(tool_start)|(tool_end)) · (read|write|edit|bash|grep|find|ls|other)( · 错误)?$/u;
+export function toolCard(role: string, body: string, dark: boolean) {
+  const event = role === '工具' ? toolPattern.exec(body) : null;
+  if (!event || event[0] !== body || (event[1] && event[4])) return null;
+  const phase = event[1] ? 'start' : event[4] ? 'error' : 'end';
+  const name = event[3] as keyof typeof toolLabels;
+  const status = phase === 'start' ? '开始' : phase === 'error' ? '失败' : '完成';
+  return { phase, name, label: `${toolLabels[name]} · ${status}`,
+    color: dark ? { start: '#d3ddf2', end: '#b7ddca', error: '#ffc1cb' }[phase] : { start: '#2d3a55', end: '#215440', error: '#862a3d' }[phase],
+    // Source disclosure gradient; a uniform floor preserves legibility over art.
+    // No per-row backdrop sampling or motion in virtualized chat history.
+    gradient: dark ? 'linear-gradient(90deg, #0a143094, #0d193b66 72%, #0d193b29)' : 'linear-gradient(90deg, #f8faff52, #f8faff33 72%, #f8faff14)',
+    surface: dark ? '#0a1430d4' : '#edf2faf0',
+    edge: phase === 'error' ? (dark ? '#f1a5b56e' : '#a6334959') : (dark ? '#97a9d82e' : '#c5a46856'),
+  };
+}
+
 // Stable immutable presentation snapshots. The controller may mutate its streaming
 // row in place; status-only polling must not discard native height measurements.
 export function createMessageRows() {

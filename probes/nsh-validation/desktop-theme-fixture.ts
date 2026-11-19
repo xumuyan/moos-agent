@@ -1,5 +1,5 @@
 // Explicit synthetic bridge responses for view verification. No real PI task claim.
-export function fixture(options: { long?: boolean; error?: boolean; empty?: boolean; longNames?: boolean; dense?: boolean } = {}) {
+export function fixture(options: { long?: boolean; error?: boolean; empty?: boolean; longNames?: boolean; dense?: boolean; chatCards?: boolean } = {}) {
   let stopped = false;
   const ok = (result: unknown) => ({ version: 1, id: 'theme-fixture', ok: true, result });
   const task = (p: any, status: string) => ({ id: p.taskId ?? 'theme-task', projectId: p.projectId, sessionId: p.sessionId, status, errorCode: null });
@@ -10,10 +10,12 @@ export function fixture(options: { long?: boolean; error?: boolean; empty?: bool
     'tasks.submit': (p: any) => { if (options.error) throw Error('private-secret'); return ok({ task: task(p, 'queued'), replayed: false }); },
     'tasks.events': (p: any) => {
       const start = p.cursor ? Number(p.cursor.split(':')[1]) : 0;
-      const total = options.long ? 1000 : 3;
+      const total = options.long ? 1000 : options.chatCards ? 5 : 3;
       const end = Math.min(start + 100, total);
       const events = Array.from({ length: end - start }, (_, i) => {
         const sequence = start + i + 1;
+        if (sequence === 4 && options.chatCards) return { sequence, type: 'tool_start', payload: { toolCallId: 'tool-4', toolName: 'write' } };
+        if (sequence === 5 && options.chatCards) return { sequence, type: 'tool_end', payload: { toolCallId: 'tool-4', toolName: 'write', isError: false } };
         return options.long || sequence === 2 ? { sequence, type: 'tool_start', payload: { toolCallId: `tool-${sequence}`, toolName: 'read' } } :
           sequence === 3 ? { sequence, type: 'tool_end', payload: { toolCallId: 'tool-2', toolName: 'read', isError: true } } :
           { sequence, type: 'text_delta', payload: { delta: '主题测试夹具：公开流式文本（不是实际任务）', truncated: false } };

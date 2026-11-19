@@ -35,6 +35,7 @@ class ScrollFixTests(unittest.TestCase):
         typography = json.loads((NSH / 'desktop-typography-verification.json').read_text())
         chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         activity = json.loads((NSH / 'desktop-sidebar-activity-verification.json').read_text())
+        cards = json.loads((NSH / 'desktop-chat-cards-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in later['priorScrollInputs']:
@@ -55,13 +56,16 @@ class ScrollFixTests(unittest.TestCase):
             if name in activity['previousInputs']:
                 self.assertEqual(activity['previousInputs'][name], expected)
                 expected = activity['inputs'][name]['sha256']
+            if name in cards['previousInputs']:
+                self.assertEqual(cards['previousInputs'][name], expected)
+                expected = cards['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         view = (NSH / 'DesktopView.tsx').read_text()
         self.assertIn('each={messageRows()}', view)
         self.assertIn('paddingRight: tree.projectTextRightInset', view)
         self.assertIn('projectTextRightInset: 36', (NSH / 'desktop-sidebar-tree.ts').read_text())
         rich = (NSH / 'desktop-theme-rich-check.tsx').read_text()
-        for token in ('contentSize.height', 'offset.y', 'app.wait(900)', 'app.setViewport', 'tool_end · read · 错误'):
+        for token in ('contentSize.height', 'offset.y', 'app.wait(900)', 'app.setViewport', '读取 · 失败'):
             self.assertIn(token, rich)
         runner = (NSH / 'verify-desktop-theme.mjs').read_text()
         self.assertIn(".repeat(35)", runner)

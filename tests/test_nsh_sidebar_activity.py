@@ -15,7 +15,11 @@ def manifest(tag):
 class SidebarActivityTests(unittest.TestCase):
     def test_exact_inputs_and_protected_ownership(self):
         activity = manifest('sidebar-activity')
+        cards = manifest('chat-cards')
         for path, record in activity['inputs'].items():
+            if path in cards['previousInputs']:
+                self.assertEqual(cards['previousInputs'][path], record['sha256'])
+                record = cards['inputs'][path]
             data = (ROOT / path).read_bytes()
             self.assertEqual(record['bytes'], len(data), path)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), path)

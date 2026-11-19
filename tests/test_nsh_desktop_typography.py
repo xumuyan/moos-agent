@@ -22,6 +22,7 @@ class DesktopTypographyTests(unittest.TestCase):
             self.assertEqual(sha, old[name]['sha256'])
         chrome = manifest('window-chrome')
         activity = manifest('sidebar-activity')
+        cards = manifest('chat-cards')
         for name, record in m['inputs'].items():
             if name in chrome['previousInputs']:
                 self.assertEqual(chrome['previousInputs'][name], record['sha256'])
@@ -29,6 +30,9 @@ class DesktopTypographyTests(unittest.TestCase):
             if name in activity['previousInputs']:
                 self.assertEqual(activity['previousInputs'][name], record['sha256'])
                 record = activity['inputs'][name]
+            if name in cards['previousInputs']:
+                self.assertEqual(cards['previousInputs'][name], record['sha256'])
+                record = cards['inputs'][name]
             data = (ROOT / name).read_bytes()
             self.assertEqual(len(data), record['bytes'])
             self.assertEqual(hashlib.sha256(data).hexdigest(), record['sha256'])

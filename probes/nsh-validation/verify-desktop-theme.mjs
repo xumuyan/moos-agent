@@ -18,8 +18,9 @@ const live = process.argv.includes('--live-sidebar');
 const typography = process.argv.includes('--typography');
 const activity = process.argv.includes('--sidebar-activity');
 const chrome = process.argv.includes('--window-chrome');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const cards = process.argv.includes('--chat-cards');
+const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
 const files = ['DesktopView.tsx', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
@@ -42,7 +43,7 @@ await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View
 ${chrome ? "import { currentWindow } from 'nsh/desktop';" : ''}
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
-const h = fixture(); const measured = signal<Record<string, any>>({});
+const h = fixture(${cards ? '{ chatCards: true }' : ''}); const measured = signal<Record<string, any>>({});
 mount(() => {
 ${chrome ? `  const window = currentWindow();
   const closeReason = signal('');

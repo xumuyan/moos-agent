@@ -15,14 +15,14 @@ test('theme three columns, tool error, stop, project and session isolation', asy
   expect(app.shows('id:details-panel')).toBe(false);
   await app.press('id:toggle-details'); await app.waitFor('id:details-panel');
   await app.type('id:prompt', '测试真实发送入口'); await app.press('id:send');
-  await app.waitFor('text:tool_end · read · 错误'); expect(app.enabled('id:send')).toBe(false);
+  await app.waitFor('text:读取 · 失败'); expect(app.enabled('id:send')).toBe(false);
   await app.press('id:session-第二会话'); await app.waitFor('id:empty-state');
-  expect(app.shows('text:tool_end · read · 错误')).toBe(false);
-  await app.press('id:session-独立会话'); await app.waitFor('text:tool_end · read · 错误');
+  expect(app.shows('text:读取 · 失败')).toBe(false);
+  await app.press('id:session-独立会话'); await app.waitFor('text:读取 · 失败');
   await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   expect(app.enabled('id:stop')).toBe(false);
   await app.press('id:project-主题验证 B'); await app.waitFor('text:项目 主题验证 B');
-  expect(app.shows('text:tool_end · read · 错误')).toBe(false);
+  expect(app.shows('text:读取 · 失败')).toBe(false);
   expect(app.host.calls().filter(c => c.name === 'tasks.submit')).toHaveLength(1);
 });
 test('theme narrow navigation, errors and no false completion', async () => {
@@ -60,7 +60,7 @@ test('skin-only fallback is honest, unavailable entries disabled, controls prese
   await app.press('id:create-session'); await app.waitFor('text:新会话 3');
   expect(app.host.calls().filter(c => c.name === 'sessions.create')).toHaveLength(1);
   await app.type('id:prompt', '真实入口'); await app.press('id:send');
-  await app.waitFor('text:tool_end · read · 错误');
+  await app.waitFor('text:读取 · 失败');
   expect(app.shows('id:bottom-trim')).toBe(false);
 });
 test('dark system appearance preserves composer contrast and real disabled state', async () => {
@@ -93,7 +93,7 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
     const app = await open('./ThemeGeometry.tsx', { width, height, colorScheme: scheme });
     await app.waitFor('text:项目 主题验证 A'); await assertStyleBounds(app, false, height);
     await app.type('id:prompt', '短文'); await app.press('id:send');
-    await app.waitFor('text:tool_end · read · 错误'); await assertStyleBounds(app, true, height);
+    await app.waitFor('text:读取 · 失败'); await assertStyleBounds(app, true, height);
     await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   });
 }

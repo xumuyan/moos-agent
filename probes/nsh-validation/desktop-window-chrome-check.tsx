@@ -39,7 +39,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.press('id:toggle-details'); await app.waitFor('id:details-panel');
     await app.press('id:toggle-details'); expect(app.shows('id:details-panel')).toBe(false);
     await app.type('id:prompt', '窗口背景测试（合成）'); await app.press('id:send');
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     await checkFrame(app, 1240, 820, `chrome-${scheme}-wide-chat`, true, true);
     await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await app.setViewport(680, 720); await app.waitFor('id:toggle-navigation');

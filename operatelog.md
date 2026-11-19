@@ -2996,3 +2996,19 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): show scoped activity in the native sidebar tree`；查询 `git log --all --oneline --grep='show scoped activity in the native sidebar tree'`。完整门禁未满足时保留本地检查点，不声明 GitHub 或已部署。
 
 收尾复核（同轮工作区，非干净检出）：最终 `verify-desktop-theme.mjs` 无艺术 headless 14/14；含授权素材 `--native` 9/9、`--rich` 6/6、`--evidence` 3/3、`--live-sidebar` 3/3、`--typography` 2/2、`--window-chrome` 2/2，均通过捕获输入 SHA guard。`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 57/57；全量同命令去掉 `-p` 203/204，唯一失败仍为 `ForkRestartRecoveryTests.test_fork_restart_recovery_evidence_and_plan_state`（缺历史 E124 `report.json`）。`shasum -a 256 -c artifacts/nsh-validation/sidebar-activity/protected.sha256` 七项一致；本轮候选快照活跃保留，Electron 缓存只有 `build-guiGYH`、`build-e30oHT`，无本轮应删项。GitHub `main` 核对仍为 `efcaa13`，本轮只做本地提交。
+
+## 2026-11-19 14:25:55 +08:00｜N01-D3 消息气泡与公开工具卡（候选源码检查点）
+
+- 修改或新增内容：基准 `022adfd`，接续用户同意继续侧栏之后的样式工作。独立候选用户右、助手公开文本左，保留金边、18/7 底角和可选 Markdown，移除重复小标题。工具逐条改为轻量圆角渐变卡，按既有公开投影写“开始／完成／失败”；不从普通文本推断事件、不伪造运行或交互。输入框、背景、侧栏与业务链路不改。见 `probes/nsh-validation/CHAT-CARDS.md`、`desktop-chat-cards-verification.json`。
+- 遇到的难题：首轮原生 `run-h6Qpx1` 0/2：换会话时原生列表复用另一个角色的视图，旧分支读取空工具数据 `cannot read property 'color' of null`。
+- 处理方式：保留稳定的行根节点，样式、文本及内部分支随当前行响应，过渡期读取空值安全；不改变快照身份、滚动阈值或模型事件。只读本机已授权 CSS/艺术，不执行 hooks；不存放私有会话或正式窗口图到项目。七份原 owner 不修改、不暂存。临时根 0700 `/private/tmp/n01-*`，核心与 Electron 用 umask 022。
+- 实际验收：`verify-desktop-theme.mjs --chat-cards` 含授权素材 `run-PzPT1Z` 和无艺术 `run-mKT7Z7` 各 2/2、各 4 帧，宽1240×820/窄680×720均能读到开始、完成和失败，停止排空，换会话隔离后返回原行。含艺术宽窗用户/助手气泡的行局部高度均 52pt，失败和完成卡 30pt，用户在右、工具和公开文本同起点。对照 `artifacts/nsh-validation/chat-cards/{light,dark}-before-after.png` 是旧、新本地合成场景（文字和事件数不同），不是正式窗口或精确像素匹配。
+- 验证结果：`node --test probes/nsh-validation/desktop-message-rows.test.mjs` 3/3；`verify-desktop-theme.mjs` 无作品 headless 14/14，含授权艺术 `--native` 9/9、`--rich` 6/6、`--evidence` 3/3、`--live-sidebar` 3/3、`--typography` 2/2、`--window-chrome` 2/2、`--sidebar-activity` 2/2，各捕获输入 SHA guard 通过。核心、Electron、Rust、全量文档最终结果见本条收尾。未采样 CPU 或内存。
+- 遗留问题：待用户核对样式后继续输入框与背景装饰；真实 PI、人工窗口操作、IME、2×、干净包和同负载资源比较不作通过。旧 owner 装箱清单未改、该独立 Host harness 这轮未重跑。E124 历史报告需实跑恢复，离线 Rust 需补核实依赖。未安装、退出或启动正式沐码，不操作其数据、手机继续暂停。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): separate chat bubbles from compact tool events`，查询 `git log --all --oneline --grep='separate chat bubbles from compact tool events'`。完整门禁未通过时只保留本地检查点。
+
+本轮收尾（证据对应上述待提交工作区）：
+
+- `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 核心 364/364（172602 ms）。`npm run test:electron` 133 通过、10 跳过、0 失败（23390 ms），未补隔离 DSH 扩展前置；正式构建未运行。
+- `cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101：`defmt` 离线缺失。不下载依赖。`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 59/59；全量 `discover -s tests -v` 205/206，唯一失败是已知 E124 `tests/test_repository_docs.py:604` 缺 `report.json`，不弱化检查或制作替代报告。
+- 日志在 `artifacts/nsh-validation/chat-cards/`，新捕获均为隔离 NSH 本机合成验证，不改历史证据。七份保护输入 SHA-256 前后相同；本轮未新建 Electron 正式构建或团队 GUI 快照，无新增到期产物；保留活动捕获和现存最新两个构建。未过完整门禁，不推送。

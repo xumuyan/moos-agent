@@ -4,12 +4,12 @@ import { artAvailable } from './desktop-theme-art';
 test('native theme columns, tool status, stop and selection', async () => {
   const app = await open('./ThemeNative.tsx', { width: 1240, height: 820 });
   await app.waitFor('text:项目 主题验证 A'); await app.type('id:prompt', '原生视图验证'); await app.press('id:send');
-  await app.waitFor('text:tool_end · read · 错误'); expect(app.enabled('id:send')).toBe(false);
+  await app.waitFor('text:读取 · 失败'); expect(app.enabled('id:send')).toBe(false);
   await app.press('id:toggle-details'); await app.waitFor('id:details-panel');
   await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   expect(app.enabled('id:stop')).toBe(false);
   await app.press('id:project-主题验证 B'); await app.waitFor('text:项目 主题验证 B');
-  expect(app.shows('text:tool_end · read · 错误')).toBe(false);
+  expect(app.shows('text:读取 · 失败')).toBe(false);
   await app.press('id:session-第二会话'); await app.waitFor('id:session-label-other-b');
 });
 test('native theme narrow window and Host failure disable submission', async () => {
@@ -39,7 +39,7 @@ test('native optional art layers, unavailable controls and dark appearance keep 
   expect(app.shows('id:bottom-trim')).toBe(true);
   await app.press('id:create-session'); await app.waitFor('text:新会话 3');
   await app.type('id:prompt', '装饰层不能拦截输入'); await app.press('id:send');
-  await app.waitFor('text:tool_end · read · 错误');
+  await app.waitFor('text:读取 · 失败');
   expect(app.shows('id:bottom-trim')).toBe(false);
   await app.press('id:stop');
   await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
@@ -55,7 +55,7 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
     await assertStyleBounds(app, false, height);
     if (width === 680) { await app.press('id:toggle-navigation'); await assertStyleBounds(app, false, height); }
     await app.type('id:prompt', '短文'); await app.press('id:send');
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     await assertStyleBounds(app, true, height);
     if (width === 1240) { await app.press('id:toggle-details'); await app.waitFor('id:details-panel'); await assertStyleBounds(app, true, height); }
     await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));

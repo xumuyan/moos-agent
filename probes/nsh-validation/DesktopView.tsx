@@ -3,7 +3,7 @@ import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView } from 'nsh/base';
 import { DesktopController, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows } from './desktop-theme';
+import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, toolCard } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
@@ -125,10 +125,35 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           {!!error() && <Text testID="error" style={{ color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
           {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
           <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
-            {r => <View testID="message" onLayout={e => { measured('message')(e); measured(`message-${r().role}`)(e); measured(`message-${r().body.startsWith('tool_end') ? 'last-tool' : 'row'}`)(e); }} style={{ paddingVertical: 14, paddingHorizontal: 18, marginBottom: 12, gap: 6, width: 'fit-content', maxWidth: Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96), alignSelf: r().role === '你' ? 'flex-end' : 'flex-start', borderRadius: 18, borderBottomLeftRadius: r().role === '你' ? 18 : 7, borderBottomRightRadius: r().role === '你' ? 7 : 18, borderWidth: 1, borderColor: r().role === '你' ? '#c5a4687a' : dark() ? '#d3b47766' : t.line, backgroundColor: r().role === '你' ? (dark() ? t.dark.user : '#e8edf9f2') : r().role === '工具' ? (dark() ? t.dark.glass : '#f8faffd1') : (dark() ? t.dark.assistant : t.paper), boxShadow: r().role === '你' ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow }}>
-              <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: dark() ? '#b7c3dd' : r().role === '工具' ? t.accent : muted() }}>{r().role}</Text>
-              <TextView styles={{ root: { color: ink(), fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight }, code: { fontFamily: t.monoFont }, codeBlockCode: { fontFamily: t.monoFont } }} markdown={r().body} selectable />
-            </View>}
+            {r => {
+              const tool = computed(() => toolCard(r().role, r().body, dark()));
+              const user = () => r().role === '你';
+              const messageWidth = () => Math.max(0, Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96));
+              const rowLayout = (e: { bounds: Bounds }) => {
+                measured('message')(e);
+                measured(`message-${r().role}`)(e);
+                measured(`message-${tool() ? `tool-${tool()!.phase}` : 'row'}`)(e);
+              };
+              // List can reuse this view for another row; both style and subtree
+              // must follow its accessor, not the role at first mount.
+              return <View testID="message" onLayout={rowLayout} style={{
+                width: 'fit-content', maxWidth: messageWidth(), alignSelf: user() ? 'flex-end' : 'flex-start',
+                marginBottom: tool() ? 6 : 12, paddingVertical: tool() ? 5 : 14, paddingHorizontal: tool() ? 10 : 18, gap: 6,
+                borderRadius: tool() ? 8 : 18, borderBottomLeftRadius: tool() ? 8 : user() ? 18 : 7, borderBottomRightRadius: tool() ? 8 : user() ? 7 : 18,
+                borderWidth: 1, borderColor: tool()?.edge ?? (user() ? '#c5a4687a' : dark() ? '#d3b47766' : t.line),
+                backgroundColor: tool()?.surface ?? (user() ? (dark() ? t.dark.user : '#e8edf9f2') : (dark() ? t.dark.assistant : t.paper)),
+                backgroundImage: tool()?.gradient,
+                boxShadow: tool() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
+              }}>
+                {tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, borderWidth: 1, borderColor: tool()?.color, backgroundColor: tool()?.phase === 'start' ? 'transparent' : tool()?.color, flexShrink: 0 }} />
+                  <Text style={{ flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 18, fontFamily: t.fontFamily, color: tool()?.color }}>{tool()?.label ?? ''}</Text>
+                </View> : <>
+                  {r().role !== '你' && r().role !== 'PI 公开文本' && <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: muted() }}>{r().role}</Text>}
+                  <TextView styles={{ root: { color: ink(), fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight }, code: { fontFamily: t.monoFont }, codeBlockCode: { fontFamily: t.monoFont } }} markdown={r().body} selectable />
+                </>}
+              </View>;
+            }}
           </List>
           <View testID="composer-safe-area" onLayout={measured('composer-safe-area')} style={{ paddingTop: safe().composerTop, paddingBottom: safe().composerBottom, flexShrink: 0 }}>
           <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight, flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: 54, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>

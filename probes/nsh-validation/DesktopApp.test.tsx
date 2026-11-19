@@ -16,7 +16,7 @@ test('desktop controls submit ordinary text once, stop and isolate project/sessi
   const app=await open('./DesktopApp.tsx',{width:900,height:720,host:{handlers:handlers()}});
   await app.waitFor('text:项目 Desktop A');await app.type('id:prompt','你好 arbitrary');await app.press('id:send');
   await app.waitFor('text:真实公开文本投影');expect(app.enabled('id:send')).toBe(false);
-  await app.waitFor('text:tool_start · bash');await app.press('id:project-Desktop B');await app.waitFor('text:项目 Desktop B');
+  await app.waitFor('text:命令 · 开始');await app.press('id:project-Desktop B');await app.waitFor('text:项目 Desktop B');
   expect(app.shows('text:真实公开文本投影')).toBe(false);await app.press('id:project-Desktop A');await app.waitFor('text:真实公开文本投影');
   await app.press('id:stop');await app.waitUntil(()=>app.texts().some(t=>t.includes('cancelled · 已排空')));
   expect(app.host.calls().filter(c=>c.name==='tasks.submit')).toHaveLength(1);

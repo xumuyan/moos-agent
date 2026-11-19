@@ -9,7 +9,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.screenshot(`type-${scheme}-wide-idle.png`);
     await app.type('id:prompt', '中文输入 · Maid 012');
     await app.press('id:send');
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     await app.waitUntil(() => app.texts().some(t => t.includes('file_01.ts')) && app.texts().some(t => t.includes('const WMWM')));
     await app.press('id:stop');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
@@ -17,7 +17,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.setViewport(680, 720);
     await app.waitFor('id:toggle-navigation');
     await app.press('id:toggle-navigation');
-    await app.waitFor('text:tool_end · read · 错误');
+    await app.waitFor('text:读取 · 失败');
     await app.screenshot(`type-${scheme}-narrow-chat.png`);
     await app.press('id:toggle-navigation');
     await app.press('id:session-' + '很长的会话标题用于验证截断'.repeat(6) + ' · Maid Atelier');
