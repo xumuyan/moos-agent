@@ -25,7 +25,7 @@ mount(() => <View style={{ flex: 1 }}>
         task, terminal: true, hasMore: first, cursor: `${taskId}:${first ? 1 : 2}`,
         events: first ? [{ sequence: 1, type: 'text_delta', payload: { delta: '合成统计样本', truncated: false } }]
           : [{ sequence: 2, type: 'task_state', payload: { status: 'succeeded', errorCode: null } }],
-        statistics: taskId === 'stats-1' ? { toolSteps: 2, elapsedMs: 1234, toolMs: 56, cacheHitRate: .125, context: { tokens: 5231, window: 64000 } }
+        statistics: taskId === 'stats-1' ? { toolSteps: 2, elapsedMs: 1234, toolMs: 56, cacheHitRate: .844, context: { tokens: 86416, window: 128000 } }
           : { toolSteps: 0, elapsedMs: 0, toolMs: null, cacheHitRate: null, context: null },
       };
       return result as any;

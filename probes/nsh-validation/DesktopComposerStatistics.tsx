@@ -7,29 +7,33 @@ import { showContext, showCount, showRate, showTime, type ComposerStatistics } f
 
 type LayoutEvent = { bounds: Bounds };
 export function DesktopComposerStatistics(props: { scope: string; data: ComposerStatistics; dark: boolean; art: boolean;
-  height: number; onLayout?: (e: LayoutEvent) => void; onTriggerLayout?: (e: LayoutEvent) => void; onPopupLayout?: (e: LayoutEvent) => void }) {
+  height: number; onLayout?: (e: LayoutEvent) => void; onTriggerLayout?: (e: LayoutEvent) => void;
+  onMetricsLayout?: (e: LayoutEvent) => void; onPopupLayout?: (e: LayoutEvent) => void }) {
   const opened = signal<string | null>(null);
   const open = () => !!props.scope && opened() === props.scope;
   effect(() => { if (opened() !== props.scope) opened.set(null); });
   const ink = () => props.dark ? '#d7e1f6' : '#293956';
   const line = () => props.dark ? '#8da8dd45' : '#879cc966';
   const label = () => ({ fontFamily: t.fontFamily, fontSize: 12, color: ink() });
+  const chipFill = () => props.dark ? '#182747e6' : props.art ? '#b9cae8d9' : '#dce7fa';
   const roundSteps = () => `${showCount(props.data.rounds)} 轮 ${showCount(props.data.toolSteps)} 步`;
   const timing = (id: string, name: string, ms: number | null) =>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 24 }}>
       <Text style={label()}>{name}</Text><Text testID={id} style={{ ...label(), fontWeight: '600' }}>{showTime(ms)}</Text>
     </View>;
   return <View testID="composer-statistics" onLayout={props.onLayout} style={{ flexDirection: 'row', justifyContent: 'center',
-    alignItems: 'center', flexShrink: 0, minWidth: 0, height: props.height, gap: 10, paddingHorizontal: 6,
-    backgroundColor: props.dark ? '#0b1737e6' : props.art ? '#e7eef9e6' : '#f8fafff0', borderRadius: 8 }}>
+    alignItems: 'center', flexShrink: 0, minWidth: 0, height: props.height, gap: 10, paddingHorizontal: 6 }}>
     <Popover testID="round-statistics" onLayout={props.onTriggerLayout} open={open()} placement="top" align="start" offset={8} margin={12}
       onPosition={props.onPopupLayout} onOpenChange={({ open: next }) => opened.set(next && props.scope ? props.scope : null)}
       popupStyle={{ width: 280, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: line(),
         backgroundColor: props.dark ? '#182747' : '#ecf1fb', boxShadow: '0 6px 24px #0b15384d' }}
       trigger={<Button testID="statistics-trigger" accessibilityLabel={`会话统计，${roundSteps()}`}
         disabled={!props.scope} selected={open()} style={{ ...controlSurface, height: 24, flexDirection: 'row',
-          alignItems: 'center', paddingHorizontal: 8, gap: 5, backgroundColor: props.dark ? '#8da8dd26' : '#879cc930' }}
-        hoverStyle={controlHover} selectedStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}>
+          alignItems: 'center', paddingHorizontal: 8, gap: 5, backgroundColor: chipFill() }}
+        hoverStyle={{ ...controlHover, backgroundColor: props.dark ? '#344b75' : '#b0c4e6' }}
+        selectedStyle={{ ...controlHover, backgroundColor: props.dark ? '#344b75' : '#b0c4e6' }}
+        activeStyle={{ ...controlPressed, backgroundColor: props.dark ? '#405989' : '#9db6df' }}
+        focusVisibleStyle={{ ...controlFocus, backgroundColor: props.dark ? '#344b75' : '#b0c4e6' }}>
         <DesktopIcon name="gauge" size={13} color={ink()} />
         <Text testID="statistics-rounds" style={label()}>{roundSteps()}</Text>
       </Button>}>
@@ -46,7 +50,10 @@ export function DesktopComposerStatistics(props: { scope: string; data: Composer
         {timing('statistics-tool-ms', '最近一轮工具用时合计', props.data.toolMs)}
       </View>
     </Popover>
-    <Text testID="statistics-cache" class="line-clamp-1" style={{ ...label(), flexShrink: 1, minWidth: 0 }}>{`缓存命中 ${showRate(props.data.cacheHitRate)}`}</Text>
-    <Text testID="statistics-context" class="line-clamp-1" style={{ ...label(), minWidth: 0, flexShrink: 1 }}>{`上下文 ${showContext(props.data.context)}`}</Text>
+    <View testID="statistics-metrics" onLayout={props.onMetricsLayout} style={{ flexDirection: 'row', alignItems: 'center',
+      height: 24, borderRadius: 8, paddingHorizontal: 8, gap: 10, flexShrink: 1, minWidth: 0, backgroundColor: chipFill() }}>
+      <Text testID="statistics-cache" class="line-clamp-1" style={{ ...label(), flexShrink: 1, minWidth: 0 }}>{`缓存命中 ${showRate(props.data.cacheHitRate)}`}</Text>
+      <Text testID="statistics-context" class="line-clamp-1" style={{ ...label(), minWidth: 0, flexShrink: 1 }}>{`上下文 ${showContext(props.data.context)}`}</Text>
+    </View>
   </View>;
 }

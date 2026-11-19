@@ -3107,3 +3107,12 @@
 - 对应 Git 提交：唯一说明 `feat(N01-D3): add composer session statistics`，查询 `git log --all --oneline --grep='add composer session statistics'`。
 
 本轮收尾：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 80/80；全量 `discover -s tests -v` 226/227，唯一失败仍为 `tests/test_repository_docs.py:604` 缺 E124 的 `artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json`。未替换证据或修改断言。回执锁定这两份日志与 Node 完整复跑日志；末次复核的日志单独留存。`git diff --check` 和 `shasum -a 256 -c /private/tmp/n01-picker-owner.sha` 通过。门禁未全过，仅本地提交，不推送。
+
+## 2026-11-20 07:58:07 +08:00｜N01-D3 输入栏底部统计分组
+
+- 修改或新增内容：接续 `845e8d8`，移除统计行整条白底。轮数／步数按钮与缓存命中／上下文各用一块蓝色圆角底，中间留 10 点透明间隔。点击左侧仪表向上打开会话统计。
+- 遇到的难题：首轮全量 Python 检查发现前序回执包含本轮变更的溯源测试帮助文件。历史 E124 的 `artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json` 仍缺失。
+- 处理方式：把布局源码和变更的测试输入一起纳入后继回执，保留旧回执与 `python-all-first.log`。原生夹具使用 `86,416 / 128,000` 核对窄窗读数，断言两块间距、边界、对齐与弹窗向上展开。七份 owner 文件保留原 SHA-256。日志字段标点按审计测试修正，初次失败留在 `python-all-log-format.log`。
+- 验证结果：提交前混合工作区，macOS 27.0.1 arm64、NSH 0.5.0 AppKit、Node 22.22.0。`node probes/nsh-validation/verify-desktop-theme.mjs --statistics` 在授权本机艺术 `run-zqaMAA` 和回退 `run-Ubr429` 各通过 4/4、各 12 帧，覆盖 1× 浅深色和 680×720、1240×820。查看了浅色窄窗收起图与深色窄窗展开图。该 runner 默认模式通过 22/22，有艺术 `--composer` 通过 2/2。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 通过 371/371。`npm run test:electron` 通过 133 项，跳过 10 项，缺隔离 DSH CLI 等前置。`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 因缺 `defmt` 退出 101。`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 通过 81/81，全量 `discover -s tests -v` 为 227/228，剩余 `tests/test_repository_docs.py:604` 缺 E124 报告。证据见 `probes/nsh-validation/desktop-statistics-split-verification.json` 和 `artifacts/nsh-validation/statistics-split/`。本轮生成的 NSH 验收快照仍在 24 小时活跃期，未生成团队快照或 Electron 构建。保留两份现有 Electron 构建及前序证据。
+- 遗留问题：待用户核对视觉，人工 GUI／IME、2×、真实 PI＋GUI、签名整包和同负载资源比较待验。E124 需要真实隔离验收证据，Rust 需要补齐核实的离线依赖，Electron 需要隔离 DSH 前置。D1/D2/D3 保持未勾，门禁未齐，当前只做本地提交。正式沐码未部署，手机暂停。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): split composer footer statistics`，查询 `git log --all --oneline --grep='split composer footer statistics'`。

@@ -344,7 +344,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </View>
           <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
             height={safe().previewHeight} onLayout={measured('composer-statistics')} onTriggerLayout={measured('round-statistics')}
-            onPopupLayout={measured('statistics-popup')} />
+            onMetricsLayout={measured('statistics-metrics')} onPopupLayout={measured('statistics-popup')} />
         </View>
         {!active() && <BottomTrim width={windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0)} onLayout={measured('bottom-trim')} />}
       </View>
