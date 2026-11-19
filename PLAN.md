@@ -973,3 +973,9 @@ M01 探针测试命令：`npm test`；构建：`npm run build:probe`；包内离
 ### 团队预算上限放宽（P03.14.8b，候选未安装）
 
 - 生产实证计数诚实后真实任务需 40–45 万 chargeable/36–48 请求，旧 40 万/48 次过紧（旧缓存虚增口径等效 ~8 请求，系此前团队任务屡败根因）。TEAM_LIMITS 放宽为 requests 200、tokens 2000000。测试全过（team-runtime 15/15、electron 127/10skip/0fail）。候选待重打包并经用户授权安装。
+
+## 2026-11-19 11:40 +08:00 验收状态受阻记录（外部事件，如实标注）
+
+- E124（P03.13 会话恢复子项）的证据文件 `artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json` 与 `restart-view.png` 于 2026-11-19 上午被外部磁盘清理（清理仓库 moos-maintenance 人工首轮）误删，不可恢复（无快照/备份/副本）。文档检查 `python3 -m unittest discover -s tests` 当前 195 项 194 通过、1 失败（test_fork_restart_recovery_evidence_and_plan_state），该项不得视为通过，亦不伪造替代证据。
+- **解除条件**：在本机重跑 fork-recovery-restart QA（`artifacts/fork-recovery-restart/validate.sh`/`gui.mjs` 为复跑入口）重新生成 report.json 与 restart-view.png；若新恢复目录名不同，同步更新 `docs/evidence/desktop/p03-fork-restart.json` 的 `evidence.directory`。重跑需模型与构建环境，属 Moos 工作流任务。
+- 防复发：外部清理脚本已改为 recovery-* 递归「删大保小」（清理仓库 maintenance 脚本 5/5 测试），并在 Moos AGENTS.md 新增「构建产物与验证快照即时清理」小节统一规则。

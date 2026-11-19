@@ -2944,3 +2944,22 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): match live sidebar translucency and brand plate`，查询 `git log --all --oneline --grep='match live sidebar translucency and brand plate'`；精确审查/暂存/提交后推送核远端，源码检查点不等于应用部署，实际推送另按工具结果报告。
 
 收尾复核（同live_sidebar检查点，命令结束时间以日志为准）：精确补齐日志后 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 189/189、2.277秒（docs-recheck.log），git diff --check通过。首次189项1失败保留，不以重跑抹去。7份业务文件再次核hash，精确暂存仅本轮样式/测试/证据/计划/日志；后续提交和推送结果按实际报告，不视为应用部署或整体视觉验收。
+
+## 2026-11-19 11:01:00 +08:00 ——AGENTS.md 新增「构建产物与验证快照即时清理」规则（外部磁盘清理联动，用户要求）
+
+- **背景**：徐-moos-agent 开发流程每轮 GUI/团队验证生成约 700MB 完整快照（artifacts/team-ui/gui-* 与 .generated/moos-electron/build-*），2026-11-15 至 11-17 两天内 team-ui 堆至 129G，多次把系统盘压到 93-95%。用户在清理仓库（/Users/xuguopeng/Documents/清理mac空间）批准「瘦身不销毁」方案：保证据（截图 png、report.json 等顶层小文件）、删构建体，并要求把该约束写入本仓库协作规则并配每日兜底。
+- 修改或新增内容：AGENTS.md 在「已验证的 Mac 应用更新流程」之后新增小节「构建产物与验证快照即时清理」：快照记录验收结论后立即删子目录与大于 20MB 文件、保顶层证据；最近 3 个与 24 小时内写入的快照视为活跃不瘦身；build-* 缓存保最新 2 个与显式引用者；清理范围限于可再生构建产物，不得触碰用户数据；另注明 launchd com.muxuma.moos-maintenance（每日 03:30，清理仓库 moos-maintenance.js --apply）兜底且不豁免即时清理义务。
+- 遇到的难题：heredoc 未加引号致条目污染、BSD awk 不支持多行变量。
+- 处理方式：首次追加日志时 heredoc 未加引号，条目内反引号被 shell 执行导致条目污染，已用 git restore 还原 operatelog.md 后以单引号 heredoc 重写本条；无其他障碍。
+- 验证结果：①插入位置核对：新小节位于更新流程小节之后、「当前文档检查命令」之前，文档检查命令行唯一；②清理仓库 node --test test/moos-maintenance.test.js 5/5 通过、node --test test/cleanmac.test.js 18/18 通过（维护脚本回归，脚本在本仓库之外）；③launchd 实测 kickstart 一次：36/36 动作应用、0 错误、229 项按规则跳过，df 实测释放 5,996,048,384 字节（约 5.6GiB），回执 maintenance/moos-maintenance-latest.json（清理仓库）；④本条提交前文档检查 python3 -m unittest discover -s tests -v 的结果在本条提交前另行核对，未通过不得提交。
+- 遗留问题：本规则属协作约束，不涉及应用代码，无 GUI 实机验收概念；launchd 长期运行稳定性待多日回执观察。
+- 对应 Git 提交：本条与 AGENTS.md 同一提交，提交说明「docs: 新增构建产物与验证快照即时清理规则（用户要求，外部维护脚本兜底）」。
+
+## 2026-11-19 11:35:00 +08:00 ——勘误：E124 fork-recovery 验收证据目录被外部磁盘清理误删（如实记录）
+
+- 修改或新增内容：（勘误记录，无代码改动）`artifacts/fork-recovery-restart/final/gui/recovery-gDj96a`（含 report.json 与 restart-view.png，为 docs/evidence/desktop/p03-fork-restart.json（E124）引用的验收证据）于 2026-11-19 上午被清理仓库的人工批量清理以「recovery-* 整树删除」方式误删。清理方已在事后将脚本规则修正为 recovery-* 递归「删大保小」，并对 git 追踪的同类证据（remove-permission-menu/recovery-SBJluB 3 个文件）做了 git 还原；但本目录未被 git 追踪，无法从版本库还原。
+- 遇到的难题：误删目录未被 git 追踪，无版本库副本；本机无 APFS 快照、无 Time Machine 备份目标，全盘无同名截图副本，rm 不经废纸篓。
+- 处理方式：tmutil listlocalsnapshots 为空、tmutil destinationinfo 无备份目标、全盘 find 无 restart-view.png 副本、rm 不经废纸篓。结论：**文件不可恢复，不伪造替代**。
+- 验证结果：python3 -m unittest discover -s tests 当前 195 项中 194 通过、1 失败（test_fork_restart_recovery_evidence_and_plan_state，因上述证据缺失）；本失败与本轮 AGENTS.md 规则新增无逻辑关联，但如实保留为失败项，不视为通过。
+- 遗留问题：待在本机重跑 fork-recovery-restart QA（目录内 validate.sh/gui.mjs 为可复跑入口）重新生成 report.json 与 restart-view.png；若新目录名不同，需同步更新 p03-fork-restart.json 的 evidence.directory 与本条目。重跑需模型与构建环境，属 Moos 工作流任务，本轮不代办。
+- 对应 Git 提交：本条勘误与 AGENTS.md 新规、上一条日志条目同一提交，提交说明「docs: 新增构建产物与验证快照即时清理规则（含 E124 证据误删勘误，1 项文档检查失败如实保留）」。
