@@ -38,12 +38,13 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
         tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
         footer = json.loads((NSH / 'desktop-sidebar-footer-verification.json').read_text())
         typography = json.loads((NSH / 'desktop-typography-verification.json').read_text())
+        chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         for name in ('DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx',
                      'desktop-style-capture.tsx', 'verify-desktop-theme.mjs', 'desktop-theme-fixture.ts'):
             data = (NSH / name).read_bytes()
+            path = 'probes/nsh-validation/' + name
             if name in repair['historicalInputHashes']:
                 self.assertEqual(repair['historicalInputHashes'][name], m['captureInputs']['workspaceHashes'][name]['sha256'])
-                path = 'probes/nsh-validation/' + name
                 expected = repair['inputs'][path]['sha256']
                 if path in later['priorScrollInputs']:
                     self.assertEqual(later['priorScrollInputs'][path], expected)
@@ -57,9 +58,12 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
                 if path in typography['previousInputs']:
                     self.assertEqual(typography['previousInputs'][path], expected)
                     expected = typography['inputs'][path]['sha256']
-                self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
             else:
-                self.assertEqual(hashlib.sha256(data).hexdigest(), m['captureInputs']['workspaceHashes'][name]['sha256'])
+                expected = m['captureInputs']['workspaceHashes'][name]['sha256']
+            if path in chrome['previousInputs']:
+                self.assertEqual(chrome['previousInputs'][path], expected)
+                expected = chrome['inputs'][path]['sha256']
+            self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
         # Do not require another owner's untracked files in a clean checkout.
         self.assertIn('probes/nsh-validation/DesktopUIHost.swift', m['protectedFiles'])
         self.assertEqual(len(m['protectedFiles']), 119)

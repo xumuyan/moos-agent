@@ -16,8 +16,9 @@ const evidence = process.argv.includes('--evidence');
 const rich = process.argv.includes('--rich');
 const live = process.argv.includes('--live-sidebar');
 const typography = process.argv.includes('--typography');
-const capture = process.argv.includes('--capture') || evidence || typography, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const chrome = process.argv.includes('--window-chrome');
+const capture = process.argv.includes('--capture') || evidence || typography || chrome, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
 const files = ['DesktopView.tsx', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
@@ -37,12 +38,22 @@ for (const [entry, options] of [['ThemeNative', {}], ['ThemeError', { error: tru
 }
 // Isolated layout diagnostic only: no Host bridge, filesystem or production data.
 await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View, Text } from 'nsh';
+${chrome ? "import { currentWindow } from 'nsh/desktop';" : ''}
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
 const h = fixture(); const measured = signal<Record<string, any>>({});
-mount(() => <View style={{flex:1}}><DesktopView call={async (method, params) => (h as any)[method](params).result}
- onGeometry={(name, bounds) => { if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds}); }} />
-<Text testID="geometry-readout" style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'STYLE_GEOMETRY ' + JSON.stringify(measured())}</Text></View>);
+mount(() => {
+${chrome ? `  const window = currentWindow();
+  const closeReason = signal('');
+  // Keep the test driver alive after the last-window close request. Never set this in DesktopView.
+  window.set({closeOnPress: false});
+  window.on('closePress', e => closeReason.set(e.reason));` : ''}
+  return <View style={{flex:1}}><DesktopView call={async (method, params) => (h as any)[method](params).result}
+   onGeometry={(name, bounds) => { if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds}); }} />
+  <Text testID="geometry-readout" style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'STYLE_GEOMETRY ' + JSON.stringify(measured())}</Text>
+  ${chrome ? `<Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'WINDOW_CHROME ' + JSON.stringify(window.titleBar())}</Text>
+  <Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'CHROME_CLOSE ' + closeReason()}</Text>` : ''}</View>;
+});
 `);
 await writeFile(join(source, 'ThemeRich.tsx'), `import { mount, signal, View, Text } from 'nsh';
 import { DesktopView } from './DesktopView';
@@ -113,7 +124,7 @@ try {
     const bytes = await readFile(resolve('probes/nsh-validation', name));
     assert.equal(createHash('sha256').update(bytes).digest('hex'), expected.sha256, 'Workspace input changed during capture: ' + name);
   }
-  await writeFile(join(dir, 'result.json'), JSON.stringify({ passed: true, platform: native ? 'NSH 0.5.0 macOS development host' : 'headless', fixture: 'synthetic bridge responses; no PI task executed', capture, evidence, artwork, installed: false, files, generatedEntry: true, outerFrame: 'logged by STYLE_FRAME for --evidence; PNG is content only', display: native ? 1 : null }, null, 2));
+  await writeFile(join(dir, 'result.json'), JSON.stringify({ passed: true, platform: native ? 'NSH 0.5.0 macOS development host' : 'headless', fixture: 'synthetic bridge responses; no PI task executed', capture, evidence, artwork, installed: false, files, generatedEntry: true, outerFrame: 'logged by STYLE_FRAME for --evidence and CHROME_FRAME for --window-chrome; PNG is content only', display: native ? 1 : null }, null, 2));
 } catch (e) {
   await writeFile(join(dir, 'failure.log'), `${e}\n${e.stdout ?? ''}\n${e.stderr ?? ''}`); throw e;
 }

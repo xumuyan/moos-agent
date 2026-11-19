@@ -36,8 +36,8 @@ export function Wallpaper(props: { sidebar: number; active: boolean; details: bo
     {chars().rightVisible && <Art testID="character-right" name="maid-right" style={{ right: chars().right, bottom: chars().bottomRight, width: chars().rightW, height: chars().rightH, opacity: props.details && props.active ? .86 : chars().opacity, objectFit: 'contain', objectPosition: 'center bottom', filter: filter() }} />}
   </View>;
 }
-// The native titlebar is outside content. Its content-space origin is zero;
-// the webpage hook's 32px fallback is NOT an extra native content inset.
+// Artwork starts at the content origin, even when the content extends into the
+// hidden macOS titlebar. Interactive content reserves the reported native inset.
 export function TopTrim(props: { active: boolean }) {
   const tileHeight = () => props.active ? 149 : 51;
   const tileWidth = () => 386 * tileHeight() / 321;

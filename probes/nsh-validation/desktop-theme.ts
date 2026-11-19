@@ -48,9 +48,9 @@ export function sliceAxis(length: number, first: number, last: number) {
 
 // Native content safe areas, NOT extra Web titlebar offsets or source CSS tokens.
 // The original artwork stays at the source dimensions; layout reserves its envelope.
-export function styleLayout(active: boolean, artwork: boolean) {
+export function styleLayout(active: boolean, artwork: boolean, titleBarHeight = 0) {
   const trim = artwork ? (active ? 76 : 48) : 0;
-  return { trim, headerTop: trim + (artwork ? 8 : 0), headerBody: 64,
+  return { trim, headerTop: Math.max(trim, titleBarHeight) + (artwork || titleBarHeight > 0 ? 8 : 0), headerBody: 64,
     composerTop: 24, composerBottom: 24, frameTop: 20, frameBottom: 18,
     previewHeight: 36, bottom: artwork && !active ? 60 : 8,
     composerHeight: 158, composerPaddingX: 32, composerPaddingBottom: 28 };

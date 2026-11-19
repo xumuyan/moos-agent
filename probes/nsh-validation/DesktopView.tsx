@@ -1,4 +1,5 @@
-import { cleanup, colorScheme, host, Image, List, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
+import { cleanup, colorScheme, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
+import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView } from 'nsh/base';
 import { DesktopController, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
@@ -10,6 +11,11 @@ import { sidebarFooter } from './desktop-sidebar-footer';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
+  const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
+  // Preserve the native window frame and controls, but extend artwork under them.
+  macWindow?.set({ titleBar: { style: 'hidden', height: 32 } });
+  const titleBar = () => macWindow?.titleBar();
+  const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const controller = new DesktopController(props.call ?? desktopCall, () => revision.set(revision() + 1));
   function snapshot() { revision(); return controller; }
@@ -36,7 +42,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const muted = () => dark() ? '#b7c3dd' : t.muted;
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
   const active = () => !!snapshot().current?.rows.length;
-  const safe = () => styleLayout(active(), artAvailable);
+  const safe = () => styleLayout(active(), artAvailable, titleBarHeight());
+  const headingShadow = () => dark() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
   const sidebarStyle = () => liveSidebar(artAvailable, dark());
   const footer = () => sidebarFooter(layout().sidebar, true); // this view always renders a project tree
@@ -89,13 +96,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       <View testID="chat-column" style={{ flex: 1, minWidth: 0 }}>
         <TopTrim active={active()} />
         <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
-        <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, backgroundColor: artAvailable ? '#0a173be6' : dark() ? t.dark.glass : '#f8faffb8', backdropFilter: artAvailable ? undefined : 'blur(8px)', borderBottomWidth: 1, borderColor: t.line, paddingHorizontal: 20, paddingTop: 4, gap: 2 }}>
+        <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, paddingHorizontal: layout().inset, paddingTop: 4, gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {layout().compact && <Button testID="toggle-navigation" style={button} onPress={() => navigation.set(!navigation())}><Text style={{ color: artAvailable ? t.brand : ink() }}>☰</Text></Button>}
-            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: artAvailable ? t.brand : ink(), fontFamily: t.ornamentFont, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
-            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: artAvailable ? t.goldSoft : muted() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
+            {layout().compact && <Button testID="toggle-navigation" style={{ ...button, padding: 8 }} onPress={() => navigation.set(!navigation())}><Text style={{ color: ink(), textShadow: headingShadow() }}>☰</Text></Button>}
+            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: ink(), textShadow: headingShadow(), fontFamily: t.ornamentFont, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
+            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
           </View>
-          <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: artAvailable ? t.sidebarMuted : muted(), alignSelf: 'flex-start', backgroundColor: artAvailable ? '#0a173be6' : undefined }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
+          <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: ink(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
         </View>
         <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
           <Text testID="status" style={{ fontSize: 12, color: muted() }}>{status()}</Text>
@@ -122,9 +129,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         </View>
         {!active() && <BottomTrim />}
       </View>
-      {layout().right && <View testID="details-panel" style={{ width: t.rightWidth, padding: 20, gap: 18, backgroundColor: dark() ? t.dark.details : '#f2f6fdd1', backdropFilter: 'blur(12px)', borderLeftWidth: 1, borderColor: '#c5a46885' }}>
+      {layout().right && <View testID="details-panel" style={{ width: t.rightWidth, padding: 20, paddingTop: Math.max(20, titleBarHeight() + 8), gap: 18, backgroundColor: dark() ? t.dark.details : '#f2f6fdd1', backdropFilter: 'blur(12px)', borderLeftWidth: 1, borderColor: '#c5a46885' }}>
         <Text style={{ fontSize: 16, color: ink(), fontWeight: '600' }}>任务详情</Text><Text style={{ color: muted(), fontSize: 13 }}>当前会话</Text><Text style={{ color: ink() }}>{title()}</Text><Text style={{ color: muted(), fontSize: 13 }}>{status()}</Text><Text style={{ color: ink(), fontSize: 13 }}>{`任务 ID：${snapshot().current?.task?.id ?? '尚未提交'}`}</Text><Text style={{ fontSize: 12, color: muted() }}>停止响应不等于工具已退出。只有终态且事件排空才能确认本次读取结束。工具过程在对话内按真实顺序展示，此面板不生成思考文本或虚构任务。</Text>
       </View>}
+      {titleBarHeight() > 0 && <View testID="window-drag-region" onLayout={measured('window-drag-region')} desktop={{ windowDrag: true }} style={{ position: 'absolute', top: 0, left: (titleBar()?.left ?? 0) + 8, right: (titleBar()?.right ?? 0) + 8, height: titleBarHeight(), zIndex: 8 }} />}
     </View>
   );
 }
