@@ -15,7 +15,7 @@ P03 update (2026-11-07): Moos now adapts the original column geometry and portio
 
 N01-D3 update (2026-11-19): The independent NSH candidate copies selected icon geometries from `@deepseek-ai/dsh-web-frontend` 0.2.2-rc.1 and the primary composer icons from `@deepseek-ai/dsh-client-ui-conversation`. See [SIDEBAR-ICONS.md](probes/nsh-validation/SIDEBAR-ICONS.md) for the mapping and [DSH-ICONS-LICENSE.txt](probes/nsh-validation/DSH-ICONS-LICENSE.txt) for the retained notice. No DSH runtime or skin artwork is included by these imports.
 
-The model picker additionally uses `chevron-down-outline`, `chevron-up-outline`, and `chevron-right-outline` from the same `@deepseek-ai/dsh-web-frontend` bundle under the same MIT notice. See [DESKTOP-CONTROL-HOVER.md](probes/nsh-validation/DESKTOP-CONTROL-HOVER.md).
+The model picker additionally uses `chevron-down-outline`, `chevron-up-outline`, and `chevron-right-outline` from the same `@deepseek-ai/dsh-web-frontend` bundle under the same MIT notice. See [DESKTOP-CONTROL-HOVER.md](probes/nsh-validation/DESKTOP-CONTROL-HOVER.md). The independent queue dock uses `queue-outline`, `edit-outline`, and `trash-outline` from that bundle under the same notice. See [DESKTOP-TURN-QUEUE.md](probes/nsh-validation/DESKTOP-TURN-QUEUE.md).
 
 MIT License
 

@@ -2,7 +2,7 @@
 import hashlib
 import unittest
 
-from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence, session_preview_evidence, successor_input
+from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence, session_preview_evidence, successor_input, turn_queue_evidence
 
 
 class NativeControlHoverTests(unittest.TestCase):
@@ -19,8 +19,9 @@ class NativeControlHoverTests(unittest.TestCase):
         for path in set(previous) & set(picker['inputs']):
             self.assertEqual(previous[path], picker['inputs'][path]['sha256'], path)
         successor = session_preview_evidence()
+        queue = turn_queue_evidence()
         for path, record in hover['inputs'].items():
-            record = successor_input(self, successor, path, record)
+            record = successor_input(self, queue, path, successor_input(self, successor, path, record))
             data = (ROOT / path).read_bytes()
             self.assertEqual(record, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
 

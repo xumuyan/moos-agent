@@ -3084,3 +3084,15 @@
 - 对应 Git 提交：唯一说明 `feat(N01-D3): preview project sessions on hover`，查询 `git log --all --oneline --grep='preview project sessions on hover'`。
 
 本轮收尾：全量文档首轮 221/223，旧树检查硬编码了轮询前的选择表达式，更新为同时验证稳定选择、仅选中项目展开和树行高度。最终 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 76/76；全量 `discover -s tests -v` 222/223，唯一失败仍是 `tests/test_repository_docs.py:604`，E124 缺 `report.json`，未替换报告或放宽检查。未新建团队快照或 Electron 构建；检查原有 196 份 `gui-*`，193 份保留、3 份较旧无符合清理规则的内容，两个现有 Electron 构建保留；本轮捕获仍活跃。未推送，也未核查新的远端提交。
+
+## 2026-11-19 22:09:32 +08:00｜N01-D3 多轮对话排队面板（候选源码检查点）
+
+- 修改或新增内容：接续 `357ac57`，独立窗口在输入框上方新增排队消息；单条直接显示，多条数量折叠，可悬停、编辑和移除。每会话 4 条、每视图 32 条、单条最多 4096 UTF-8 字节，入队复制模型和推理等级。仅当前选中会话在任务成功及事件排空后按序派发；编辑时暂停，停止只取消当前任务，排空后由用户决定继续；结果未确认则不自动发送或重放。未发内容留在视图内存，不落盘、不改 Host 方法和七份 owner 原文件。复制三个 DSH 图标矢量并保留 MIT 许可。
+- 遇到的难题：run-81FLaU 类型检查失败（Scroll 导入和 Tooltip 属性）；run-pfjFYM 0/4，run-lflymg 与 run-MMneBO 各 1/4（输入只保留首字符、队列按钮/展开等待超时等）；run-29n6O3 2/4。最终同源首轮回退 run-ab5elT 3/4，停止后等待「继续发送」超时，画面仍为 cancelled/等待收尾。保留日志，未证实该次超时根因。
+- 处理方式：改用原生 Scroll、Button.tooltip，按值稳定编辑/显示/忙碌信号，编辑器和输入设置原生长度与自动修正限制，按会话稳定展开。派发移出控制器通知，微任务中重查 scope、忙碌、编辑、错误和排空；加入完整文本、暂停、派发次序及边界断言。合格复跑不代表定时不稳定已解决。素材只用于获准本地捕获，不运行 hooks，也未读取正式聊天、凭据、配置或新增正式窗口截图。
+- 验证结果：macOS 27.0.1 arm64／NSH 0.5.0 AppKit／Node 22.22.0，隔离临时目录 0700、umask 022。`node probes/nsh-validation/verify-desktop-theme.mjs --turn-queue` 回退 run-9r0wje、指定本机艺术 run-Soih56，各 4/4、各 9 帧。`check-turn-queue-pixels.py` 本地 Pillow 12.2.0 两组浅/深宽窗只在条目内变化，窄窗展开、编辑、暂停均有几何断言。已查阅带艺术深色窄窗展开和编辑图；不是人工真实 PI 或用户签收。`node --test probes/nsh-validation/desktop-turn-queue.test.mjs` 3/3。证据为提交前混合工作区，见 DESKTOP-TURN-QUEUE.md、desktop-turn-queue-verification.json 与 `artifacts/nsh-validation/turn-queue/`。
+- 回归结果：同 runner headless 22/22；composer 有/无艺术各 2/2；带艺术 native 9/9、rich 6/6、evidence 3/3、live-sidebar 3/3，typography/window-chrome/chat-cards/icons/sidebar-activity/control-hover/session-preview 各 2/2（不销记历史波动）。`node --test probes/nsh-validation/desktop-host.test.mjs` 14/14；`node probes/nsh-validation/verify-desktop-host.mjs` 私有管道＋真实 PI＋本地回环 12 项，非 GUI。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 368/368；`npm run test:electron` 133 过、10 跳、0 败；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101（缺 defmt，无下载）。未创建团队快照或 Electron 构建；核对 196 份 gui-* 目录，193 份保留、3 份较旧无可删项，现有两个构建及活跃证据均保留，未删除文件。
+- 遗留问题：待用户核对队列、会话预览和此前控件；人工 GUI/IME/2×、真 PI＋GUI、历史恢复、干净签名整包和同负载测量未验。需隔离重验 E124、核实 Rust 离线依赖及隔离 DSH 前置，owner 独立装箱仍待确认。D1/D2/D3 不勾，不推送或部署；正式沐码未构建、安装、退出或重启，手机暂停。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): dock queued follow-up messages`，查询 `git log --all --oneline --grep='dock queued follow-up messages'`。
+
+本轮收尾：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 78/78；全量 `discover -s tests -v` 224/225，唯一失败仍为 `tests/test_repository_docs.py:604` 缺 E124 `report.json`，未替换报告或削弱断言。`git diff --check` 与 `shasum -a 256 -c /private/tmp/n01-picker-owner.sha` 通过，七份保护输入未暂存；门禁未全过，未推送，也未核查新远端提交。

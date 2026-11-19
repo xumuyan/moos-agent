@@ -5,6 +5,8 @@ import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-ses
 import type { DesktopModelCatalog } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
+import { DesktopTurnQueue } from './DesktopTurnQueue';
+import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, toolCard } from './desktop-theme';
@@ -48,11 +50,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     return choices().get(key) ?? (directory && defaultChoice(directory.options.find(m => m.id === directory.defaultId)!));
   };
   const submitting = new Set<string>(), cancelling = new Set<string>();
-  let disposed = false;
+  const queue = turnQueue();
+  const queueRevision = signal(0);
+  const queueChanged = () => queueRevision.set(queueRevision() + 1);
+  const editTurn = signal<{ id: number; text: string } | null>(null);
+  const outboundChoices = new Map<string, { choice?: ModelChoice }>();
+  let disposed = false, pumpScheduled = false;
   const transport = props.call ?? desktopCall;
   const previews = sessionPreviews();
   const call: DesktopCall = async (method, params) => {
-    const choice = method === 'tasks.submit' ? modelChoice(scopeKey(params as { projectId: string; sessionId: string })) : undefined;
+    const key = method === 'tasks.submit' ? scopeKey(params as { projectId: string; sessionId: string }) : '';
+    const outbound = outboundChoices.get(key);
+    const choice = key ? (outbound ? outbound.choice : modelChoice(key)) : undefined;
     const result = await transport(method, choice ? { ...params, ...choice } : params);
     if (method === 'projects.list' && !disposed) {
       const data = result as { models?: unknown } | null;
@@ -65,7 +74,15 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     }
     return result;
   };
-  const refresh = () => revision.set(revision() + 1);
+  const refresh = () => {
+    if (disposed) return;
+    revision.set(revision() + 1);
+    if (!pumpScheduled) {
+      pumpScheduled = true;
+      // Run outside controller emissions, then recheck selection, errors and drain.
+      void Promise.resolve().then(() => { pumpScheduled = false; pumpQueue(false); });
+    }
+  };
   const controller = new DesktopController(call, refresh);
   function snapshot() { revision(); return controller; }
   const sessions = computed(() => snapshot().sessions);
@@ -82,35 +99,75 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
-  const dispose = () => { disposed = true; controller.dispose(); };
+  const dispose = () => { disposed = true; queue.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
-  const busy = () => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId);
-  const blocked = () => disposed || !snapshot().current || snapshot().loading || !!snapshot().current?.error || !!snapshot().error;
-  const disabled = () => !draft().trim() || blocked() || busy();
+  const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
+  const blocked = computed(() => disposed || !snapshot().current || snapshot().loading || !!snapshot().current?.error || !!snapshot().error);
+  const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
+  const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
+  const hasQueuedRows = computed(() => queuedRows().length > 0);
+  const canEnqueue = () => { queueRevision(); return !blocked() && busy() && !queue.full(pickerScope()) && validTurnText(draft()); };
+  const disabled = () => blocked() || busy() || !!queuedRows().length || !validTurnText(draft());
   const canStop = () => {
     const { current, sessionId } = snapshot();
     return !blocked() && !!current?.busy && !!current.task && !isTerminal(current.task.status) &&
       !current.stopping && !submitting.has(sessionId) && !cancelling.has(sessionId);
   };
   const pickerDisabled = () => blocked() || busy() || !catalog();
-  const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
-  function send() {
-    if (disabled()) return;
-    const text = draft(), sessionId = snapshot().sessionId;
+  const queueHeld = () => queue.paused(pickerScope()) || !nextTurnReady(snapshot().current);
+  const canResume = () => !blocked() && !busy() && !editTurn() && queuedRows().length > 0 && queueHeld() && nextTurnReady(snapshot().current, true);
+  const queueStatus = computed(() => {
+    if (snapshot().error || snapshot().current?.error) return '发送状态未确认 · 队列暂停';
+    if (canResume()) return '队列已暂停';
+    if (editTurn()) return '编辑完成后继续';
+    return '';
+  });
+  function submitTurn(text: string, choice?: ModelChoice) {
+    const sessionId = controller.sessionId, key = pickerScope();
     submitting.add(sessionId);
+    outboundChoices.set(key, { choice });
+    void controller.submit(text).finally(() => {
+      outboundChoices.delete(key);
+      submitting.delete(sessionId);
+      refresh();
+    });
+  }
+  function pumpQueue(resume: boolean) {
+    if (disposed || blocked() || busy() || editTurn() || (resume && !canResume())) return;
+    const row = queue.take(pickerScope(), controller.current, resume);
+    if (row) { submitTurn(row.text, row.choice); queueChanged(); }
+  }
+  function enqueue() {
+    if (disposed || !canEnqueue()) return;
+    const key = pickerScope();
+    if (!queue.enqueue(key, draft(), modelChoice(key))) return;
+    if (controller.current?.stopping || cancelling.has(controller.sessionId)) queue.pause(key);
     draft.set('');
-    void controller.submit(text).finally(() => { submitting.delete(sessionId); if (!disposed) refresh(); });
+    queueChanged();
+    refresh();
+  }
+  function send() {
+    if (disposed || disabled()) return;
+    const text = draft();
+    draft.set('');
+    submitTurn(text, modelChoice(pickerScope()));
   }
   function stop() {
-    if (!canStop()) return;
+    if (disposed || !canStop()) return;
     const sessionId = snapshot().sessionId;
+    queue.pause(pickerScope());
     cancelling.add(sessionId);
-    void controller.stop().finally(() => { cancelling.delete(sessionId); if (!disposed) refresh(); });
+    void controller.stop().finally(() => { cancelling.delete(sessionId); refresh(); });
   }
-  const project = async (id: string) => { draft.set(''); await controller.selectProject(id); };
-  const session = (id: string) => { draft.set(''); controller.selectSession(id); };
-  const create = async () => { draft.set(''); await controller.createSession(); };
+  const setEdit = (edit: { id: number; text: string } | null) => {
+    if (edit && !queue.rows(pickerScope()).some(row => row.id === edit.id)) return;
+    editTurn.set(edit); if (!edit) refresh();
+  };
+  const resetEditor = () => { draft.set(''); editTurn.set(null); };
+  const project = async (id: string) => { resetEditor(); await controller.selectProject(id); };
+  const session = (id: string) => { resetEditor(); controller.selectSession(id); };
+  const create = async () => { resetEditor(); await controller.createSession(); };
   props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create });
   void controller.start();
   const dark = () => colorScheme() === 'dark';
@@ -255,12 +312,24 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               </View>;
             }}
           </List>
+          {hasQueuedRows() && <DesktopTurnQueue scope={pickerScope()} rows={queuedRows()} edit={editTurn()} status={queueStatus()} canResume={canResume()}
+            dark={dark()} ink={ink()} muted={muted()} font={t.fontFamily} onLayout={measured('turn-queue')}
+            onEdit={setEdit} onSave={() => {
+              const edit = editTurn(); if (edit && queue.edit(pickerScope(), edit.id, edit.text)) { queueChanged(); setEdit(null); }
+            }} onRemove={id => {
+              queue.remove(pickerScope(), id); queueChanged(); refresh();
+            }} onResume={() => pumpQueue(true)} />}
           <View testID="composer-safe-area" onLayout={measured('composer-safe-area')} style={{ paddingTop: safe().composerTop, paddingBottom: safe().composerBottom, flexShrink: 0 }}>
             <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight, flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
               {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
-              <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
+              <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
               <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 2, height: safe().composerActionHeight, flexShrink: 0 }}>
                 <View style={{ flex: 1, minWidth: 0 }} />
+                {busy() && <Button testID="queue-submit" accessibilityLabel="排队发送" onPress={enqueue} disabled={!canEnqueue()}
+                  hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus} disabledStyle={{ opacity: .48 }}
+                  style={{ ...controlSurface, flexShrink: 0, height: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: t.composerInk, fontSize: 12 }}>排队发送</Text>
+                </Button>}
                 <DesktopModelPicker scope={pickerScope()} models={catalog()?.options ?? []} choice={modelChoice(pickerScope())}
                   disabled={pickerDisabled()} dark={dark()} art={artAvailable} onLayout={measured('model-picker')} onPopupLayout={measured('model-popup')}
                   onChange={choice => { if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice)); }} />

@@ -1,7 +1,7 @@
 import hashlib
 import unittest
 
-from nsh_composer_provenance import ROOT, controls_evidence, hover_evidence, picker_evidence, successor_input, session_preview_evidence
+from nsh_composer_provenance import ROOT, controls_evidence, hover_evidence, picker_evidence, successor_input, session_preview_evidence, turn_queue_evidence
 
 
 class NativeModelPickerTests(unittest.TestCase):
@@ -20,9 +20,10 @@ class NativeModelPickerTests(unittest.TestCase):
         self.assertTrue(set(evidence['protected']).isdisjoint(evidence['inputs']))
         hover = hover_evidence()
         successor = session_preview_evidence()
+        queue = turn_queue_evidence()
         for path, record in evidence['inputs'].items():
             record = successor_input(self, hover, path, record)
-            record = successor_input(self, successor, path, record)
+            record = successor_input(self, queue, path, successor_input(self, successor, path, record))
             data = (ROOT / path).read_bytes()
             self.assertEqual(record, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
 

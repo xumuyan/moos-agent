@@ -1,0 +1,329 @@
+{
+  "base": "357ac57d7276682dd9f4f48b9745c8a563a9f2e8",
+  "commitSubject": "feat(N01-D3): dock queued follow-up messages",
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-session-preview-verification.json",
+    "bytes": 15481,
+    "sha256": "211332bed4e88fe7c645c3fe1d391f78c4236a3c6e40248abdbf9879551e49a9"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "4fe5fb68e201d03d15c43c3e66ef670972cc79ff573b36857d68da5cadc3ab20",
+    "probes/nsh-validation/desktop-icon-paths.ts": "984286d01a3bebf8f91b0f51b392392b5a895b0af14c5133b56c06f52f3e5163",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "0597b2b544b8f14d8b073407bd61cb6363fd9436f56651671c5a28281beaadf3"
+  },
+  "added": [
+    "probes/nsh-validation/DesktopTurnQueue.tsx",
+    "probes/nsh-validation/ThemeTurnQueue.tsx",
+    "probes/nsh-validation/desktop-turn-queue-check.tsx",
+    "probes/nsh-validation/desktop-turn-queue.ts",
+    "probes/nsh-validation/desktop-turn-queue.test.mjs",
+    "probes/nsh-validation/check-turn-queue-pixels.py"
+  ],
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 34674,
+      "sha256": "2096045536370bdb9133c2500264a920ddbed4b51dd2967846701ba59c2ad12e"
+    },
+    "probes/nsh-validation/desktop-icon-paths.ts": {
+      "bytes": 10701,
+      "sha256": "97a5df05fda28758c4526eeb5b47eb18c39fcb4817dd55092c7966f5e8651ce7"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 13329,
+      "sha256": "cb98ae81aae941671d3a9bef0cddec3361b9a63f35710cc30670747374249ce3"
+    },
+    "probes/nsh-validation/DesktopTurnQueue.tsx": {
+      "bytes": 5412,
+      "sha256": "aa7d9bb967a049bafb8a57f7a35eacde201a108eab20df7f2335b067bb23d3b6"
+    },
+    "probes/nsh-validation/ThemeTurnQueue.tsx": {
+      "bytes": 3355,
+      "sha256": "860ce2e8db8e1b6458a653f103a689e1dc738334f84fd1fc744ad284e7f0ee21"
+    },
+    "probes/nsh-validation/desktop-turn-queue-check.tsx": {
+      "bytes": 6777,
+      "sha256": "c77cb886544fcd3b671c0adcd73b34da168aa3218d309fc8f96e401f0029d802"
+    },
+    "probes/nsh-validation/desktop-turn-queue.ts": {
+      "bytes": 2576,
+      "sha256": "b6a0ccffb7ef6b4bf2f1590cc66da98443a6975cb5c26d25b1834a2f24eef8e5"
+    },
+    "probes/nsh-validation/desktop-turn-queue.test.mjs": {
+      "bytes": 3373,
+      "sha256": "99c25dc2a4147051fa7da6e5155e064bb29df01a8431bdf736d076d4af5d9b85"
+    },
+    "probes/nsh-validation/check-turn-queue-pixels.py": {
+      "bytes": 2007,
+      "sha256": "1775240f830ec7a38a06e91ffe6b56a18425cdd36af4ff9d8b1cb09ca2429747"
+    }
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "candidate": {
+    "platform": "NSH 0.5.0 AppKit macOS 27.0.1 arm64 1×",
+    "synthetic": true,
+    "installed": false,
+    "piExecuted": false,
+    "withArt": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-Soih56",
+      "artwork": true,
+      "passed": 4,
+      "failed": 0,
+      "artifacts": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-Soih56/capture-inputs.json",
+          "bytes": 12634,
+          "sha256": "90d255b4deb20f54f13e8c7cdf295f6d750a8466db2f3494275a062fdaaf7ff9"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-Soih56/check.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-Soih56/test.log",
+          "bytes": 3927,
+          "sha256": "6db878089db3767ba1910ce473a715f800b830c4644465fc819221c15d65476c"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-Soih56/result.json",
+          "bytes": 1034,
+          "sha256": "3c42d3f498f46e04ea4eaca834ae68c64722c78a4c67b10ff7ae7798d9076e99"
+        }
+      ],
+      "images": [
+        {
+          "file": "turn-queue-dark-1240-hover.png",
+          "bytes": 1482617,
+          "sha256": "5b7b6e2699c61af79f8dfae016d324d3f37b2ae85448e4f5d7703fe373be16ca"
+        },
+        {
+          "file": "turn-queue-dark-1240-single.png",
+          "bytes": 1484073,
+          "sha256": "5878d83b5b8f16e1fa75f035c7ebe231f5b2082433490fcad459ac32b35df89f"
+        },
+        {
+          "file": "turn-queue-dark-680-edit.png",
+          "bytes": 728993,
+          "sha256": "c2cf9e434fbae6e30c84fdabc63b86ee722f28aafa102ef2a0d44803b4c63bd1"
+        },
+        {
+          "file": "turn-queue-dark-680-multiple.png",
+          "bytes": 744487,
+          "sha256": "e366e2e6990e1d863e70b74b49a183e1e9e19f860fbbaddaf9ad82cd6f6bca14"
+        },
+        {
+          "file": "turn-queue-dark-680-paused.png",
+          "bytes": 751191,
+          "sha256": "0388af8661b9edeeaf9106605162a5aafafea72337628bad42724ddeba313d9e"
+        },
+        {
+          "file": "turn-queue-light-1240-hover.png",
+          "bytes": 1615793,
+          "sha256": "7b8b9a1124092ab7f575c8eba8c3933cf489ae922125dfdbeb2bc5021b66f144"
+        },
+        {
+          "file": "turn-queue-light-1240-single.png",
+          "bytes": 1615996,
+          "sha256": "8b580acf58f1bc218e58fbe96504c04e96c708c867ece25e6cecb93116ae298d"
+        },
+        {
+          "file": "turn-queue-light-680-edit.png",
+          "bytes": 762389,
+          "sha256": "f93ed411ae6fdd8d449d4b2de51be1ddcde1f6401be5df7972bb7c7fbd364d90"
+        },
+        {
+          "file": "turn-queue-light-680-multiple.png",
+          "bytes": 776850,
+          "sha256": "4122961cd66363e665f6a09c028e63ee27b60fcb316b9fee65ea985145afefd3"
+        }
+      ],
+      "paint": {
+        "light": {
+          "crop": [
+            410,
+            504,
+            1110,
+            542
+          ],
+          "changedBounds": [
+            411,
+            505,
+            1109,
+            541
+          ],
+          "changedPixels": 25060
+        },
+        "dark": {
+          "crop": [
+            410,
+            504,
+            1110,
+            542
+          ],
+          "changedBounds": [
+            411,
+            505,
+            1109,
+            541
+          ],
+          "changedPixels": 25025
+        }
+      }
+    },
+    "fallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-9r0wje",
+      "artwork": false,
+      "passed": 4,
+      "failed": 0,
+      "artifacts": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-9r0wje/capture-inputs.json",
+          "bytes": 9818,
+          "sha256": "3787ebc82b2f06339078ba2e45e061cd8fba0f1bfc4c9ef7bca563de28014a30"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-9r0wje/check.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-9r0wje/test.log",
+          "bytes": 3925,
+          "sha256": "70de8915799305d7b6970674452dff70410b4b7c64d2cc1dd9309a86191474c5"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-9r0wje/result.json",
+          "bytes": 1035,
+          "sha256": "749f09b18aa6b75f2fefbd8d3826ac4f7508c184455737ed02e1b5b95e6b7ec0"
+        }
+      ],
+      "images": [
+        {
+          "file": "turn-queue-dark-1240-hover.png",
+          "bytes": 455349,
+          "sha256": "049877b5e138e5c7edad8571afdbb84afa1416a4814e96d1ed9d80f240b92dd7"
+        },
+        {
+          "file": "turn-queue-dark-1240-single.png",
+          "bytes": 455122,
+          "sha256": "fcee0d18e65c95098304035e61cd7ea1c45473eedb14109e3fa011ea96cd788f"
+        },
+        {
+          "file": "turn-queue-dark-680-edit.png",
+          "bytes": 284347,
+          "sha256": "6d7d44604bf1e3b2bb81c2886677c2c5de6e4e6f4beedf1c0a55c14c16828c70"
+        },
+        {
+          "file": "turn-queue-dark-680-multiple.png",
+          "bytes": 283175,
+          "sha256": "2b71634bc5cad3f1f2275f44ee35a05fc4f1b20c9ed2eeebef5554377984b78d"
+        },
+        {
+          "file": "turn-queue-dark-680-paused.png",
+          "bytes": 287678,
+          "sha256": "f8231847441ea72fb6b3b83916d58284904f496af5ef3d43d4be70b6feaeda19"
+        },
+        {
+          "file": "turn-queue-light-1240-hover.png",
+          "bytes": 493797,
+          "sha256": "d1a7b55b3d6b0b46e72e8d95ca48a7174c1024952bbf93eac5cf1a311b3e8b59"
+        },
+        {
+          "file": "turn-queue-light-1240-single.png",
+          "bytes": 493292,
+          "sha256": "efa67bbfddabd823a818b2ffabcb5ec13d75e89f66597e9cf2376e223a289b47"
+        },
+        {
+          "file": "turn-queue-light-680-edit.png",
+          "bytes": 328011,
+          "sha256": "32f41a4f574f4643f3672f14285c0ababaee10daad4f32a45774518d83f224cf"
+        },
+        {
+          "file": "turn-queue-light-680-multiple.png",
+          "bytes": 324338,
+          "sha256": "0372d61490ce0e578177af75307ed05d97b98b347faad786219694b49ccb6ab9"
+        }
+      ],
+      "paint": {
+        "light": {
+          "crop": [
+            410,
+            566,
+            1110,
+            604
+          ],
+          "changedBounds": [
+            411,
+            567,
+            1109,
+            603
+          ],
+          "changedPixels": 25061
+        },
+        "dark": {
+          "crop": [
+            410,
+            566,
+            1110,
+            604
+          ],
+          "changedBounds": [
+            411,
+            567,
+            1109,
+            603
+          ],
+          "changedPixels": 25025
+        }
+      }
+    }
+  },
+  "failedAttempts": [
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-type.log",
+      "bytes": 1034,
+      "sha256": "889e74e0659649a5deca88991550e9b29e259e0287ad458e0879f31c296cae9e"
+    },
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-initial.log",
+      "bytes": 18838,
+      "sha256": "ebc8e5e44445fa0ea860edbc807acbe21dadcd6faa38b1b9f5b63bd512e25121"
+    },
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-next.log",
+      "bytes": 16408,
+      "sha256": "bfbc45f9f115e7ea61223b39f0beffd785f1e5c34a749fcde163a5dfc1604c11"
+    },
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-edit.log",
+      "bytes": 15519,
+      "sha256": "45783b6338c3e2af40726d8875b26d91037db521aa0ce4766ed8fda76ecd9d96"
+    },
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-stable.log",
+      "bytes": 10956,
+      "sha256": "8ae8a7ff9dcaeaad529a58a6357d2a2ce44e378f4107093a2b4230057887315e"
+    },
+    {
+      "path": "artifacts/nsh-validation/turn-queue/fallback-gate.log",
+      "bytes": 8646,
+      "sha256": "ed95c15da6d831638d5775570c07909480b762ef4aaeda755fe62b8b81532f46"
+    }
+  ],
+  "acceptance": {
+    "manualGUI": false,
+    "userApproved": false,
+    "retina": false,
+    "independentPackage": false,
+    "realPIPlusGUI": false,
+    "deployed": false
+  }
+}

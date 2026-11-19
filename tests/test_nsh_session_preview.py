@@ -2,7 +2,7 @@ import hashlib
 import subprocess
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, session_preview_evidence
+from nsh_composer_provenance import PROBE, ROOT, session_preview_evidence, successor_input, turn_queue_evidence
 
 
 def record(path):
@@ -21,8 +21,9 @@ class SessionPreviewTests(unittest.TestCase):
         for path, previous in e['previousInputs'].items():
             data = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
             self.assertEqual(hashlib.sha256(data).hexdigest(), previous, path)
+        queue = turn_queue_evidence()
         for path, expected in e['inputs'].items():
-            self.assertEqual(record(ROOT / path), expected, path)
+            self.assertEqual(record(ROOT / path), successor_input(self, queue, path, expected), path)
 
     def test_both_native_matrices_and_no_delivery_claim(self):
         e = session_preview_evidence()
