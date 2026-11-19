@@ -26,8 +26,13 @@ class LiveSidebarTests(unittest.TestCase):
     def test_exact_inputs_and_historical_transition_preserved(self):
         m = json.loads((NSH / 'desktop-live-sidebar-verification.json').read_text())
         old = json.loads((NSH / 'desktop-scroll-verification.json').read_text())
+        tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
         for name, record in m['inputs'].items():
-            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), record['sha256'])
+            expected = record['sha256']
+            if name in tree['previousInputs']:
+                self.assertEqual(tree['previousInputs'][name], expected)
+                expected = tree['inputs'][name]['sha256']
+            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name, sha in m['priorScrollInputs'].items():
             self.assertEqual(old['inputs'][name]['sha256'], sha)
         self.assertEqual(len(m['protected']), 7)

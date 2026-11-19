@@ -1,5 +1,15 @@
 # 操作日志
 
+## 2026-11-19 09:08:00 +08:00｜N01-D3 sidebar_tree 当前页面第二步
+
+- 修改或新增内容：基准4cbd4f8，DesktopView/runner/合成fixture/live原生检查新增48高新会话、三行导航及选中项目会话树，helper/2项单元测试、SIDEBAR-TREE.md/JSON/3项文档检查；历史检查显式链接新hash，不覆盖旧manifest/失败。名称右36/稳定消息快照保留，7原owner未跟踪业务文件不编辑/收编。
+- 遇到的难题：六方法桥只有当前项目会话且无时间字段，不伪造其他项目历史/相对时间。密集树须真实原生滚到尾；高度按实际数量，不裁新建第17条。核心首Scheduler3败/末2败，单独仍2败，根因未定。首Python192项2失败：日志/计划脚本未落盘（此前同类现象原因未定）、搬移selection诊断时漏保留testID；未声称通过。
+- 处理方式：用精确edit补计划日志并恢复原selection testID，补末次native检查/文档复核，不弱化历史断言。复用已授权当前页侧栏裁图，不操作正式窗口/复制聊天。Node22.22.0、NSH0.5.0、macOS27.0.1 arm64、独立0700 TMPDIR；Maid0.3.2只读授权艺术，CC BY-NC-SA4.0及上善→zipzip→Small-tailqwq署名保留，不执行hooks/联网/提交艺术。禁用未接入口，字形图标近似；会话缩进/选择/新建/切项目隔离/停止排空保持。未改共用Scheduler，不删断言/无限重试。
+- 验证结果：`node --test probes/nsh-validation/desktop-sidebar-tree.test.mjs`首2/2、改高度后完整核心内两项均过。`node probes/nsh-validation/verify-desktop-theme.mjs`14/14，加--native --art-root [授权目录]9/9、--rich6/6、--evidence3/3、--live-sidebar最终3/3（18.0s）；run-Rnj9In八张原PNG，宽内容1920×988/外框1920×1016/content origin(0,58)/scale1，窄680×720，参考裁图原点(0,30)非像素注册。实际原生滚到第16会话/第8项目H并点击，切项目无原消息，已看首末并排及最终680/H原图，非人工GUI/用户认可/真实PI。完整 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs`首360项357过3败（89.244s）、末358过2败（83.188s），0取消/skip；`node --test services/agent/scheduler.test.mjs`10过2败（146.698ms）。`npm run test:electron`133过10跳（7.413s，缺隔离DSH CLI）；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml`exit101缺defmt未下载。日志artifacts/nsh-validation/sidebar-tree，对应提交前混合工作区；selection ID修复后的原生和Python复核随后补记。
+- 遗留问题：Scheduler两失败/Electron跳过/Rust受阻保持，未达全测试及整体验收。人物/设置区/图标/时间/顶部/消息/输入框/底饰、IME/动画/真实2×、干净真实PI主题/历史配置/完整包及同业务全进程资源比较未完成；N01-D1/D2/D3不勾。未部署/安装/替换/退出/重启正式沐码，不改真实聊天/配置/凭据，不恢复手机。解除条件为状态测试定位、补依赖及逐项截图/用户认可，本轮仅源码检查点。
+- 收尾复核：selection testID恢复后 `--live-sidebar`再3/3、18.1s，最终run-iz4JLc八图和精确输入manifest重记，旧run-Rnj9In保留；无布局值再变。Python全部文档192/192、0.601s（docs-recheck.log），首次2失败保留；不提升GUI/全测试验收。末次2项单元再过（76.586ms）、headless14/14（8.0s）、Python192/192（0.694s，docs-delivery.log）；git diff --check通过、7保护文件hash一致。manifest锁前一轮原始日志，不伪称已收录之后delivery日志hash。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): align sidebar navigation and nested session tree`；查询 `git log --all --oneline --grep='align sidebar navigation and nested session tree'`。精确检查/保护hash后提交推送核远端，实际结果按工具输出报告；源码同步不等于部署或验收通过。
+
 ## 2026-11-16 23:25:00 +08:00｜build-IfR8Pr 预算上限放宽版安装完成（E84 流程，用户授权）
 
 - 修改或新增内容：一次性更新脚本（artifacts/installed-update-0.1.50-IfR8Pr/）将 /Applications/沐码.app 换为含 TEAM_LIMITS 放宽（requests 200 / tokens 200 万 chargeable，commit 7cfc234）的 build-IfR8Pr；换包后应用启动，单实例，codesign 严格通过，包内 team-runtime 与候选 sha256 一致且含 requests: 200。

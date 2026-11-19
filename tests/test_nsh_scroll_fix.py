@@ -30,15 +30,20 @@ class ScrollFixTests(unittest.TestCase):
     def test_source_snapshots_and_real_scroll_assertions(self):
         m = json.loads((NSH / 'desktop-scroll-verification.json').read_text())
         later = json.loads((NSH / 'desktop-live-sidebar-verification.json').read_text())
+        tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in later['priorScrollInputs']:
                 self.assertEqual(later['priorScrollInputs'][name], expected)
                 expected = later['inputs'][name]['sha256']
+            if name in tree['previousInputs']:
+                self.assertEqual(tree['previousInputs'][name], expected)
+                expected = tree['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         view = (NSH / 'DesktopView.tsx').read_text()
         self.assertIn('each={messageRows()}', view)
-        self.assertIn('paddingRight: 36', view)
+        self.assertIn('paddingRight: tree.projectTextRightInset', view)
+        self.assertIn('projectTextRightInset: 36', (NSH / 'desktop-sidebar-tree.ts').read_text())
         rich = (NSH / 'desktop-theme-rich-check.tsx').read_text()
         for token in ('contentSize.height', 'offset.y', 'app.wait(900)', 'app.setViewport', 'tool_end · read · 错误'):
             self.assertIn(token, rich)

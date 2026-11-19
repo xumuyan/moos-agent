@@ -2,6 +2,10 @@
 
 ## 范围与状态
 
+### N01-D3 sidebar_tree｜当前页面第二步（2026-11-19，源码检查点）
+
+- 接续4cbd4f8，按当前侧栏裁图调整48高新会话/品牌下8pt、三行38pt禁用导航、工作区及选中项目下会话树；保留36px名称安全域/稳定消息快照。原生合成明暗宽窄/密集16会话8项目3/3，headless14/14、native9/9、rich6/6、evidence3/3；完整核心首357过3败、末358过2败，Scheduler单独10过2败，根因未定未改共用服务。Electron133过10跳，Rust缺defmt，不称全测试通过。证据 `probes/nsh-validation/desktop-sidebar-tree-verification.json`、`SIDEBAR-TREE.md`；7原owner未跟踪业务文件不编辑/收编。时间无契约不伪造、图标近似，人物/设置/顶部/消息/输入框/底饰和用户视觉认可仍待办；N01-D1/D2/D3不勾。未部署、不操作正式应用或真实聊天/配置，不恢复手机，不报资源收益。文档/末次原生检查结果见operatelog。
+
 ### M01/P06.3a｜PI RPC 关闭顺序修正候选（2026-11-15，非完整验收）
 
 - [ ] PI RPC 取消清理剩余回归：适配器先发SIGTERM，等待700ms后才关闭stdin，再保留700ms及SIGKILL兜底。PI 1.5.0的EOF关闭会先移除信号处理器，旧顺序可能绕过detached子进程信号清理；只修此风险，不声称解决全部残留。确定性旧实现1通过/2失败；最终关闭测试4/4（含真实detached子进程ESRCH）、bash取消1/1、队列/事务24/24通过。中间完整核心仍重现bash残留；最终完整核心420s中止、无汇总，SDK/异步收尾/helper/几何断言未通过。Electron113项101通过/2失败/1取消/9跳过；Rust离线缺tauri。正式隔离构建首次240s中止，显式复核build-GJbx0m通过、严格验签及包内adapter字节一致、无fixture；未启动/安装。证据 `docs/evidence/desktop/pi-rpc-signal-shutdown.json`，详见operatelog；M01/M06/P06.3a/P06.6/N01不因专项通过而完成。解除条件：定位残留与强杀收尾、完成同状态全部回归及授权实机验收；不部署、不重启现用沐码、不改真实聊天或配置。

@@ -5,6 +5,7 @@ import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
+import { sidebarTree as tree, projectTreeHeight } from './desktop-sidebar-tree';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
@@ -43,28 +44,39 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
       {(!layout().compact || navigation()) && <View testID="sidebar" style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
         <SidebarCorners />
-        <View testID="sidebar-brand" style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
-        <View style={{ height: 58, marginTop: 4, marginBottom: 8 }}>
+        <View testID="sidebar-brand" onLayout={measured('sidebar-brand')} style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
+        <View testID="new-session-frame" onLayout={measured('new-session-frame')} style={{ height: tree.newSessionHeight, marginTop: tree.newSessionMarginTop, flexShrink: 0 }}>
           <NineSlice name="new-session" source={[1400,308]} cuts={[0,210,0,210]} edges={[0,layout().compact ? 32 : 40,0,layout().compact ? 32 : 40]} fill style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
-          <Button testID="create-session" style={{ height: 58, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: artAvailable ? '#152246' : t.goldSoft }}>⊕ 新会话</Text></Button>
+          <Button testID="create-session" style={{ height: tree.newSessionHeight, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: artAvailable ? '#152246' : t.goldSoft }}>⊕ 新会话</Text></Button>
         </View>
-        <Button testID="search-unavailable" disabled style={{ ...button, borderWidth: 1, borderColor: '#e1cfaa33' }}><Text style={{ color: t.sidebarMuted, fontSize: 12 }}>⌕ 搜索（未接入）</Text></Button>
-        <Text style={{ fontSize: 12, color: t.sidebarMuted }}>工作区 / 独立临时项目</Text>
-        <List testID="projects" each={snapshot().projects} estimatedItemSize={54} style={{ height: Math.min(snapshot().projects.length * 54, 162), flexShrink: 0 }}>
-          {p => <View style={{ height: 54 }}>
-            {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
-            <Button testID={`project-${p().name}`} style={{ ...button, height: 54, paddingVertical: 7, paddingLeft: 7, paddingRight: 36, flexDirection: 'row', gap: 8 }} onPress={() => void project(p().id)}>
-              {snapshot().projectId === p().id && artAvailable && <View style={{ width: 30, height: 38 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
-              <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: t.font, fontFamily: t.ornamentFont, color: '#f4ead5' }}>{`${snapshot().projectId === p().id ? '● ' : '◇ '}${p().name}`}</Text>
-            </Button>
+        <View testID="sidebar-navigation" onLayout={measured('sidebar-navigation')} style={{ flexShrink: 0 }}>
+          {[['plugins','♧','插件'],['background','☷','后台任务'],['more','⊞','更多']].map(([id, icon, label]) => <Button testID={`nav-${id}-unavailable`} disabled style={{ height: tree.navigationRowHeight, paddingLeft: 4, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'transparent' }}><Text style={{ color: t.sidebarInk, fontSize: 16 }}>{icon}</Text><Text style={{ color: t.sidebarInk, fontSize: 14 }}>{label}</Text></Button>)}
+        </View>
+        <View testID="workspace-heading" onLayout={measured('workspace-heading')} style={{ height: tree.workspaceHeight, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ flex: 1, fontSize: 14, fontFamily: t.ornamentFont, color: t.goldSoft }}>工作区</Text>
+          <Button testID="search-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>⌕</Text></Button>
+          <Button testID="workspace-options-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>☷</Text></Button>
+          <Button testID="add-project-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>⊞</Text></Button>
+        </View>
+        <List testID="projects" each={snapshot().projects} estimatedItemSize={126} style={{ flex: 1, minHeight: 0 }}>
+          {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(snapshot().projectId === p().id, snapshot().sessions.length) }}>
+            <View style={{ height: tree.projectHeight }}>
+              {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
+              <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 7, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 8, alignItems: 'center' }} onPress={() => void project(p().id)}>
+                {artAvailable && <View style={{ width: 30, height: 38, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
+                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: t.font, fontFamily: t.ornamentFont, color: '#f4ead5' }}>{p().name}</Text>
+              </Button>
+            </View>
+            {snapshot().projectId === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: snapshot().sessions.length * tree.sessionHeight }}>
+              {snapshot().sessions.map((s, i) => <View style={{ height: tree.sessionHeight }}>
+                <View style={{ position: 'absolute', pointerEvents: 'none', left: 8, top: 0, height: i === snapshot().sessions.length - 1 ? 18 : 36, borderLeftWidth: 1, borderColor: '#dfcc9a99' }} />
+                <View style={{ position: 'absolute', pointerEvents: 'none', left: 8, top: 18, width: 10, borderTopWidth: 1, borderColor: '#dfcc9a99' }} />
+                <Button testID={`session-${s.title}`} style={{ height: tree.sessionHeight, marginLeft: 2, paddingLeft: 22, paddingRight: 9, borderRadius: 7, borderWidth: snapshot().sessionId === s.id ? 1 : 0, borderColor: '#e2be70b8', backgroundImage: snapshot().sessionId === s.id ? 'linear-gradient(90deg, #526fb84d, #2b468b38 72%, #142a5e1f)' : undefined, backgroundColor: 'transparent' }} onPress={() => session(s.id)}>
+                  <Text class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.ornamentFont, color: snapshot().sessionId === s.id ? '#fff8e8' : '#d7c8a8' }}>{`${snapshot().sessionId === s.id ? '● ' : ''}${s.title}`}</Text>
+                </Button>
+              </View>)}
+            </View>}
           </View>}
-        </List>
-        <Text testID="selection" class="line-clamp-1" style={{ fontSize: 12, color: t.sidebarMuted }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
-        <List testID="sessions" each={snapshot().sessions} estimatedItemSize={36} style={{ flex: 1 }}>
-          {s => <Button testID={`session-${s().title}`} style={{ height: 36, marginHorizontal: 2, paddingLeft: 26, paddingRight: 9, borderRadius: 7, borderWidth: snapshot().sessionId === s().id ? 1 : 0, borderColor: '#e2be70b8', backgroundImage: snapshot().sessionId === s().id ? 'linear-gradient(90deg, #526fb8bd, #2b468b9e 72%, #142a5e80)' : undefined, backgroundColor: 'transparent', boxShadow: snapshot().sessionId === s().id ? 'inset 0 1px #fff4d733, inset 0 -1px #07133747, 0 3px 9px #02081c4d' : undefined }} onPress={() => session(s().id)}>
-            {snapshot().sessionId === s().id && <View style={{ position: 'absolute', pointerEvents: 'none', left: 5, top: 7, bottom: 7, width: 3, borderRadius: 999, backgroundImage: 'linear-gradient(#fff0c5, #d4a951)', boxShadow: '0 0 5px #e7c780b8' }} />}
-            <Text class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.ornamentFont, color: snapshot().sessionId === s().id ? '#fff8e8' : '#d7c8a8' }}>{`${snapshot().sessionId === s().id ? '● ' : ''}${s().title}`}</Text>
-          </Button>}
         </List>
         <Art name="chibi" style={{ left: layout().sidebar * .52 - Math.min(320, layout().sidebar * .82) / 2, bottom: 166, width: Math.min(320, layout().sidebar * .82), height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />
         <View testID="sidebar-footer" style={{ minHeight: 154, paddingTop: 74, paddingHorizontal: 2, paddingBottom: 6, gap: 8 }}>
@@ -82,7 +94,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <Text class="line-clamp-1" style={{ flex: 1, color: artAvailable ? t.brand : ink(), fontSize: t.font, fontWeight: '600' }}>{title()}</Text>
             <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: artAvailable ? t.goldSoft : muted() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
           </View>
-          <Text style={{ fontSize: 11, color: artAvailable ? t.sidebarMuted : muted(), alignSelf: 'flex-start', backgroundColor: artAvailable ? '#0a173be6' : undefined }}>对话  /  公开工具过程 · 本地模型夹具 · 非正式应用</Text>
+          <Text testID="selection" style={{ fontSize: 11, color: artAvailable ? t.sidebarMuted : muted(), alignSelf: 'flex-start', backgroundColor: artAvailable ? '#0a173be6' : undefined }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
         </View>
         <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
           <Text testID="status" style={{ fontSize: 12, color: muted() }}>{status()}</Text>
