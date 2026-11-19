@@ -6,7 +6,8 @@ export type TaskRef = Scope & { taskId: string };
 export type TaskStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted';
 export type Task = Scope & { id: string; status: TaskStatus; errorCode: string | null };
 export type Project = { id: string; name: string };
-export type DesktopModel = { id: string; label: string };
+type LabeledId = { id: string; label: string };
+export type DesktopModel = LabeledId & { group?: LabeledId; reasoning?: { defaultId: string; levels: LabeledId[] } };
 export type DesktopModelCatalog = { options: DesktopModel[]; defaultId: string };
 export type Session = { id: string; projectId: string; title: string };
 export type PublicEvent = { sequence: number } & (
@@ -19,7 +20,7 @@ export type Calls = {
   'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
-  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string }; result: { task: Task; replayed: boolean } };
+  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string }; result: { task: Task; replayed: boolean } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
     task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean;
@@ -42,9 +43,10 @@ export type Response<M extends Method> = { version: 1; id: string | null } & (
  * - IDs are per-call correlation only, not capabilities. Validate both project/session and task
  *   on EVERY scoped call. Scope IDs originate from this Host; paths/commands/credentials are not
  *   fields in this interface. The optional modelId must match the Host's public catalog; absence
- *   uses its default. User text is a PI prompt, not an OS sandbox guarantee.
+ *   uses its default. The optional reasoningEffort must belong to the effective model; omission
+ *   uses that model’s default (or no effort if unsupported). User text is a PI prompt, not an OS sandbox guarantee.
  * - requestId is scoped to session, at most 32 unique submissions per Host lifetime. Same text
- *   and effective model replay the current task; differing values conflict. No restart replay.
+ *   and effective model/effort replay the current task; differing values conflict. No restart replay.
  * - <=16 sessions/project; submit text <=4096 UTF-8 bytes. Events limit 1..100 and <=64KiB/page;
  *   retention <=4096 events and <=1MiB/task. cursor_expired is a gap, never silently skip it.
  * - text_delta is public model output (not reasoning), <=4096 UTF-16 units with truncated flag;

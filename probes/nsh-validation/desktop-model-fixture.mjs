@@ -4,9 +4,11 @@
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
+const group = Object.freeze({ id: 'local', label: '本地夹具' });
+const levels = Object.freeze([Object.freeze({ id: 'low', label: 'Low' }), Object.freeze({ id: 'high', label: 'High' })]);
 export const desktopFixtureModels = Object.freeze([
-  Object.freeze({ id: 'fixture', label: '本地夹具 · 标准' }),
-  Object.freeze({ id: 'fixture-alternate', label: '本地夹具 · 备选' }),
+  Object.freeze({ id: 'fixture', label: '本地夹具 · 标准', group }),
+  Object.freeze({ id: 'fixture-alternate', label: '本地夹具 · 备选', group, reasoning: Object.freeze({ defaultId: 'high', levels }) }),
 ]);
 
 export async function startDesktopModelFixture() {
@@ -20,8 +22,9 @@ export async function startDesktopModelFixture() {
       let bytes = 0; const chunks = [];
       for await (const part of req) { bytes += part.length; if (bytes > 2 * 1024 * 1024) return error(413); chunks.push(part); }
       const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-      if (!Array.isArray(input.messages) || input.stream !== true ||
-          !desktopFixtureModels.some(m => m.id === input.model)) return error(400);
+      const model = desktopFixtureModels.find(m => m.id === input.model);
+      if (!Array.isArray(input.messages) || input.stream !== true || !model ||
+          (model.reasoning ? !model.reasoning.levels.some(e => e.id === input.reasoning_effort) : input.reasoning_effort !== undefined)) return error(400);
       const index = input.messages.findLastIndex(m => m.role === 'user');
       if (index < 0) return error(400);
       const text = textOf(input.messages[index].content);
@@ -46,7 +49,7 @@ export async function startDesktopModelFixture() {
         chunk({}, 'tool_calls');
       } else {
         const prefix = input.model === 'fixture' ? '本地夹具响应' : '本地备选夹具响应';
-        const output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}：${text.slice(0, 4096)}`;
+        const output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}${model.reasoning ? ` [${input.reasoning_effort}]` : ''}：${text.slice(0, 4096)}`;
         // Separate public deltas also exercise real PI streaming without a synthetic runner.
         for (const part of output.match(/.{1,16}/gs) ?? []) chunk({ content: part });
         chunk({}, 'stop', { prompt_tokens: 20, completion_tokens: 5, total_tokens: 25 });

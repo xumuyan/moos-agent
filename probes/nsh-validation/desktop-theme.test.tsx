@@ -1,5 +1,6 @@
 import { expect, open, test } from 'nsh/test';
 import { desktopLayout, desktopTheme, frameTopSegments, styleLayout, sidebarCorners } from './desktop-theme';
+import { defaultChoice, modelCatalog, modelGroups } from './desktop-model-picker';
 import { fixture } from './desktop-theme-fixture';
 test('theme geometry keeps reference dimensions and collapses narrow panels', () => {
   expect(desktopTheme.sidebarWidth).toBe(280); expect(desktopTheme.headerHeight).toBe(75);
@@ -47,6 +48,51 @@ test('invalid catalog fails closed and cannot submit', async () => {
   expect(app.enabled('id:model-trigger')).toBe(false);
   expect(app.enabled('id:primary-action')).toBe(false);
   expect(app.host.calls().filter(c => c.name === 'tasks.submit')).toHaveLength(0);
+});
+test('short catalog opens model list without search and submits the selected default effort', async () => {
+  const app = await open('./DesktopApp.tsx', { width: 680, height: 720, host: { handlers: fixture() } });
+  await app.waitFor('text:项目 主题验证 A');
+  await app.press('id:model-trigger');
+  await app.waitFor('id:model-pane-root');
+  expect(app.shows('id:model-menu-effort')).toBe(false);
+  await app.press('id:model-menu-models');
+  await app.waitFor('id:model-fixture-check');
+  expect(app.shows('id:model-search')).toBe(false);
+  await app.press('id:model-fixture-alternate');
+  await app.waitFor('text:· High');
+  await app.type('id:prompt', '检查默认推理等级');
+  await app.press('id:primary-action');
+  await app.waitFor('text:读取 · 失败');
+  const calls = app.host.calls().filter(c => c.name === 'tasks.submit');
+  expect(calls).toHaveLength(1);
+  expect(calls[0].data).toMatchObject({ modelId: 'fixture-alternate', reasoningEffort: 'high' });
+});
+test('model directory copies only public fields and rejects inconsistent groups and efforts', () => {
+  const option = { id: 'a', label: 'Alpha', providerKey: 'ignored', group: { id: 'one', label: 'Group 1' },
+    reasoning: { defaultId: 'high', levels: [{ id: 'low', label: 'Low' }, { id: 'high', label: 'High', extra: true }] } };
+  const checked = modelCatalog({ options: [option], defaultId: 'a' });
+  expect(checked.options[0]).toEqual({ id: 'a', label: 'Alpha', group: { id: 'one', label: 'Group 1' },
+    reasoning: { defaultId: 'high', levels: [{ id: 'low', label: 'Low' }, { id: 'high', label: 'High' }] } });
+  expect(defaultChoice(checked.options[0])).toEqual({ modelId: 'a', reasoningEffort: 'high' });
+  expect(defaultChoice({ id: 'b', label: 'Beta' })).toEqual({ modelId: 'b' });
+  for (const options of [[option, option], [{ ...option, id: '../a' }], [{ ...option, label: 'Private\nkey' }],
+    [option, { id: 'b', label: 'Beta', group: { id: 'one', label: 'Conflicting label' } }],
+    [{ ...option, reasoning: { ...option.reasoning, defaultId: 'unknown' } }],
+    [{ ...option, reasoning: { ...option.reasoning, levels: [option.reasoning.levels[1], option.reasoning.levels[1]] } }],
+    [{ ...option, reasoning: null }], new Array(1), Array.from({ length: 65 }, (_, i) => ({ id: String(i), label: String(i) }))]) {
+    expect(() => modelCatalog({ options, defaultId: 'a' })).toThrow('invalid_response');
+  }
+});
+test('grouped model search retains group order and ranks prefixes then fuzzy gaps', () => {
+  const a = { id: 'a', label: 'Group A' }, b = { id: 'b', label: 'Group B' };
+  const models = [{ id: '1', label: 'no hit', group: a }, { id: '2', label: 'NS2L Beta', group: b },
+    { id: '3', label: 'nsh-2-local', group: a }, { id: '4', label: 'NS2L Alpha', group: a },
+    { id: '5', label: 'ns2-local', group: a }, { id: '6', label: '本地夹具 · 备选' }];
+  const ids = (q: string) => modelGroups(models, q).map(g => [g.id, g.models.map(m => m.id)]);
+  expect(ids('')).toEqual([['a', ['1', '3', '4', '5']], ['b', ['2']], ['', ['6']]]);
+  expect(ids(' NS2L ')).toEqual([['a', ['4', '5', '3']], ['b', ['2']]]);
+  expect(ids('本备')).toEqual([['', ['6']]]);
+  expect(ids('NS9')).toEqual([]);
 });
 test('theme narrow navigation, errors and no false completion', async () => {
   const app = await open('./DesktopApp.tsx', { width: 680, height: 720, host: { handlers: fixture({ error: true }) } });

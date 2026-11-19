@@ -1,15 +1,22 @@
 // Explicit synthetic bridge responses for view verification. No real PI task claim.
+import type { DesktopModelCatalog } from './desktop-contract';
 export function fixture(options: { long?: boolean; error?: boolean; empty?: boolean; longNames?: boolean; dense?: boolean; chatCards?: boolean; composer?: boolean } = {}) {
   let stopped = false, lastCancelAt = 0;
-  const models = { options: [{ id: 'fixture', label: '本地夹具 · 标准' }, { id: 'fixture-alternate', label: '本地夹具 · 备选' }], defaultId: 'fixture' };
-  let sentModel = '', submitCount = 0, cancelCount = 0;
+  const models: DesktopModelCatalog = { options: [
+    { id: 'fixture', label: '本地夹具 · 标准', group: { id: 'local', label: '本地夹具' } },
+    { id: 'fixture-alternate', label: '本地夹具 · 备选', group: options.composer ? { id: 'preview', label: '合成模型组 A' } : { id: 'local', label: '本地夹具' },
+      reasoning: { defaultId: 'high', levels: [{ id: 'low', label: 'Low' }, { id: 'high', label: 'High' }] } },
+    ...Array.from({ length: options.composer ? 8 : 0 }, (_, i) => ({ id: `demo-${i + 1}`, label: `nsh-${i + 1}-local`,
+      group: i < 5 ? { id: 'preview', label: '合成模型组 A' } : { id: 'preview-b', label: '合成模型组 B' } })),
+  ], defaultId: options.composer ? 'fixture-alternate' : 'fixture' };
+  let sentModel = '', sentEffort = '', submitCount = 0, cancelCount = 0;
   const ok = (result: unknown) => ({ version: 1, id: 'theme-fixture', ok: true, result });
   const task = (p: any, status: string) => ({ id: p.taskId ?? 'theme-task', projectId: p.projectId, sessionId: p.sessionId, status, errorCode: null });
   return {
     'projects.list': () => ok({ models, projects: options.empty ? [] : options.dense ? Array.from('abcdefgh', (id, i) => ({ id, name: `主题验证 ${String.fromCharCode(65 + i)}` })) : [{ id: 'a', name: options.longNames ? '主题验证 A 很长的项目名称用于检查丝带文字安全域与截断' : '主题验证 A' }, { id: 'b', name: '主题验证 B' }] }),
     'sessions.list': (p: any) => ok({ sessions: options.dense ? Array.from({ length: 16 }, (_, i) => ({ id: `${p.projectId}-${i}`, projectId: p.projectId, title: `合成会话 ${i + 1}` })) : [{ id: `s-${p.projectId}`, projectId: p.projectId, title: '独立会话' }, { id: `other-${p.projectId}`, projectId: p.projectId, title: '第二会话' }] }),
     'sessions.create': (p: any) => ok({ session: { id: 'created', projectId: p.projectId, title: p.title } }),
-    'tasks.submit': (p: any) => { if (options.error) throw Error('private-secret'); sentModel = p.modelId; submitCount++; stopped = false; return ok({ task: task(p, 'queued'), replayed: false }); },
+    'tasks.submit': (p: any) => { if (options.error) throw Error('private-secret'); sentModel = p.modelId; sentEffort = p.reasoningEffort; submitCount++; stopped = false; return ok({ task: task(p, 'queued'), replayed: false }); },
     'tasks.events': (p: any) => {
       const start = p.cursor ? Number(p.cursor.split(':')[1]) : 0;
       // In the composer scenario acknowledge first, then expose a terminal page with
@@ -28,7 +35,7 @@ export function fixture(options: { long?: boolean; error?: boolean; empty?: bool
       });
       return ok({ task: task(p, terminal ? 'cancelled' : 'running'), terminal, events, cursor: `${p.taskId}:${end}`, hasMore: end < total });
     },
-    diagnostics: () => ({ sentModel, submitCount, cancelCount }),
+    diagnostics: () => ({ sentModel, sentEffort, submitCount, cancelCount }),
     'tasks.cancel': (p: any) => { cancelCount++; stopped = true; lastCancelAt = Date.now(); return ok({ task: task(p, 'running') }); },
   };
 }

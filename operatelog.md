@@ -3048,3 +3048,15 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D1/D3): select fixture model and unify composer actions`；查询 `git log --all --oneline --grep='select fixture model and unify composer actions'`。
 
 本轮收尾（证据对应提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 68/68；全量 `discover -s tests -v` 214/215，唯一失败仍为 `test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 缺 `report.json`）。首轮及最终回执保留在本轮证据目录，不造替代报告。最终工作区差异、七个保护文件 SHA、未跟踪和未暂存状态在提交前复核。
+
+## 2026-11-19 19:52:22 +08:00｜N01-D1/D3 沐码式模型与推理等级菜单（候选源码检查点）
+
+- 修改或新增内容：以 `01c9b9b` 为基准，独立 NSH 候选由平铺下拉换为模型／推理等级两级原生浮层。触发器在同一个发送／停止左侧，支持时显示「· 等级」；分组、短目录无搜索、已选勾、空结果／清除，按会话保留内存选择。Host 仍六方法，入队白名单绑定模型和等级，隐式与显式有效默认值等价；没有新端点、凭据和持久化。背景、人物、边饰及正式工程不改。
+- 遇到的难题：首轮 NSH 无 `accessibilityRole`/`accessibilityState` 类型；改用 `role`/`selected`。原生测试输入一度只观察到首字符，`fallback-stable.log` 两色空结果超时，逐键版 `run-IYkaa3` 2/2；几何首轮漏登记聊天栏，`origin` 未定义而 0/2。保留旧日志和部分捕获，不推断输入唯一根因。
+- 处理方式：稳定 Input、清除按钮和 Scroll 的外壳，搜索时复位列表，保留原生输入长度限制并去掉查询诊断；补聊天栏的父局部坐标，核对浮层边距和右对齐。最终多字符用原生驱动验证，不冒充人工粘贴/IME。仅只读指定本机艺术并按 SHA 校验，不运行 hooks；未新截正式窗口。七份 owner 文件 SHA 前后对比，不编辑、不暂存。
+- 验证结果：Node 22.22.0 / macOS 27.0.1 arm64 / NSH 0.5.0，隔离 0700 临时目录，核心/Electron 用 umask 022。`node probes/nsh-validation/verify-desktop-theme.mjs --composer` 带艺术 `run-RcTg0m`／fallback `run-UqNKX2` 各 2/2、各 16 帧（明暗 1× 1240×820／680×720）。检查根层、分组搜索、清除、Esc、模糊 Enter、等级支持、换会话、一次提交/一次停止与最后一页排空；人工查看有艺术的浅色根菜单、暗色模型列表与等级列表。`node --test probes/nsh-validation/desktop-host.test.mjs` 14/14，`node probes/nsh-validation/verify-desktop-host.mjs` 真实 PI SDK＋私有管道＋回环 12 项，实际收到 Low、默认 High，非 GUI E2E。证据 `probes/nsh-validation/DESKTOP-MODEL-PICKER.md` / `desktop-model-picker-verification.json`，对应提交前混合工作区。
+- 回归结果：同 runner 无艺术 headless 20/20；带授权艺术 `--native` 9/9、`--rich` 6/6、`--evidence` 3/3、`--live-sidebar` 3/3、`--typography` 2/2、`--window-chrome` 2/2、`--chat-cards` 2/2、`--icons` 2/2、`--sidebar-activity` 2/2（`run-XV3EIK`，不覆盖前次失败）。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 核心 365/365；`npm run test:electron` 133 过、10 跳、0 败；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101，缺 `defmt`，未下载。日志在 `artifacts/nsh-validation/model-picker/`。无新增团队截图或正式构建；检查 196 份 `gui-*`，3 份较早快照无待删子目录或大文件，其他保留；现有两份 Electron 构建保留。
+- 遗留问题：方向键/Tab/Shift+Tab、中文输入法及真人操作未对齐验收；等用户核对后再改背景、人物和剩余边饰。E124 缺原始证据需真实隔离重验，Rust 需核实离线依赖，Electron 缺隔离 DSH 前置，owner 装箱清单尚待确认。真实 PI＋人工 GUI、历史、签名整包、2× 和资源测量均不算通过。D1/D2/D3 不勾，不推送、不部署、不构建/安装/退出/重启正式沐码，正式聊天与配置未操作，手机暂停。
+- 对应 Git 提交：唯一说明 `fix(N01-D1/D3): match native model and reasoning picker hierarchy`；查询 `git log --all --oneline --grep='match native model and reasoning picker hierarchy'`。
+
+本轮收尾（上述提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 71/71；全量 `discover -s tests -v` 217/218，唯一失败为 `ForkRestartRecoveryTests.test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 `report.json` 缺失）。未削弱该断言或制造替代证据。完整门禁未过，未推送也未核查新的远端提交。

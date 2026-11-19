@@ -54,6 +54,10 @@ test('N01-D1 exact versioned allowlist, trusted registry, selection and resource
   for (const modelId of [null, {}, '', 'unknown', 'https://example.invalid']) {
     assert.equal(call('tasks.submit', { ...a, requestId: 'invalid-model', text: 'hi', modelId }).error.code, 'invalid_request');
   }
+  for (const reasoningEffort of [null, {}, '', 'off', 'max', 'https://example.invalid']) {
+    assert.equal(call('tasks.submit', { ...a, requestId: 'invalid-effort', text: 'hi', modelId: 'fixture-alternate', reasoningEffort }).error.code, 'invalid_request');
+  }
+  assert.equal(call('tasks.submit', { ...a, requestId: 'unsupported-effort', text: 'hi', reasoningEffort: 'low' }).error.code, 'invalid_request');
   for (const text of ['', ' ', null, 'a'.repeat(4097), '\0']) assert.equal(call('tasks.submit', { ...a, text, requestId: 'bad' }).ok, false);
   assert.equal(call('tasks.submit', { ...a, sessionId: b.sessionId, requestId: 'x', text: 'hi' }).error.code, 'not_found');
   const input = { ...a, requestId: 'once', text: 'arbitrary conversation prompt (not scenario enum)' };
@@ -74,22 +78,21 @@ test('N01-D1 exact versioned allowlist, trusted registry, selection and resource
 test('N01-D1 selected model is bound at admission even while queued in the same project', async t => {
   const models = [];
   const host = await fixture(t, { run: async ({ task, provider }) => {
-    models.push([task.message, provider.model]);
+    models.push([task.message, provider.model, provider.thinkingLevel]);
     return { text: 'ok' };
   } });
   const { call, scopes: [scope] } = setup(host);
   const catalog = call('projects.list').result.models;
-  assert.deepEqual(catalog, { defaultId: 'fixture', options: [
-    { id: 'fixture', label: '本地夹具 · 标准' }, { id: 'fixture-alternate', label: '本地夹具 · 备选' },
-  ] });
+  assert.equal(catalog.defaultId, 'fixture');
+  assert.deepEqual(catalog.options.map(m => [m.id, m.reasoning?.defaultId]), [['fixture', undefined], ['fixture-alternate', 'high']]);
   call('tasks.submit', { ...scope, requestId: 'first', text: 'first' });
-  const queued = { ...scope, requestId: 'second', text: 'second', modelId: 'fixture-alternate' };
+  const queued = { ...scope, requestId: 'second', text: 'second', modelId: 'fixture-alternate', reasoningEffort: 'low' };
   const next = call('tasks.submit', queued).result.task;
   assert.equal(next.status, 'queued');
   assert.equal(call('tasks.submit', queued).result.task.id, next.id);
-  assert.equal(call('tasks.submit', { ...queued, modelId: 'fixture' }).error.code, 'conflict');
+  assert.equal(call('tasks.submit', { ...queued, reasoningEffort: 'high' }).error.code, 'conflict');
   await until(() => page(call, scope, next.id).terminal);
-  assert.deepEqual(models, [['first', 'fixture'], ['second', 'fixture-alternate']]);
+  assert.deepEqual(models, [['first', 'fixture', 'off'], ['second', 'fixture-alternate', 'low']]);
 });
 
 test('N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap', async t => {
@@ -168,8 +171,9 @@ test('N01-D1 actual child private pipe acceptance exits zero (including Unicode 
   const { stdout } = await promisify(execFile)(process.execPath,
     [fileURLToPath(new URL('./verify-desktop-host.mjs', import.meta.url))], { timeout: 55000 });
   const report = JSON.parse(stdout.trim()); assert.equal(report.status, 'passed');
-  assert.equal(report.checks.length, 11);
+  assert.equal(report.checks.length, 12);
   assert.ok(report.checks.includes('selected model reaches PI and loopback upstream'));
+  assert.ok(report.checks.includes('allowlisted model effort reaches loopback and binds replay'));
   assert.ok(report.checks.includes('unknown model denial and replay conflict'));
   assert.equal(report.productionData, false);
 });

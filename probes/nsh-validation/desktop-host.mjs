@@ -57,7 +57,8 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 };
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
       try { return await run({ ...options, task: { ...options.task, text: options.task.message },
-        provider: { ...provider, model: journals.get(options.task.id).modelId }, apiKey: fixture.apiKey, dataDir, imageGen: null,
+        provider: { ...provider, model: journals.get(options.task.id).modelId,
+          thinkingLevel: journals.get(options.task.id).reasoningEffort ?? 'off' }, apiKey: fixture.apiKey, dataDir, imageGen: null,
         permissions: { getMode: () => 'workspace-write' },
         sessionPolicy: { allowedTools: ['read', 'write', 'bash'] } }); }
       catch { throw new TaskFailure(options.signal.aborted ? 'cancelled' : 'internal'); }
@@ -98,19 +99,24 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           { const s = store.createConversation(p.projectId, p.title); return { session: { id: s.id, projectId: s.projectId, title: s.title } }; }
         case 'tasks.submit': {
           const explicit = p && Object.hasOwn(p, 'modelId');
-          exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : [])]);
+          const explicitEffort = p && Object.hasOwn(p, 'reasoningEffort');
+          exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : []), ...(explicitEffort ? ['reasoningEffort'] : [])]);
           session(p.projectId, p.sessionId);
           const modelId = explicit ? p.modelId : defaultModelId;
-          if (!desktopFixtureModels.some(m => m.id === modelId)) reject('invalid_request');
+          const model = desktopFixtureModels.find(m => m.id === modelId);
+          if (!model) reject('invalid_request');
+          if (explicitEffort && !model.reasoning?.levels.some(e => e.id === p.reasoningEffort)) reject('invalid_request');
+          const reasoningEffort = explicitEffort ? p.reasoningEffort : model.reasoning?.defaultId;
           if (!token(p.requestId) || typeof p.text !== 'string' || !p.text.trim() || Buffer.byteLength(p.text) > 4096 || p.text.includes('\x00')) reject('invalid_request');
           const key = `${p.sessionId}:${p.requestId}`, prior = requests.get(key);
           if (prior) {
-            if (prior.text !== p.text || journals.get(prior.id).modelId !== modelId) reject('conflict');
+            const admitted = journals.get(prior.id);
+            if (prior.text !== p.text || admitted.modelId !== modelId || admitted.reasoningEffort !== reasoningEffort) reject('conflict');
             return { task: taskView(store.getTask(prior.id)), replayed: true };
           }
           if (requests.size >= 32) reject('limit');
           const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: 600000,
-            onCreate: t => journals.set(t.id, { modelId, events: [], last: 0, floor: 0, bytes: 0 }) });
+            onCreate: t => journals.set(t.id, { modelId, reasoningEffort, events: [], last: 0, floor: 0, bytes: 0 }) });
           requests.set(key, { id: created.id, text: p.text });
           return { task: taskView(created), replayed: false };
         }

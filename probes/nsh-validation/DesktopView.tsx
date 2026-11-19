@@ -1,7 +1,9 @@
 import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
-import { Button, Input, Select, TextView } from 'nsh/base';
-import type { DesktopModel } from './desktop-contract';
+import { Button, Input, TextView } from 'nsh/base';
+import type { DesktopModelCatalog } from './desktop-contract';
+import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
+import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, toolCard } from './desktop-theme';
@@ -28,19 +30,6 @@ function SessionActivity(props: { id: string }) {
   </View>;
 }
 
-function modelCatalog(value: unknown): { options: DesktopModel[]; defaultId: string } {
-  const v = value as { options?: DesktopModel[]; defaultId?: string } | null;
-  const validText = (s: unknown) => typeof s === 'string' && s.length <= 80 && !!s.trim() && !/[\x00-\x1f\x7f]/.test(s);
-  if (!v || !Array.isArray(v.options) || !v.options.length || v.options.length > 16) throw Error('invalid_response');
-  const options = v.options.map(m => {
-    if (!m || typeof m.id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(m.id) || !validText(m.label)) throw Error('invalid_response');
-    return { id: m.id, label: m.label };
-  });
-  const ids = new Set(options.map(m => m.id));
-  if (ids.size !== options.length || !v.defaultId || !ids.has(v.defaultId)) throw Error('invalid_response');
-  return { options, defaultId: v.defaultId };
-}
-
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
   const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
@@ -49,19 +38,22 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
-  const models = signal<DesktopModel[]>([]), modelId = signal('');
+  const catalog = signal<DesktopModelCatalog | undefined>(undefined);
+  const choices = signal(new Map<string, ModelChoice>());
+  const scopeKey = (scope: { projectId: string; sessionId: string }) => JSON.stringify([scope.projectId, scope.sessionId]);
+  const modelChoice = (key: string) => {
+    const directory = catalog();
+    return choices().get(key) ?? (directory && defaultChoice(directory.options.find(m => m.id === directory.defaultId)!));
+  };
   const submitting = new Set<string>(), cancelling = new Set<string>();
   let disposed = false;
   const transport = props.call ?? desktopCall;
   const call: DesktopCall = async (method, params) => {
-    const id = modelId();
-    const result = await transport(method, method === 'tasks.submit' && id ? { ...params, modelId: id } : params);
+    const choice = method === 'tasks.submit' ? modelChoice(scopeKey(params as { projectId: string; sessionId: string })) : undefined;
+    const result = await transport(method, choice ? { ...params, ...choice } : params);
     if (method === 'projects.list' && !disposed) {
       const data = result as { models?: unknown } | null;
-      if (data?.models !== undefined) {
-        const catalog = modelCatalog(data.models);
-        models.set(catalog.options); modelId.set(catalog.defaultId);
-      }
+      catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
     }
     return result;
   };
@@ -89,7 +81,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     return !blocked() && !!current?.busy && !!current.task && !isTerminal(current.task.status) &&
       !current.stopping && !submitting.has(sessionId) && !cancelling.has(sessionId);
   };
-  const pickerDisabled = () => blocked() || busy() || !models().length;
+  const pickerDisabled = () => blocked() || busy() || !catalog();
+  const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
   function send() {
     if (disabled()) return;
     const text = draft(), sessionId = snapshot().sessionId;
@@ -103,7 +96,6 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     cancelling.add(sessionId);
     void controller.stop().finally(() => { cancelling.delete(sessionId); if (!disposed) refresh(); });
   }
-  const modelLabel = () => models().find(m => m.id === modelId())?.label ?? '模型不可选';
   const project = async (id: string) => { draft.set(''); await controller.selectProject(id); };
   const session = (id: string) => { draft.set(''); controller.selectSession(id); };
   const create = async () => { draft.set(''); await controller.createSession(); };
@@ -184,7 +176,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>
         </View>
       </View>}
-      <View testID="chat-column" style={{ flex: 1, minWidth: 0 }}>
+      <View testID="chat-column" onLayout={measured('chat-column')} style={{ flex: 1, minWidth: 0 }}>
         <TopTrim active={active()} />
         <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
         <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, paddingHorizontal: layout().inset, paddingTop: 4, gap: 2 }}>
@@ -237,18 +229,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
               <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
               <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 2, height: safe().composerActionHeight, flexShrink: 0 }}>
-                <Select testID="model-picker" onLayout={measured('model-picker')} accessibilityLabel="选择模型" placement="top" offset={6}
-                  style={{ flexShrink: 1, minWidth: 0, maxWidth: 220 }} items={models().map(m => ({ value: m.id, title: m.label }))}
-                  value={modelId() || null} disabled={pickerDisabled()}
-                  onChange={({ value }) => { if (value && !pickerDisabled() && models().some(m => m.id === value)) modelId.set(value); }}
-                  trigger={<Button testID="model-trigger" accessibilityLabel={`选择模型：${modelLabel()}`} disabled={pickerDisabled()} style={{ height: 32, minWidth: 0, paddingHorizontal: 10, gap: 6, borderRadius: 16, borderWidth: 1, borderColor: '#e1cfaa69', backgroundColor: '#ffffff1f', flexDirection: 'row', alignItems: 'center' }}>
-                    <Text testID="selected-model" class="line-clamp-1" style={{ flexShrink: 1, minWidth: 0, fontSize: 12, color: t.composerInk }}>{modelLabel()}</Text>
-                    {!!models().length && <Text style={{ fontSize: 12, color: t.goldSoft }}>▾</Text>}
-                  </Button>}
-                  popupStyle={{ padding: 4, borderRadius: 10, borderWidth: 1, borderColor: '#e1cfaa69', backgroundColor: t.composerBase }}
-                  itemClass="focus:bg-white/15 selected:bg-white/10" itemStyle={{ padding: 9, borderRadius: 6, color: t.composerInk, fontSize: 13 }}
-                  renderItem={item => <Text testID={`model-${item.value}`} style={{ color: t.composerInk, fontSize: 13 }}>{item.title}</Text>} />
                 <View style={{ flex: 1, minWidth: 0 }} />
+                <DesktopModelPicker scope={pickerScope()} models={catalog()?.options ?? []} choice={modelChoice(pickerScope())}
+                  disabled={pickerDisabled()} dark={dark()} art={artAvailable} onLayout={measured('model-picker')} onPopupLayout={measured('model-popup')}
+                  onChange={choice => { if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice)); }} />
                 <Button testID="primary-action" onLayout={measured('primary-action')} accessibilityLabel={busy() ? '停止生成' : '发送'} style={{ width: safe().composerActionHeight, height: safe().composerActionHeight, borderRadius: safe().composerActionHeight / 2, backgroundColor: t.accent, backgroundImage: t.sendGradient, borderWidth: 1, borderColor: '#e1cfaad1', boxShadow: '0 4px 12px #1a326c47', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }} disabled={busy() ? !canStop() : disabled()} disabledStyle={{ opacity: .48 }} onPress={() => busy() ? stop() : send()}><DesktopIcon name={busy() ? 'stop' : 'send'} color="#fffaf0" size={16} testID={busy() ? 'icon-stop' : 'icon-send'} /></Button>
               </View>
             </View>

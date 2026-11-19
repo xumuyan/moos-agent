@@ -56,7 +56,7 @@ try {
   assert.deepEqual(Object.keys(models).sort(), ['defaultId', 'options']);
   assert.equal(models.defaultId, 'fixture');
   assert.equal(models.options.length, 2);
-  assert.ok(models.options.every(m => Object.keys(m).sort().join(',') === 'id,label'));
+  assert.ok(models.options.every(m => Object.keys(m).every(k => ['id', 'label', 'group', 'reasoning'].includes(k))));
   const alternate = models.options.find(m => m.id !== models.defaultId).id;
   assert.equal(projects.length, 2); assert.equal(JSON.stringify(projects).includes('path'), false);
   const projectId = projects[0].id;
@@ -71,10 +71,19 @@ try {
   assert.equal(duplicate.task.id, created.task.id); assert.equal(duplicate.replayed, true);
   assert.equal((await call('tasks.submit', { ...params, modelId: alternate })).error.code, 'conflict');
   assert.equal((await call('tasks.submit', { ...params, modelId: 'unknown' })).error.code, 'invalid_request');
-  const selected = await ok('tasks.submit', { ...params, requestId: 'alternate', modelId: alternate });
+  const alternateParams = { ...params, requestId: 'alternate', modelId: alternate };
+  const selected = await ok('tasks.submit', { ...alternateParams, reasoningEffort: 'low' });
+  const selectedDefault = await ok('tasks.submit', { ...alternateParams, requestId: 'alternate-default' });
+  assert.equal((await ok('tasks.submit', { ...alternateParams, requestId: 'alternate-default', reasoningEffort: 'high' })).task.id, selectedDefault.task.id);
+  assert.equal((await call('tasks.submit', { ...alternateParams, reasoningEffort: 'high' })).error.code, 'conflict');
+  assert.equal((await call('tasks.submit', { ...alternateParams, reasoningEffort: 'max' })).error.code, 'invalid_request');
+  assert.equal((await call('tasks.submit', { ...params, reasoningEffort: 'low' })).error.code, 'invalid_request');
   const selectedDone = await poll(scope, selected.task.id);
   assert.equal(selectedDone.task.status, 'succeeded');
-  assert.match(selectedDone.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地备选夹具响应：你好/);
+  const defaultDone = await poll(scope, selectedDefault.task.id);
+  assert.equal(defaultDone.task.status, 'succeeded');
+  assert.match(defaultDone.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地备选夹具响应 \[high\]：你好/);
+  assert.match(selectedDone.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地备选夹具响应 \[low\]：你好/);
   assert.equal((await call('tasks.submit', { ...params, path: '/tmp' })).error.code, 'invalid_request');
   const written = await ok('tasks.submit', { ...scope, requestId: 'write', text: 'MOOS_FIXTURE_WRITE PIPE_OK' });
   const tools = await poll(scope, written.task.id); assert.equal(tools.task.status, 'succeeded');
@@ -98,7 +107,7 @@ try {
   passed = true;
   console.log(JSON.stringify({ status: 'passed', scope: 'N01-D1 private pipe child + real PI SDK + loopback local fixture',
     checks: ['trusted project IDs', 'session create/select', 'ordinary prompt', 'write/read tool events', 'idempotent duplicate',
-      'strict params', 'selected model reaches PI and loopback upstream', 'unknown model denial and replay conflict', 'cross-project denial', 'active cancellation', 'active EOF normal exit'],
+      'strict params', 'selected model reaches PI and loopback upstream', 'unknown model denial and replay conflict', 'allowlisted model effort reaches loopback and binds replay', 'cross-project denial', 'active cancellation', 'active EOF normal exit'],
     stderrBytes, nativeGUI: false, externalModel: false, productionData: false, deployed: false }));
 } finally {
   for (const pending of waiting.values()) clearTimeout(pending.timer);

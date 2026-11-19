@@ -10,11 +10,20 @@ def controls_evidence():
     return json.loads((PROBE / 'desktop-composer-controls-verification.json').read_text())
 
 
-def current_composer_input(test, path, previous):
-    evidence = controls_evidence()
+def picker_evidence():
+    return json.loads((PROBE / 'desktop-model-picker-verification.json').read_text())
+
+
+def successor_input(test, evidence, path, previous):
     if path not in evidence['previousInputs']:
         return previous
     digest = previous if isinstance(previous, str) else previous['sha256']
     test.assertEqual(evidence['previousInputs'][path], digest, path)
     current = evidence['inputs'][path]
     return current['sha256'] if isinstance(previous, str) else current
+
+
+def current_composer_input(test, path, previous):
+    for evidence in (controls_evidence(), picker_evidence()):
+        previous = successor_input(test, evidence, path, previous)
+    return previous

@@ -1,0 +1,1324 @@
+{
+  "base": "01c9b9bf3292c2fa99454380ae59bd9734079c1a",
+  "commitSubject": "fix(N01-D1/D3): match native model and reasoning picker hierarchy",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "c2f8fe38e32d2fa489f8d9af64f226dafe2c0e4aacf5d90f4eba115885cd218d",
+    "probes/nsh-validation/desktop-composer-check.tsx": "483ea72b0d9da2f811a0e40b81330f8d7cdbf953afecd0c46a1f19f7c399fcce",
+    "probes/nsh-validation/desktop-contract.ts": "43ec235b74941ced5b30ea4d8a5c6d05979ac0c3cdaa1fe989d46433f0ee9bce",
+    "probes/nsh-validation/desktop-host.mjs": "316c317717d9a229043efbbc67fc7a5749243da73bc266e42c79a6456f7b6183",
+    "probes/nsh-validation/desktop-host.test.mjs": "983854becd1e2428185ff91424bdd77aa096f4cbaecc9944d416eb83ca95dbaf",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "33fb413534c4b364523afef35a38e59d5d2dfdef106eaeaa357db2dde687e672",
+    "probes/nsh-validation/desktop-theme-fixture.ts": "a0ac9ad7c479af2f7dffa23a87fb40a11571c27a3b568231f5b0c1d6d8d4cc92",
+    "probes/nsh-validation/desktop-theme.test.tsx": "0ad360e695d9b8fbb38126e2e9bb6d82039e849e4ccf3774e828c7401e654e33",
+    "probes/nsh-validation/verify-desktop-host.mjs": "26abed836c4d592bd1c3186557922b52c1604661824c50fcec5e6c0b855af008",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "093b599d9dbf0743f768d19b03516ef772f88973ef06f7ed87688651d613990d"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopModelPicker.tsx": {
+      "bytes": 8114,
+      "sha256": "adb3a99454eea2c96c1f63dfac3fc58e80acaac89bcd202cdaa620eb45d57bb6"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 27922,
+      "sha256": "cb40e7048feac47c34a0506454a01b5bb6c4dc3dc3be36bdfbefaf4f1ce18aab"
+    },
+    "probes/nsh-validation/desktop-composer-check.tsx": {
+      "bytes": 9265,
+      "sha256": "b1adcde64863e38668b6915fa5b57516b25d83f5fd0a35461ab841acd189ee8e"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 4722,
+      "sha256": "8bd0e0f56d8a269154e3d6643f5f18e73d1eb846c0c4bf269b4174a4f25ede53"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 10899,
+      "sha256": "461777059aeebe39910e600eb0bf28c3c6cd8d6b6361359ec1d0986ac3846b89"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 21043,
+      "sha256": "4f413603c98cf6c73b9278678892dd8f00f8f07476ebcb86e468c58342a30da0"
+    },
+    "probes/nsh-validation/desktop-model-fixture.mjs": {
+      "bytes": 4783,
+      "sha256": "5ae664f270f24d802d801ce436e6edf713848e123ba23e15e69644c5acb50031"
+    },
+    "probes/nsh-validation/desktop-model-picker.ts": {
+      "bytes": 3418,
+      "sha256": "97f34a11d3e7675da1c3549b36c2dc263381139eb30adfe2073b788649d4035c"
+    },
+    "probes/nsh-validation/desktop-theme-fixture.ts": {
+      "bytes": 4419,
+      "sha256": "27fe10c9952eaa45cbd90eb06ff07bff8175b0e291373404f9516a5f43cab489"
+    },
+    "probes/nsh-validation/desktop-theme.test.tsx": {
+      "bytes": 12367,
+      "sha256": "db0943b13d063d3afff5980f0eb917754f4bc6c7f0d8463a241f47a7f7130531"
+    },
+    "probes/nsh-validation/verify-desktop-host.mjs": {
+      "bytes": 8174,
+      "sha256": "91172f1edab0d18b7b2e7d2b1031627fe7a05e6742036eae71254a052d1df809"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 12271,
+      "sha256": "5ba9fb03a105da521a0290bb2fa306a2a8fd4765be8c6ed65e3c8e2ed7c6daa9"
+    }
+  },
+  "added": [
+    "probes/nsh-validation/DesktopModelPicker.tsx",
+    "probes/nsh-validation/desktop-model-picker.ts"
+  ],
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-composer-controls-verification.json",
+    "bytes": 49072,
+    "sha256": "bb385b4691428e717e241f4e75028badff3066991c0f5156e4ec00c087fdbf2d"
+  },
+  "candidate": {
+    "synthetic": true,
+    "piExecuted": false,
+    "installed": false,
+    "worktree": "mixed pre-commit workspace",
+    "developmentHost": "NSH 0.5.0 AppKit macOS 27.0.1 arm64 1x",
+    "withArt": {
+      "run": "artifacts/nsh-validation/desktop-theme/run-RcTg0m",
+      "artwork": true,
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-RcTg0m/capture-inputs.json",
+        "bytes": 11399,
+        "sha256": "cbb1daa1c7238b62a1927a0c4da4f96e59cc53709cbe29e143470153d7a6e4a7"
+      },
+      "result": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-RcTg0m/result.json",
+        "bytes": 885,
+        "sha256": "6935048fb2ab1f632a65e7a90cde6a82c63a2ac99e99e54321409038a6bf89c7"
+      },
+      "images": [
+        {
+          "file": "composer-dark-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 758544,
+          "sha256": "c410abc2d67885395aaf4c1408909b027c317ef7b64079d27655738ecb5a4cc6"
+        },
+        {
+          "file": "composer-dark-narrow-effort.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 764240,
+          "sha256": "1335f95ed8198dbe7da11759270124c90a96258332c0b801e828ef823c446a74"
+        },
+        {
+          "file": "composer-dark-narrow-menu.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 768789,
+          "sha256": "bc6c639d79fcec3c72653e280c086fe17d2285e6812fb1107924e013f0846e83"
+        },
+        {
+          "file": "composer-dark-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 759988,
+          "sha256": "2c99095fdeaca04fac1ac3a2b1f8ea77efa3ba29511b10db351f64022f07f8d1"
+        },
+        {
+          "file": "composer-dark-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 766289,
+          "sha256": "34240689163130b0bfe6f50becde376b5564b2bc387a83db6e4972d45816f4a0"
+        },
+        {
+          "file": "composer-dark-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1445017,
+          "sha256": "330a4f049aee98afb2560ab2fed4990d598294203f387a72e18af2bcb4fb4d14"
+        },
+        {
+          "file": "composer-dark-wide-menu.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1455828,
+          "sha256": "1d57f2ae62e3d8d0464a8402ae3055907c4aed5bfdd77eb938faba0a5c933115"
+        },
+        {
+          "file": "composer-dark-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1483180,
+          "sha256": "8976a5441d2a6106cc8ecc1d8e341e960eb5f9e5850e16326ff610f1a5827cb6"
+        },
+        {
+          "file": "composer-light-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815685,
+          "sha256": "4b1ea5fd61221c08b35e0c6833113c52b7a086d1889cec9424d0431cec4e5411"
+        },
+        {
+          "file": "composer-light-narrow-effort.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 824990,
+          "sha256": "20ff1526d154d6519464ed0a6fb1b67a81d0af74aefd1c8250a8a371a2b3d4b9"
+        },
+        {
+          "file": "composer-light-narrow-menu.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 828892,
+          "sha256": "5c5fd24f221fcbb343e38ba9a9d0237c01c3d6195a857f1683f94eda039e2ba4"
+        },
+        {
+          "file": "composer-light-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 821805,
+          "sha256": "5bd1e1706fca6c7f9db5ce5065be67f3ce22dc923b31ab2704ff8d0cd0d64002"
+        },
+        {
+          "file": "composer-light-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 807900,
+          "sha256": "d0dba6f3749d3635d13087ad06f8fd168c7f3bd63b7006fd0f8d11c664bf8391"
+        },
+        {
+          "file": "composer-light-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1604349,
+          "sha256": "20fc8da7c964e6fbe21748be056bcc404ceb8e7dcc13cf945ae4ffef6e25ffd9"
+        },
+        {
+          "file": "composer-light-wide-menu.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1618767,
+          "sha256": "a457c49361be7f700b5fc7ea4fb52766f230ad1adf858343ad137200fd424def"
+        },
+        {
+          "file": "composer-light-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1614260,
+          "sha256": "0087c5062a30ac5a136c7a9916147a68c0c6203eda950c838a46df7b50780dfc"
+        }
+      ],
+      "geometry": [
+        {
+          "state": "light-wide-menu",
+          "viewport": [
+            1240,
+            820
+          ],
+          "rect": [
+            784,
+            534,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            875,
+            620
+          ]
+        },
+        {
+          "state": "light-narrow-menu",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            434,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        },
+        {
+          "state": "light-narrow-models",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            152,
+            240,
+            360
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        },
+        {
+          "state": "light-narrow-effort",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            434,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        },
+        {
+          "state": "dark-wide-menu",
+          "viewport": [
+            1240,
+            820
+          ],
+          "rect": [
+            784,
+            534,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            875,
+            620
+          ]
+        },
+        {
+          "state": "dark-narrow-menu",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            434,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        },
+        {
+          "state": "dark-narrow-models",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            152,
+            240,
+            360
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        },
+        {
+          "state": "dark-narrow-effort",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            324,
+            434,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            415,
+            520
+          ]
+        }
+      ],
+      "actionBounds": [
+        {
+          "name": "light-wide-idle",
+          "active": false,
+          "picker": [
+            434,
+            6,
+            146,
+            32
+          ],
+          "action": [
+            588,
+            0,
+            44,
+            44
+          ],
+          "bow": [
+            298,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "light-narrow-draft",
+          "active": false,
+          "picker": [
+            173,
+            6,
+            143,
+            32
+          ],
+          "action": [
+            324,
+            0,
+            44,
+            44
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "light-narrow-running",
+          "active": true,
+          "picker": [
+            179,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            330,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "light-narrow-drained",
+          "active": true,
+          "picker": [
+            179,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            330,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "light-wide-stopped",
+          "active": true,
+          "picker": [
+            443,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            594,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            298,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "dark-wide-idle",
+          "active": false,
+          "picker": [
+            434,
+            6,
+            146,
+            32
+          ],
+          "action": [
+            588,
+            0,
+            44,
+            44
+          ],
+          "bow": [
+            298,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "dark-narrow-draft",
+          "active": false,
+          "picker": [
+            173,
+            6,
+            143,
+            32
+          ],
+          "action": [
+            324,
+            0,
+            44,
+            44
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "dark-narrow-running",
+          "active": true,
+          "picker": [
+            179,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            330,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "dark-narrow-drained",
+          "active": true,
+          "picker": [
+            179,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            330,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            166,
+            0,
+            152,
+            72
+          ]
+        },
+        {
+          "name": "dark-wide-stopped",
+          "active": true,
+          "picker": [
+            443,
+            3,
+            143,
+            32
+          ],
+          "action": [
+            594,
+            0,
+            38,
+            38
+          ],
+          "bow": [
+            298,
+            0,
+            152,
+            72
+          ]
+        }
+      ]
+    },
+    "fallback": {
+      "run": "artifacts/nsh-validation/desktop-theme/run-UqNKX2",
+      "artwork": false,
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-UqNKX2/capture-inputs.json",
+        "bytes": 8583,
+        "sha256": "6645604c75f87a5fd3c952f75c31a8028c34a60292ddaf1c541d9246f7641ecc"
+      },
+      "result": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-UqNKX2/result.json",
+        "bytes": 886,
+        "sha256": "520e279a835b47070045f9bcb1f42982769bb1d00aec053dae064bdcbb4e9ecf"
+      },
+      "images": [
+        {
+          "file": "composer-dark-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 288731,
+          "sha256": "e0d77e1d30692bec06a703e2e1803381c692f9fe3863bf88eafb8f787d346c3c"
+        },
+        {
+          "file": "composer-dark-narrow-effort.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315690,
+          "sha256": "749f0da891df498338a13f6eb9778ffb63ba970de35b7c01288ce4f62144b248"
+        },
+        {
+          "file": "composer-dark-narrow-menu.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 320850,
+          "sha256": "3c59d2d20143fae879e370d685390eed0f356bdf407d2c6718c6ba299fc58f35"
+        },
+        {
+          "file": "composer-dark-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 403841,
+          "sha256": "1b63a996c288e90b4892b22ddd341eaf2e8e70a3c03a9262df53a6187a98efcc"
+        },
+        {
+          "file": "composer-dark-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 294269,
+          "sha256": "a9797a14e558fc7ce468faf98335751356fff77910c4860a3d512568aa5a75f8"
+        },
+        {
+          "file": "composer-dark-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 460837,
+          "sha256": "45a44c52816683fe281298d6f42389a1b24f451cb2cb14d22e8cd37d80313a9c"
+        },
+        {
+          "file": "composer-dark-wide-menu.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 494525,
+          "sha256": "cc6d3c9689e16677cc3711ea46278b64bd292352d40b489536e67f639103e929"
+        },
+        {
+          "file": "composer-dark-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 480420,
+          "sha256": "6b2664f12aae0ec4b052fa61797cc2f93d8f6206c659effbc495d4266911f297"
+        },
+        {
+          "file": "composer-light-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 314814,
+          "sha256": "70ec724df6a2c0e5f2ec3a90135dd36a535a9e399d5ab4c6675ec2e6ac5dce7e"
+        },
+        {
+          "file": "composer-light-narrow-effort.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 350767,
+          "sha256": "b3caa41dfcde1ab6d44cfae38ff095acf75d1afd066bfaeb16f51aef40c556f9"
+        },
+        {
+          "file": "composer-light-narrow-menu.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 355358,
+          "sha256": "5d7ae6534768181e699df20bef85f54e5f2a7fb82105d9a140a5473ddf70cd46"
+        },
+        {
+          "file": "composer-light-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 467243,
+          "sha256": "9c70c3b9e38661a4da432f69a0a95ffc565d2900174fd73a582a1f0f092943e1"
+        },
+        {
+          "file": "composer-light-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 329889,
+          "sha256": "3ee44558fb5b9aecfa2355c6aaad65f6da905fedf694db2b562cf15ff804011d"
+        },
+        {
+          "file": "composer-light-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 498027,
+          "sha256": "24796ea261c2ac0a145b5d523090c2aca6cd150fed259096096cb48028df13cb"
+        },
+        {
+          "file": "composer-light-wide-menu.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 541921,
+          "sha256": "d7d52d725f76c680c8ecddf44d038a50550f21a779bee57b56a4fe860ddf30d2"
+        },
+        {
+          "file": "composer-light-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 532377,
+          "sha256": "98e65392139a564f5a0cb9f35ccd7e97ffb6aa27269098891a54dd0d73514cc7"
+        }
+      ],
+      "geometry": [
+        {
+          "state": "light-wide-menu",
+          "viewport": [
+            1240,
+            820
+          ],
+          "rect": [
+            812,
+            604,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            900,
+            690
+          ]
+        },
+        {
+          "state": "light-narrow-menu",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            504,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        },
+        {
+          "state": "light-narrow-models",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            222,
+            240,
+            360
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        },
+        {
+          "state": "light-narrow-effort",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            504,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        },
+        {
+          "state": "dark-wide-menu",
+          "viewport": [
+            1240,
+            820
+          ],
+          "rect": [
+            812,
+            604,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            900,
+            690
+          ]
+        },
+        {
+          "state": "dark-narrow-menu",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            504,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        },
+        {
+          "state": "dark-narrow-models",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            222,
+            240,
+            360
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        },
+        {
+          "state": "dark-narrow-effort",
+          "viewport": [
+            680,
+            720
+          ],
+          "rect": [
+            352,
+            504,
+            240,
+            78
+          ],
+          "triggerOrigin": [
+            440,
+            590
+          ]
+        }
+      ],
+      "actionBounds": [
+        {
+          "name": "light-wide-idle",
+          "active": false,
+          "picker": [
+            487,
+            6,
+            149,
+            32
+          ],
+          "action": [
+            644,
+            0,
+            44,
+            44
+          ],
+          "bow": null
+        },
+        {
+          "name": "light-narrow-draft",
+          "active": false,
+          "picker": [
+            226,
+            6,
+            146,
+            32
+          ],
+          "action": [
+            380,
+            0,
+            44,
+            44
+          ],
+          "bow": null
+        },
+        {
+          "name": "light-narrow-running",
+          "active": true,
+          "picker": [
+            232,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            386,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        },
+        {
+          "name": "light-narrow-drained",
+          "active": true,
+          "picker": [
+            232,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            386,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        },
+        {
+          "name": "light-wide-stopped",
+          "active": true,
+          "picker": [
+            496,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            650,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        },
+        {
+          "name": "dark-wide-idle",
+          "active": false,
+          "picker": [
+            487,
+            6,
+            149,
+            32
+          ],
+          "action": [
+            644,
+            0,
+            44,
+            44
+          ],
+          "bow": null
+        },
+        {
+          "name": "dark-narrow-draft",
+          "active": false,
+          "picker": [
+            226,
+            6,
+            146,
+            32
+          ],
+          "action": [
+            380,
+            0,
+            44,
+            44
+          ],
+          "bow": null
+        },
+        {
+          "name": "dark-narrow-running",
+          "active": true,
+          "picker": [
+            232,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            386,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        },
+        {
+          "name": "dark-narrow-drained",
+          "active": true,
+          "picker": [
+            232,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            386,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        },
+        {
+          "name": "dark-wide-stopped",
+          "active": true,
+          "picker": [
+            496,
+            3,
+            146,
+            32
+          ],
+          "action": [
+            650,
+            0,
+            38,
+            38
+          ],
+          "bow": null
+        }
+      ]
+    }
+  },
+  "host": {
+    "status": "passed",
+    "scope": "N01-D1 private pipe child + real PI SDK + loopback local fixture",
+    "checks": [
+      "trusted project IDs",
+      "session create/select",
+      "ordinary prompt",
+      "write/read tool events",
+      "idempotent duplicate",
+      "strict params",
+      "selected model reaches PI and loopback upstream",
+      "unknown model denial and replay conflict",
+      "allowlisted model effort reaches loopback and binds replay",
+      "cross-project denial",
+      "active cancellation",
+      "active EOF normal exit"
+    ],
+    "stderrBytes": 169,
+    "nativeGUI": false,
+    "externalModel": false,
+    "productionData": false,
+    "deployed": false
+  },
+  "regressions": {
+    "host": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/host.log",
+        "bytes": 4039,
+        "sha256": "b0ad83b32d35212ab79d8f19b772da6608c31e8b4d37419abf393561af354cac"
+      },
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "headless": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/headless.log",
+        "bytes": 32704,
+        "sha256": "989674723c8780f6d5ed0527c1e9e8c38b6355ea065206b469025bef2f9fcfb0"
+      },
+      "passed": 20,
+      "failed": 0
+    },
+    "private-pipe": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/private-pipe.log",
+        "bytes": 556,
+        "sha256": "13205d2386d73f7b9a0be8426c0c2d01b5f8894195739581b08c8a11e2defa49"
+      }
+    },
+    "composer-art": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/composer-art.log",
+        "bytes": 41331,
+        "sha256": "197b5d881d3f0657fa983cf42d9c735a4a5333046569dc70dbfef794d5c8f383"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "composer-fallback": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/composer-fallback.log",
+        "bytes": 39787,
+        "sha256": "d53a561888abddc37f3ae32f504566c47e958dfb13d21dc00d9df8b79da1a9bd"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "native": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/native.log",
+        "bytes": 106898,
+        "sha256": "96faeeb822a7b24144925f4dd35a828b05ff33d4d29802d642985e25d7f7b162"
+      },
+      "passed": 9,
+      "failed": 0
+    },
+    "rich": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/rich.log",
+        "bytes": 18322,
+        "sha256": "7e61e43e56c7dd2008f7cce12cd6cd0e8182d3e771a01860700b3954c9da6861"
+      },
+      "passed": 6,
+      "failed": 0
+    },
+    "evidence": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/evidence.log",
+        "bytes": 11065,
+        "sha256": "76e4b6b6edd136cb62038ebf215a68ca791d0d2a8e1a8397ea1c4138f1495e0e"
+      },
+      "passed": 3,
+      "failed": 0
+    },
+    "core": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/core.log",
+        "bytes": 86004,
+        "sha256": "300a59224137e9aa9e1da7023beb76803f6d6d31b2ff1befd3c80bedb0f28227"
+      },
+      "pass": 365,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "live-sidebar": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/live-sidebar.log",
+        "bytes": 17858,
+        "sha256": "fab78d82ba6ee94702172cde4de42084a04eaf2b73b8a7f9384b2a0a1884c8b3"
+      },
+      "passed": 3,
+      "failed": 0
+    },
+    "electron": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/electron.log",
+        "bytes": 41369,
+        "sha256": "02cc1548aaf076ee2237ebf8ed47e29f05e1e0db6ebf8f6b916002008576d423"
+      },
+      "pass": 133,
+      "fail": 0,
+      "skipped": 10,
+      "cancelled": 0
+    },
+    "rust": {
+      "exit": 101,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/rust.log",
+        "bytes": 799,
+        "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc"
+      },
+      "blocker": "offline defmt unavailable"
+    },
+    "typography": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/typography.log",
+        "bytes": 1816,
+        "sha256": "a7efa9937f63c90a30411ad51a7165da5d981bb2cc0ba4457650961c269f5518"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "window-chrome": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/window-chrome.log",
+        "bytes": 6520,
+        "sha256": "59be02efa8419cb3f1eca5648bba98e48b1edd2ce740cea3e4e39a914d58ef2f"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "chat-cards": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/chat-cards.log",
+        "bytes": 1219,
+        "sha256": "e6d8edc17027abc76ac99f6b04276597927cb02573b125aca20fd54a61e60397"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "icons": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/icons.log",
+        "bytes": 15995,
+        "sha256": "b9d077753bd8b168c39ecb702f1045c55e6af40bf72c39d43a5af6858019b936"
+      },
+      "passed": 2,
+      "failed": 0
+    },
+    "sidebar-activity": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/model-picker/sidebar-activity.log",
+        "bytes": 576,
+        "sha256": "ba56d0ef240f179bb888a40abce61cd06eb412d1390e4cc1ac8b4e8d5c72d2c6"
+      },
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "retainedAttempts": {
+    "fallback-initial": {
+      "path": "artifacts/nsh-validation/model-picker/fallback-initial.log",
+      "bytes": 16693,
+      "sha256": "063df19cdfa19de8a940fb97722c7253ff22a818fb26b541f144ae357d9715fc"
+    },
+    "fallback-stable": {
+      "path": "artifacts/nsh-validation/model-picker/fallback-stable.log",
+      "bytes": 16695,
+      "sha256": "f89275d2806c00ab02d41b93758c9e6ce22eb2aeec06167879220945f78573a0"
+    },
+    "query-diagnostic": {
+      "path": "artifacts/nsh-validation/model-picker/query-diagnostic.log",
+      "bytes": 16715,
+      "sha256": "716f4056b1b433c5b68f714cb3cea7f84413613004b7e788587f3dd1484f66b4"
+    },
+    "keyboard": {
+      "path": "artifacts/nsh-validation/model-picker/keyboard.log",
+      "bytes": 37667,
+      "sha256": "b00bf00022250628933214ad147a3505ab9c5b08e8d3b54cae223fb92010276e"
+    },
+    "fallback-geometry": {
+      "path": "artifacts/nsh-validation/model-picker/fallback-geometry.log",
+      "bytes": 16766,
+      "sha256": "1f38df7a8c97a03e3a677e9223279f208ee709c84fea5ddb4061e16f2f846926"
+    },
+    "fallback-geometry-2": {
+      "path": "artifacts/nsh-validation/model-picker/fallback-geometry-2.log",
+      "bytes": 39787,
+      "sha256": "b020a66e75602eec088e91fcf699a370ef28a6f5afca14688bcb09b3e8201a81"
+    }
+  },
+  "acceptance": {
+    "manualGUI": false,
+    "fullKeyboardParity": false,
+    "ime": false,
+    "retina": false,
+    "userVisualApproval": false,
+    "realPIWithGUI": false,
+    "externalModel": false,
+    "cleanSignedPackage": false,
+    "resourceComparison": false,
+    "allRegressionsGreen": false,
+    "deployed": false
+  }
+}
