@@ -45,16 +45,24 @@ await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View
 ${chrome ? "import { currentWindow } from 'nsh/desktop';" : ''}
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
-const h = fixture(${cards || icons ? '{ chatCards: true }' : ''}); const measured = signal<Record<string, any>>({});
+const h = fixture(${composer ? '{ composer: true }' : cards || icons ? '{ chatCards: true }' : ''}); const measured = signal<Record<string, any>>({});
 mount(() => {
+${composer ? '  const calls = signal(h.diagnostics());' : ''}
 ${chrome ? `  const window = currentWindow();
   const closeReason = signal('');
   // Keep the test driver alive after the last-window close request. Never set this in DesktopView.
   window.set({closeOnPress: false});
   window.on('closePress', e => closeReason.set(e.reason));` : ''}
-  return <View style={{flex:1}}><DesktopView call={async (method, params) => (h as any)[method](params).result}
+  return <View style={{flex:1}}><DesktopView call={async (method, params) => {
+    ${composer ? `if (method === 'tasks.submit' || method === 'tasks.cancel' ||
+      (method === 'tasks.events' && (params as { cursor?: string }).cursor?.endsWith(':4'))) await new Promise(r => setTimeout(r, 700));` : ''}
+    const result = (h as any)[method](params).result;
+    ${composer ? `calls.set(h.diagnostics());` : ''}
+    return result;
+   }}
    onGeometry={(name, bounds) => { if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds}); }} />
   <Text testID="geometry-readout" style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'STYLE_GEOMETRY ' + JSON.stringify(measured())}</Text>
+  ${composer ? `<Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'COMPOSER_CALLS ' + JSON.stringify(calls())}</Text>` : ''}
   ${chrome ? `<Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'WINDOW_CHROME ' + JSON.stringify(window.titleBar())}</Text>
   <Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'CHROME_CLOSE ' + closeReason()}</Text>` : ''}</View>;
 });

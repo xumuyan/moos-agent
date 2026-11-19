@@ -11,43 +11,66 @@ test('theme geometry keeps reference dimensions and collapses narrow panels', ()
 test('theme three columns, tool error, stop, project and session isolation', async () => {
   const app = await open('./DesktopApp.tsx', { width: 1240, height: 820, host: { handlers: fixture() } });
   await app.waitFor('text:项目 主题验证 A');
-  expect(app.enabled('id:send')).toBe(false); expect(app.enabled('id:stop')).toBe(false);
+  expect(app.enabled('id:primary-action')).toBe(false); expect(app.shows('id:icon-stop')).toBe(false);
   expect(app.shows('id:details-panel')).toBe(false);
   await app.press('id:toggle-details'); await app.waitFor('id:details-panel');
-  await app.type('id:prompt', '测试真实发送入口'); await app.press('id:send');
-  await app.waitFor('text:读取 · 失败'); expect(app.enabled('id:send')).toBe(false);
+  await app.type('id:prompt', '测试真实发送入口'); await app.press('id:primary-action');
+  await app.waitFor('text:读取 · 失败'); expect(app.shows('id:icon-send')).toBe(false);
   await app.press('id:session-第二会话'); await app.waitFor('id:empty-state');
   expect(app.shows('text:读取 · 失败')).toBe(false);
   await app.press('id:session-独立会话'); await app.waitFor('text:读取 · 失败');
-  await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
-  expect(app.enabled('id:stop')).toBe(false);
+  await app.press('id:primary-action'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
+  expect(app.shows('id:icon-stop')).toBe(false);
   await app.press('id:project-主题验证 B'); await app.waitFor('text:项目 主题验证 B');
   expect(app.shows('text:读取 · 失败')).toBe(false);
   expect(app.host.calls().filter(c => c.name === 'tasks.submit')).toHaveLength(1);
+});
+test('legacy Host without catalog can submit without a model ID', async () => {
+  const handlers = { ...fixture(), 'projects.list': () => ({ version: 1, id: 'legacy', ok: true,
+    result: { projects: [{ id: 'a', name: '旧版 Host' }] } }) };
+  const app = await open('./DesktopApp.tsx', { host: { handlers } });
+  await app.waitFor('text:项目 旧版 Host');
+  expect(app.shows('text:模型不可选')).toBe(true);
+  expect(app.enabled('id:model-trigger')).toBe(false);
+  await app.type('id:prompt', '旧版提交'); await app.press('id:primary-action');
+  await app.waitFor('text:读取 · 失败');
+  const submit = app.host.calls().filter(c => c.name === 'tasks.submit');
+  expect(submit).toHaveLength(1);
+  expect(Object.hasOwn(submit[0].data as object, 'modelId')).toBe(false);
+});
+test('invalid catalog fails closed and cannot submit', async () => {
+  const handlers = { ...fixture(), 'projects.list': () => ({ version: 1, id: 'invalid', ok: true,
+    result: { projects: [{ id: 'a', name: '测试' }], models: { defaultId: 'unknown', options: [{ id: 'fixture', label: '标准' }] } } }) };
+  const app = await open('./DesktopApp.tsx', { host: { handlers } });
+  await app.waitUntil(() => app.texts().some(t => t.includes('invalid_response')));
+  await app.type('id:prompt', '不可提交'); await app.submit('id:prompt');
+  expect(app.enabled('id:model-trigger')).toBe(false);
+  expect(app.enabled('id:primary-action')).toBe(false);
+  expect(app.host.calls().filter(c => c.name === 'tasks.submit')).toHaveLength(0);
 });
 test('theme narrow navigation, errors and no false completion', async () => {
   const app = await open('./DesktopApp.tsx', { width: 680, height: 720, host: { handlers: fixture({ error: true }) } });
   await app.waitFor('text:项目 主题验证 A');
   expect(app.enabled('id:toggle-details')).toBe(false);
   await app.press('id:toggle-navigation'); expect(app.shows('id:sidebar')).toBe(false);
-  await app.type('id:prompt', '错误态'); await app.press('id:send');
+  await app.type('id:prompt', '错误态'); await app.press('id:primary-action');
   await app.waitUntil(() => app.texts().some(t => t.includes('desktop_unavailable')));
-  expect(app.enabled('id:send')).toBe(false); expect(app.texts().join(' ').includes('private-secret')).toBe(false);
+  expect(app.enabled('id:primary-action')).toBe(false); expect(app.texts().join(' ').includes('private-secret')).toBe(false);
   await app.type('id:prompt', '不能通过Return重放'); await app.keyboard.press('Enter');
   expect(app.host.calls().filter(c => c.name === 'tasks.submit')).toHaveLength(1);
 });
 test('theme 1000 public tool rows remain virtualized while polling and stopping', async () => {
   const app = await open('./DesktopApp.tsx', { width: 1240, height: 820, host: { handlers: fixture({ long: true }) } });
-  await app.waitFor('text:项目 主题验证 A'); await app.type('id:prompt', 'long'); await app.press('id:send');
+  await app.waitFor('text:项目 主题验证 A'); await app.type('id:prompt', 'long'); await app.press('id:primary-action');
   await app.waitUntil(() => app.texts().some(t => t.includes('1000 事件')));
   expect(app.count('id:message')).toBeGreaterThan(0); expect(app.count('id:message')).toBeLessThan(100);
   await app.scroll('id:messages', -1200); expect(app.count('id:message')).toBeLessThan(100);
-  await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
+  await app.press('id:primary-action'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
 });
 test('theme no projects leaves a genuine empty disabled composer', async () => {
   const app = await open('./DesktopApp.tsx', { host: { handlers: fixture({ empty: true }) } });
   await app.waitFor('id:empty-state'); await app.type('id:prompt', 'empty');
-  expect(app.enabled('id:send')).toBe(false); expect(app.enabled('id:create-session')).toBe(false);
+  expect(app.enabled('id:primary-action')).toBe(false); expect(app.enabled('id:create-session')).toBe(false);
 });
 test('skin-only fallback is honest, unavailable entries disabled, controls preserve action contract', async () => {
   const app = await open('./DesktopApp.tsx', { width: 1240, height: 820, host: { handlers: fixture() } });
@@ -59,14 +82,14 @@ test('skin-only fallback is honest, unavailable entries disabled, controls prese
   expect(app.shows('id:bottom-trim')).toBe(true);
   await app.press('id:create-session'); await app.waitFor('text:新会话 3');
   expect(app.host.calls().filter(c => c.name === 'sessions.create')).toHaveLength(1);
-  await app.type('id:prompt', '真实入口'); await app.press('id:send');
+  await app.type('id:prompt', '真实入口'); await app.press('id:primary-action');
   await app.waitFor('text:读取 · 失败');
   expect(app.shows('id:bottom-trim')).toBe(false);
 });
 test('dark system appearance preserves composer contrast and real disabled state', async () => {
   const app = await open('./DesktopApp.tsx', { width: 1240, height: 820, colorScheme: 'dark', host: { handlers: fixture() } });
   await app.waitFor('text:项目 主题验证 A');
-  expect(app.shows('id:composer')).toBe(true); expect(app.enabled('id:send')).toBe(false);
+  expect(app.shows('id:composer')).toBe(true); expect(app.enabled('id:primary-action')).toBe(false);
   expect(app.spanStyle('text:从一个真实任务开始').color).toBe('#e5eaf6ff');
 });
 
@@ -103,8 +126,8 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
     const height = width === 1240 ? 820 : 720;
     const app = await open('./ThemeGeometry.tsx', { width, height, colorScheme: scheme });
     await app.waitFor('text:项目 主题验证 A'); await assertStyleBounds(app, false, height);
-    await app.type('id:prompt', '短文'); await app.press('id:send');
+    await app.type('id:prompt', '短文'); await app.press('id:primary-action');
     await app.waitFor('text:读取 · 失败'); await assertStyleBounds(app, true, height);
-    await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
+    await app.press('id:primary-action'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   });
 }

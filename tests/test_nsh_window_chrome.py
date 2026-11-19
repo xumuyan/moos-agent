@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -42,6 +44,7 @@ class DesktopWindowChromeTests(unittest.TestCase):
             if name in composer['previousInputs']:
                 self.assertEqual(composer['previousInputs'][name], record['sha256'])
                 record = composer['inputs'][name]
+            record = current_composer_input(self, name, record)
             data = (ROOT / name).read_bytes()
             self.assertEqual(record['bytes'], len(data), name)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), name)

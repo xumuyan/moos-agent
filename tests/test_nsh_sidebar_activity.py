@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -28,6 +30,7 @@ class SidebarActivityTests(unittest.TestCase):
             if path in composer['previousInputs']:
                 self.assertEqual(composer['previousInputs'][path], record['sha256'])
                 record = composer['inputs'][path]
+            record = current_composer_input(self, path, record)
             data = (ROOT / path).read_bytes()
             self.assertEqual(record['bytes'], len(data), path)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), path)

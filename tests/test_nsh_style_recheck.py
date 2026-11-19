@@ -2,6 +2,8 @@
 import hashlib
 import json
 import unittest
+
+from nsh_composer_provenance import current_composer_input
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,6 +81,7 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
             if path in composer['previousInputs']:
                 self.assertEqual(composer['previousInputs'][path], expected)
                 expected = composer['inputs'][path]['sha256']
+            expected = current_composer_input(self, path, expected)
             self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
         # Do not require another owner's untracked files in a clean checkout.
         self.assertIn('probes/nsh-validation/DesktopUIHost.swift', m['protectedFiles'])

@@ -52,7 +52,12 @@ async function started(scope, taskId) {
 }
 let passed = false;
 try {
-  const projects = (await ok('projects.list')).projects;
+  const { projects, models } = await ok('projects.list');
+  assert.deepEqual(Object.keys(models).sort(), ['defaultId', 'options']);
+  assert.equal(models.defaultId, 'fixture');
+  assert.equal(models.options.length, 2);
+  assert.ok(models.options.every(m => Object.keys(m).sort().join(',') === 'id,label'));
+  const alternate = models.options.find(m => m.id !== models.defaultId).id;
   assert.equal(projects.length, 2); assert.equal(JSON.stringify(projects).includes('path'), false);
   const projectId = projects[0].id;
   const sessionId = (await ok('sessions.create', { projectId, title: '独立管道验收' })).session.id;
@@ -62,7 +67,14 @@ try {
   const done = await poll(scope, created.task.id);
   assert.equal(done.task.status, 'succeeded');
   assert.match(done.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地夹具响应：你好/);
-  const duplicate = await ok('tasks.submit', params); assert.equal(duplicate.task.id, created.task.id); assert.equal(duplicate.replayed, true);
+  const duplicate = await ok('tasks.submit', { ...params, modelId: models.defaultId });
+  assert.equal(duplicate.task.id, created.task.id); assert.equal(duplicate.replayed, true);
+  assert.equal((await call('tasks.submit', { ...params, modelId: alternate })).error.code, 'conflict');
+  assert.equal((await call('tasks.submit', { ...params, modelId: 'unknown' })).error.code, 'invalid_request');
+  const selected = await ok('tasks.submit', { ...params, requestId: 'alternate', modelId: alternate });
+  const selectedDone = await poll(scope, selected.task.id);
+  assert.equal(selectedDone.task.status, 'succeeded');
+  assert.match(selectedDone.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地备选夹具响应：你好/);
   assert.equal((await call('tasks.submit', { ...params, path: '/tmp' })).error.code, 'invalid_request');
   const written = await ok('tasks.submit', { ...scope, requestId: 'write', text: 'MOOS_FIXTURE_WRITE PIPE_OK' });
   const tools = await poll(scope, written.task.id); assert.equal(tools.task.status, 'succeeded');
@@ -86,7 +98,7 @@ try {
   passed = true;
   console.log(JSON.stringify({ status: 'passed', scope: 'N01-D1 private pipe child + real PI SDK + loopback local fixture',
     checks: ['trusted project IDs', 'session create/select', 'ordinary prompt', 'write/read tool events', 'idempotent duplicate',
-      'strict params', 'cross-project denial', 'active cancellation', 'active EOF normal exit'],
+      'strict params', 'selected model reaches PI and loopback upstream', 'unknown model denial and replay conflict', 'cross-project denial', 'active cancellation', 'active EOF normal exit'],
     stderrBytes, nativeGUI: false, externalModel: false, productionData: false, deployed: false }));
 } finally {
   for (const pending of waiting.values()) clearTimeout(pending.timer);

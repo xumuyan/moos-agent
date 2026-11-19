@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 import unittest
+
+from nsh_composer_provenance import current_composer_input
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,18 +63,22 @@ class NSHStyleAuditTests(unittest.TestCase):
         for name, record in self.audit['protected'].items():
             if name in untracked or name in authorized:
                 continue  # Never require/adopt another owner's untracked inputs.
+            record = current_composer_input(self, name, record)
             data = (ROOT / name).read_bytes()
             self.assertEqual(len(data), record['bytes'], name)
             self.assertEqual(hashlib.sha256(data).hexdigest(), record['sha256'], name)
         view = (NSH / 'DesktopView.tsx').read_text()
         layers = (NSH / 'desktop-theme-layers.tsx').read_text()
-        baseline_ids = ('desktop-root sidebar sidebar-brand create-session search-unavailable projects selection sessions sidebar-footer settings-unavailable chat-column chat-header toggle-navigation toggle-details status error empty-state messages message composer composer-frame prompt stop send art-status details-panel skin-layers palace-background wallpaper-scrim character-left character-right top-trim bottom-trim').split()
+        baseline_ids = ('desktop-root sidebar sidebar-brand create-session search-unavailable projects selection sessions sidebar-footer settings-unavailable chat-column chat-header toggle-navigation toggle-details status error empty-state messages message composer composer-frame prompt primary-action model-picker art-status details-panel skin-layers palace-background wallpaper-scrim character-left character-right top-trim bottom-trim').split()
         # Workspace actions now share a renderer; preserve the generated search ID.
         self.assertIn("{ id: 'search', icon: 'search', label: '搜索' }", view)
         self.assertIn('testID={`${id}-unavailable`}', view)
         for token in baseline_ids:
             if token != 'search-unavailable':
                 self.assertIn('testID="' + token + '"', view + layers)
+        self.assertIn("testID={busy() ? 'icon-stop' : 'icon-send'}", view)
+        self.assertNotIn('testID="stop"', view)
+        self.assertNotIn('testID="send"', view)
         contract = (NSH / 'desktop-contract.ts').read_text()
         methods = re.findall(r"^  '([^']+)': \{ params:", contract, re.M)
         self.assertEqual(len(methods), 6)

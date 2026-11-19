@@ -6,6 +6,8 @@ export type TaskRef = Scope & { taskId: string };
 export type TaskStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted';
 export type Task = Scope & { id: string; status: TaskStatus; errorCode: string | null };
 export type Project = { id: string; name: string };
+export type DesktopModel = { id: string; label: string };
+export type DesktopModelCatalog = { options: DesktopModel[]; defaultId: string };
 export type Session = { id: string; projectId: string; title: string };
 export type PublicEvent = { sequence: number } & (
   { type: 'text_delta'; payload: { delta: string; truncated: boolean } } |
@@ -14,10 +16,10 @@ export type PublicEvent = { sequence: number } & (
   { type: 'tool_end'; payload: { toolCallId: string; toolName: string; isError: boolean } }
 );
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[] } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
-  'tasks.submit': { params: Scope & { requestId: string; text: string }; result: { task: Task; replayed: boolean } };
+  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string }; result: { task: Task; replayed: boolean } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
     task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean;
@@ -38,10 +40,11 @@ export type Response<M extends Method> = { version: 1; id: string | null } & (
  *   One write at a time, 5s blocked-write deadline. Malformed JSON/UTF-8 yields invalid_request.
  *   Oversize/truncated frames, broken output, signals and EOF close the isolated Host.
  * - IDs are per-call correlation only, not capabilities. Validate both project/session and task
- *   on EVERY call. Scope IDs originate from this Host; paths/commands/models/credentials are
- *   not fields in this interface. User text is a PI prompt, not an OS sandbox guarantee.
+ *   on EVERY scoped call. Scope IDs originate from this Host; paths/commands/credentials are not
+ *   fields in this interface. The optional modelId must match the Host's public catalog; absence
+ *   uses its default. User text is a PI prompt, not an OS sandbox guarantee.
  * - requestId is scoped to session, at most 32 unique submissions per Host lifetime. Same text
- *   replays the current task, different text conflicts. No restart persistence/replay guarantee.
+ *   and effective model replay the current task; differing values conflict. No restart replay.
  * - <=16 sessions/project; submit text <=4096 UTF-8 bytes. Events limit 1..100 and <=64KiB/page;
  *   retention <=4096 events and <=1MiB/task. cursor_expired is a gap, never silently skip it.
  * - text_delta is public model output (not reasoning), <=4096 UTF-16 units with truncated flag;

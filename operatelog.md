@@ -3036,3 +3036,15 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): preserve native composer bow and control clearances`；查询 `git log --all --oneline --grep='preserve native composer bow and control clearances'`。
 
 本轮收尾（证据对应提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 65/65；全量 `discover -s tests -v` 211/212，唯一失败为 `test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 缺 `report.json`）。原始回执保留，不伪造报告。七份保护输入 SHA-256 不变；仍不推送或部署。
+
+## 2026-11-19 18:49:40 +08:00｜N01-D1/D3 模型选择与共享发送／停止（候选源码检查点）
+
+- 修改或新增内容：从 bcd91a3 改回用户要求的左侧模型选择、右侧唯一发送／停止生成；不改背景、人物或窗饰。保留六方法，新增可选夹具目录和 allowlist ID，提交入队绑定模型；同文本同有效 ID 幂等，未知 ID 拒绝，换 ID 冲突。旧 Host 缺目录可以不带 ID 提交，畸形目录拒绝。无正式配置、凭据、外部端点或持久化变更。七份 owner 输入原字节保持，不暂存、不收编。
+- 遇到的难题：首轮 run-dmbf4p 0/2（触发器不可按）；增加阶段验证后无艺术首轮 1/2（停止后立即读到启用态）。首轮 Host 验收扩大到 11 项但外层仍断言 9，核心 364 过 1 败；首轮文档 198/212，历史来源校验未连新版本及 E124 缺报告。侧栏活动往返仍超时，见下。
+- 处理方式：模型触发器改原生 Button，按可观察状态验证停止后不可再按，不降低终态与事件排空断言。分开测试应答、终态未排空与第 5 事件排空；入队绑定用同项目串行任务覆盖，保留实跑失败和历史清单，文档校验追加新输入 SHA。带艺术仅在授权本机隔离工作区捕获，无 hooks、无艺术入 Git、无新增正式窗口截图。
+- 验证结果：macOS 27.0.1 arm64 / Node 22.22.0 / NSH 0.5.0，独立 0700 临时目录，Node/Electron 回归 umask 022。`node probes/nsh-validation/verify-desktop-theme.mjs --composer` 带授权素材 run-l8kUc7 / 无艺术 run-Bn5k2r 各 2/2、各 10 帧，明暗宽窄 1×；分别用按钮／回车发送；选中的备选 ID 传至夹具、一次发送一次取消、排空才恢复发送并保留下一条草稿。已查看浅色窄窗菜单和暗色窄窗运行画面，非用户签收。`node probes/nsh-validation/verify-desktop-host.mjs` 私有管道真实 PI＋回环 11 项，通过文件/工具、取消和选中模型，非 UI 端到端。`node --test probes/nsh-validation/desktop-host.test.mjs` 末 14/14；`node probes/nsh-validation/verify-desktop-native.mjs` Foundation 63 项 / Catalyst good 41、denied 6、timeout 5 / 自身退出探针通过，未安装。证据见 `probes/nsh-validation/desktop-composer-controls-verification.json`、`DESKTOP-COMPOSER-CONTROLS.md` 及 `artifacts/nsh-validation/composer-controls/`，对应提交前混合工作区，非干净检出。
+- 回归结果：同上 runner 不带艺术 headless 17/17（含缺目录和畸形目录）；带艺术 --native 9/9、--rich 6/6、--evidence 3/3、--live-sidebar 3/3、--typography 2/2、--window-chrome 2/2、--chat-cards 2/2、--icons 2/2；--sidebar-activity 0/2（run-Nd6PNQ，明暗均等待“读取 · 失败”超时 5000ms）。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 末 365/365（191620ms，0 跳过/取消），`npm run test:electron` 133 过 10 跳；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101，缺 defmt，未下载。文档结果见收尾。无新增团队快照或 Electron 构建；本次 NSH 捕获仍不足 24h，保留活跃证据和现有两份 Electron 构建。
+- 遗留问题：侧栏活动失败需独立定位，E124 需真实隔离重验，Rust 需获准离线依赖，仍缺隔离 DSH 前置和 owner 装箱确认。人工 GUI/IME/2×、用户核对、真实 PI 整合、历史和恢复、干净签名整包及同负载全进程测量未验。D1/D2/D3 不勾；本轮留本地检查点，不推送、未构建/安装/重启/部署正式沐码，不动正式用户数据、不恢复手机。
+- 对应 Git 提交：唯一说明 `fix(N01-D1/D3): select fixture model and unify composer actions`；查询 `git log --all --oneline --grep='select fixture model and unify composer actions'`。
+
+本轮收尾（证据对应提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 68/68；全量 `discover -s tests -v` 214/215，唯一失败仍为 `test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 缺 `report.json`）。首轮及最终回执保留在本轮证据目录，不造替代报告。最终工作区差异、七个保护文件 SHA、未跟踪和未暂存状态在提交前复核。

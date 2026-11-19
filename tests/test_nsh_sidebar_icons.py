@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -27,6 +29,7 @@ class SidebarIconTests(unittest.TestCase):
             if path in composer['previousInputs']:
                 self.assertEqual(composer['previousInputs'][path], entry['sha256'], path)
                 entry = composer['inputs'][path]
+            entry = current_composer_input(self, path, entry)
             data = (ROOT / path).read_bytes()
             self.assertEqual(entry, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
         notice = (PROBE / 'DSH-ICONS-LICENSE.txt').read_text()

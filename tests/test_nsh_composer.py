@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -27,6 +29,7 @@ class ComposerEvidenceTests(unittest.TestCase):
         self.assertTrue(composer['inputs'].keys().isdisjoint(composer['protected']))
         self.assertEqual(len(composer['inputs']), 7)
         for path, expected in composer['inputs'].items():
+            expected = current_composer_input(self, path, expected)
             data = (ROOT / path).read_bytes()
             self.assertEqual(expected, {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}, path)
 

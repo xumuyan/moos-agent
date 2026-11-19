@@ -8,10 +8,10 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.waitFor('text:Maid Atelier · 合成会话');
     await app.screenshot(`type-${scheme}-wide-idle.png`);
     await app.type('id:prompt', '中文输入 · Maid 012');
-    await app.press('id:send');
+    await app.press('id:primary-action');
     await app.waitFor('text:读取 · 失败');
     await app.waitUntil(() => app.texts().some(t => t.includes('file_01.ts')) && app.texts().some(t => t.includes('const WMWM')));
-    await app.press('id:stop');
+    await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await app.screenshot(`type-${scheme}-wide-chat.png`);
     await app.setViewport(680, 720);

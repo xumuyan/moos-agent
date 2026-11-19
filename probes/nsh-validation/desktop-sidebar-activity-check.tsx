@@ -9,7 +9,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.waitFor('id:branch-stem-other-a');
     expect(app.shows(activity)).toBe(false);
     await app.screenshot(`tree-${scheme}-idle.png`);
-    await app.type('id:prompt', '合成运行状态'); await app.press('id:send');
+    await app.type('id:prompt', '合成运行状态'); await app.press('id:primary-action');
     await app.waitFor('text:读取 · 失败'); await app.waitFor(activity);
     expect(app.shows('id:session-activity-other-a')).toBe(false);
     await app.screenshot(`tree-${scheme}-working.png`);
@@ -20,7 +20,7 @@ for (const scheme of ['light', 'dark'] as const) {
     expect(app.shows('id:session-activity-other-a')).toBe(false);
     await app.screenshot(`tree-${scheme}-unselected.png`);
     await app.press('id:session-独立会话'); await app.waitFor('text:读取 · 失败');
-    await app.press('id:stop');
+    await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     expect(app.shows(activity)).toBe(false);
     await app.setViewport(680,720);

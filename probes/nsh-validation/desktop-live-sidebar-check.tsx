@@ -4,8 +4,8 @@ for (const scheme of ['light', 'dark'] as const) {
     const app = await open('./ThemeGeometry.tsx', { width: 1920, height: 988, colorScheme: scheme, locale: 'zh-CN', reducedMotion: true });
     await app.waitFor('text:项目 主题验证 A');
     await app.type('id:prompt', '【合成参考】侧栏透景，不读取用户聊天');
-    await app.press('id:send'); await app.waitFor('text:读取 · 失败');
-    await app.press('id:stop');
+    await app.press('id:primary-action'); await app.waitFor('text:读取 · 失败');
+    await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     const state = app.window('main').state();
     expect(state!.contentBounds.size.width).toBe(1920);
@@ -57,8 +57,8 @@ test('native project tree scroll reaches sixteenth session and eighth project in
   await app.waitFor('text:项目 主题验证 A');
   for (let i = 0; i < 12 && !app.shows('id:session-合成会话 16'); i++) await app.scroll('id:projects', 140);
   await app.waitFor('id:session-合成会话 16'); await app.press('id:session-合成会话 16');
-  await app.type('id:prompt', '合成密集项目树'); await app.press('id:send');
-  await app.waitFor('text:读取 · 失败'); await app.press('id:stop');
+  await app.type('id:prompt', '合成密集项目树'); await app.press('id:primary-action');
+  await app.waitFor('text:读取 · 失败'); await app.press('id:primary-action');
   await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   await app.screenshot('tree-dense-session-16.png');
   for (let i = 0; i < 8 && !app.shows('id:project-主题验证 H'); i++) await app.scroll('id:projects', 140);

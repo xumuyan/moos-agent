@@ -15,8 +15,8 @@ test('style_evidence fixed native content canvases and component states (synthet
   await app.waitFor('text:项目 主题验证 A');
   await capture(app, 'legacy-' + 'light-idle', 1240, 820);
   await app.type('id:prompt', '【合成样式证据】读取独立夹具，不是实际用户任务');
-  await app.press('id:send'); await app.waitFor('text:读取 · 失败');
-  await app.press('id:stop');
+  await app.press('id:primary-action'); await app.waitFor('text:读取 · 失败');
+  await app.press('id:primary-action');
   await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
   await capture(app, 'legacy-' + 'light-chat', 1240, 820);
   await app.press('id:toggle-details'); await app.waitFor('id:details-panel');
@@ -41,8 +41,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.press('id:toggle-navigation');
     await capture(app, `${scheme}-narrow-idle`, 680, 720);
     await app.type('id:prompt', '【合成样式证据】短文与工具卡，不是实际用户任务');
-    await app.press('id:send'); await app.waitFor('text:读取 · 失败');
-    await app.press('id:stop'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
+    await app.press('id:primary-action'); await app.waitFor('text:读取 · 失败');
+    await app.press('id:primary-action'); await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await capture(app, `${scheme}-narrow-chat`, 680, 720);
     await app.setViewport(1240, 820); await capture(app, `${scheme}-chat`, 1240, 820);
     await app.press('id:toggle-details'); await app.waitFor('id:details-panel');

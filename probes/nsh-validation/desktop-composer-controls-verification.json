@@ -1,0 +1,1799 @@
+{
+  "task": "N01-D1 / N01-D3 composer-controls",
+  "workspaceBase": "bcd91a33c6d6ce353a3793fde0ee65d3daee6162",
+  "recordedAt": "2026-11-19T18:49:40+08:00",
+  "commitSubject": "fix(N01-D1/D3): select fixture model and unify composer actions",
+  "inputs": {
+    "probes/nsh-validation/DESKTOP-COMPOSER.md": {
+      "bytes": 2682,
+      "sha256": "8a4905b5047ddcb3780b16d174d9736faf3e7a378862095894afc5a4cfc41015"
+    },
+    "probes/nsh-validation/DESKTOP-HOST.md": {
+      "bytes": 6048,
+      "sha256": "369676d7905b42f608ac1e18983f143e7a67641cc012c76ece1bde4c1c9517f0"
+    },
+    "probes/nsh-validation/DesktopApp.test.tsx": {
+      "bytes": 2852,
+      "sha256": "1f78144489ae199f0a6693014205570fcc832858811affc233bb05fa77550774"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 29339,
+      "sha256": "c2f8fe38e32d2fa489f8d9af64f226dafe2c0e4aacf5d90f4eba115885cd218d"
+    },
+    "probes/nsh-validation/desktop-chat-cards-check.tsx": {
+      "bytes": 2064,
+      "sha256": "3357563bca5e89c7f4ee0f2ae8393bc674c779834dae381b91d4e733677d9880"
+    },
+    "probes/nsh-validation/desktop-composer-check.tsx": {
+      "bytes": 5230,
+      "sha256": "483ea72b0d9da2f811a0e40b81330f8d7cdbf953afecd0c46a1f19f7c399fcce"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 4443,
+      "sha256": "43ec235b74941ced5b30ea4d8a5c6d05979ac0c3cdaa1fe989d46433f0ee9bce"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 10338,
+      "sha256": "316c317717d9a229043efbbc67fc7a5749243da73bc266e42c79a6456f7b6183"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 20475,
+      "sha256": "983854becd1e2428185ff91424bdd77aa096f4cbaecc9944d416eb83ca95dbaf"
+    },
+    "probes/nsh-validation/desktop-icons-check.tsx": {
+      "bytes": 3960,
+      "sha256": "e2679fc7d4542ae312b08e1bdbccf3294c7ad0e20f4e6469e011d16708ac9e87"
+    },
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": {
+      "bytes": 5199,
+      "sha256": "6fb3c2d31af469b64ff34f685d5ea623495490453c8d0b30644a8d1109dab99a"
+    },
+    "probes/nsh-validation/desktop-model-fixture.mjs": {
+      "bytes": 4309,
+      "sha256": "33fb413534c4b364523afef35a38e59d5d2dfdef106eaeaa357db2dde687e672"
+    },
+    "probes/nsh-validation/desktop-sidebar-activity-check.tsx": {
+      "bytes": 1769,
+      "sha256": "b48087481dc68c2bf3d621a722cc1cb98dd8a739ca0d1c77898572838bd8756d"
+    },
+    "probes/nsh-validation/desktop-style-assert.ts": {
+      "bytes": 3009,
+      "sha256": "84c5f30463ee8f0babf6523235262782f27fbd882475824066f3961345e8fa4e"
+    },
+    "probes/nsh-validation/desktop-style-capture.tsx": {
+      "bytes": 3234,
+      "sha256": "100dec346b9e0f9ca07b3f110ed7513b21cdb471972c621aa0a575ae2947274b"
+    },
+    "probes/nsh-validation/desktop-theme-capture.tsx": {
+      "bytes": 1556,
+      "sha256": "643771f167222df9c36d402d1766faae36658b393598ca86cc88a2c13e011bd6"
+    },
+    "probes/nsh-validation/desktop-theme-fixture.ts": {
+      "bytes": 3708,
+      "sha256": "a0ac9ad7c479af2f7dffa23a87fb40a11571c27a3b568231f5b0c1d6d8d4cc92"
+    },
+    "probes/nsh-validation/desktop-theme-native-check.tsx": {
+      "bytes": 5470,
+      "sha256": "5b5fd2edc0cde31d3ed911d797ef93ea61345f6239928bd8be7076bf8eeb8328"
+    },
+    "probes/nsh-validation/desktop-theme-rich-check.tsx": {
+      "bytes": 3669,
+      "sha256": "7f816e78fd111ae909a8090c1266dbb69535b298e6f069f5015dce2db811acbf"
+    },
+    "probes/nsh-validation/desktop-theme.test.tsx": {
+      "bytes": 9073,
+      "sha256": "0ad360e695d9b8fbb38126e2e9bb6d82039e849e4ccf3774e828c7401e654e33"
+    },
+    "probes/nsh-validation/desktop-typography-check.tsx": {
+      "bytes": 2290,
+      "sha256": "f28dfce8731414a7582bab73b5b1479af331e581bdebe2456f83a73fd599527e"
+    },
+    "probes/nsh-validation/desktop-window-chrome-check.tsx": {
+      "bytes": 3573,
+      "sha256": "b00152d3def884cfda39e3a8a86cb95daf4dba3ee67a93ba131ec44c628736ac"
+    },
+    "probes/nsh-validation/verify-desktop-host.mjs": {
+      "bytes": 7103,
+      "sha256": "26abed836c4d592bd1c3186557922b52c1604661824c50fcec5e6c0b855af008"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 12218,
+      "sha256": "093b599d9dbf0743f768d19b03516ef772f88973ef06f7ed87688651d613990d"
+    }
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DESKTOP-COMPOSER.md": "135c8a783361a3bce2f981afdfa0a25ab827d9c7a8b6f1758b8e22deb7f1b25e",
+    "probes/nsh-validation/DESKTOP-HOST.md": "2821042e48d1df687c1061316ef1a4038de6f926e808fdb75d8c8f306cf49dbb",
+    "probes/nsh-validation/DesktopApp.test.tsx": "8ca7956ef9bb61c6d626d6395b8940f6922d46034312f983c3f81986bd8c6a7c",
+    "probes/nsh-validation/DesktopView.tsx": "b8f7612a62f00aefc426b4733f03bdf20bd46d61b2bee6c63a37cfda8f18d3c9",
+    "probes/nsh-validation/desktop-chat-cards-check.tsx": "a0673cd6bccdaf123b7815e2cacb6f8f53f25af6668f532aea1eee7edd726b59",
+    "probes/nsh-validation/desktop-composer-check.tsx": "39f53beb46437e827d367d3c68e9fab54766b26e3cfba0732c8e1228087c20b8",
+    "probes/nsh-validation/desktop-contract.ts": "055a4e0aafd9a79b2dc3ced3d4cb8c6730a7e7f5b2b8609a22ef772be81c135b",
+    "probes/nsh-validation/desktop-host.mjs": "bea6396e88a3823927f03233a795c2b3d7c714e60b8389073adb9eeee7e5253b",
+    "probes/nsh-validation/desktop-host.test.mjs": "b453f5d2be939cb93f636bc3af5b36c34a2e97ab4b40001c6a5546a6a533ddbb",
+    "probes/nsh-validation/desktop-icons-check.tsx": "b8e0fe44aadd8ed3c61d681f80f7741d9d5dbec062fe8b2d789bad871c595377",
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": "51fcb8dee2d37421c038fab2438a3986d3ebb6338cf2af6161007dc98c5a4152",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "6e780f14561559f87c7db4ede43f78f623ebcf4579dde96120c0b1c3fd3669d2",
+    "probes/nsh-validation/desktop-sidebar-activity-check.tsx": "c703cf65678b6ace9eee7fa98c8d1a2ce00c9e865e90dcd9759248ad39f75585",
+    "probes/nsh-validation/desktop-style-assert.ts": "3fff922c3a79a6569a801e39aa952de1f8ce1612c4c56dc00394a471f2d5a16a",
+    "probes/nsh-validation/desktop-style-capture.tsx": "975dde239dfc78068c7854ab0ed85aaae84d4c1028d8514372b71748d65a092b",
+    "probes/nsh-validation/desktop-theme-capture.tsx": "0a376d84248ddaf3ceab0462e045095d7d4688ad59d7f87377c6cf9cf2679e54",
+    "probes/nsh-validation/desktop-theme-fixture.ts": "9ec36ecb59dfd354508e5f447ab642f2348af71989015e48845d09b8d23ee32d",
+    "probes/nsh-validation/desktop-theme-native-check.tsx": "64c8aa12a6f51ce1e00430207157c012a9712fa4ca9086018e64122e17c80e84",
+    "probes/nsh-validation/desktop-theme-rich-check.tsx": "2eb270c0fe09a42e5c9e97163f59c6a7b38e5f0002ef6ab529ff03e04f6358fd",
+    "probes/nsh-validation/desktop-theme.test.tsx": "b463b2e3a494e3baa746a4e9d42f6f5d553464c78352092e49ad17f4490d9c17",
+    "probes/nsh-validation/desktop-typography-check.tsx": "c6675af6a301471248f1fd38bc327397ed3ffe65c8b4088a22f4f8ac5650bb23",
+    "probes/nsh-validation/desktop-window-chrome-check.tsx": "c1216c1c0742bef4c41448e400cb99826f1742363a01dcb78636db496dd6d42b",
+    "probes/nsh-validation/verify-desktop-host.mjs": "b655a73acba90b599fbe5ae1420baddd59865836f346088de73bb4c73f3f5622",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "f1b41ad8a905d40d9351d6d81fc8c537c6e674e5e6717f39e11f92fd15936269"
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "historical": {
+    "desktop-host-evidence.json": "269e8c5b01520dc1620866fc218d4acc9ae311e66263933642679177dc6242a3",
+    "desktop-composer-verification.json": "73edcb24d765f3bb677ef82483a77e149e19e83ecdf6b70c24cdf081d22f3c91"
+  },
+  "candidate": {
+    "synthetic": true,
+    "piExecuted": false,
+    "installed": false,
+    "scaleFactor": 1,
+    "withArt": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-l8kUc7",
+      "passed": 2,
+      "failed": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-art-final.log",
+        "bytes": 38940,
+        "sha256": "255ab0fdeeed8df58e9e308a7373644f558faf89c9cbd53e2f1c76f5c18a5e73"
+      },
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-l8kUc7/capture-inputs.json",
+        "bytes": 11374,
+        "sha256": "e636c752fa80ce93ac776190214f07c65b880829f536cf3aec4657aa87373529"
+      },
+      "artwork": true,
+      "images": [
+        {
+          "file": "composer-dark-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 758952,
+          "sha256": "51dcd903214109b598c7d6bd4ad67309a2509e7249064618b1a05b2dfd7615cc"
+        },
+        {
+          "file": "composer-dark-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 759428,
+          "sha256": "d0a762424dc3d8fd5055ef67f105497e456007ddbcd77ea1223026f0404a2e6a"
+        },
+        {
+          "file": "composer-dark-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 766636,
+          "sha256": "65c3281635a4ebf20267e10f7729c16a78867093c817b2638e99f405694f4b2d"
+        },
+        {
+          "file": "composer-dark-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1445121,
+          "sha256": "8156ea1685dce47f371db6cd142dd3136fa849207c1400e1c5c3a5bb541fb3b9"
+        },
+        {
+          "file": "composer-dark-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1483149,
+          "sha256": "ec03f66b898f3c888c4584b5f8901d9bae8c50a46ae7c137d64e75570079b5e0"
+        },
+        {
+          "file": "composer-light-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815754,
+          "sha256": "54c9bb5b7cba3f8e9402184568a8a9b9ee67a81c642b66512004fdb2bf6529a6"
+        },
+        {
+          "file": "composer-light-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 816124,
+          "sha256": "b109cd1c7e8b96cc232a5c33ca1a3b4facf4dc4abe15d2371dad9737f301cc8b"
+        },
+        {
+          "file": "composer-light-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 807934,
+          "sha256": "f84d005f278f4705d96057b4517185e64ff6ba4d2ee227b610c6fe29a4c4b717"
+        },
+        {
+          "file": "composer-light-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1604411,
+          "sha256": "faf1bcd220b76d403f64087882a8bb4e616ad7b58a6de553582bfa78fc9af759"
+        },
+        {
+          "file": "composer-light-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1614134,
+          "sha256": "87d08dff6ef84771a4f0a0e8ca7eab0da3146649704c0220b25a31f14cff5bbe"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "composer-light-wide-idle",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              188
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              748,
+              226
+            ],
+            "composer-bow": [
+              298,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              632,
+              46
+            ],
+            "composer-actions": [
+              44,
+              110,
+              632,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              588,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              760,
+              960,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-draft",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              188
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              226
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              46
+            ],
+            "composer-actions": [
+              44,
+              110,
+              368,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              324,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-running",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              208
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              368,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              330,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-drained",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              208
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              368,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              330,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-wide-stopped",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              748,
+              208
+            ],
+            "composer-bow": [
+              298,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              632,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              632,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              594,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-wide-idle",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              188
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              748,
+              226
+            ],
+            "composer-bow": [
+              298,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              632,
+              46
+            ],
+            "composer-actions": [
+              44,
+              110,
+              632,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              588,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              760,
+              960,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-draft",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              188
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              226
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              46
+            ],
+            "composer-actions": [
+              44,
+              110,
+              368,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              324,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-running",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              208
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              368,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              330,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-drained",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              484,
+              208
+            ],
+            "composer-bow": [
+              166,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              368,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              368,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              330,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-wide-stopped",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              170
+            ],
+            "composer-frame": [
+              -14,
+              -20,
+              748,
+              208
+            ],
+            "composer-bow": [
+              298,
+              0,
+              152,
+              72
+            ],
+            "prompt": [
+              44,
+              56,
+              632,
+              34
+            ],
+            "composer-actions": [
+              44,
+              98,
+              632,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              594,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        }
+      ]
+    },
+    "fallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-Bn5k2r",
+      "passed": 2,
+      "failed": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-fallback-final.log",
+        "bytes": 37395,
+        "sha256": "ada901e74bfd8a21513e2f17bbf8de301579e9b076712c18674211fedc2e611f"
+      },
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-Bn5k2r/capture-inputs.json",
+        "bytes": 8558,
+        "sha256": "79c3a1a071e880da3c8447dc77b6e40b532f75cb66638cde78b3784587f49208"
+      },
+      "artwork": false,
+      "images": [
+        {
+          "file": "composer-dark-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 289896,
+          "sha256": "60e771b5012eea629290dfa5dfe23f85eba5b5034c3f896a5a5861c1ebd3cdb3"
+        },
+        {
+          "file": "composer-dark-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 293535,
+          "sha256": "e1b5e24f1c27c9bb1a1d19b4f3498524dfcf82af288361ad81348bcd5fdb3e3f"
+        },
+        {
+          "file": "composer-dark-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 295137,
+          "sha256": "e6ee2744bb38cae19bb16a1642f8d40bd7b7f0f538a64aec2cf096ae80add75d"
+        },
+        {
+          "file": "composer-dark-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 461812,
+          "sha256": "1a36bfd82b3b0c9f1606cf5a2705dd9175b7f87b5d5fcc94d3d2c25fa78b2893"
+        },
+        {
+          "file": "composer-dark-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 481510,
+          "sha256": "afaeb4261fe0e97c2c8d42cc196b897f0a68b20af9b0802b9fc6b374e0c220db"
+        },
+        {
+          "file": "composer-light-narrow-draft.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315616,
+          "sha256": "48af562b4067010cfa7be04569e52ce66ad075d71404bd04dbeb370c061cbfdc"
+        },
+        {
+          "file": "composer-light-narrow-models.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 318910,
+          "sha256": "9a083ae5b488e3f35d39a913f90708c7cb6121dd3dd09b9e1a94f72ba3e2a076"
+        },
+        {
+          "file": "composer-light-narrow-running.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 330824,
+          "sha256": "f3724d529609f30ac1b59755bf7fdabfdee02bc424b956d79e90bdb8e24c5891"
+        },
+        {
+          "file": "composer-light-wide-idle.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 498389,
+          "sha256": "c83a4210cb367afafaf728bba7e309dee0d1b673c6584afa90c34e181236c540"
+        },
+        {
+          "file": "composer-light-wide-stopped.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 533269,
+          "sha256": "51271704f7c86ff2075f8942062a70d2a00585f6f4296d7580fa3440ae0d178e"
+        }
+      ],
+      "geometry": [
+        {
+          "name": "composer-light-wide-idle",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              124
+            ],
+            "prompt": [
+              16,
+              14,
+              688,
+              42
+            ],
+            "composer-actions": [
+              16,
+              64,
+              688,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              644,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              760,
+              960,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-draft",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              124
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              42
+            ],
+            "composer-actions": [
+              16,
+              64,
+              424,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              380,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-running",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              424,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              386,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-narrow-drained",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              424,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              386,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-light-wide-stopped",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              688,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              688,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              650,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-wide-idle",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              124
+            ],
+            "prompt": [
+              16,
+              14,
+              688,
+              42
+            ],
+            "composer-actions": [
+              16,
+              64,
+              688,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              644,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              760,
+              960,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-draft",
+          "active": false,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              124
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              42
+            ],
+            "composer-actions": [
+              16,
+              64,
+              424,
+              44
+            ],
+            "model-picker": [
+              0,
+              6,
+              119,
+              32
+            ],
+            "primary-action": [
+              380,
+              0,
+              44,
+              44
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-running",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              424,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              386,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-narrow-drained",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              456,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              424,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              424,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              386,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        },
+        {
+          "name": "composer-dark-wide-stopped",
+          "active": true,
+          "bounds": {
+            "composer": [
+              0,
+              24,
+              720,
+              108
+            ],
+            "prompt": [
+              16,
+              14,
+              688,
+              32
+            ],
+            "composer-actions": [
+              16,
+              54,
+              688,
+              38
+            ],
+            "model-picker": [
+              0,
+              3,
+              119,
+              32
+            ],
+            "primary-action": [
+              650,
+              0,
+              38,
+              38
+            ],
+            "bottom-trim": [
+              0,
+              660,
+              496,
+              60
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "host": {
+    "privatePipe": {
+      "status": "passed",
+      "scope": "N01-D1 private pipe child + real PI SDK + loopback local fixture",
+      "checks": [
+        "trusted project IDs",
+        "session create/select",
+        "ordinary prompt",
+        "write/read tool events",
+        "idempotent duplicate",
+        "strict params",
+        "selected model reaches PI and loopback upstream",
+        "unknown model denial and replay conflict",
+        "cross-project denial",
+        "active cancellation",
+        "active EOF normal exit"
+      ],
+      "stderrBytes": 169,
+      "nativeGUI": false,
+      "externalModel": false,
+      "productionData": false,
+      "deployed": false
+    },
+    "targetedPass": 14,
+    "swiftCompatibility": {
+      "forced": false,
+      "maxPending": [
+        2,
+        0,
+        1
+      ],
+      "normalChildExit": true,
+      "passed": true,
+      "phoneInstalled": false,
+      "platform": "Mac Catalyst NSH 0.5.0",
+      "productionData": false,
+      "reports": {
+        "denied": {
+          "checks": 6,
+          "passed": true
+        },
+        "good": {
+          "checks": 41,
+          "passed": true
+        },
+        "timeout": {
+          "checks": 5,
+          "passed": true
+        }
+      },
+      "stderrBytes": [
+        168,
+        168,
+        0
+      ],
+      "ownerExit": {
+        "forced": false,
+        "maxPending": [
+          2
+        ],
+        "normalChildExit": true,
+        "passed": true,
+        "phoneInstalled": false,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "productionData": false,
+        "reports": {},
+        "stderrBytes": [
+          168
+        ]
+      },
+      "nativeChecks": 63,
+      "directory": "artifacts/nsh-validation/desktop-native/run-UFTU9X"
+    }
+  },
+  "regressions": {
+    "core": {
+      "passed": 365,
+      "failed": 0
+    },
+    "electron": {
+      "passed": 133,
+      "skipped": 10
+    },
+    "rust": {
+      "exit": 101,
+      "missing": "defmt"
+    },
+    "native": {
+      "headless": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-l78Jqf",
+        "passed": 17,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/headless.log",
+          "bytes": 31619,
+          "sha256": "efe18b2a41ae8a6aca21c17c113b5de99d45b90fa67f9dfb40bfb6ea387f59f8"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-l78Jqf/capture-inputs.json",
+          "bytes": 8840,
+          "sha256": "053afb13d30a6faff0df3caf214039f5cca60ba0572561885965bcfb06321d62"
+        }
+      },
+      "native": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-79oeYm",
+        "passed": 9,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/native.log",
+          "bytes": 104750,
+          "sha256": "9c98063e57b95c1a97d36ea18bc2baa221ff887fe25ae26c72e248f2dd93bc6a"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-79oeYm/capture-inputs.json",
+          "bytes": 11377,
+          "sha256": "0b98601c039b5eae1b7276584001707d1991ccb30199fdd532b27a1229352914"
+        }
+      },
+      "rich": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-kFSolP",
+        "passed": 6,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/rich.log",
+          "bytes": 18015,
+          "sha256": "4832c2dc5ffe1324e4099701fb6287ae9ea8dde2a8b3897747241b3b825fa29f"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-kFSolP/capture-inputs.json",
+          "bytes": 11375,
+          "sha256": "553c5244fed5d92bdd5a22dac652e69e096a439aa726a92f8e5e4641ca28fa8f"
+        }
+      },
+      "evidence": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-XmZOie",
+        "passed": 3,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/evidence.log",
+          "bytes": 11065,
+          "sha256": "bc353ba2a9998e77499a4b7a12d3dff97633ea062aea1641b1c3ffb8fc68207d"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-XmZOie/capture-inputs.json",
+          "bytes": 11372,
+          "sha256": "59db61b9e6cf8757d6c4a01f84adc525d1ea9afde56f31d76bdd2e2fbb4b613b"
+        }
+      },
+      "live-sidebar": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-yqgOXu",
+        "passed": 3,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/live-sidebar.log",
+          "bytes": 17546,
+          "sha256": "62a82a1de8f918ac445111a18110d7dd400907227209592dc6fedbd444f81568"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-yqgOXu/capture-inputs.json",
+          "bytes": 11377,
+          "sha256": "aa1dd3a951977331f989799374d74ac164b50b212596e547dc31d6190c1b181d"
+        }
+      },
+      "typography": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-KshNsf",
+        "passed": 2,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/typography.log",
+          "bytes": 1815,
+          "sha256": "b3f0302ffa1c4fda7185a6a87472beb60b3f7a68736c2d3e2c364d3775ca37f2"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-KshNsf/capture-inputs.json",
+          "bytes": 11515,
+          "sha256": "db8869c59b0e90c5f603601763c2b71c1404af07630f72952325cef8d8f73b7e"
+        }
+      },
+      "window-chrome": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-7KiMea",
+        "passed": 2,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/window-chrome.log",
+          "bytes": 6519,
+          "sha256": "b80f6d47dbb4b57bc003a0b842da5d08d40887b92376c3227778d2444fdd0686"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-7KiMea/capture-inputs.json",
+          "bytes": 11379,
+          "sha256": "bbde1d2d58380454d162d4bdbd015b30dc4bea5cbf77dd21b1905b37e7951c28"
+        }
+      },
+      "sidebar-activity": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-Nd6PNQ",
+        "passed": 0,
+        "failed": 2,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/sidebar-activity.log",
+          "bytes": 9949,
+          "sha256": "683560ce1559653810e3f057af8fe262b5a28f68db933629893ddbc1179987fa"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-Nd6PNQ/capture-inputs.json",
+          "bytes": 11381,
+          "sha256": "61cdad1f40b6935632a193920656d4ffebc6dca0185b1a2f913c45b7f47a51b6"
+        }
+      },
+      "chat-cards": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-2oYgG6",
+        "passed": 2,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/chat-cards.log",
+          "bytes": 1219,
+          "sha256": "5a6db77639a06aaf0706c014bc6f4dbf87b7c7ecdfd14265c100dba79531a047"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-2oYgG6/capture-inputs.json",
+          "bytes": 11375,
+          "sha256": "bc300558d7942815e391fb096f13b975e697964f7451366ea70b98705e8d4c11"
+        }
+      },
+      "icons": {
+        "directory": "artifacts/nsh-validation/desktop-theme/run-3TU73P",
+        "passed": 2,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/composer-controls/icons.log",
+          "bytes": 15687,
+          "sha256": "5dcabd6b82cbfbd45ffe86ed4014373044bc057a17fda9a377544e725bf15dde"
+        },
+        "captureInputs": {
+          "path": "artifacts/nsh-validation/desktop-theme/run-3TU73P/capture-inputs.json",
+          "bytes": 11370,
+          "sha256": "0e98e78631b158cd60d28d457f5ae08fdfb3bae820175864b2df97b3e61a9104"
+        }
+      }
+    }
+  },
+  "retainedFailures": {
+    "firstFallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-dmbf4p",
+      "passed": 0,
+      "failed": 2,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/first.log",
+        "bytes": 16662,
+        "sha256": "c1a4aec2811bbc116b64b4df0e300081f910aefe2ceaa19e2c1e2a26ca23a724"
+      },
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-dmbf4p/capture-inputs.json",
+        "bytes": 8460,
+        "sha256": "6fb88f62a1a97c24cfb09c07071980e0ad1ad5fed4238cbbfcd5bd26db32c1cb"
+      }
+    },
+    "initialCore": {
+      "passed": 364,
+      "failed": 1
+    },
+    "initialTargetedCount": "11 !== 9",
+    "beforeWaitFallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-CCyB8v",
+      "passed": 1,
+      "failed": 1,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-fallback.log",
+        "bytes": 34490,
+        "sha256": "af89cc6be4a220c3b96398acdbb83c5e13eb6283735a37689e024582e8703241"
+      },
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-CCyB8v/capture-inputs.json",
+        "bytes": 8558,
+        "sha256": "52ab3c77bedc0e60f83c2c2415c2a3776621f202be68ac6e466e471e3bd8db68"
+      }
+    },
+    "initialDocs": {
+      "total": 212,
+      "failed": 14
+    }
+  },
+  "receipts": {
+    "private-pipe": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/private-pipe.log",
+        "bytes": 495,
+        "sha256": "e27b53d4d86d48fd45bb192388c9b321cba3a6aab58fb09e698816851b25b679"
+      }
+    },
+    "targeted-host": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/targeted-host.log",
+        "bytes": 4038,
+        "sha256": "93891dd6807a3c099b50fcabc09912284fa1d1e13bc83e0babee5fbe5ce5ae35"
+      }
+    },
+    "composer-art": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-art.log",
+        "bytes": 38939,
+        "sha256": "6977aa782af17ce59a2bca4c586edcc7671472f5ec8cf4109b8b92fc09c19709"
+      }
+    },
+    "composer-fallback": {
+      "exit": 1,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-fallback.log",
+        "bytes": 34490,
+        "sha256": "af89cc6be4a220c3b96398acdbb83c5e13eb6283735a37689e024582e8703241"
+      }
+    },
+    "headless": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/headless.log",
+        "bytes": 31619,
+        "sha256": "efe18b2a41ae8a6aca21c17c113b5de99d45b90fa67f9dfb40bfb6ea387f59f8"
+      }
+    },
+    "native": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/native.log",
+        "bytes": 104750,
+        "sha256": "9c98063e57b95c1a97d36ea18bc2baa221ff887fe25ae26c72e248f2dd93bc6a"
+      }
+    },
+    "rich": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/rich.log",
+        "bytes": 18015,
+        "sha256": "4832c2dc5ffe1324e4099701fb6287ae9ea8dde2a8b3897747241b3b825fa29f"
+      }
+    },
+    "evidence": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/evidence.log",
+        "bytes": 11065,
+        "sha256": "bc353ba2a9998e77499a4b7a12d3dff97633ea062aea1641b1c3ffb8fc68207d"
+      }
+    },
+    "core": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/core.log",
+        "bytes": 85960,
+        "sha256": "66b7c587eabefcadba1c134079308faf1244f7b4cadcf41371206588bdad9c4c"
+      }
+    },
+    "live-sidebar": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/live-sidebar.log",
+        "bytes": 17546,
+        "sha256": "62a82a1de8f918ac445111a18110d7dd400907227209592dc6fedbd444f81568"
+      }
+    },
+    "electron": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/electron.log",
+        "bytes": 41319,
+        "sha256": "99cc7147837f331245419547e9ecd2ddbdf627aaae24f74c53c8076461303b9e"
+      }
+    },
+    "rust": {
+      "exit": 101,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/rust.log",
+        "bytes": 799,
+        "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc"
+      }
+    },
+    "typography": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/typography.log",
+        "bytes": 1815,
+        "sha256": "b3f0302ffa1c4fda7185a6a87472beb60b3f7a68736c2d3e2c364d3775ca37f2"
+      }
+    },
+    "window-chrome": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/window-chrome.log",
+        "bytes": 6519,
+        "sha256": "b80f6d47dbb4b57bc003a0b842da5d08d40887b92376c3227778d2444fdd0686"
+      }
+    },
+    "sidebar-activity": {
+      "exit": 1,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/sidebar-activity.log",
+        "bytes": 9949,
+        "sha256": "683560ce1559653810e3f057af8fe262b5a28f68db933629893ddbc1179987fa"
+      }
+    },
+    "chat-cards": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/chat-cards.log",
+        "bytes": 1219,
+        "sha256": "5a6db77639a06aaf0706c014bc6f4dbf87b7c7ecdfd14265c100dba79531a047"
+      }
+    },
+    "icons": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/icons.log",
+        "bytes": 15687,
+        "sha256": "5dcabd6b82cbfbd45ffe86ed4014373044bc057a17fda9a377544e725bf15dde"
+      }
+    },
+    "composer-fallback-final": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-fallback-final.log",
+        "bytes": 37395,
+        "sha256": "ada901e74bfd8a21513e2f17bbf8de301579e9b076712c18674211fedc2e611f"
+      }
+    },
+    "composer-art-final": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/composer-art-final.log",
+        "bytes": 38940,
+        "sha256": "255ab0fdeeed8df58e9e308a7373644f558faf89c9cbd53e2f1c76f5c18a5e73"
+      }
+    },
+    "swift": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/swift.log",
+        "bytes": 1599,
+        "sha256": "77866997d4c46edef2ffd52cbf44d9f8dcc79672ed8e3cdc488b917875e3179b"
+      }
+    },
+    "targeted-host-final": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/targeted-host-final.log",
+        "bytes": 4041,
+        "sha256": "6c40d26ca79f0edb010cb3fba397be2d9713d8c9394a95d286907ed195784d72"
+      }
+    },
+    "core-final": {
+      "exit": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/composer-controls/core-final.log",
+        "bytes": 86008,
+        "sha256": "2d43c4d2cf5de44e26d387859c871f055aa2add79ae2293cc2141ef55291546d"
+      }
+    }
+  },
+  "acceptance": {
+    "manualGUI": false,
+    "ime": false,
+    "retina": false,
+    "externalModel": false,
+    "productionData": false,
+    "productionDeployment": false,
+    "userSignOff": false,
+    "independentSignedDelivery": false,
+    "matchedResourceMeasurement": false
+  }
+}

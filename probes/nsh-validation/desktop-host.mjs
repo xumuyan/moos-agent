@@ -6,8 +6,9 @@ import { Store } from '../../services/agent/store.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { TaskFailure } from '../../services/agent/errors.mjs';
 import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
-import { startDesktopModelFixture } from './desktop-model-fixture.mjs';
+import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
+const defaultModelId = desktopFixtureModels[0].id;
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
 class Rejected extends Error { constructor(code) { super(code); this.code = code; } }
@@ -53,10 +54,10 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       store.createConversation(project.id, '新会话');
     }
     const provider = { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
-      model: 'fixture', api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 };
+      api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 };
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
       try { return await run({ ...options, task: { ...options.task, text: options.task.message },
-        provider, apiKey: fixture.apiKey, dataDir, imageGen: null,
+        provider: { ...provider, model: journals.get(options.task.id).modelId }, apiKey: fixture.apiKey, dataDir, imageGen: null,
         permissions: { getMode: () => 'workspace-write' },
         sessionPolicy: { allowedTools: ['read', 'write', 'bash'] } }); }
       catch { throw new TaskFailure(options.signal.aborted ? 'cancelled' : 'internal'); }
@@ -86,23 +87,30 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     }
     function dispatch(method, p) {
       switch (method) {
-        case 'projects.list': exact(p, []); return { projects: trustedProjects.map(({ id, name }) => ({ id, name })) };
+        case 'projects.list': exact(p, []); return {
+          projects: trustedProjects.map(({ id, name }) => ({ id, name })),
+          models: { options: desktopFixtureModels, defaultId: defaultModelId },
+        };
         case 'sessions.list': exact(p, ['projectId']); project(p.projectId);
           return { sessions: store.listConversations(p.projectId).map(s => ({ id: s.id, projectId: s.projectId, title: s.title })) };
         case 'sessions.create': exact(p, ['projectId', 'title']); project(p.projectId); title(p.title);
           if (store.listConversations(p.projectId).length >= 16) reject('limit');
           { const s = store.createConversation(p.projectId, p.title); return { session: { id: s.id, projectId: s.projectId, title: s.title } }; }
         case 'tasks.submit': {
-          exact(p, ['projectId', 'sessionId', 'requestId', 'text']); session(p.projectId, p.sessionId);
+          const explicit = p && Object.hasOwn(p, 'modelId');
+          exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : [])]);
+          session(p.projectId, p.sessionId);
+          const modelId = explicit ? p.modelId : defaultModelId;
+          if (!desktopFixtureModels.some(m => m.id === modelId)) reject('invalid_request');
           if (!token(p.requestId) || typeof p.text !== 'string' || !p.text.trim() || Buffer.byteLength(p.text) > 4096 || p.text.includes('\x00')) reject('invalid_request');
           const key = `${p.sessionId}:${p.requestId}`, prior = requests.get(key);
           if (prior) {
-            if (prior.text !== p.text) reject('conflict');
+            if (prior.text !== p.text || journals.get(prior.id).modelId !== modelId) reject('conflict');
             return { task: taskView(store.getTask(prior.id)), replayed: true };
           }
           if (requests.size >= 32) reject('limit');
           const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: 600000,
-            onCreate: t => journals.set(t.id, { events: [], last: 0, floor: 0, bytes: 0 }) });
+            onCreate: t => journals.set(t.id, { modelId, events: [], last: 0, floor: 0, bytes: 0 }) });
           requests.set(key, { id: created.id, text: p.text });
           return { task: taskView(created), replayed: false };
         }

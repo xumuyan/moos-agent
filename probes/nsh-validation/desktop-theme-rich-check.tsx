@@ -9,7 +9,7 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
     const app = await open('./ThemeRich.tsx', { width, height, colorScheme: scheme });
     await app.waitFor('text:项目 主题验证 A');
     if (width === 680) await app.press('id:toggle-navigation');
-    await app.type('id:prompt', '合成 Markdown'); await app.press('id:send');
+    await app.type('id:prompt', '合成 Markdown'); await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('3 事件')));
     await app.scroll('id:messages', -4000); await app.wait(350);
     await app.waitUntil(() => metrics(app).scroll?.offset.y < 1);
@@ -33,7 +33,7 @@ for (const scheme of ['light', 'dark'] as const) for (const width of [1240, 680]
     await app.setViewport(width === 1240 ? 680 : 1240, width === 1240 ? 720 : 820);
     await app.scroll('id:messages', 4000); await app.wait(350);
     await app.waitFor('text:读取 · 失败');
-    await app.press('id:stop');
+    await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await app.screenshot(`${scheme}-${width}-rich-resized.png`);
     console.log('RICH_END ' + JSON.stringify({ scheme, width, metrics: metrics(app) }));

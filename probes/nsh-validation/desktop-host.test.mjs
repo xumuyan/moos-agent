@@ -51,6 +51,9 @@ test('N01-D1 exact versioned allowlist, trusted registry, selection and resource
   for (const extra of [{ path: '/tmp' }, { command: 'id' }, { provider: {} }, { apiKey: 'secret' }]) {
     assert.equal(call('tasks.submit', { ...a, text: 'hi', requestId: 'invalid', ...extra }).error.code, 'invalid_request');
   }
+  for (const modelId of [null, {}, '', 'unknown', 'https://example.invalid']) {
+    assert.equal(call('tasks.submit', { ...a, requestId: 'invalid-model', text: 'hi', modelId }).error.code, 'invalid_request');
+  }
   for (const text of ['', ' ', null, 'a'.repeat(4097), '\0']) assert.equal(call('tasks.submit', { ...a, text, requestId: 'bad' }).ok, false);
   assert.equal(call('tasks.submit', { ...a, sessionId: b.sessionId, requestId: 'x', text: 'hi' }).error.code, 'not_found');
   const input = { ...a, requestId: 'once', text: 'arbitrary conversation prompt (not scenario enum)' };
@@ -66,6 +69,27 @@ test('N01-D1 exact versioned allowlist, trusted registry, selection and resource
   await host.close();
   assert.equal(call('projects.list').error.code, 'closed');
   for (const p of host.trustedProjects) await assert.rejects(access(p.path), { code: 'ENOENT' });
+});
+
+test('N01-D1 selected model is bound at admission even while queued in the same project', async t => {
+  const models = [];
+  const host = await fixture(t, { run: async ({ task, provider }) => {
+    models.push([task.message, provider.model]);
+    return { text: 'ok' };
+  } });
+  const { call, scopes: [scope] } = setup(host);
+  const catalog = call('projects.list').result.models;
+  assert.deepEqual(catalog, { defaultId: 'fixture', options: [
+    { id: 'fixture', label: '本地夹具 · 标准' }, { id: 'fixture-alternate', label: '本地夹具 · 备选' },
+  ] });
+  call('tasks.submit', { ...scope, requestId: 'first', text: 'first' });
+  const queued = { ...scope, requestId: 'second', text: 'second', modelId: 'fixture-alternate' };
+  const next = call('tasks.submit', queued).result.task;
+  assert.equal(next.status, 'queued');
+  assert.equal(call('tasks.submit', queued).result.task.id, next.id);
+  assert.equal(call('tasks.submit', { ...queued, modelId: 'fixture' }).error.code, 'conflict');
+  await until(() => page(call, scope, next.id).terminal);
+  assert.deepEqual(models, [['first', 'fixture'], ['second', 'fixture-alternate']]);
 });
 
 test('N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors and explicit retention gap', async t => {
@@ -144,7 +168,10 @@ test('N01-D1 actual child private pipe acceptance exits zero (including Unicode 
   const { stdout } = await promisify(execFile)(process.execPath,
     [fileURLToPath(new URL('./verify-desktop-host.mjs', import.meta.url))], { timeout: 55000 });
   const report = JSON.parse(stdout.trim()); assert.equal(report.status, 'passed');
-  assert.equal(report.checks.length, 9); assert.equal(report.productionData, false);
+  assert.equal(report.checks.length, 11);
+  assert.ok(report.checks.includes('selected model reaches PI and loopback upstream'));
+  assert.ok(report.checks.includes('unknown model denial and replay conflict'));
+  assert.equal(report.productionData, false);
 });
 
 test('N01-D1 private pipe framing, malformed input, bounded admission and EOF cleanup', async () => {

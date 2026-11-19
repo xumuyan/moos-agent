@@ -4,6 +4,8 @@ import hashlib
 import json
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -12,6 +14,7 @@ class DesktopHostCheckpointTests(unittest.TestCase):
         evidence = json.loads((ROOT / 'probes/nsh-validation/desktop-host-evidence.json').read_text())
         self.assertEqual(len(evidence['baselineSha256']), 6)
         for path, digest in evidence['sourceSha256'].items():
+            digest = current_composer_input(self, path, digest)
             self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
         for result in evidence['regression'].values():
             self.assertEqual(hashlib.sha256((ROOT / result['log']).read_bytes()).hexdigest(), result['sha256'])

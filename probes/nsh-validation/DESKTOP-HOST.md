@@ -2,6 +2,12 @@
 
 本交付仅为 Node Host 子项，**不是 NSH 原生桥或 GUI 闭环完成**。正式 Electron、手机、安装包、真实聊天和配置均未修改。证据 `desktop-host-evidence.json` 对应基础提交 `4a80f2f` 的提交前工作区；初始六文件均已存在但未跟踪，本轮保留基线摘要，不将原实现当本轮新开发。
 
+## 后续兼容扩展：本地夹具模型选择
+
+仍是 NDJSON v1 和相同六个方法。`projects.list` 可带 `models: { defaultId, options: [{ id, label }] }`；`tasks.submit` 只新增可选 `modelId`，不接受 provider、路径、端点或密钥。缺省使用夹具默认 ID，未知 ID 是 `invalid_request`；Host 将有效 ID 与任务绑定后才进入队列。同会话、同 `requestId`、同文本及同有效 ID 才重放既有任务（省略和显式指定默认 ID 等价），文本或有效 ID 不同则 `conflict`。不读取正式模型配置。
+
+`DESKTOP-COMPOSER-CONTROLS.md` 和 `desktop-composer-controls-verification.json` 记录这次 14 项 Host 测试、私有管道 11 项和单独的原生合成 UI 回执。其余章节及 `desktop-host-evidence.json` 的 13 项／9 项是旧检查点，不改写既有验收和失败。
+
 ## 桥接稳定入口
 
 - 契约：`desktop-contract.ts` 的 `Calls` / `Request` / `Response` v1，仅六方法：`projects.list`、`sessions.list`、`sessions.create`、`tasks.submit`、`tasks.cancel`、`tasks.events`。

@@ -4,6 +4,11 @@
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
+export const desktopFixtureModels = Object.freeze([
+  Object.freeze({ id: 'fixture', label: '本地夹具 · 标准' }),
+  Object.freeze({ id: 'fixture-alternate', label: '本地夹具 · 备选' }),
+]);
+
 export async function startDesktopModelFixture() {
   const apiKey = randomBytes(32).toString('hex');
   const textOf = content => typeof content === 'string' ? content : (Array.isArray(content)
@@ -15,7 +20,8 @@ export async function startDesktopModelFixture() {
       let bytes = 0; const chunks = [];
       for await (const part of req) { bytes += part.length; if (bytes > 2 * 1024 * 1024) return error(413); chunks.push(part); }
       const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-      if (!Array.isArray(input.messages) || input.stream !== true) return error(400);
+      if (!Array.isArray(input.messages) || input.stream !== true ||
+          !desktopFixtureModels.some(m => m.id === input.model)) return error(400);
       const index = input.messages.findLastIndex(m => m.role === 'user');
       if (index < 0) return error(400);
       const text = textOf(input.messages[index].content);
@@ -27,7 +33,7 @@ export async function startDesktopModelFixture() {
       if (calls.length > sequence.length || calls.length !== results.length || calls.some((c, i) => c.function?.name !== sequence[i] || !results.some(r => r.tool_call_id === c.id))) return error(409);
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store' });
       const chunk = (delta, finish_reason = null, usage) => res.write(`data: ${JSON.stringify({
-        id: 'desktop-fixture', object: 'chat.completion.chunk', model: 'fixture', created: 0,
+        id: 'desktop-fixture', object: 'chat.completion.chunk', model: input.model, created: 0,
         choices: [{ index: 0, delta, finish_reason }], ...(usage ? { usage } : {}),
       })}\n\n`);
       chunk({ role: 'assistant' });
@@ -39,7 +45,8 @@ export async function startDesktopModelFixture() {
         chunk({ tool_calls: [{ index: 0, id: `desktop_${index}_${name}`, type: 'function', function: { name, arguments: JSON.stringify(args) } }] });
         chunk({}, 'tool_calls');
       } else {
-        const output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `本地夹具响应：${text.slice(0, 4096)}`;
+        const prefix = input.model === 'fixture' ? '本地夹具响应' : '本地备选夹具响应';
+        const output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}：${text.slice(0, 4096)}`;
         // Separate public deltas also exercise real PI streaming without a synthetic runner.
         for (const part of output.match(/.{1,16}/gs) ?? []) chunk({ content: part });
         chunk({}, 'stop', { prompt_tokens: 20, completion_tokens: 5, total_tokens: 25 });
