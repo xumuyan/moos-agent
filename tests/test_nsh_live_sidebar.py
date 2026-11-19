@@ -27,11 +27,15 @@ class LiveSidebarTests(unittest.TestCase):
         m = json.loads((NSH / 'desktop-live-sidebar-verification.json').read_text())
         old = json.loads((NSH / 'desktop-scroll-verification.json').read_text())
         tree = json.loads((NSH / 'desktop-sidebar-tree-verification.json').read_text())
+        footer = json.loads((NSH / 'desktop-sidebar-footer-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in tree['previousInputs']:
                 self.assertEqual(tree['previousInputs'][name], expected)
                 expected = tree['inputs'][name]['sha256']
+            if name in footer['previousInputs']:
+                self.assertEqual(footer['previousInputs'][name], expected)
+                expected = footer['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name, sha in m['priorScrollInputs'].items():
             self.assertEqual(old['inputs'][name]['sha256'], sha)

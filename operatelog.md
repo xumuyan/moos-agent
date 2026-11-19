@@ -1,5 +1,14 @@
 # 操作日志
 
+## 2026-11-19 10:51:33 +08:00｜N01-D3 sidebar_footer 当前页面第三步
+
+- 修改或新增内容：基准f75ce67，DesktopView按Maid树模式隐藏小人物、保留flat-mode图/函数；蕾丝响应高度、footer贴底消重复16pt padding、透明设置图标文字（禁用），去深蓝设置框及额外版本行，合成身份仍在窗口标题/聊天说明。新helper/2单元测试、原生几何断言、SIDEBAR-FOOTER.md/JSON/3文档契约；runner复制helper，历史输入hash链追加footer不改旧manifest/失败，PLAN状态不勾。
+- 遇到的难题：原视图未实现patches.css:473 :has([role=tree])人物display:none条件；footer继承父padding导致整体高16pt。CSS静态设置border-image并非当前截图透明入口，适配以截图观察为准非computed-style。单元首1过1败（72.10000000000001与72.1），核心首361过1败（44.000000000000014与44），误给headless fallback-only检查带艺术首13过1败，保留日志。
+- 处理方式：显式treeMode替代DOM :has，不删除小人物或设置美术；精度比较1e-9修浮点断言，不改布局值/弱化边界；headless按原无艺术模式复跑，不改fallback断言。初并排发现位置高16pt后补marginBottom并实测底边；按授权复用侧栏裁图、不新操作正式窗口。Maid0.3.2 CC BY-NC-SA4.0及上善→zipzip→Small-tailqwq署名保留，只读素材无hooks/联网/艺术提交。7原owner未跟踪文件hash一致不编辑/收编。
+- 验证结果：Node22.22.0/NSH0.5.0/macOS27.0.1 arm64/scale1，0700独立TMPDIR。完整 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs`首361过1败（147802.525ms）、最终362/362（121697.147ms，0取消/skip）；含helper两项/本轮Scheduler通过但历史失败未定位，不宣称已修复。`node probes/nsh-validation/verify-desktop-theme.mjs` 无艺术14/14（8.2s）；同runner --native --art-root [授权目录]9/9（26.3s）、--rich6/6（63s）、--evidence3/3（12s）、--live-sidebar首3/3（20s）及贴底后3/3（17.5s）。最终run-xCpSgb八原PNG，宽内容1920×988/外框1920×1016/origin(0,58)，窄680×720；参考crop y30非像素注册。实际原生断言人物隐藏/设置禁用/底边/留白及密集树滚尾/会话新建切换/停止，rich保留真实长文两端和poll/resize；已打开初末560×988并排及最终窄原图，不等于人工GUI/PI/用户视觉签收。`npm run test:electron`133过10跳（14.230s，缺隔离DSH CLI）；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml`exit101缺defmt，不下载。日志artifacts/nsh-validation/sidebar-footer，manifest精确输入/图片hash对应提交前混合工作区。`python3 -m unittest discover -s tests -v`195项194过1败（1.581s），既有ForkRestartRecoveryTests在test_repository_docs.py:604找不到E124忽略产物artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json，目录只读核实缺失；不生成替代证据/修改旧断言，需恢复可核实历史证据。新footer三项和历史hash链均通过；本轮未改test_repository_docs.py。最终暗色窄原图亦已打开。NSH文档专项 `python3 -m unittest discover -s tests -p 'test_nsh*.py' -v`48/48（0.088s）；输入/7保护文件/8原PNG hash复核一致，git diff --check通过，manifest补锁首docs及专项日志，后续交付日志不冒称提前锁入。
+- 遗留问题：全部测试门禁仍被Electron跳过/Rust及E124历史产物缺失阻塞；字体/图标/蝴蝶结光学位置未一致，侧栏整体/顶部标题/消息工具卡/输入框/人物背景/底饰、IME/动画/真实2×、干净真实PI/持久历史配置/完整包和同业务全进程资源测量缺。flat-mode只有单测，N01-D1/D2/D3不勾。未部署、不安装/替换/退出/重启正式沐码，不改真实聊天/配置/凭据/手机；解除需对应依赖及逐项实际验收/用户认可。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): match tree mascot visibility and sidebar footer`；查询 `git log --all --oneline --grep='match tree mascot visibility and sidebar footer'`。文档/差异/保护复核后创建源码检查点并推送核远端，结果按工具输出报告，非整体验收或正式部署。
+
 ## 2026-11-19 09:08:00 +08:00｜N01-D3 sidebar_tree 当前页面第二步
 
 - 修改或新增内容：基准4cbd4f8，DesktopView/runner/合成fixture/live原生检查新增48高新会话、三行导航及选中项目会话树，helper/2项单元测试、SIDEBAR-TREE.md/JSON/3项文档检查；历史检查显式链接新hash，不覆盖旧manifest/失败。名称右36/稳定消息快照保留，7原owner未跟踪业务文件不编辑/收编。

@@ -6,6 +6,7 @@ import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight } from './desktop-sidebar-tree';
+import { sidebarFooter } from './desktop-sidebar-footer';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
@@ -38,11 +39,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const safe = () => styleLayout(active(), artAvailable);
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
   const sidebarStyle = () => liveSidebar(artAvailable, dark());
+  const footer = () => sidebarFooter(layout().sidebar, true); // this view always renders a project tree
   const sidebarWidth = () => (!layout().compact || navigation()) ? layout().sidebar : 0;
   return (
     <View testID="desktop-root" style={{ flex: 1, flexDirection: 'row', backgroundColor: dark() ? t.dark.canvas : t.canvas, overflow: 'hidden' }}>
       <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
-      {(!layout().compact || navigation()) && <View testID="sidebar" style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
+      {(!layout().compact || navigation()) && <View testID="sidebar" onLayout={measured('sidebar')} style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
         <SidebarCorners />
         <View testID="sidebar-brand" onLayout={measured('sidebar-brand')} style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
         <View testID="new-session-frame" onLayout={measured('new-session-frame')} style={{ height: tree.newSessionHeight, marginTop: tree.newSessionMarginTop, flexShrink: 0 }}>
@@ -78,11 +80,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             </View>}
           </View>}
         </List>
-        <Art name="chibi" style={{ left: layout().sidebar * .52 - Math.min(320, layout().sidebar * .82) / 2, bottom: 166, width: Math.min(320, layout().sidebar * .82), height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />
-        <View testID="sidebar-footer" style={{ minHeight: 154, paddingTop: 74, paddingHorizontal: 2, paddingBottom: 6, gap: 8 }}>
-          <Art name="sidebar-swag" style={{ top: 0, left: -16, right: -16, height: 72, objectFit: 'fill' }} />
-          <View style={{ height: 34 }}><Art name="settings-frame" style={{ top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: 34, objectFit: 'fill' }} /><Button testID="settings-unavailable" disabled style={{ height: 34, justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: t.sidebarMuted, fontSize: 12 }}>设置（未接入）</Text></Button></View>
-          <Text style={{ fontSize: 11, color: t.sidebarMuted }}>NSH 0.5.0 · 独立验证</Text>
+        {footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
+        <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16 }}>
+          <Art testID="sidebar-swag" name="sidebar-swag" style={{ top: 0, left: 0, right: 0, height: footer().swagHeight, objectFit: 'fill', filter: 'brightness(1.1) saturate(1.04) contrast(1.04)' }} />
+          <Button testID="settings-unavailable" onLayout={measured('sidebar-settings')} disabled style={{ position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 18, backgroundColor: 'transparent' }}><Text style={{ color: '#e8c77f', fontSize: 17 }}>⚙</Text><Text style={{ color: '#f2dfba', fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text></Button>
         </View>
       </View>}
       <View testID="chat-column" style={{ flex: 1, minWidth: 0 }}>

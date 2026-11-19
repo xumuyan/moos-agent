@@ -2,6 +2,10 @@
 
 ## 范围与状态
 
+### N01-D3 sidebar_footer｜当前页面第三步（2026-11-19，源码检查点）
+
+- 接续f75ce67：按皮肤明确树模式隐藏人物规则补显式状态，保留flat-mode资产/函数；底部蕾丝响应54–94、footer贴底、设置透明图标文字/禁用，去额外版本行但保留测试标题/聊天说明。证据 `probes/nsh-validation/desktop-sidebar-footer-verification.json`、`SIDEBAR-FOOTER.md`。明暗宽窄及密集树原生3/3、native9/9、rich6/6、evidence3/3、无艺术headless14/14；核心首361过1败（浮点断言），精度比较修正后362/362；保留误带艺术headless13过1败和单元首败。前轮Scheduler本轮过，不称根因修复。Electron133过10跳、Rust缺defmt仍不能称全部测试通过。七原owner业务文件未收编/原hash，未部署或操作正式应用/真实数据；图标字体/蝴蝶结位置及整个侧栏视觉认可、顶部/消息/输入框/底饰、IME/动画/2×、干净真实PI及完整包/资源比较未完成，D1/D2/D3不勾。文档195项194过1败，E124旧忽略产物report.json缺失，需恢复可核实历史证据，不改断言/造替代产物；详见operatelog。
+
 ### N01-D3 sidebar_tree｜当前页面第二步（2026-11-19，源码检查点）
 
 - 接续4cbd4f8，按当前侧栏裁图调整48高新会话/品牌下8pt、三行38pt禁用导航、工作区及选中项目下会话树；保留36px名称安全域/稳定消息快照。原生合成明暗宽窄/密集16会话8项目3/3，headless14/14、native9/9、rich6/6、evidence3/3；完整核心首357过3败、末358过2败，Scheduler单独10过2败，根因未定未改共用服务。Electron133过10跳，Rust缺defmt，不称全测试通过。证据 `probes/nsh-validation/desktop-sidebar-tree-verification.json`、`SIDEBAR-TREE.md`；7原owner未跟踪业务文件不编辑/收编。时间无契约不伪造、图标近似，人物/设置/顶部/消息/输入框/底饰和用户视觉认可仍待办；N01-D1/D2/D3不勾。未部署、不操作正式应用或真实聊天/配置，不恢复手机，不报资源收益。文档/末次原生检查结果见operatelog。

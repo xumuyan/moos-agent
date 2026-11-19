@@ -1,0 +1,355 @@
+{
+  "task": "N01-D3/sidebar_footer",
+  "at": "2026-11-19T10:50:06.157431+08:00",
+  "base": "f75ce67e745e4d695e24ec934dc1ff27794ae940",
+  "sourceState": "pre-commit mixed worktree; seven original integration files still untracked",
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "path": "probes/nsh-validation/DesktopView.tsx",
+      "bytes": 19233,
+      "sha256": "4de9abd51f8fe9c888344e0c5ab5a20fbcb7a8313f99c55d37ac5d8953399cd7"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "path": "probes/nsh-validation/verify-desktop-theme.mjs",
+      "bytes": 9067,
+      "sha256": "fb0d0828853c0f2b2c80d8b6b854bc600b60245609ec2cfd6c8d595c70699b25"
+    },
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": {
+      "path": "probes/nsh-validation/desktop-live-sidebar-check.tsx",
+      "bytes": 5212,
+      "sha256": "fbc6100393d4c10046daa0135821ea1c2503d1e3b369fe4f9a51b109df872114"
+    },
+    "probes/nsh-validation/desktop-sidebar-footer.ts": {
+      "path": "probes/nsh-validation/desktop-sidebar-footer.ts",
+      "bytes": 547,
+      "sha256": "b749f7e2de27d078da9b0f9ce84ecb0613eb1fcfdd8858982386bbbdccacc808"
+    },
+    "probes/nsh-validation/desktop-sidebar-footer.test.mjs": {
+      "path": "probes/nsh-validation/desktop-sidebar-footer.test.mjs",
+      "bytes": 870,
+      "sha256": "a9cfc544f868c90b50be2d258d2ca686eecf17158cb1c7c069c4b243925d72f7"
+    }
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "2e49f3cb8e9337abb1f28098f8f681cd53bd0c457f753930dd7ea47b79b4e349",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "8342f2dab875b7a47d792d5223691791ef2d0fc4d579bca459979f0807a11b62",
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": "5682142a00c9482f953f51c682d45721737a0ba7f007b740329f78b26607f4cf"
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": {
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "unchanged": true
+    },
+    "probes/nsh-validation/DesktopUIHost.swift": {
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": {
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui.test.mjs": {
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "unchanged": true
+    },
+    "probes/nsh-validation/verify-desktop-ui.mjs": {
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "unchanged": true
+    }
+  },
+  "sourceRule": {
+    "path": "patches.css:473",
+    "selector": ":has([role=\"tree\"]) [data-skin-chrome=\"sidebar-mascot\"]",
+    "declaration": "display: none",
+    "nativeAdaptation": "explicit treeMode; no deletion of flat-mode asset"
+  },
+  "reference": {
+    "source": "authorized live primary-display screenshot after user foreground confirmation; not a bound AX-window capture",
+    "displayId": 2,
+    "scale": 1,
+    "displayPixels": [
+      1920,
+      1080
+    ],
+    "windowObservedBounds": [
+      0,
+      30,
+      1920,
+      988
+    ],
+    "cropRect": [
+      0,
+      30,
+      280,
+      988
+    ],
+    "crop": {
+      "path": "artifacts/nsh-validation/live-style/reference-sidebar.png",
+      "bytes": 387389,
+      "sha256": "c2df099769e13a7ef1c788a488d18bf7c712f9281e35591a70d441ff03f84ade"
+    },
+    "version": "not re-read this pass",
+    "limitation": "does not prove computed-style, input, or source version; screenshot chat is not copied into fixtures"
+  },
+  "candidate": {
+    "run": "artifacts/nsh-validation/desktop-theme/run-xCpSgb",
+    "synthetic": true,
+    "piExecuted": false,
+    "images": [
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-dark-1920.png",
+        "bytes": 2387273,
+        "sha256": "91030982d706105d039c518a3f881780d89a33269edcf9096dd56b1363296ab9",
+        "pixels": [
+          1920,
+          988
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-dark-680-project-b.png",
+        "bytes": 746700,
+        "sha256": "5fbd5336da23084e0f66589ec5b31e64d264ac00997f11bdd82e27c712af370f",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-dark-680.png",
+        "bytes": 738761,
+        "sha256": "52675ffe7323305724009652d6429ace2d9cf0b2fb288c0f3d809ccf4183a2a9",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-light-1920.png",
+        "bytes": 2644089,
+        "sha256": "4c5bb58b2372127ce8053d3fa69886ee32da1915d547c11738404ee5f8c5469c",
+        "pixels": [
+          1920,
+          988
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-light-680-project-b.png",
+        "bytes": 808050,
+        "sha256": "45ab89e7be9efb2eb80a7ce48600060ee0a62e5e6fb81f3f45c5c8fe8b6509aa",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/live-light-680.png",
+        "bytes": 781602,
+        "sha256": "b5dad81812fe129a3555097e83bb9651561e6839a6b63e35ce92533c6d43e974",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/tree-dense-project-h.png",
+        "bytes": 797300,
+        "sha256": "e164da575add8a74dbb725a49c17dfda7cf65fe04fe42a94b66d490e6e3a4c57",
+        "pixels": [
+          680,
+          720
+        ]
+      },
+      {
+        "path": "artifacts/nsh-validation/desktop-theme/run-xCpSgb/tree-dense-session-16.png",
+        "bytes": 771979,
+        "sha256": "995b8134d4b68347e1e31f5d7c65eb6d47990d98316d07139739f75f738c5df5",
+        "pixels": [
+          680,
+          720
+        ]
+      }
+    ],
+    "comparison": {
+      "path": "artifacts/nsh-validation/sidebar-footer/comparison-final.png",
+      "bytes": 679319,
+      "sha256": "98fe628079655b46c58c8484914c9cd6bb7c2d8c0508de00399db9415eb78dea"
+    },
+    "contentPixels": [
+      1920,
+      988
+    ],
+    "outerPixels": [
+      1920,
+      1016
+    ],
+    "contentOrigin": [
+      0,
+      58
+    ],
+    "scale": 1
+  },
+  "tests": {
+    "unitFirst": {
+      "passed": 1,
+      "failed": 1,
+      "cause": "floating point strict equality"
+    },
+    "coreFirst": {
+      "passed": 361,
+      "failed": 1,
+      "cause": "remaining floating point strict equality"
+    },
+    "coreFinal": {
+      "passed": 362,
+      "failed": 0
+    },
+    "headlessArtFirst": {
+      "passed": 13,
+      "failed": 1,
+      "cause": "fallback-only test was incorrectly invoked with art-root"
+    },
+    "headless": {
+      "passed": 14,
+      "failed": 0
+    },
+    "native": {
+      "passed": 9
+    },
+    "rich": {
+      "passed": 6
+    },
+    "evidence": {
+      "passed": 3
+    },
+    "liveTreeFooter": {
+      "passed": 3
+    },
+    "electron": {
+      "passed": 133,
+      "skipped": 10
+    },
+    "rust": {
+      "status": "blocked",
+      "exit": 101,
+      "missing": "defmt"
+    },
+    "docs": {
+      "passed": 194,
+      "failed": 1,
+      "status": "blocked",
+      "test": "ForkRestartRecoveryTests.test_fork_restart_recovery_evidence_and_plan_state",
+      "cause": "Missing pre-existing ignored artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json; no replacement evidence generated."
+    },
+    "docsNsh": {
+      "passed": 48,
+      "failed": 0
+    }
+  },
+  "logs": {
+    "capture": {
+      "path": "artifacts/nsh-validation/sidebar-footer/capture.log",
+      "bytes": 10235,
+      "sha256": "5b6339cb3878e3aad08b28a1004418def9399681232622718f00e3a5d88141d2"
+    },
+    "core-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/core-final.log",
+      "bytes": 85258,
+      "sha256": "c1d47976b9de6811fa3a80b5fb911971c9a11427bf10e05b8c697a475cc9478b"
+    },
+    "core": {
+      "path": "artifacts/nsh-validation/sidebar-footer/core.log",
+      "bytes": 86222,
+      "sha256": "690cd117279f7144128f736a51825036532e846304cdb3e081432e7cfcdbb25e"
+    },
+    "electron": {
+      "path": "artifacts/nsh-validation/sidebar-footer/electron.log",
+      "bytes": 41343,
+      "sha256": "70f6ea2e570574ef96b4cf7754e9add76b14322ce1a8b211d97e3fe385f1d964"
+    },
+    "evidence-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/evidence-final.log",
+      "bytes": 11065,
+      "sha256": "0e4982f5b179ac9283b9804be547540f81e82cb8dfeba35f899b2dad9cf3944d"
+    },
+    "headless-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/headless-final.log",
+      "bytes": 20534,
+      "sha256": "d44adbd9887ad63e2f1bb6f31a66a75c7ecda66e3fffce6c13e1b1b959c83e49"
+    },
+    "headless-recheck": {
+      "path": "artifacts/nsh-validation/sidebar-footer/headless-recheck.log",
+      "bytes": 19259,
+      "sha256": "2c4dc730c1d37ec980123fedada47a1dad8a8cccb6f50f38fdf457fa933a1cd6"
+    },
+    "live-sidebar-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/live-sidebar-final.log",
+      "bytes": 10511,
+      "sha256": "f7574f7e12663acfc0f282e25280018ee97d3d21f928f58d995ced66ba33b187"
+    },
+    "native-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/native-final.log",
+      "bytes": 56940,
+      "sha256": "ec7735cd68f76b90e8b5fca579fb75e7f23f33d8fdb99f751ef1b78a5889e42b"
+    },
+    "rich-final": {
+      "path": "artifacts/nsh-validation/sidebar-footer/rich-final.log",
+      "bytes": 10987,
+      "sha256": "86c7113f61dd1b9391b71b2e4fdd5592cfc832508cf9d60dcaabf92dd6e68811"
+    },
+    "rust": {
+      "path": "artifacts/nsh-validation/sidebar-footer/rust.log",
+      "bytes": 799,
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc"
+    },
+    "unit": {
+      "path": "artifacts/nsh-validation/sidebar-footer/unit.log",
+      "bytes": 1555,
+      "sha256": "808fcabefaff6928ef2a888153ce8b59c4e425718acdfabc353fb670fe0a28f3"
+    },
+    "docs": {
+      "path": "artifacts/nsh-validation/sidebar-footer/docs.log",
+      "bytes": 23196,
+      "sha256": "cbbaf12dd1113b38890f5db4cb367ebc173e961db127743bca50d723618f2904"
+    },
+    "docs-nsh": {
+      "path": "artifacts/nsh-validation/sidebar-footer/docs-nsh.log",
+      "bytes": 5445,
+      "sha256": "be2e913f3671266f612453ef3c99093a26a4e93725e39a2f2e6720bcec96b604"
+    }
+  },
+  "rights": {
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "上善 → zipzip → Small-tailqwq",
+    "artCommitted": false,
+    "hooksExecuted": false
+  },
+  "limits": [
+    "Footer is live screenshot observation, not computed-style.",
+    "Transparent disabled settings button is layout only; no settings implementation.",
+    "Swag top/settings centre now match live reference approximately, not pixel exact.",
+    "Tree hides mascot per source rule; flat-mode visibility unit tested, no flat-mode native page.",
+    "No manual GUI, real PI UI, IME, real 2x, clean checkout, full package or performance measurement.",
+    "Core scheduler passed this run; prior timeout failures retained, not diagnosed as fixed.",
+    "Full Python documentation suite currently 194/195; missing historical ignored E124 artifact. Existing test preserved; no fabricated report/screenshot."
+  ],
+  "acceptance": {
+    "sidebarComplete": false,
+    "overallVisualAccepted": false,
+    "manualGui": false,
+    "cleanCheckout": false,
+    "realPiUi": false,
+    "performanceMeasured": false,
+    "allTestsPassed": false,
+    "installed": false,
+    "deployed": false,
+    "N01Complete": false
+  }
+}

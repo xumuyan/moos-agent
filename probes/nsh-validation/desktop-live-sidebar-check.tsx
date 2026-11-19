@@ -39,6 +39,16 @@ async function checkTree(app: any) {
   expect(b['project-group-b'].size.height).toBe(54);
   for (const id of ['plugins','background','more']) expect(app.enabled(`id:nav-${id}-unavailable`)).toBe(false);
   for (const id of ['search','settings','workspace-options','add-project']) expect(app.enabled(`id:${id}-unavailable`)).toBe(false);
+  expect(app.shows('id:sidebar-mascot')).toBe(false); // source skin hides mascot when a tree is present
+  expect(app.enabled('id:settings-unavailable')).toBe(false);
+  const footer = b['sidebar-footer'], settings = b['sidebar-settings'];
+  const swag = Math.max(54, Math.min(94, footer.size.width * .2575));
+  expect(Math.abs(footer.size.height - (swag + 82))).toBeLessThan(1);
+  expect(Math.abs(bottom(footer) - b.sidebar.size.height)).toBeLessThan(1); // no duplicate outer bottom padding
+  expect(Math.abs(settings.origin.y - (swag + 2))).toBeLessThan(1);
+  expect(settings.size.height).toBe(36);
+  expect(footer.size.height - bottom(settings)).toBeGreaterThanOrEqual(43);
+  expect(app.shows('text:NSH 0.5.0 · 独立验证')).toBe(false);
   console.log('SIDEBAR_TREE_BOUNDS ' + JSON.stringify(b));
 }
 
