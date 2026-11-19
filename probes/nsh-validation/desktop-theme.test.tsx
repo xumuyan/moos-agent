@@ -156,7 +156,7 @@ test('skin-only fallback is honest, unavailable entries disabled, controls prese
   await app.waitFor('text:项目 主题验证 A');
   expect(app.enabled('id:search-unavailable')).toBe(false);
   expect(app.enabled('id:settings-unavailable')).toBe(false);
-  expect(app.shows('text:美术未加载：纯样式回归，不是完整皮肤预览')).toBe(true);
+  expect(app.shows('text:— 轮 — 步')).toBe(true);
   expect(app.shows('id:palace-background')).toBe(false);
   expect(app.shows('id:bottom-trim')).toBe(true);
   await app.press('id:create-session'); await app.waitFor('text:新会话 3');

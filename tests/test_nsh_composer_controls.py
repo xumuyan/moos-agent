@@ -1,7 +1,7 @@
 import hashlib
 import unittest
 
-from nsh_composer_provenance import ROOT, PROBE, controls_evidence, hover_evidence, picker_evidence, successor_input, session_preview_evidence, turn_queue_evidence
+from nsh_composer_provenance import ROOT, PROBE, controls_evidence, current_composer_input
 
 
 class ComposerControlsTests(unittest.TestCase):
@@ -10,12 +10,8 @@ class ComposerControlsTests(unittest.TestCase):
         self.assertEqual(evidence['inputs'].keys(), evidence['previousInputs'].keys())
         self.assertEqual(len(evidence['protected']), 7)
         self.assertTrue(evidence['protected'].keys().isdisjoint(evidence['inputs']))
-        picker, hover = picker_evidence(), hover_evidence()
-        successor = session_preview_evidence()
-        queue = turn_queue_evidence()
         for path, record in evidence['inputs'].items():
-            record = successor_input(self, hover, path, successor_input(self, picker, path, record))
-            record = successor_input(self, queue, path, successor_input(self, successor, path, record))
+            record = current_composer_input(self, path, record, after=controls_evidence)
             data = (ROOT / path).read_bytes()
             self.assertEqual(record, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
         for name, digest in evidence['historical'].items():

@@ -1,0 +1,45 @@
+import { expect, open, test, type App } from 'nsh/test';
+import { assertStyleBounds } from './desktop-style-assert';
+const waitText = (app: App, text: string) => app.waitFor(`text:${text}`);
+const geometry = (app: App) => JSON.parse(app.texts().find(t => t.startsWith('STYLE_GEOMETRY '))!.slice('STYLE_GEOMETRY '.length));
+for (const dark of [false, true]) for (const width of [1240, 680]) {
+  const scheme = dark ? 'dark' : 'light', height = width === 1240 ? 820 : 720;
+  const prefix = `statistics-${scheme}-${width}`;
+  test(`statistics ${scheme} ${width}: unavailable, drain, upward disclosure and scope`, async () => {
+    const app = await open('./ThemeStatistics.tsx', { width, height, colorScheme: scheme, reducedMotion: true, locale: 'zh-CN' });
+    await waitText(app, '项目 主题验证 A');
+    for (const text of ['— 轮 — 步', '缓存命中 —', '上下文 —']) await waitText(app, text);
+    await assertStyleBounds(app, false, height);
+    expect(app.window('main').state()!.scaleFactor).toBe(1);
+    await app.screenshot(`${prefix}-empty.png`);
+    await app.type('id:prompt', '统计样本');
+    await app.press('id:primary-action');
+    await waitText(app, '合成统计样本');
+    expect(app.shows('text:— 轮 — 步')).toBe(true);
+    for (const text of ['1 轮 2 步', '缓存命中 12.5%', '上下文 5,231 / 64,000']) await waitText(app, text);
+    await assertStyleBounds(app, true, height);
+    await app.screenshot(`${prefix}-drained.png`);
+    await app.press('id:statistics-trigger');
+    await app.waitFor('id:statistics-timing');
+    for (const text of ['会话统计', '模型用时', '首 token 平均（TTFT）']) await waitText(app, text);
+    await waitText(app, '1.2 s'); await waitText(app, '56 ms');
+    await app.waitUntil(() => !!geometry(app)['statistics-popup']);
+    const b = geometry(app), popup = b['statistics-popup'], strip = b['composer-statistics'], trigger = b['round-statistics'];
+    expect(popup.origin.y + popup.size.height).toBeLessThanOrEqual(b['chat-body'].origin.y + strip.origin.y + trigger.origin.y - 7);
+    expect(popup.origin.x).toBeGreaterThanOrEqual(0);
+    expect(popup.origin.x + popup.size.width).toBeLessThanOrEqual(width);
+    console.log('STATISTICS_GEOMETRY ' + JSON.stringify({ scheme, width, height, popup, strip, trigger }));
+    await app.screenshot(`${prefix}-timing.png`);
+    await app.keyboard.press('escape');
+    await app.waitUntil(() => !app.shows('id:statistics-timing'));
+    await app.press('id:statistics-trigger'); await app.waitFor('id:statistics-timing');
+    await app.press('id:session-第二会话'); await waitText(app, '— 轮 — 步');
+    expect(app.shows('id:statistics-timing')).toBe(false);
+    await app.press('id:session-独立会话'); await waitText(app, '1 轮 2 步');
+    expect(app.shows('id:statistics-timing')).toBe(false);
+    await app.type('id:prompt', '部分统计'); await app.press('id:primary-action');
+    await waitText(app, '2 轮 2 步');
+    await waitText(app, '缓存命中 —'); await waitText(app, '上下文 —');
+    await app.press('id:statistics-trigger'); await waitText(app, '0 ms');
+  });
+}

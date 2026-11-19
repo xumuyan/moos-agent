@@ -116,9 +116,11 @@ test('N01-D1 terminal backlog 150+, bounded payload/pages, task-bound cursors an
   const { call, scopes: [a] } = setup(host);
   const task = call('tasks.submit', { ...a, requestId: 'paged', text: 'backlog' }).result.task;
   await until(() => page(call, a, task.id).terminal);
-  let p = page(call, a, task.id); assert.equal(p.hasMore, true); assert.equal(p.events.length, 100);
+  let p = page(call, a, task.id); assert.equal(p.hasMore, true); assert.equal(p.statistics, undefined); assert.equal(p.events.length, 100);
   const events = [...p.events];
   while (p.hasMore) { const previous = p.cursor; p = page(call, a, task.id, previous); assert.notEqual(p.cursor, previous); events.push(...p.events); }
+  assert.equal(p.statistics.toolSteps, 1);
+  assert.ok(!JSON.stringify(p.statistics).includes('secret'));
   assert.equal(events.filter(e => e.type === 'text_delta').length, 160);
   assert.equal(new Set(events.map(e => e.sequence)).size, events.length);
   assert.equal(events.at(-1).payload.status, 'succeeded');
@@ -157,6 +159,11 @@ test('N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation
   const other = submit(b, 'write', 'MOOS_FIXTURE_WRITE DESKTOP_OK');
   const done = await until(() => { const p = page(call, b, other.id); return p.terminal && !p.hasMore && p; });
   assert.equal(done.task.status, 'succeeded');
+  assert.deepEqual(done.statistics.context, { tokens: 25, window: 64000 });
+  assert.equal(done.statistics.cacheHitRate, null);
+  assert.equal(done.statistics.toolSteps, 2);
+  assert.ok(Number.isSafeInteger(done.statistics.elapsedMs) && done.statistics.elapsedMs >= 0);
+  assert.ok(Number.isSafeInteger(done.statistics.toolMs) && done.statistics.toolMs >= 0);
   assert.equal(await readFile(join(host.trustedProjects[1].path, 'result.txt'), 'utf8'), 'DESKTOP_OK\n');
   assert.deepEqual(done.events.filter(e => e.type === 'tool_end').map(e => e.payload.toolName), ['write', 'read']);
   assert.match(done.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /完成 DESKTOP_OK/);
@@ -165,6 +172,8 @@ test('N01-D1 real PI SDK write/stream, two-project ownership, queue cancellation
   const ordinary = submit(ordinaryScope, 'ordinary', '你好，请介绍当前本地验证');
   const ordinaryDone = await until(() => { const p = page(call, ordinaryScope, ordinary.id); return p.terminal && !p.hasMore && p; });
   assert.equal(ordinaryDone.task.status, 'succeeded');
+  assert.equal(ordinaryDone.statistics.toolSteps, 0);
+  assert.equal(ordinaryDone.statistics.toolMs, null);
   assert.match(ordinaryDone.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), /本地夹具响应：你好/);
   assert.equal(page(call, a, held.id).terminal, false);
   call('tasks.cancel', { ...a, taskId: held.id });

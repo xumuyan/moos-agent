@@ -3096,3 +3096,14 @@
 - 对应 Git 提交：唯一说明 `feat(N01-D3): dock queued follow-up messages`，查询 `git log --all --oneline --grep='dock queued follow-up messages'`。
 
 本轮收尾：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 78/78；全量 `discover -s tests -v` 224/225，唯一失败仍为 `tests/test_repository_docs.py:604` 缺 E124 `report.json`，未替换报告或削弱断言。`git diff --check` 与 `shasum -a 256 -c /private/tmp/n01-picker-owner.sha` 通过，七份保护输入未暂存；门禁未全过，未推送，也未核查新远端提交。
+
+## 2026-11-20 07:48:21 +08:00｜N01-D3 输入栏底部会话统计（候选源码检查点）
+
+- 修改或新增内容：接续 `c0b539c`，独立 NSH Mac 候选底栏显示累计轮数和工具步数、最近一轮缓存命中与完整上下文数字。点击仪表向上展开会话统计，Esc 或切会话收起。Host 在现有终态排空页附带统计，不改公开事件、发送、停止、队列派发或历史；保留 DSH `gauge-outline` 的 MIT 署名。
+- 遇到的难题：早期 `App.capture` 编译失败；统计草稿的前序输入格式与冻结回执不同，部分已存在文件被误列为新增。核心完整复跑一度 370/371，`services/agent/scheduler.test.mjs:230` 未及时达到预期状态，未确认根因；保留原始失败。受保护验收脚本先前仍因临时副本漏依赖报 `UNRESOLVED_IMPORT`，未收编。
+- 处理方式：使用 `app.screenshot` 重验，按基准树验证前序哈希，按顺序连接后继回执，不改冻结回执或旧失败。客户端只在控制器确认作用域、任务、游标和排空后入账；不可测数据留「—」。素材仅用于获准的本机捕获，图像不进 Git，不编辑七份 owner 文件。
+- 验证结果：提交前混合工作区，macOS 27.0.1 arm64、NSH 0.5.0 AppKit、Node 22.22.0，独立 0700 临时目录。`node probes/nsh-validation/verify-desktop-theme.mjs --statistics` 有艺术 `run-aeFsoo`、回退 `run-zgxF2M` 各 4/4、各 12 帧，浅深与 1240×820、680×720（1×）；复核有艺术浅色窄窗弹窗图，不算人工签收。runner 全 17 个模式退出 0，包括 headless 22/22、native 9/9、队列 4/4、composer 有/无艺术各 2/2。`node --test probes/nsh-validation/desktop-host.test.mjs probes/nsh-validation/desktop-composer-statistics.test.mjs` 17/17；`node probes/nsh-validation/verify-desktop-host.mjs` 真实 PI 私有管道及回环 12 项，非 PI＋GUI。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 最终 371/371（拆分复跑 338/338 与 33/33），不表示已修复调度器抖动。较早 `npm run test:electron` 133 过、10 跳、零失败，缺隔离 DSH CLI；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101（缺 defmt，未下载）。见 `desktop-composer-statistics-verification.json` 与 `artifacts/nsh-validation/statistics/`。本轮未生成团队快照或 Electron 构建；两份现有构建和活跃证据保留，无清理删除。
+- 遗留问题：E124 需隔离恢复验证，Rust 需核实离线依赖，Electron 需补隔离 DSH 前置；需要用户核对视觉及 owner 装箱批准。人工 GUI、IME、2×、真实 PI＋GUI、外部模型、历史恢复、签名整包以及与 Electron 同负载的包体／全进程资源测量均待验。D1/D2/D3 不勾；门禁未齐，不推送。正式沐码未构建、安装、退出、重启或部署，手机仍暂停。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): add composer session statistics`，查询 `git log --all --oneline --grep='add composer session statistics'`。
+
+本轮收尾：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 80/80；全量 `discover -s tests -v` 226/227，唯一失败仍为 `tests/test_repository_docs.py:604` 缺 E124 的 `artifacts/fork-recovery-restart/final/gui/recovery-gDj96a/report.json`。未替换证据或修改断言。回执锁定这两份日志与 Node 完整复跑日志；末次复核的日志单独留存。`git diff --check` 和 `shasum -a 256 -c /private/tmp/n01-picker-owner.sha` 通过。门禁未全过，仅本地提交，不推送。

@@ -2,9 +2,11 @@ import { cleanup, colorScheme, computed, createMotion, host, Image, List, platfo
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { DesktopModelCatalog } from './desktop-contract';
+import type { DesktopModelCatalog, TaskRef } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
+import { DesktopComposerStatistics } from './DesktopComposerStatistics';
+import { composerStatistics } from './desktop-composer-statistics';
 import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
@@ -58,6 +60,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   let disposed = false, pumpScheduled = false;
   const transport = props.call ?? desktopCall;
   const previews = sessionPreviews();
+  const statistics = composerStatistics();
   const call: DesktopCall = async (method, params) => {
     const key = method === 'tasks.submit' ? scopeKey(params as { projectId: string; sessionId: string }) : '';
     const outbound = outboundChoices.get(key);
@@ -72,10 +75,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       const data = result as { sessions?: unknown; session?: unknown } | null;
       previews.remember(projectId, method === 'sessions.list' ? data?.sessions : [data?.session]);
     }
+    if (method === 'tasks.events' && !disposed) statistics.stage(params as TaskRef, result);
     return result;
   };
   const refresh = () => {
     if (disposed) return;
+    statistics.confirm(controller.conversations.values());
     revision.set(revision() + 1);
     if (!pumpScheduled) {
       pumpScheduled = true;
@@ -99,7 +104,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
-  const dispose = () => { disposed = true; queue.clear(); outboundChoices.clear(); controller.dispose(); };
+  const dispose = () => { disposed = true; queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
@@ -337,7 +342,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               </View>
             </View>
           </View>
-          <Text testID="art-status" onLayout={measured('art-status')} style={{ flexShrink: 0, fontSize: 11, color: dark() ? t.dark.ink : t.ink, backgroundColor: dark() ? t.dark.details : '#f8fafff0', borderRadius: 6, padding: 4, height: safe().previewHeight, textAlign: 'center' }}>{artAvailable ? '本机授权素材预览 · 合成业务不等于实际任务' : '美术未加载：纯样式回归，不是完整皮肤预览'}</Text>
+          <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
+            height={safe().previewHeight} onLayout={measured('composer-statistics')} onTriggerLayout={measured('round-statistics')}
+            onPopupLayout={measured('statistics-popup')} />
         </View>
         {!active() && <BottomTrim width={windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0)} onLayout={measured('bottom-trim')} />}
       </View>

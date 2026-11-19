@@ -35,7 +35,14 @@ def successor_input(test, evidence, path, previous):
     return current['sha256'] if isinstance(previous, str) else current
 
 
-def current_composer_input(test, path, previous):
-    for evidence in (controls_evidence(), picker_evidence(), hover_evidence(), session_preview_evidence(), turn_queue_evidence()):
-        previous = successor_input(test, evidence, path, previous)
+def statistics_evidence():
+    return json.loads((PROBE / 'desktop-composer-statistics-verification.json').read_text())
+
+
+def current_composer_input(test, path, previous, *, after=None):
+    evidence_chain = (controls_evidence, picker_evidence, hover_evidence, session_preview_evidence,
+                      turn_queue_evidence, statistics_evidence)
+    start = evidence_chain.index(after) + 1 if after is not None else 0
+    for evidence in evidence_chain[start:]:
+        previous = successor_input(test, evidence(), path, previous)
     return previous

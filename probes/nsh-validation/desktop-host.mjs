@@ -8,6 +8,8 @@ import { TaskFailure } from '../../services/agent/errors.mjs';
 import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
+import { desktopTaskStatistics } from './desktop-statistics.mjs';
+
 const defaultModelId = desktopFixtureModels[0].id;
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -63,9 +65,10 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         sessionPolicy: { allowedTools: ['read', 'write', 'bash'] } }); }
       catch { throw new TaskFailure(options.signal.aborted ? 'cancelled' : 'internal'); }
     }, onEvent: event => {
+      const journal = journals.get(event.taskId);
+      journal.statistics.observe(event);
       const payload = publicPayload(event.type, event.payload);
       if (!payload) return;
-      const journal = journals.get(event.taskId);
       const item = { sequence: ++journal.last, type: event.type, payload };
       const bytes = Buffer.byteLength(JSON.stringify(item));
       journal.events.push({ item, bytes }); journal.bytes += bytes;
@@ -124,7 +127,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           }
           if (requests.size >= 32) reject('limit');
           const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: 600000,
-            onCreate: t => journals.set(t.id, { modelId, reasoningEffort, events: [], last: 0, floor: 0, bytes: 0 }) });
+            onCreate: t => journals.set(t.id, { modelId, reasoningEffort, events: [], last: 0, floor: 0, bytes: 0, statistics: desktopTaskStatistics() }) });
           requests.set(key, { id: created.id, text: p.text });
           return { task: taskView(created), replayed: false };
         }
@@ -149,8 +152,10 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
             events.push(item); bytes += size;
           }
           const next = events.at(-1)?.sequence ?? after;
-          return { task: taskView(found), terminal: terminal.has(found.status), events,
-            cursor: `${found.id}:${next}`, hasMore: next < journal.last };
+          const hasMore = next < journal.last, ended = terminal.has(found.status);
+          return { task: taskView(found), terminal: ended, events,
+            cursor: `${found.id}:${next}`, hasMore,
+            ...(ended && !hasMore ? { statistics: journal.statistics.snapshot() } : {}) };
         }
         default: reject('unsupported_method');
       }

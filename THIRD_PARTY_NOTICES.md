@@ -17,6 +17,8 @@ N01-D3 update (2026-11-19): The independent NSH candidate copies selected icon g
 
 The model picker additionally uses `chevron-down-outline`, `chevron-up-outline`, and `chevron-right-outline` from the same `@deepseek-ai/dsh-web-frontend` bundle under the same MIT notice. See [DESKTOP-CONTROL-HOVER.md](probes/nsh-validation/DESKTOP-CONTROL-HOVER.md). The independent queue dock uses `queue-outline`, `edit-outline`, and `trash-outline` from that bundle under the same notice. See [DESKTOP-TURN-QUEUE.md](probes/nsh-validation/DESKTOP-TURN-QUEUE.md).
 
+The independent composer statistics control uses `gauge-outline` from the same `@deepseek-ai/dsh-web-frontend` bundle under the same MIT notice. See [DESKTOP-COMPOSER-STATISTICS.md](probes/nsh-validation/DESKTOP-COMPOSER-STATISTICS.md).
+
 MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

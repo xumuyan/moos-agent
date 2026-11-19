@@ -18,6 +18,11 @@ export type PublicEvent = { sequence: number } & (
   { type: 'tool_start'; payload: { toolCallId: string; toolName: string } } |
   { type: 'tool_end'; payload: { toolCallId: string; toolName: string; isError: boolean } }
 );
+// Optional task-local observations; never accumulated from chat/history text.
+export type DesktopTaskStatistics = {
+  toolSteps: number | null; elapsedMs: number | null; toolMs: number | null;
+  cacheHitRate: number | null; context: { tokens: number; window: number } | null;
+};
 export type Calls = {
   'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
@@ -25,7 +30,7 @@ export type Calls = {
   'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string }; result: { task: Task; replayed: boolean } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
-    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean;
+    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean; statistics?: DesktopTaskStatistics;
   } };
 };
 export type Method = keyof Calls;
@@ -57,6 +62,8 @@ export type Response<M extends Method> = { version: 1; id: string | null } & (
  *   Poll until terminal && !hasMore, not terminal alone. Then stop polling. Empty nonterminal
  *   pages are not completion. Bridge must invalidate outstanding calls on child exit and use
  *   bounded pending calls/response parsing. Native/UI integration is separately unverified.
+ * - Terminal drained pages may include numeric task statistics. No raw usage, provider identity,
+ *   tool arguments, response payloads, or history are exposed by these observations.
  * - Temporary projects/sessions disappear on clean shutdown. Failed drain retains state and
  *   exits nonzero. SDK is in-process; no separate PI child is implied. Only registered tool
  *   cleanup is tested, not arbitrary detached descendants or SIGKILL/crash recovery.

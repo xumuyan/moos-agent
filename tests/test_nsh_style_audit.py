@@ -70,14 +70,16 @@ class NSHStyleAuditTests(unittest.TestCase):
         view = (NSH / 'DesktopView.tsx').read_text()
         layers = (NSH / 'desktop-theme-layers.tsx').read_text()
         picker = (NSH / 'DesktopModelPicker.tsx').read_text()
+        statistics = (NSH / 'DesktopComposerStatistics.tsx').read_text()
         self.assertIn('<DesktopModelPicker scope={pickerScope()}', view)
-        baseline_ids = ('desktop-root sidebar sidebar-brand create-session search-unavailable projects selection sessions sidebar-footer settings-unavailable chat-column chat-header toggle-navigation toggle-details status error empty-state messages message composer composer-frame prompt primary-action model-picker art-status details-panel skin-layers palace-background wallpaper-scrim character-left character-right top-trim bottom-trim').split()
+        self.assertIn('<DesktopComposerStatistics scope={pickerScope()}', view)
+        baseline_ids = ('desktop-root sidebar sidebar-brand create-session search-unavailable projects selection sessions sidebar-footer settings-unavailable chat-column chat-header toggle-navigation toggle-details status error empty-state messages message composer composer-frame prompt primary-action model-picker composer-statistics details-panel skin-layers palace-background wallpaper-scrim character-left character-right top-trim bottom-trim').split()
         # Workspace actions now share a renderer; preserve the generated search ID.
         self.assertIn("{ id: 'search', icon: 'search', label: '搜索' }", view)
         self.assertIn('testID={`${id}-unavailable`}', view)
         for token in baseline_ids:
             if token != 'search-unavailable':
-                self.assertIn('testID="' + token + '"', view + layers + picker)
+                self.assertIn('testID="' + token + '"', view + layers + picker + statistics)
         self.assertIn("testID={busy() ? 'icon-stop' : 'icon-send'}", view)
         self.assertNotIn('testID="stop"', view)
         self.assertNotIn('testID="send"', view)

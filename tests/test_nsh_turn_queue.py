@@ -3,7 +3,7 @@ import json
 import subprocess
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, session_preview_evidence, turn_queue_evidence
+from nsh_composer_provenance import PROBE, ROOT, session_preview_evidence, turn_queue_evidence, current_composer_input
 
 
 def record(path):
@@ -25,7 +25,7 @@ class TurnQueueTests(unittest.TestCase):
             data = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
             self.assertEqual(hashlib.sha256(data).hexdigest(), previous, path)
         for path, expected in e['inputs'].items():
-            self.assertEqual(record(ROOT / path), expected, path)
+            self.assertEqual(record(ROOT / path), current_composer_input(self, path, expected, after=turn_queue_evidence), path)
 
     def test_native_receipts_bind_exact_inputs_and_layout_without_delivery_claim(self):
         e = turn_queue_evidence()

@@ -1,0 +1,921 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3/composer_statistics",
+  "base": "c0b539c8f078d816623be88e2ea6b3ab1cb069f5",
+  "commitSubject": "feat(N01-D3): add composer session statistics",
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-turn-queue-verification.json",
+    "bytes": 11584,
+    "sha256": "12dbf91367e28ed87f76d548b8e22f72994f7a908a6b1891615a1a3623e7ff05"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "2096045536370bdb9133c2500264a920ddbed4b51dd2967846701ba59c2ad12e",
+    "probes/nsh-validation/desktop-contract.ts": "a2eeb2b4b0fba957e8a4df95aa021097d56cc5d97afec6965fda7e8d748dbd1f",
+    "probes/nsh-validation/desktop-host.mjs": "f88705157179faa0eb7cfa4ec8917e186f905a365b70a15a11218c22fa151949",
+    "probes/nsh-validation/desktop-host.test.mjs": "afde9efd9055fe0c5e0f2e4df3aa388d1ad97123aac11fcfbebe6a4831bad48d",
+    "probes/nsh-validation/desktop-icon-paths.ts": "97a5df05fda28758c4526eeb5b47eb18c39fcb4817dd55092c7966f5e8651ce7",
+    "probes/nsh-validation/desktop-style-assert.ts": "84c5f30463ee8f0babf6523235262782f27fbd882475824066f3961345e8fa4e",
+    "probes/nsh-validation/desktop-theme.test.tsx": "091b1abbd57b4aa598837ccd512aae73faa4c74901504598807c19663648a05a",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "cb98ae81aae941671d3a9bef0cddec3361b9a63f35710cc30670747374249ce3",
+    "tests/nsh_composer_provenance.py": "fae9be1256fc88d1f046b450cdd8d28add04a3151638391585637ac041a13f9b",
+    "tests/test_nsh_composer_controls.py": "4fa63ca53e5923a360c3a129a1df4d1e5d655192c4fb45f66037719f279c980f",
+    "tests/test_nsh_control_hover.py": "b4dda048e5888b5cac5891303b5053047873454050cbea962384bd071fbe1b52",
+    "tests/test_nsh_model_picker.py": "88046b45ea032a4dbd7df9043b3cfabf6c297218cd4239575cfc938525046f1f",
+    "tests/test_nsh_native_style.py": "658b114572e80be439cdd8c22b188b6c5406faf4220d4bbdd69b2fad836e5788",
+    "tests/test_nsh_session_preview.py": "a4a7f1d1490d2c75787c08e80a22e42219fe6c8b18ed8f0b2ed2cd5857f4fff4",
+    "tests/test_nsh_style_audit.py": "c4575d25e29170cf39090a52bb0e07b364ffe3fe0c0677a4ce76ab984dd57cd2",
+    "tests/test_nsh_style_fix.py": "007c2c6089d1b3626e8ace0103a53b6a103ea4b98661b4bd57e078dd9d8840b5",
+    "tests/test_nsh_turn_queue.py": "809edc56f459640bfe4cf7086a786ddc4f9b0f9a93e06677831d2b574f8d5651"
+  },
+  "added": [
+    "probes/nsh-validation/DesktopComposerStatistics.tsx",
+    "probes/nsh-validation/desktop-composer-statistics.ts",
+    "probes/nsh-validation/desktop-statistics.mjs",
+    "probes/nsh-validation/ThemeStatistics.tsx",
+    "probes/nsh-validation/desktop-composer-statistics-check.tsx",
+    "probes/nsh-validation/desktop-composer-statistics.test.mjs",
+    "tests/test_nsh_composer_statistics.py"
+  ],
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 34938,
+      "sha256": "387ee406cc0c1a3f56f173443c2229ea51b211290ef96fd418a832fdb3e5c477"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 5437,
+      "sha256": "44aff18f02fb7f60da2789794fa00e248f768b93578d2acb1fe94c9b1572b2f2"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 11408,
+      "sha256": "6592f1c452141b0c08c917073b1adf893c28dab085d1568a849f4daf4c393aa3"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 22398,
+      "sha256": "b06b49363587952dbff57e108ff9c7645b547ad83fffe295da4db346b74d2f03"
+    },
+    "probes/nsh-validation/desktop-icon-paths.ts": {
+      "bytes": 11391,
+      "sha256": "1453591e7a67d43ba36e2adb75baa877ace9f400de5a88e7db1ca9bbd379260d"
+    },
+    "probes/nsh-validation/desktop-style-assert.ts": {
+      "bytes": 3036,
+      "sha256": "e1b33c83261139e66a57a36bede64add18d0b6082c5d7cddff07bbf12994e84e"
+    },
+    "probes/nsh-validation/desktop-theme.test.tsx": {
+      "bytes": 14514,
+      "sha256": "adf5c9a707f2ce9150d5a443e18b11fa8b284efcf7f1d35f095040dd9173cc2e"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 13571,
+      "sha256": "7392aa138b7f82c37cdeea6176ffc67e7fbb158778c9cb94fefd1d6dfeaf29de"
+    },
+    "probes/nsh-validation/DesktopComposerStatistics.tsx": {
+      "bytes": 4130,
+      "sha256": "4ac42fc511adc0eaa7ea5223649795718425c1b8334e1425596054abd499a843"
+    },
+    "probes/nsh-validation/desktop-composer-statistics.ts": {
+      "bytes": 3833,
+      "sha256": "59ff2937761c7379c5b3736d5157bae3f2ba331706650b81c238eb8cb2012c20"
+    },
+    "probes/nsh-validation/desktop-statistics.mjs": {
+      "bytes": 2077,
+      "sha256": "e058b17008fcfe46dec7af6c3c7290acd045d9f5e48f45921e7b9d242a474785"
+    },
+    "probes/nsh-validation/ThemeStatistics.tsx": {
+      "bytes": 2126,
+      "sha256": "5c0e73c9e45b620c58e294070a9953afbbba9c46efe3351cfa6c098133cc134b"
+    },
+    "probes/nsh-validation/desktop-composer-statistics-check.tsx": {
+      "bytes": 3148,
+      "sha256": "95a7b18dd4862637062309a708b149b21a22d5af3ea5b72f9b4cd610fbdeafea"
+    },
+    "probes/nsh-validation/desktop-composer-statistics.test.mjs": {
+      "bytes": 4914,
+      "sha256": "6cb9a24a33a35fad5089ca651394f53fb94a79e6da9aaf3a7deafb700381f4dd"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 1697,
+      "sha256": "56130062d2e923796a5f81ec17b0c51315259d6843c3a59a8ca2efd6ddaf47d3"
+    },
+    "tests/test_nsh_composer_controls.py": {
+      "bytes": 3975,
+      "sha256": "f9c3846640cc2abb7f6eff7c9ad77f6c0c8d8a4a5b8e8a4d6d0294cb6c5ef1e3"
+    },
+    "tests/test_nsh_control_hover.py": {
+      "bytes": 3602,
+      "sha256": "6fdf12786743ff3a8118774adbe10f25ffe51c51efb85a8a327c20d9344d2479"
+    },
+    "tests/test_nsh_model_picker.py": {
+      "bytes": 4542,
+      "sha256": "bd1dcf977efe165ac35e30529dc3aff00d9546676d2ccfc43d5b746c6fbd1fde"
+    },
+    "tests/test_nsh_session_preview.py": {
+      "bytes": 2877,
+      "sha256": "1f7c254d4c55b5c127df5e640101ac7554bc466e412ae3a10d756e3ddeb709e0"
+    },
+    "tests/test_nsh_turn_queue.py": {
+      "bytes": 4016,
+      "sha256": "5ada24edb6dda46110af4d6e84039387d05271c54057e7b161685101762ef352"
+    },
+    "tests/test_nsh_style_audit.py": {
+      "bytes": 6027,
+      "sha256": "29cba1bb164df4d508949497fcab61662f6df9da516abad20b25d6c1c607c0be"
+    },
+    "tests/test_nsh_native_style.py": {
+      "bytes": 2682,
+      "sha256": "a216a41d147b9ec79d717135362ad1b5b08dd7d4840e5a3d4373aa76499124d7"
+    },
+    "tests/test_nsh_style_fix.py": {
+      "bytes": 3332,
+      "sha256": "4c63b4e5e171fc860dc3bdfa24571943c8234a4288591eb74c2334208fc29cb5"
+    },
+    "tests/test_nsh_composer_statistics.py": {
+      "bytes": 4361,
+      "sha256": "cc5a055d987b5a970c3db7884eb29941253e2737d87256dfd90aae92bb8113e5"
+    }
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "candidate": {
+    "platform": "NSH 0.5.0 AppKit macOS 27.0.1 arm64 1×",
+    "synthetic": true,
+    "installed": false,
+    "piExecuted": false,
+    "manualGUI": false,
+    "artwork": "authorized Maid Atelier 0.3.2 and fallback",
+    "matrices": {
+      "withArt": {
+        "passed": 4,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/statistics/final/art.log",
+          "bytes": 34044,
+          "sha256": "907c175a161229d8b5373e6c830709d431dfa2bd1965f35bfdbb8c0780b80392"
+        },
+        "directory": "artifacts/nsh-validation/desktop-theme/run-aeFsoo",
+        "artwork": true,
+        "scale": 1,
+        "artifacts": [
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-aeFsoo/capture-inputs.json",
+            "bytes": 13569,
+            "sha256": "94cf939e5231f9313e6757c7090dd39fffd65403d516e5af68ee8d2f89d10cf7"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-aeFsoo/check.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-aeFsoo/test.log",
+            "bytes": 33934,
+            "sha256": "e3551100de189ade4e6138cab9142ebb1539e9f8402d09d4f25aa2d6199cc324"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-aeFsoo/result.json",
+            "bytes": 1110,
+            "sha256": "4bc2fbdf49261bfb5e550515ad6ff56ae1b27ddc55e94fa3afa50c4993632cde"
+          }
+        ],
+        "geometry": [
+          {
+            "scheme": "light",
+            "width": 1240,
+            "height": 820,
+            "popup": {
+              "origin": {
+                "x": 605,
+                "y": 621
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 120,
+                "y": 628
+              },
+              "size": {
+                "width": 720,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 205,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "light",
+            "width": 680,
+            "height": 720,
+            "popup": {
+              "origin": {
+                "x": 277,
+                "y": 521
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 20,
+                "y": 528
+              },
+              "size": {
+                "width": 456,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 73,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "dark",
+            "width": 1240,
+            "height": 820,
+            "popup": {
+              "origin": {
+                "x": 605,
+                "y": 621
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 120,
+                "y": 628
+              },
+              "size": {
+                "width": 720,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 205,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "dark",
+            "width": 680,
+            "height": 720,
+            "popup": {
+              "origin": {
+                "x": 277,
+                "y": 521
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 20,
+                "y": 528
+              },
+              "size": {
+                "width": 456,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 73,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          }
+        ],
+        "images": [
+          {
+            "file": "statistics-dark-1240-drained.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1495243,
+            "sha256": "02eaaa159ebf75fa95a0f79f3756c835db685f9242f0fcd054b305994f8e95de"
+          },
+          {
+            "file": "statistics-dark-1240-empty.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1442878,
+            "sha256": "20d2c3cafdc6300e63d5627baeb4fe06c6aa94132dc81d567971b4d07e44437a"
+          },
+          {
+            "file": "statistics-dark-1240-timing.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1486874,
+            "sha256": "08272df6bab463c5febf04a9d548d1825f5926692d7f78e8730e8e0304a633a7"
+          },
+          {
+            "file": "statistics-dark-680-drained.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 769316,
+            "sha256": "7e848cdf3653c87cf68ac1ed95beed54decbdeef67de1df733186ff4abc20004"
+          },
+          {
+            "file": "statistics-dark-680-empty.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 752424,
+            "sha256": "320329f55bb8bb2134eb2bcab0719db0ae5a16f8c2d710d9024aa354e6dd2ede"
+          },
+          {
+            "file": "statistics-dark-680-timing.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 739595,
+            "sha256": "21e62be3aef1245e095a98f3e5bb2e0ebe9ccfe8c3a0cc76ff5eff1cb798ef4d"
+          },
+          {
+            "file": "statistics-light-1240-drained.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1631270,
+            "sha256": "c349aa45e535af6913e980ab064c5db7ea1bb32a46e5d3447c7d66af91ef2996"
+          },
+          {
+            "file": "statistics-light-1240-empty.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1606637,
+            "sha256": "324f593af9397cf0e797a74e7f477e9de34d489b2039f00c58041e8013e492a3"
+          },
+          {
+            "file": "statistics-light-1240-timing.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 1629003,
+            "sha256": "1849a4734563c136ae6aa47ccdca23216bf1a11f791b3952a0a906e514c4650c"
+          },
+          {
+            "file": "statistics-light-680-drained.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 812704,
+            "sha256": "eb1c9854fe6f0bfaa1250b26025a7d199473c1cb728993d09e4a8fda2c109498"
+          },
+          {
+            "file": "statistics-light-680-empty.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 810625,
+            "sha256": "ca53b9ac589c4450cf496aacd051cfe3723cdc12040293298f8fc5d8b12b0339"
+          },
+          {
+            "file": "statistics-light-680-timing.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 785441,
+            "sha256": "6870126a0d00e9d2f4144f5940c9f70bc03660bd7a805b3d3c99766c610fae07"
+          }
+        ]
+      },
+      "fallback": {
+        "passed": 4,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/statistics/final/fallback.log",
+          "bytes": 32808,
+          "sha256": "5db6635c691d3cdc31d6dd7892d05d18eded6acf105f4e82baff96c1610015a2"
+        },
+        "directory": "artifacts/nsh-validation/desktop-theme/run-zgxF2M",
+        "artwork": false,
+        "scale": 1,
+        "artifacts": [
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-zgxF2M/capture-inputs.json",
+            "bytes": 10753,
+            "sha256": "7d3fd9be61178e39eef784a8b9197143b5a82ad8fc4438c8c9539a3691e7ca75"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-zgxF2M/check.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-zgxF2M/test.log",
+            "bytes": 32698,
+            "sha256": "05a1ee2eefcdee04ef735adbfa663519618b00e95e0f5472dd3521b7319166da"
+          },
+          {
+            "path": "artifacts/nsh-validation/desktop-theme/run-zgxF2M/result.json",
+            "bytes": 1111,
+            "sha256": "7bca6a625dfb2bae501fc03c94e67aaad8931f302f4b1158f36d31b25692e7d8"
+          }
+        ],
+        "geometry": [
+          {
+            "scheme": "light",
+            "width": 1240,
+            "height": 820,
+            "popup": {
+              "origin": {
+                "x": 605,
+                "y": 621
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 120,
+                "y": 672
+              },
+              "size": {
+                "width": 720,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 205,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "light",
+            "width": 680,
+            "height": 720,
+            "popup": {
+              "origin": {
+                "x": 277,
+                "y": 521
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 20,
+                "y": 572
+              },
+              "size": {
+                "width": 456,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 73,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "dark",
+            "width": 1240,
+            "height": 820,
+            "popup": {
+              "origin": {
+                "x": 605,
+                "y": 621
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 120,
+                "y": 672
+              },
+              "size": {
+                "width": 720,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 205,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          },
+          {
+            "scheme": "dark",
+            "width": 680,
+            "height": 720,
+            "popup": {
+              "origin": {
+                "x": 277,
+                "y": 521
+              },
+              "size": {
+                "width": 280,
+                "height": 153
+              }
+            },
+            "strip": {
+              "origin": {
+                "x": 20,
+                "y": 572
+              },
+              "size": {
+                "width": 456,
+                "height": 36
+              }
+            },
+            "trigger": {
+              "origin": {
+                "x": 73,
+                "y": 6
+              },
+              "size": {
+                "width": 82,
+                "height": 24
+              }
+            }
+          }
+        ],
+        "images": [
+          {
+            "file": "statistics-dark-1240-drained.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 462351,
+            "sha256": "b8742e9364a025a00b63710495eb6e82a6285e4a22d61c811c680e9c4885786c"
+          },
+          {
+            "file": "statistics-dark-1240-empty.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 459576,
+            "sha256": "dd6a6450687e65eb498ebeabb7c0aaabc5f75087005e8fa30f1db8e3c2c4eea3"
+          },
+          {
+            "file": "statistics-dark-1240-timing.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 485065,
+            "sha256": "973ed2150611e6bb3a8b695261cd96088a737760f92a97f8f20b73f141054576"
+          },
+          {
+            "file": "statistics-dark-680-drained.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 287548,
+            "sha256": "e65b8d9e60951fea5f188a10a9f990ee9bec571f9cd280b478e186e9589e55d1"
+          },
+          {
+            "file": "statistics-dark-680-empty.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 286348,
+            "sha256": "6daf772c21b4193ecfdab203df028f70e0db4e1839bb3c870df4a26a43ae4b56"
+          },
+          {
+            "file": "statistics-dark-680-timing.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 301792,
+            "sha256": "532440423206d73b70aa15e0d750539516fdc1e1c448fc312f8c1ec5a88a1703"
+          },
+          {
+            "file": "statistics-light-1240-drained.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 505012,
+            "sha256": "06737eb0cef91ea3a31824aca4291366c0974e084980a7d93b87724dbe4fb91e"
+          },
+          {
+            "file": "statistics-light-1240-empty.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 497670,
+            "sha256": "c674c4d185aa40ae4aedf6352f6aca0e2f2b531273059cfe09c5b30ac1d046de"
+          },
+          {
+            "file": "statistics-light-1240-timing.png",
+            "pixels": [
+              1240,
+              820
+            ],
+            "bytes": 542517,
+            "sha256": "55f33196bebec3475ab3e7a18494cfbff8c4245657491ea2bbe9e719e343e2c6"
+          },
+          {
+            "file": "statistics-light-680-drained.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 322611,
+            "sha256": "7efe69aa402545b28f9d3aaab085498302042f40de7fa4cbb8a64cbbd85e15c4"
+          },
+          {
+            "file": "statistics-light-680-empty.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 312332,
+            "sha256": "745fff37bb024fd03d64d701d65a1d2db013a791a48be0a7a4ceb41c1a35cfa6"
+          },
+          {
+            "file": "statistics-light-680-timing.png",
+            "pixels": [
+              680,
+              720
+            ],
+            "bytes": 346212,
+            "sha256": "c5d5dcae56b3d9fde283a5aa6b96771942d4138be744445cfd27f675d817d54a"
+          }
+        ]
+      },
+      "headless": {
+        "passed": 22,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/statistics/final/headless.log",
+          "bytes": 34901,
+          "sha256": "1bf89e5da40fb4c677ba68b1746a5f9ff8ea8cf713583db55b33521afbf42166"
+        }
+      },
+      "native": {
+        "passed": 9,
+        "failed": 0,
+        "log": {
+          "path": "artifacts/nsh-validation/statistics/final/native.log",
+          "bytes": 114390,
+          "sha256": "988c7b2d20b52eb27b28bc5c3b3863b3cfec112a5605efee70e11fd5312b9a3c"
+        }
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/nsh-validation/statistics/final/art.log",
+      "bytes": 34044,
+      "sha256": "907c175a161229d8b5373e6c830709d431dfa2bd1965f35bfdbb8c0780b80392"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/chat-cards.log",
+      "bytes": 1219,
+      "sha256": "268a8bf9c325b64f3f8b561a74553943ca12abd8cdf09b29089bd49863924355"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/composer-fallback.log",
+      "bytes": 42237,
+      "sha256": "03ccbc6eba81eca2fc9f696ce238b9c9efa48a3205c688f692a9aa408241bd00"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/composer.log",
+      "bytes": 43781,
+      "sha256": "bf24433cd513dc35ef4b4413612ae8760dbd3fa054fa3db933464a4967d5b856"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/control-hover.log",
+      "bytes": 16001,
+      "sha256": "6b518ce6d0797a189c5165c2da4b7f0ca56397f7cab0313a75fe7419c6728b32"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/evidence.log",
+      "bytes": 11065,
+      "sha256": "27b9ee3084ac51e6f285543792d42c4b733e56a814ebb7c3039f97209aaf3b12"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/fallback.log",
+      "bytes": 32808,
+      "sha256": "5db6635c691d3cdc31d6dd7892d05d18eded6acf105f4e82baff96c1610015a2"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/headless.log",
+      "bytes": 34901,
+      "sha256": "1bf89e5da40fb4c677ba68b1746a5f9ff8ea8cf713583db55b33521afbf42166"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/icons.log",
+      "bytes": 17137,
+      "sha256": "7200243e7ed08e1c00c55680d531287313e209ab53643b60f05fbdbe165527e6"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/live-sidebar.log",
+      "bytes": 18841,
+      "sha256": "87f5a61f79dd735f68702a803446cfac4d4429d7a3ddb0ba7d1dde19b7eee2f3"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/native.log",
+      "bytes": 114390,
+      "sha256": "988c7b2d20b52eb27b28bc5c3b3863b3cfec112a5605efee70e11fd5312b9a3c"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/pipe.log",
+      "bytes": 556,
+      "sha256": "13205d2386d73f7b9a0be8426c0c2d01b5f8894195739581b08c8a11e2defa49"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/reducer.log",
+      "bytes": 869,
+      "sha256": "7ac73f4936fff263eab60029db4e7aa78deb96c9d25024171051470d54660f48"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/rich.log",
+      "bytes": 19301,
+      "sha256": "9b2ef7099a885cf96a7abdbbe6a9e88b12df9071db71130ae86111a195f82050"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/session-preview.log",
+      "bytes": 15897,
+      "sha256": "a478799ef6aedb8dc031f84e2590366be42348b27818d969e2e4015e9368f69d"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/sidebar-activity.log",
+      "bytes": 576,
+      "sha256": "f7457ea57a10d482d3ca9f33da0600a12b80e5bfcc615008eee4f91980ec75df"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/status",
+      "bytes": 217,
+      "sha256": "c40350ab7abf67f1a51db4705614a178d4f847500e5227e33139efb18bead536"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/targeted.log",
+      "bytes": 4795,
+      "sha256": "3762552227d5b7c0e35ba6dfbfd9554b838a0f8fb5b97ce86cd0b505f5b88b90"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/turn-queue.log",
+      "bytes": 4035,
+      "sha256": "4e082ed3b34308907495857a84ae6eb72ba33c6868ffa3e929866cff2950e272"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/typography.log",
+      "bytes": 1815,
+      "sha256": "ac30ce3827935467f9508d5307e15a4e7c6277656639aff335705fb3b08e5cb0"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/window-chrome.log",
+      "bytes": 6519,
+      "sha256": "fccb79abbf302a3f00f0b7bb53c12f41115627ed93f00d71112cd8fff699fefc"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/core-full-retry.log",
+      "bytes": 87413,
+      "sha256": "0572ecd622a22deaa9f9d31c78bdc44ba8b2b90fc22166d63419f05d3bf45581"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/core-retry.log",
+      "bytes": 79500,
+      "sha256": "12d0c91fa2f3c6deef36c819126e9e66eb4a12bc929c5375eb5e40c2d9dcd18c"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/scripts-retry.log",
+      "bytes": 7978,
+      "sha256": "22f809528c4b092385a1ebfbe5b8f153080eff67c3f5a1b4d17ad28cae1e0f1d"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/python-nsh.log",
+      "bytes": 8764,
+      "sha256": "7055a64f276f8d611020f4451e059adc9b51715f9a6c5a2ae3d744b362217dee"
+    },
+    {
+      "path": "artifacts/nsh-validation/statistics/final/python-full.log",
+      "bytes": 26515,
+      "sha256": "6a7aaf1efc33a0dcfa18e64dbffe4c417c2c6bdf028b48c0b93a1d16379ad523"
+    }
+  ],
+  "acceptance": {
+    "visualReview": false,
+    "userApproved": false,
+    "retina": false,
+    "realPIPlusGUI": false,
+    "externalModel": false,
+    "independentPackage": false,
+    "deployed": false
+  },
+  "failedAttempts": [
+    {
+      "reason": "NSH App.capture is not part of the test API (TS2339); switched to App.screenshot",
+      "path": "artifacts/nsh-validation/statistics/fallback-first.log",
+      "bytes": 990,
+      "sha256": "4c1c484ee7cb9087c54b0441955f383ac6fc476cd1b7cbd5af56aa1115945241"
+    },
+    {
+      "reason": "Complete Node retry: scheduler.test.mjs:230 did not reach expected state (370/371); later complete run 371/371. Cause not established.",
+      "path": "artifacts/nsh-validation/statistics/final/core.log",
+      "bytes": 88142,
+      "sha256": "2a932bafec8eba92f497ff8957c9d535fd073f2310c433022804bb3a638e0c9d"
+    }
+  ],
+  "earlierPresentation": [
+    {
+      "id": "run-lyD22M",
+      "path": "artifacts/nsh-validation/statistics/fallback-native.log",
+      "bytes": 32806,
+      "sha256": "2b97b9e07be3715101fec524a0b049cd6e0cfe65613757af08f15e284d9f173b"
+    },
+    {
+      "id": "run-7ppRhU",
+      "path": "artifacts/nsh-validation/statistics/fallback.log",
+      "bytes": 32806,
+      "sha256": "0351c31ed9cbb15eb7c29730ec9f017143ae3611306a73756f275df225af4c4e"
+    },
+    {
+      "id": "run-ySEUcF",
+      "path": "artifacts/nsh-validation/statistics/art.log",
+      "bytes": 34042,
+      "sha256": "cfa4a68a3fb7996007faeda0d8d42f012d83860e3ee687c9f063a5ffe294ae88"
+    }
+  ]
+}

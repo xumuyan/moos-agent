@@ -43,4 +43,5 @@ class NativeStyleCheckpointTests(unittest.TestCase):
         for asset in inventory['assets']:
             self.assertEqual(list(PROBE.rglob(Path(asset['path']).name)), [])
         self.assertFalse((PROBE / 'assets/local-art').exists())
-        self.assertIn('本机授权素材预览', (PROBE / 'DesktopView.tsx').read_text())
+        view = (PROBE / 'DesktopView.tsx').read_text()
+        self.assertRegex(view, r'<DesktopComposerStatistics[^>]*art=\{artAvailable\}')

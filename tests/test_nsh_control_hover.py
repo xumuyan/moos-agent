@@ -2,13 +2,13 @@
 import hashlib
 import unittest
 
-from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence, session_preview_evidence, successor_input, turn_queue_evidence
+from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence, current_composer_input
 
 
 class NativeControlHoverTests(unittest.TestCase):
     def test_receipt_and_owned_inputs(self):
-        hover = hover_evidence()
         picker = picker_evidence()
+        hover = hover_evidence()
         prior = hover['predecessorReceipt']
         data = (ROOT / prior['path']).read_bytes()
         self.assertEqual((len(data), hashlib.sha256(data).hexdigest()), (prior['bytes'], prior['sha256']))
@@ -18,10 +18,8 @@ class NativeControlHoverTests(unittest.TestCase):
         self.assertTrue(set(hover['protected']).isdisjoint(hover['inputs']))
         for path in set(previous) & set(picker['inputs']):
             self.assertEqual(previous[path], picker['inputs'][path]['sha256'], path)
-        successor = session_preview_evidence()
-        queue = turn_queue_evidence()
         for path, record in hover['inputs'].items():
-            record = successor_input(self, queue, path, successor_input(self, successor, path, record))
+            record = current_composer_input(self, path, record, after=hover_evidence)
             data = (ROOT / path).read_bytes()
             self.assertEqual(record, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
 
