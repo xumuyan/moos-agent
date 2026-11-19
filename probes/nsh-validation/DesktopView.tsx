@@ -12,6 +12,7 @@ import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
 import { sidebarFooter } from './desktop-sidebar-footer';
 import { DesktopIcon } from './DesktopIcon';
+import { controlFocus, controlHover, controlPressed, controlSurface } from './desktop-control-style';
 import brandIcon from './assets/desktop/sidebar-icon.png';
 
 const navigationRows = [
@@ -170,10 +171,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         {footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
         <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16 }}>
           <Art testID="sidebar-swag" name="sidebar-swag" style={{ top: 0, left: 0, right: 0, height: footer().swagHeight, objectFit: 'fill', filter: 'brightness(1.1) saturate(1.04) contrast(1.04)' }} />
-          <Button testID="settings-unavailable" onLayout={measured('sidebar-settings')} accessibilityLabel="设置" disabled style={{ position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20, backgroundColor: 'transparent' }}>
-            <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
-            <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
-          </Button>
+          {/* A disabled Button suppresses its own hoverStyle. Paint the shared hover on its wrapper, not a fake settings action. */}
+          <View testID="settings-surface" onLayout={measured('sidebar-settings')} hoverStyle={controlHover}
+            style={{ ...controlSurface, position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight }}>
+            <Button testID="settings-unavailable" accessibilityLabel="设置" disabled style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20, backgroundColor: 'transparent' }}>
+              <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
+              <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
+            </Button>
+          </View>
         </View>
       </View>}
       <View testID="chat-column" onLayout={measured('chat-column')} style={{ flex: 1, minWidth: 0 }}>
@@ -246,7 +251,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       </View>}
       {titleBarHeight() > 0 && <View testID="window-drag-region" onLayout={measured('window-drag-region')} desktop={{ windowDrag: true }} style={{ position: 'absolute', top: 0, left: navigationLeft() + 32, right: (titleBar()?.right ?? 0) + 8, height: titleBarHeight(), zIndex: 8 }} />}
       <Button testID="toggle-navigation" onLayout={measured('toggle-navigation')} accessibilityLabel={navigation() ? '收起侧栏' : '展开侧栏'} onPress={() => navigation.set(!navigation())}
-        style={{ position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
+        hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
+        style={{ ...controlSurface, position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
         <DesktopIcon name="panel" color={navigation() ? t.sidebarInk : artAvailable ? t.brand : ink()} testID="icon-navigation" />
       </Button>
     </View>

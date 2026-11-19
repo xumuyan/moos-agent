@@ -20,10 +20,11 @@ const activity = process.argv.includes('--sidebar-activity');
 const chrome = process.argv.includes('--window-chrome');
 const cards = process.argv.includes('--chat-cards');
 const icons = process.argv.includes('--icons');
+const controlHover = process.argv.includes('--control-hover');
 const composer = process.argv.includes('--composer');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
-const files = ['DesktopView.tsx', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
+const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const files = ['DesktopView.tsx', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
 await cp(resolve('probes/nsh-validation/assets/desktop'), join(source, 'assets/desktop'), { recursive: true });
@@ -45,7 +46,7 @@ await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View
 ${chrome ? "import { currentWindow } from 'nsh/desktop';" : ''}
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
-const h = fixture(${composer ? '{ composer: true }' : cards || icons ? '{ chatCards: true }' : ''}); const measured = signal<Record<string, any>>({});
+const h = fixture(${composer || controlHover ? '{ composer: true }' : cards || icons ? '{ chatCards: true }' : ''}); const measured = signal<Record<string, any>>({});
 mount(() => {
 ${composer ? '  const calls = signal(h.diagnostics());' : ''}
 ${chrome ? `  const window = currentWindow();

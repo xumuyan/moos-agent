@@ -15,6 +15,8 @@ P03 update (2026-11-07): Moos now adapts the original column geometry and portio
 
 N01-D3 update (2026-11-19): The independent NSH candidate copies selected icon geometries from `@deepseek-ai/dsh-web-frontend` 0.2.2-rc.1 and the primary composer icons from `@deepseek-ai/dsh-client-ui-conversation`. See [SIDEBAR-ICONS.md](probes/nsh-validation/SIDEBAR-ICONS.md) for the mapping and [DSH-ICONS-LICENSE.txt](probes/nsh-validation/DSH-ICONS-LICENSE.txt) for the retained notice. No DSH runtime or skin artwork is included by these imports.
 
+The model picker additionally uses `chevron-down-outline`, `chevron-up-outline`, and `chevron-right-outline` from the same `@deepseek-ai/dsh-web-frontend` bundle under the same MIT notice. See [DESKTOP-CONTROL-HOVER.md](probes/nsh-validation/DESKTOP-CONTROL-HOVER.md).
+
 MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

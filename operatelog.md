@@ -3060,3 +3060,15 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D1/D3): match native model and reasoning picker hierarchy`；查询 `git log --all --oneline --grep='match native model and reasoning picker hierarchy'`。
 
 本轮收尾（上述提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 71/71；全量 `discover -s tests -v` 217/218，唯一失败为 `ForkRestartRecoveryTests.test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 `report.json` 缺失）。未削弱该断言或制造替代证据。完整门禁未过，未推送也未核查新的远端提交。
+
+## 2026-11-19 21:00:14 +08:00｜N01-D3 同款箭头与悬停反馈（候选源码检查点）
+
+- 修改或新增内容：接续 c531c2e，模型按钮开合及两级入口换 DSH 轮廓箭头（保留 MIT 许可）；模型按钮、顶部侧栏开关、左下角设置共用蓝色圆角反馈。设置仍不可按，只绘制外层悬停态。无任务链路、人物、背景、边饰或正式工程变更。
+- 遇到的难题：禁用 Button 本身不会进入 hoverStyle；首轮 run-2T7w1Q 0/2 等待未登记的空态几何。首轮文档 219/221，其中共享发送／停止历史输入检查尚未连接到本轮回执，另一项为既有 E124 缺失。
+- 处理方式：用非交互外层承载设置底色，内层仍为真实禁用按钮。专项改等已登记的输入操作区几何，仍在可见空态验证移开。补相继回执链，不修改历史验收结果；同一工作区七份 owner 输入 SHA 保持、不暂存。素材只在本机获准的隔离捕获中使用，不运行 hooks，不新增正式窗口截图。
+- 验证结果：Node 22.22.0／macOS 27.0.1 arm64／NSH 0.5.0，临时目录 0700、回归 umask 022。`node probes/nsh-validation/verify-desktop-theme.mjs --control-hover` 带获准艺术 run-1MFUzI、无艺术 run-DA9lI4，各 2/2、各 24 帧；`check-control-hover-pixels.py`（本地 Pillow 12.2.0）检查明暗宽窄 1× 共 24 个目标裁域，目标出现反馈、另两处不变、移开三处恢复。原生驱动验证箭头开合、根层右箭头、设置禁用及几何不变。对应提交前混合工作区，证据见 DESKTOP-CONTROL-HOVER.md、desktop-control-hover-verification.json 和 artifacts/nsh-validation/control-hover/，不是人工或正式窗口验收。
+- 回归结果：同 runner 无艺术 headless 20/20；--composer 带艺术／回退各 2/2；带艺术 --native 9/9、--rich 6/6、--evidence 3/3、--live-sidebar 3/3、--typography 2/2、--window-chrome 2/2、--chat-cards 2/2、--icons 2/2、--sidebar-activity 2/2，不据此销记历史不稳定。`node --test probes/nsh-validation/desktop-host.test.mjs` 14/14；`node probes/nsh-validation/verify-desktop-host.mjs` 真实 PI＋私有管道＋本地回环 12 项（非 GUI）。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 核心 365/365；`npm run test:electron` 133 过、10 跳、0 败。`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出 101，离线缺 defmt，未下载。未建正式包或团队快照；196 份 gui-* 中 193 份活跃保留、3 份较早无待删项，保留两个现有 Electron 构建。
+- 遗留问题：用户视觉确认、真人鼠标／键盘／IME、2×、PI＋GUI、历史与恢复、干净签名整包和同负载资源测量未验。E124 须隔离实跑恢复；需经核实的 Rust 离线依赖、隔离 DSH 前置及 owner 装箱确认。D1/D2/D3 不勾，本轮只保留本地检查点，不推送、不部署、不构建／安装／退出／启动正式沐码，未操作正式数据，手机暂停。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): unify native chevrons and control hover feedback`；查询 `git log --all --oneline --grep='unify native chevrons and control hover feedback'`。
+
+本轮收尾：补历史来源链后，文档第二轮仍 219/221：新日志时区缩写 `+0800` 不满足格式，已改为等价 `+08:00`。最终 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 74/74；全量 `discover -s tests -v` 220/221，唯一失败是 `tests/test_repository_docs.py:604` E124 `report.json` 缺失。保留各轮日志，不代造报告或弱化检查。GitHub 未推送，也未核查新的远端提交。

@@ -2,6 +2,8 @@ import { computed, effect, Scroll, signal, Text, View, windowSize, type Bounds, 
 import { Button, Input, Popover } from 'nsh/base';
 import type { DesktopModel } from './desktop-contract';
 import { defaultChoice, modelGroups, type ModelChoice } from './desktop-model-picker';
+import { DesktopIcon } from './DesktopIcon';
+import { controlFocus, controlHover, controlPressed, controlSurface } from './desktop-control-style';
 import { desktopTheme as t } from './desktop-theme';
 
 type Pane = 'root' | 'models' | 'effort';
@@ -36,7 +38,7 @@ export function DesktopModelPicker(props: { scope: string; models: DesktopModel[
       style={row} hoverStyle={{ backgroundColor: hover() }} onPress={() => { if (open()) pane.set(id); }}>
       <Text style={label()}>{title}</Text>
       <Text class="line-clamp-1" style={{ ...label(), color: menuMuted(), flex: 1, minWidth: 0, textAlign: 'right' }}>{value}</Text>
-      <Text style={{ color: menuMuted(), fontSize: 15 }}>›</Text>
+      <DesktopIcon name="chevronRight" size={14} color={menuMuted()} testID={`icon-model-${id}`} />
     </Button>;
   }
   function option(id: string, name: string, selected: boolean, choose: () => void) {
@@ -60,11 +62,11 @@ export function DesktopModelPicker(props: { scope: string; models: DesktopModel[
       backdropFilter: 'blur(12px)', boxShadow: '0 6px 24px #0b15384d' }}
     trigger={<Button testID="model-trigger" accessibilityLabel={`选择模型，当前 ${modelLabel()}${effortLabel() ? `，推理等级 ${effortLabel()}` : ''}`}
       selected={open()} disabled={props.disabled} disabledStyle={{ opacity: .54 }}
-      style={{ height: 32, minWidth: 0, paddingLeft: 8, paddingRight: 5, gap: 4, borderRadius: 10, backgroundColor: 'transparent', flexDirection: 'row', alignItems: 'center' }}
-      hoverStyle={{ backgroundColor: '#ffffff19' }}>
+      style={{ height: 32, minWidth: 0, paddingLeft: 8, paddingRight: 5, gap: 4, ...controlSurface, flexDirection: 'row', alignItems: 'center' }}
+      hoverStyle={controlHover} selectedStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}>
       <Text testID="selected-model" class="line-clamp-1" style={{ flexShrink: 1, minWidth: 0, fontFamily: props.art ? t.ornamentFont : t.fontFamily, fontSize: 12, fontWeight: '600', color: triggerInk() }}>{modelLabel()}</Text>
       {!!effortLabel() && <Text testID="selected-effort" class="line-clamp-1" style={{ minWidth: 0, flexShrink: 1, maxWidth: 64, fontFamily: t.fontFamily, fontSize: 11, fontWeight: '600', color: props.dark ? '#e1c17d' : t.goldSoft }}>{`· ${effortLabel()}`}</Text>}
-      {!!props.models.length && <Text style={{ flexShrink: 0, color: triggerInk(), fontSize: 12 }}>{open() ? '⌃' : '⌄'}</Text>}
+      {!!props.models.length && <DesktopIcon name={open() ? 'chevronUp' : 'chevronDown'} size={14} color={triggerInk()} testID={open() ? 'icon-model-up' : 'icon-model-down'} />}
     </Button>}>
     <View testID={`model-pane-${pane()}`} role="menu" accessibilityLabel="模型与推理等级" style={{ minHeight: 0 }}>
       {pane() === 'root' && <>

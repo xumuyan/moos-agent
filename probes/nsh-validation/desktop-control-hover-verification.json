@@ -1,0 +1,950 @@
+{
+  "base": "c531c2ef14b3178e50d26b8eac97605aab85c96f",
+  "commitSubject": "fix(N01-D3): unify native chevrons and control hover feedback",
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-model-picker-verification.json",
+    "bytes": 33227,
+    "sha256": "c06be51812ba10d3d48bc6cfad49937cc97e99cc2c9c1eba75d21ebd91708ed5"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "cb40e7048feac47c34a0506454a01b5bb6c4dc3dc3be36bdfbefaf4f1ce18aab",
+    "probes/nsh-validation/DesktopModelPicker.tsx": "adb3a99454eea2c96c1f63dfac3fc58e80acaac89bcd202cdaa620eb45d57bb6",
+    "probes/nsh-validation/desktop-icon-paths.ts": "ae156605fbeecb847ca65c9c541ff83da89664e24d687d427a11200cfe8f3f1a",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "5ba9fb03a105da521a0290bb2fa306a2a8fd4765be8c6ed65e3c8e2ed7c6daa9"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 28419,
+      "sha256": "45407c40f4e8f76a2fe15e41d7502aa00e076ebab11c29bc0ae353fbfecbbac2"
+    },
+    "probes/nsh-validation/DesktopModelPicker.tsx": {
+      "bytes": 8379,
+      "sha256": "1e29443c2f04d94afc4ece7ee690f0b82d73a09369ff696da870fdfee446551f"
+    },
+    "probes/nsh-validation/desktop-icon-paths.ts": {
+      "bytes": 8830,
+      "sha256": "984286d01a3bebf8f91b0f51b392392b5a895b0af14c5133b56c06f52f3e5163"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 12445,
+      "sha256": "8f8a97d7e856b94b3c229069367572287b01f3f2446b8ce0b93ba27229cf7bbb"
+    },
+    "probes/nsh-validation/desktop-control-style.ts": {
+      "bytes": 486,
+      "sha256": "dc5ca15cfd7238a807d9488b6c5869d0391fb8708711467050a3be0c23c7df8a"
+    },
+    "probes/nsh-validation/desktop-control-hover-check.tsx": {
+      "bytes": 2640,
+      "sha256": "6e3c866328abdb1bc8220457364033e3b178f138d18fc4209ea28f035a89d677"
+    },
+    "probes/nsh-validation/check-control-hover-pixels.py": {
+      "bytes": 2744,
+      "sha256": "0779ec593f19408a8d8d653612392a795746d21dab3c4f6c0c109f1dcc965780"
+    }
+  },
+  "added": [
+    "probes/nsh-validation/desktop-control-style.ts",
+    "probes/nsh-validation/desktop-control-hover-check.tsx",
+    "probes/nsh-validation/check-control-hover-pixels.py"
+  ],
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "candidate": {
+    "synthetic": true,
+    "installed": false,
+    "piExecuted": false,
+    "platform": "NSH 0.5.0 AppKit development host macOS 27.0.1 arm64 1x",
+    "withArt": {
+      "run": "artifacts/nsh-validation/desktop-theme/run-1MFUzI",
+      "artwork": true,
+      "passed": 2,
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-1MFUzI/capture-inputs.json",
+        "bytes": 11406,
+        "sha256": "4de627af0b8313a41d26df6e43e6c7e765681ab6e67bb74237993f43e7594e4f"
+      },
+      "nativeLog": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-1MFUzI/test.log",
+        "bytes": 14911,
+        "sha256": "ef876f045bbe1f59d5de4a7fe1670a03eaf4137416e05222a17a4843d9bb2c15"
+      },
+      "images": [
+        {
+          "file": "controls-dark-1240-leave.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1444820,
+          "sha256": "c26f4fda6e9093d12a40fe0a6772912ef764270682d93f46db4ddb2afe8545f2"
+        },
+        {
+          "file": "controls-dark-1240-navigation.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1444861,
+          "sha256": "24ec04a522c58c4d6f9dc03c617292e18198f2e65e639935ae012f4d7b37fc20"
+        },
+        {
+          "file": "controls-dark-1240-open.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1455235,
+          "sha256": "072e6d318f911b7ab0120d9537f5c86e12647bdec866a4dad7a07c05316232b9"
+        },
+        {
+          "file": "controls-dark-1240-picker.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1444713,
+          "sha256": "520dd080bae827090e7af6d6e4e55714bb842dde8df43552f4f39d184ceae1f3"
+        },
+        {
+          "file": "controls-dark-1240-rest.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1444820,
+          "sha256": "c26f4fda6e9093d12a40fe0a6772912ef764270682d93f46db4ddb2afe8545f2"
+        },
+        {
+          "file": "controls-dark-1240-settings.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1444967,
+          "sha256": "1bdbde9fa4cce4116515e5112786c34c381e7ad920f4972258a2ec9ac9814823"
+        },
+        {
+          "file": "controls-dark-680-leave.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 757778,
+          "sha256": "2336ba19d96fdd3cfb53d498144414a62a8f5296573670d56e681b5b4f23270b"
+        },
+        {
+          "file": "controls-dark-680-navigation.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 757799,
+          "sha256": "fdcd2d7442eb2e3faac3358c597e8e5cd38293ef3d59ed166aacc997abc8ff44"
+        },
+        {
+          "file": "controls-dark-680-open.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 768717,
+          "sha256": "b7f9df1ba10c80ab7f7424d32a3c42627cc6d0d2142978a528ec4ed1238ae56b"
+        },
+        {
+          "file": "controls-dark-680-picker.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 757971,
+          "sha256": "e09a47a4fa45dbef3936f82c82f0194c73b6c7d5d6da220d47ce4604b04908d3"
+        },
+        {
+          "file": "controls-dark-680-rest.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 757778,
+          "sha256": "2336ba19d96fdd3cfb53d498144414a62a8f5296573670d56e681b5b4f23270b"
+        },
+        {
+          "file": "controls-dark-680-settings.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 757746,
+          "sha256": "0f0ffd3ebb7d9942ca72b89e9037c87d98de4dd706bb017208151e5f89cd2fad"
+        },
+        {
+          "file": "controls-light-1240-leave.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1603893,
+          "sha256": "6a0d25c851e410e22ce2b2a3de04406a284b70bb5bb52c6bf28c0f6e497b7d50"
+        },
+        {
+          "file": "controls-light-1240-navigation.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1603972,
+          "sha256": "15b1fda0d831bb5d7ae1d641f041e3c36c6a244dd7c6f7e9c672040124469623"
+        },
+        {
+          "file": "controls-light-1240-open.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1618519,
+          "sha256": "b91f447b2fe80f3b423f76220af70729affd84678e5df5735e551373604ef66b"
+        },
+        {
+          "file": "controls-light-1240-picker.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1604047,
+          "sha256": "dca1a3584b3bfa54e7a1fe612f9f3b37b9e4b6ca0fffb9f98dd43fc3b504b54d"
+        },
+        {
+          "file": "controls-light-1240-rest.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1603893,
+          "sha256": "6a0d25c851e410e22ce2b2a3de04406a284b70bb5bb52c6bf28c0f6e497b7d50"
+        },
+        {
+          "file": "controls-light-1240-settings.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 1603623,
+          "sha256": "895f7ed9e79c966e721ec633082e140b29d938e151a9c0f5b7b045b006af2657"
+        },
+        {
+          "file": "controls-light-680-leave.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815039,
+          "sha256": "7fd471ad70ec23079a6e3ff3226f2f1394ffdfe3c22d3064b4db99f26055aafc"
+        },
+        {
+          "file": "controls-light-680-navigation.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815049,
+          "sha256": "0820aa02b3adaa9d06e373fba6033003c73eec9f3be374ed7895ce52522076a4"
+        },
+        {
+          "file": "controls-light-680-open.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 828540,
+          "sha256": "18124d11d8c7c97c52bf81a0f4be07634d0700b2c8b7c042b38e017c8bbccf49"
+        },
+        {
+          "file": "controls-light-680-picker.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815206,
+          "sha256": "213f584acd5f0d8dd29b8d8f15730a0555ddc5eb7d293be81af98dae3e77d30a"
+        },
+        {
+          "file": "controls-light-680-rest.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 815039,
+          "sha256": "7fd471ad70ec23079a6e3ff3226f2f1394ffdfe3c22d3064b4db99f26055aafc"
+        },
+        {
+          "file": "controls-light-680-settings.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 814792,
+          "sha256": "c77265e849bf8b90474ee3bdadf0d6c8d6b304efcfa0d1dfa338445e7a6c1ff2"
+        }
+      ],
+      "paint": {
+        "controls-light-1240": {
+          "picker": {
+            "crop": [
+              872,
+              620,
+              1024,
+              652
+            ],
+            "changedPixels": 4740,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              226,
+              0,
+              258,
+              32
+            ],
+            "changedPixels": 904,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              740,
+              262,
+              776
+            ],
+            "changedPixels": 8653,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-light-680": {
+          "picker": {
+            "crop": [
+              412,
+              520,
+              564,
+              552
+            ],
+            "changedPixels": 4740,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              130,
+              0,
+              162,
+              32
+            ],
+            "changedPixels": 906,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              640,
+              166,
+              676
+            ],
+            "changedPixels": 5204,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-dark-1240": {
+          "picker": {
+            "crop": [
+              872,
+              620,
+              1024,
+              652
+            ],
+            "changedPixels": 4690,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              226,
+              0,
+              258,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              740,
+              262,
+              776
+            ],
+            "changedPixels": 8684,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-dark-680": {
+          "picker": {
+            "crop": [
+              412,
+              520,
+              564,
+              552
+            ],
+            "changedPixels": 4693,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              130,
+              0,
+              162,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              640,
+              166,
+              676
+            ],
+            "changedPixels": 5230,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        }
+      }
+    },
+    "fallback": {
+      "run": "artifacts/nsh-validation/desktop-theme/run-DA9lI4",
+      "artwork": false,
+      "passed": 2,
+      "captureInputs": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-DA9lI4/capture-inputs.json",
+        "bytes": 8590,
+        "sha256": "4a88b697cbfdf7d642239dd96c39ae8dc009622f417e78cf8ab31124ae9dba18"
+      },
+      "nativeLog": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-DA9lI4/test.log",
+        "bytes": 14287,
+        "sha256": "f0c41ecb03e1b9229bbdc82e130fbee6c9a9d3b7b8a7cc17b448f1fff9cfd167"
+      },
+      "images": [
+        {
+          "file": "controls-dark-1240-leave.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 462329,
+          "sha256": "2b8309e9f939a4c99fc440cfb3e0990fbed510241bc26d9494dd294471f800bd"
+        },
+        {
+          "file": "controls-dark-1240-navigation.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 462620,
+          "sha256": "06144a573eea6c41e05dc7911933654c34c885b758bd3ae9d490a8bd9882f892"
+        },
+        {
+          "file": "controls-dark-1240-open.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 495092,
+          "sha256": "2eac2cba3de448aa7ab9c3c4e789e3e8787b3bbce5a11c026f58505b8dd66663"
+        },
+        {
+          "file": "controls-dark-1240-picker.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 462808,
+          "sha256": "e99bc84b66bcd15aa054ab3246f80d0496607bb2e202663d0978e0553db54531"
+        },
+        {
+          "file": "controls-dark-1240-rest.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 462329,
+          "sha256": "2b8309e9f939a4c99fc440cfb3e0990fbed510241bc26d9494dd294471f800bd"
+        },
+        {
+          "file": "controls-dark-1240-settings.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 462206,
+          "sha256": "13b26c8c99dbbb6b841c627a2fd85d18b474bf86932b06f2d35de8a5ddbabb7f"
+        },
+        {
+          "file": "controls-dark-680-leave.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 288614,
+          "sha256": "22989e06cf92925b7a314c9e67c8ec504cb1a5afb069150a254bfeec9d8afe69"
+        },
+        {
+          "file": "controls-dark-680-navigation.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 288587,
+          "sha256": "95030bd51ea568d11ef6ad84fd9595db69dc9871585c051e29c844330f14f939"
+        },
+        {
+          "file": "controls-dark-680-open.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 320779,
+          "sha256": "b1151ee8e9f1a5baf530c8b778b5b4bf21b85cd14c05878d57256bc1b2aa89f6"
+        },
+        {
+          "file": "controls-dark-680-picker.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 289363,
+          "sha256": "37afe1ad73602560412f5f5698f930ddc03ee6611181828ce0106f56e0a729da"
+        },
+        {
+          "file": "controls-dark-680-rest.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 288614,
+          "sha256": "22989e06cf92925b7a314c9e67c8ec504cb1a5afb069150a254bfeec9d8afe69"
+        },
+        {
+          "file": "controls-dark-680-settings.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 288924,
+          "sha256": "d1453769460dc5b6cff02cda66c35e9bc01304bf86194c05c42b49bb29547398"
+        },
+        {
+          "file": "controls-light-1240-leave.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 499934,
+          "sha256": "14137846223fe2e7cf1f99bb6a5db43257c9df443bd8eeae373918bdee31dba2"
+        },
+        {
+          "file": "controls-light-1240-navigation.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 499627,
+          "sha256": "744ae3cda9e9d9c09aece03375c2724e2a6bf76683c9f71ece9b9e7571758158"
+        },
+        {
+          "file": "controls-light-1240-open.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 542471,
+          "sha256": "806642efa909042f9ba45836bf981b278ad5f1ff2698e2635a4d582fb8e5ddcb"
+        },
+        {
+          "file": "controls-light-1240-picker.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 499921,
+          "sha256": "f15f7cd68b2569bf8d950e21acef5015c9c975c76b35fbb3020ddc68cc9ffb1a"
+        },
+        {
+          "file": "controls-light-1240-rest.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 499934,
+          "sha256": "14137846223fe2e7cf1f99bb6a5db43257c9df443bd8eeae373918bdee31dba2"
+        },
+        {
+          "file": "controls-light-1240-settings.png",
+          "pixels": [
+            1240,
+            820
+          ],
+          "bytes": 499990,
+          "sha256": "0f77587f3f8341d25b3a5eb6f91fcffd83132afce7cddd605bf5e83c420c2876"
+        },
+        {
+          "file": "controls-light-680-leave.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315849,
+          "sha256": "10f0b21eb7224aa9cbac8b7e6401d878cbd97e1e31840e290b334165c3671f5a"
+        },
+        {
+          "file": "controls-light-680-navigation.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315754,
+          "sha256": "d92263ae1dee5ed562f8e537a519b2f0eba98a6762240fe311dfa5cd23ff5338"
+        },
+        {
+          "file": "controls-light-680-open.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 356038,
+          "sha256": "35da60b98f26d1ba167bd0ad13c00727d18e4c062c0062cce9056fd64308c3ae"
+        },
+        {
+          "file": "controls-light-680-picker.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315769,
+          "sha256": "cd9a7e642a9f5223738779f209ac9f54939d09e37c2a4543276ecb7fe1a5cf3d"
+        },
+        {
+          "file": "controls-light-680-rest.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 315849,
+          "sha256": "10f0b21eb7224aa9cbac8b7e6401d878cbd97e1e31840e290b334165c3671f5a"
+        },
+        {
+          "file": "controls-light-680-settings.png",
+          "pixels": [
+            680,
+            720
+          ],
+          "bytes": 316001,
+          "sha256": "83769a60cfebf82ce6a35d32b7de6b8e829d76e0c18cbbae623bc7070b9f5c64"
+        }
+      ],
+      "paint": {
+        "controls-light-1240": {
+          "picker": {
+            "crop": [
+              897,
+              690,
+              1052,
+              722
+            ],
+            "changedPixels": 4712,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              226,
+              0,
+              258,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              740,
+              262,
+              776
+            ],
+            "changedPixels": 8690,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-light-680": {
+          "picker": {
+            "crop": [
+              437,
+              590,
+              592,
+              622
+            ],
+            "changedPixels": 4711,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              130,
+              0,
+              162,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              640,
+              166,
+              676
+            ],
+            "changedPixels": 5234,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-dark-1240": {
+          "picker": {
+            "crop": [
+              897,
+              690,
+              1052,
+              722
+            ],
+            "changedPixels": 4714,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              226,
+              0,
+              258,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              740,
+              262,
+              776
+            ],
+            "changedPixels": 8690,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        },
+        "controls-dark-680": {
+          "picker": {
+            "crop": [
+              437,
+              590,
+              592,
+              622
+            ],
+            "changedPixels": 4715,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "navigation": {
+            "crop": [
+              130,
+              0,
+              162,
+              32
+            ],
+            "changedPixels": 908,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          },
+          "settings": {
+            "crop": [
+              18,
+              640,
+              166,
+              676
+            ],
+            "changedPixels": 5234,
+            "otherChangedPixels": 0,
+            "leaveChangedPixels": 0
+          }
+        }
+      }
+    }
+  },
+  "regressions": {
+    "host": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/host.log",
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "headless": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/headless.log",
+      "pass": 20,
+      "fail": 0,
+      "run": "run-zJvptj"
+    },
+    "private-pipe": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/private-pipe.log",
+      "checks": 12,
+      "nativeGUI": false
+    },
+    "composer-art": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/composer-art.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-3GHJhb"
+    },
+    "composer-fallback": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/composer-fallback.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-3ibA2Z"
+    },
+    "native": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/native.log",
+      "pass": 9,
+      "fail": 0,
+      "run": "run-elgLlm"
+    },
+    "core": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/core.log",
+      "pass": 365,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "rich": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/rich.log",
+      "pass": 6,
+      "fail": 0,
+      "run": "run-vjmUO4"
+    },
+    "evidence": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/evidence.log",
+      "pass": 3,
+      "fail": 0,
+      "run": "run-fbmuj7"
+    },
+    "electron": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/electron.log",
+      "pass": 133,
+      "fail": 0,
+      "skipped": 10,
+      "cancelled": 0
+    },
+    "rust": {
+      "exit": 101,
+      "log": "artifacts/nsh-validation/control-hover/rust.log",
+      "blocked": "defmt unavailable in offline index"
+    },
+    "live-sidebar": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/live-sidebar.log",
+      "pass": 3,
+      "fail": 0,
+      "run": "run-WdSExK"
+    },
+    "typography": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/typography.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-4i4s8Q"
+    },
+    "window-chrome": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/window-chrome.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-GBLvxc"
+    },
+    "chat-cards": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/chat-cards.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-8WTQTs"
+    },
+    "icons": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/icons.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-irVaQV"
+    },
+    "sidebar-activity": {
+      "exit": 0,
+      "log": "artifacts/nsh-validation/control-hover/sidebar-activity.log",
+      "pass": 2,
+      "fail": 0,
+      "run": "run-LcYVsV"
+    }
+  },
+  "retainedAttempt": {
+    "run": "run-2T7w1Q",
+    "passed": 0,
+    "failed": 2,
+    "reason": "test waited for geometry that empty-state does not publish",
+    "log": "artifacts/nsh-validation/control-hover/fallback-initial.log"
+  },
+  "acceptance": {
+    "manualPointer": false,
+    "retina": false,
+    "newInstalledCapture": false,
+    "userSignoff": false,
+    "delivery": false
+  }
+}
