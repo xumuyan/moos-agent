@@ -36,6 +36,7 @@ class ScrollFixTests(unittest.TestCase):
         chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         activity = json.loads((NSH / 'desktop-sidebar-activity-verification.json').read_text())
         cards = json.loads((NSH / 'desktop-chat-cards-verification.json').read_text())
+        icons = json.loads((NSH / 'desktop-sidebar-icons-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in later['priorScrollInputs']:
@@ -59,6 +60,9 @@ class ScrollFixTests(unittest.TestCase):
             if name in cards['previousInputs']:
                 self.assertEqual(cards['previousInputs'][name], expected)
                 expected = cards['inputs'][name]['sha256']
+            if name in icons['previousInputs']:
+                self.assertEqual(icons['previousInputs'][name], expected)
+                expected = icons['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         view = (NSH / 'DesktopView.tsx').read_text()
         self.assertIn('each={messageRows()}', view)

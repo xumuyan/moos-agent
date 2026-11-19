@@ -15,15 +15,19 @@ def manifest(tag):
 class ChatCardEvidenceTests(unittest.TestCase):
     def test_inputs_match_current_and_preserve_prior_hashes(self):
         cards = manifest('chat-cards')
+        icons = manifest('sidebar-icons')
         prior = {}
         for tag in ('scroll', 'live-sidebar', 'sidebar-tree', 'sidebar-footer', 'typography', 'window-chrome', 'sidebar-activity'):
             prior.update(manifest(tag)['inputs'])
         for path, record in cards['inputs'].items():
+            if path in prior:
+                self.assertEqual(cards['previousInputs'][path], prior[path]['sha256'], path)
+            if path in icons['previousInputs']:
+                self.assertEqual(icons['previousInputs'][path], record['sha256'], path)
+                record = icons['inputs'][path]
             data = (ROOT / path).read_bytes()
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), path)
             self.assertEqual(record['bytes'], len(data), path)
-            if path in prior:
-                self.assertEqual(cards['previousInputs'][path], prior[path]['sha256'], path)
         self.assertEqual(cards['protected'], manifest('sidebar-activity')['protected'])
         self.assertTrue(cards['inputs'].keys().isdisjoint(cards['protected']))
 

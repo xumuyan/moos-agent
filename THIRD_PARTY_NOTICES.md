@@ -13,6 +13,8 @@ This project depends on third-party packages recorded in its lock files. The not
 
 P03 update (2026-11-07): Moos now adapts the original column geometry and portions of the theme, navigation, chat/input and settings presentation under the same MIT revision. Exact source paths and adaptation boundaries: `docs/third-party/dsh-full-frontend-sources.md`. Official brand assets and the upstream runtime remain excluded. The P02.1 statement above records the historical implementation only.
 
+N01-D3 update (2026-11-19): The independent NSH candidate copies selected icon geometries from `@deepseek-ai/dsh-web-frontend` 0.2.2-rc.1 and the primary composer icons from `@deepseek-ai/dsh-client-ui-conversation`. See [SIDEBAR-ICONS.md](probes/nsh-validation/SIDEBAR-ICONS.md) for the mapping and [DSH-ICONS-LICENSE.txt](probes/nsh-validation/DSH-ICONS-LICENSE.txt) for the retained notice. No DSH runtime or skin artwork is included by these imports.
+
 MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

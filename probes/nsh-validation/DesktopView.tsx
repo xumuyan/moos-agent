@@ -8,7 +8,16 @@ import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvai
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
 import { sidebarFooter } from './desktop-sidebar-footer';
+import { DesktopIcon } from './DesktopIcon';
 import brandIcon from './assets/desktop/sidebar-icon.png';
+
+const navigationRows = [
+  { icon: 'plugins', label: '插件' }, { icon: 'background', label: '后台任务' }, { icon: 'more', label: '更多' },
+] as const;
+const workspaceActions = [
+  { id: 'search', icon: 'search', label: '搜索' }, { id: 'workspace-options', icon: 'workspaceOptions', label: '工作区选项' },
+  { id: 'add-project', icon: 'addProject', label: '添加项目' },
+] as const;
 function SessionActivity(props: { id: string }) {
   const motion = createMotion({ enter: { keyframes: { rotate: [0, 360] }, duration: 950, easing: 'linear', iterations: 'infinite', frameRate: 24 } });
   cleanup(() => motion.stop());
@@ -57,32 +66,42 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
   const sidebarStyle = () => liveSidebar(artAvailable, dark());
   const footer = () => sidebarFooter(layout().sidebar, true); // this view always renders a project tree
-  const sidebarWidth = () => (!layout().compact || navigation()) ? layout().sidebar : 0;
+  const sidebarWidth = () => navigation() ? layout().sidebar : 0;
+  // Keep the glyph clear of both the traffic lights and the gold corner art.
+  const navigationLeft = () => Math.max((titleBar()?.left ?? 0) + 8, sidebarWidth() - 54);
+  const navigationHeight = () => titleBarHeight() || 32;
+  const newSessionInk = artAvailable ? '#152246' : t.goldSoft;
   return (
     <View testID="desktop-root" style={{ flex: 1, flexDirection: 'row', backgroundColor: dark() ? t.dark.canvas : t.canvas, overflow: 'hidden' }}>
       <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
-      {(!layout().compact || navigation()) && <View testID="sidebar" onLayout={measured('sidebar')} style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
+      {navigation() && <View testID="sidebar" onLayout={measured('sidebar')} style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
         <SidebarCorners />
         <View testID="sidebar-brand" onLayout={measured('sidebar-brand')} style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
         <View testID="new-session-frame" onLayout={measured('new-session-frame')} style={{ height: tree.newSessionHeight, marginTop: tree.newSessionMarginTop, flexShrink: 0 }}>
           <NineSlice name="new-session" source={[1400,308]} cuts={[0,210,0,210]} edges={[0,layout().compact ? 32 : 40,0,layout().compact ? 32 : 40]} fill style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
-          <Button testID="create-session" style={{ height: tree.newSessionHeight, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: artAvailable ? '#152246' : t.goldSoft }}>⊕ 新会话</Text></Button>
+          <Button testID="create-session" style={{ height: tree.newSessionHeight, flexDirection: 'row', gap: 6, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}>
+            <DesktopIcon name="newChat" size={14} color={newSessionInk} testID="icon-new-chat" />
+            <Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: newSessionInk }}>新会话</Text>
+          </Button>
         </View>
-        <View testID="sidebar-navigation" onLayout={measured('sidebar-navigation')} style={{ flexShrink: 0 }}>
-          {[['plugins','♧','插件'],['background','☷','后台任务'],['more','⊞','更多']].map(([id, icon, label]) => <Button testID={`nav-${id}-unavailable`} disabled style={{ height: tree.navigationRowHeight, paddingLeft: 4, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'transparent' }}><Text style={{ color: t.sidebarInk, fontSize: 16 }}>{icon}</Text><Text style={{ color: t.sidebarInk, fontSize: 14 }}>{label}</Text></Button>)}
+        <View testID="sidebar-navigation" onLayout={measured('sidebar-navigation')} style={{ flexShrink: 0, marginTop: 4 }}>
+          {navigationRows.map(({ icon, label }) => <Button testID={`nav-${icon}-unavailable`} onLayout={measured(`nav-${icon}`)} accessibilityLabel={label} disabled style={{ height: tree.navigationRowHeight, paddingLeft: 4, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'transparent' }}>
+            <DesktopIcon name={icon} color={t.sidebarInk} testID={`icon-nav-${icon}`} onLayout={measured(`icon-nav-${icon}`)} />
+            <Text onLayout={measured(`nav-label-${icon}`)} style={{ color: t.sidebarInk, fontFamily: t.fontFamily, fontSize: 14, lineHeight: 22 }}>{label}</Text>
+          </Button>)}
         </View>
-        <View testID="workspace-heading" onLayout={measured('workspace-heading')} style={{ height: tree.workspaceHeight, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={{ flex: 1, fontSize: 15, fontWeight: '500', fontFamily: t.ornamentFont, color: t.goldSoft }}>工作区</Text>
-          <Button testID="search-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>⌕</Text></Button>
-          <Button testID="workspace-options-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>☷</Text></Button>
-          <Button testID="add-project-unavailable" disabled style={{ padding: 2 }}><Text style={{ color: t.goldSoft, fontSize: 17 }}>⊞</Text></Button>
+        <View testID="workspace-heading" onLayout={measured('workspace-heading')} style={{ height: tree.workspaceHeight, flexShrink: 0, flexDirection: 'row', alignItems: 'center', marginTop: -2, marginRight: -8, paddingLeft: 4 }}>
+          <Text class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: '500', fontFamily: t.ornamentFont, color: t.goldSoft }}>工作区</Text>
+          {workspaceActions.map(({ id, icon, label }) => <Button testID={`${id}-unavailable`} onLayout={measured(id)} accessibilityLabel={label} disabled style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+            <DesktopIcon name={icon} color={t.goldSoft} testID={`icon-${id}`} onLayout={measured(`icon-${id}`)} />
+          </Button>)}
         </View>
         <List testID="projects" each={snapshot().projects} estimatedItemSize={126} style={{ flex: 1, minHeight: 0 }}>
           {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(snapshot().projectId === p().id, snapshot().sessions.length) }}>
             <View style={{ height: tree.projectHeight }}>
               {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
-              <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 7, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 8, alignItems: 'center' }} onPress={() => void project(p().id)}>
-                {artAvailable && <View style={{ width: 30, height: 38, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
+              <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 0, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 4, alignItems: 'center' }} onPress={() => void project(p().id)}>
+                {artAvailable ? <View style={{ width: 22, height: 34, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 22, height: 34, objectFit: 'contain' }} /></View> : <DesktopIcon name={snapshot().projectId === p().id ? 'folderOpen' : 'folder'} color={t.goldSoft} testID={`icon-project-${p().id}`} />}
                 <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: tree.fontFamily, color: snapshot().projectId === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
               </Button>
             </View>
@@ -106,7 +125,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         {footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
         <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16 }}>
           <Art testID="sidebar-swag" name="sidebar-swag" style={{ top: 0, left: 0, right: 0, height: footer().swagHeight, objectFit: 'fill', filter: 'brightness(1.1) saturate(1.04) contrast(1.04)' }} />
-          <Button testID="settings-unavailable" onLayout={measured('sidebar-settings')} disabled style={{ position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 18, backgroundColor: 'transparent' }}><Text style={{ color: '#e8c77f', fontSize: 17 }}>⚙</Text><Text style={{ color: '#f2dfba', fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text></Button>
+          <Button testID="settings-unavailable" onLayout={measured('sidebar-settings')} accessibilityLabel="设置" disabled style={{ position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20, backgroundColor: 'transparent' }}>
+            <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
+            <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
+          </Button>
         </View>
       </View>}
       <View testID="chat-column" style={{ flex: 1, minWidth: 0 }}>
@@ -114,9 +136,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
         <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, paddingHorizontal: layout().inset, paddingTop: 4, gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {layout().compact && <Button testID="toggle-navigation" style={{ ...button, padding: 8 }} onPress={() => navigation.set(!navigation())}><Text style={{ color: ink(), textShadow: headingShadow() }}>☰</Text></Button>}
             <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: ink(), textShadow: headingShadow(), fontFamily: t.ornamentFont, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
-            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}><Text style={{ fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情 ◫' : '任务详情 ◫'}</Text></Button>
+            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
+              <Text style={{ fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
+              <DesktopIcon name="panel" mirror color={ink()} size={14} testID="icon-details" />
+            </Button>
           </View>
           <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: ink(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
         </View>
@@ -146,7 +170,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 boxShadow: tool() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
               }}>
                 {tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, borderWidth: 1, borderColor: tool()?.color, backgroundColor: tool()?.phase === 'start' ? 'transparent' : tool()?.color, flexShrink: 0 }} />
+                  <DesktopIcon name={tool()?.phase === 'error' ? 'toolError' : tool()?.phase === 'end' ? 'toolDone' : 'toolStart'} size={12} color={tool()?.color ?? muted()} testID="icon-tool" />
                   <Text style={{ flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 18, fontFamily: t.fontFamily, color: tool()?.color }}>{tool()?.label ?? ''}</Text>
                 </View> : <>
                   {r().role !== '你' && r().role !== 'PI 公开文本' && <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: muted() }}>{r().role}</Text>}
@@ -161,8 +185,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <Input testID="prompt" onLayout={measured('prompt')} style={{ minHeight: 32, flex: 1, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务（本地模型夹具）" value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
             <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text class="line-clamp-1" style={{ flex: 1, fontSize: 11, color: t.placeholder }}>PI SDK · 公开事件</Text>
-              <Button testID="stop" onLayout={measured('stop')} style={{ padding: 7, borderRadius: 10, backgroundColor: '#ffffff1f' }} disabled={!snapshot().current?.busy || !snapshot().current?.task || snapshot().current!.stopping} disabledStyle={{ opacity: 0.4 }} onPress={() => void controller.stop()}><Text style={{ color: t.composerInk, fontSize: 12 }}>停止</Text></Button>
-              <Button testID="send" onLayout={measured('send')} style={{ padding: 7, borderRadius: 10, backgroundColor: t.accent }} disabled={disabled()} disabledStyle={{ opacity: 0.4 }} onPress={send}><Text style={{ color: '#ffffff', fontSize: 12 }}>发送 ↑</Text></Button>
+              <Button testID="stop" onLayout={measured('stop')} style={{ padding: 7, borderRadius: 10, backgroundColor: '#ffffff1f', flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={!snapshot().current?.busy || !snapshot().current?.task || snapshot().current!.stopping} disabledStyle={{ opacity: 0.4 }} onPress={() => void controller.stop()}><Text style={{ color: t.composerInk, fontSize: 12 }}>停止</Text><DesktopIcon name="stop" color={t.composerInk} size={14} testID="icon-stop" /></Button>
+              <Button testID="send" onLayout={measured('send')} style={{ padding: 7, borderRadius: 10, backgroundColor: t.accent, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={disabled()} disabledStyle={{ opacity: 0.4 }} onPress={send}><Text style={{ color: '#ffffff', fontSize: 12 }}>发送</Text><DesktopIcon name="send" color="#ffffff" size={14} testID="icon-send" /></Button>
             </View>
           </View>
           </View>
@@ -173,7 +197,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       {layout().right && <View testID="details-panel" style={{ width: t.rightWidth, padding: 20, paddingTop: Math.max(20, titleBarHeight() + 8), gap: 18, backgroundColor: dark() ? t.dark.details : '#f2f6fdd1', backdropFilter: 'blur(12px)', borderLeftWidth: 1, borderColor: '#c5a46885' }}>
         <Text style={{ fontSize: 16, color: ink(), fontWeight: '600' }}>任务详情</Text><Text style={{ color: muted(), fontSize: 13 }}>当前会话</Text><Text style={{ color: ink() }}>{title()}</Text><Text style={{ color: muted(), fontSize: 13 }}>{status()}</Text><Text style={{ color: ink(), fontSize: 13 }}>{`任务 ID：${snapshot().current?.task?.id ?? '尚未提交'}`}</Text><Text style={{ fontSize: 12, color: muted() }}>停止响应不等于工具已退出。只有终态且事件排空才能确认本次读取结束。工具过程在对话内按真实顺序展示，此面板不生成思考文本或虚构任务。</Text>
       </View>}
-      {titleBarHeight() > 0 && <View testID="window-drag-region" onLayout={measured('window-drag-region')} desktop={{ windowDrag: true }} style={{ position: 'absolute', top: 0, left: (titleBar()?.left ?? 0) + 8, right: (titleBar()?.right ?? 0) + 8, height: titleBarHeight(), zIndex: 8 }} />}
+      {titleBarHeight() > 0 && <View testID="window-drag-region" onLayout={measured('window-drag-region')} desktop={{ windowDrag: true }} style={{ position: 'absolute', top: 0, left: navigationLeft() + 32, right: (titleBar()?.right ?? 0) + 8, height: titleBarHeight(), zIndex: 8 }} />}
+      <Button testID="toggle-navigation" onLayout={measured('toggle-navigation')} accessibilityLabel={navigation() ? '收起侧栏' : '展开侧栏'} onPress={() => navigation.set(!navigation())}
+        style={{ position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
+        <DesktopIcon name="panel" color={navigation() ? t.sidebarInk : artAvailable ? t.brand : ink()} testID="icon-navigation" />
+      </Button>
     </View>
   );
 }

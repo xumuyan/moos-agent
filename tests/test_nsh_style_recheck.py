@@ -41,6 +41,7 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
         chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         activity = json.loads((NSH / 'desktop-sidebar-activity-verification.json').read_text())
         cards = json.loads((NSH / 'desktop-chat-cards-verification.json').read_text())
+        icons = json.loads((NSH / 'desktop-sidebar-icons-verification.json').read_text())
         for name in ('DesktopView.tsx', 'desktop-theme.ts', 'desktop-theme-layers.tsx',
                      'desktop-style-capture.tsx', 'verify-desktop-theme.mjs', 'desktop-theme-fixture.ts'):
             data = (NSH / name).read_bytes()
@@ -71,6 +72,9 @@ class StyleRecheckDocumentationTests(unittest.TestCase):
             if path in cards['previousInputs']:
                 self.assertEqual(cards['previousInputs'][path], expected)
                 expected = cards['inputs'][path]['sha256']
+            if path in icons['previousInputs']:
+                self.assertEqual(icons['previousInputs'][path], expected)
+                expected = icons['inputs'][path]['sha256']
             self.assertEqual(hashlib.sha256(data).hexdigest(), expected)
         # Do not require another owner's untracked files in a clean checkout.
         self.assertIn('probes/nsh-validation/DesktopUIHost.swift', m['protectedFiles'])

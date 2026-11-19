@@ -18,6 +18,7 @@ class SidebarTreeTests(unittest.TestCase):
         chrome = json.loads((NSH / 'desktop-window-chrome-verification.json').read_text())
         activity = json.loads((NSH / 'desktop-sidebar-activity-verification.json').read_text())
         cards = json.loads((NSH / 'desktop-chat-cards-verification.json').read_text())
+        icons = json.loads((NSH / 'desktop-sidebar-icons-verification.json').read_text())
         for name, record in m['inputs'].items():
             expected = record['sha256']
             if name in footer['previousInputs']:
@@ -35,6 +36,9 @@ class SidebarTreeTests(unittest.TestCase):
             if name in cards['previousInputs']:
                 self.assertEqual(cards['previousInputs'][name], expected)
                 expected = cards['inputs'][name]['sha256']
+            if name in icons['previousInputs']:
+                self.assertEqual(icons['previousInputs'][name], expected)
+                expected = icons['inputs'][name]['sha256']
             self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name, sha in m['previousInputs'].items():
             self.assertEqual(sha, (live['inputs'].get(name) or scroll['inputs'][name])['sha256'])
@@ -61,7 +65,10 @@ class SidebarTreeTests(unittest.TestCase):
         self.assertIn('projectTreeHeight', view)
         self.assertIn('snapshot().projectId === p().id', view)
         self.assertIn('each={messageRows()}', view)
-        self.assertIn('nav-${id}-unavailable', view)
+        self.assertIn('testID={`nav-${icon}-unavailable`}', view)
+        native_icons = (NSH / 'desktop-icons-check.tsx').read_text()
+        self.assertIn("const menu = ['plugins', 'background', 'more']", native_icons)
+        self.assertIn('expect(app.enabled(`id:nav-${id}-unavailable`)).toBe(false)', native_icons)
 
     def test_plan_and_log_keep_product_and_visual_open(self):
         for name in ('PLAN.md', 'operatelog.md'):

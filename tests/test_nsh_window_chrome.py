@@ -27,6 +27,7 @@ class DesktopWindowChromeTests(unittest.TestCase):
         self.assertTrue(m['inputs'].keys().isdisjoint(m['protected']))
         activity = evidence('sidebar-activity')
         cards = evidence('chat-cards')
+        icons = evidence('sidebar-icons')
         for name, record in m['inputs'].items():
             if name in activity['previousInputs']:
                 self.assertEqual(activity['previousInputs'][name], record['sha256'])
@@ -34,6 +35,9 @@ class DesktopWindowChromeTests(unittest.TestCase):
             if name in cards['previousInputs']:
                 self.assertEqual(cards['previousInputs'][name], record['sha256'])
                 record = cards['inputs'][name]
+            if name in icons['previousInputs']:
+                self.assertEqual(icons['previousInputs'][name], record['sha256'])
+                record = icons['inputs'][name]
             data = (ROOT / name).read_bytes()
             self.assertEqual(record['bytes'], len(data), name)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), name)
