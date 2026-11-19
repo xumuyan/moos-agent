@@ -1,0 +1,540 @@
+{
+  "schemaVersion": 1,
+  "task": "N01-D3",
+  "base": "435b778dec98746e83f95564aef9cc3f1835bbeb",
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 21926,
+      "sha256": "29000b3f2dec807d012bf6eaa76f3034664c0863ccb211b425c94dd866045297"
+    },
+    "probes/nsh-validation/DesktopApp.test.tsx": {
+      "bytes": 2811,
+      "sha256": "67f566e8e2c5ef308cce00d97f47d6ac01ea159cabe0f3dd177f56401b037684"
+    },
+    "probes/nsh-validation/desktop-sidebar-tree.ts": {
+      "bytes": 1224,
+      "sha256": "dbb5ec0f58620825899dfb7dff30bdd0ecca3980a7d244797c8180fa67773499"
+    },
+    "probes/nsh-validation/desktop-sidebar-tree.test.mjs": {
+      "bytes": 1729,
+      "sha256": "eede1a09a33fe0be44d184d21ebe2e6d2a54e72f4fa5e4423fc1e57517dbdda8"
+    },
+    "probes/nsh-validation/desktop-theme-native-check.tsx": {
+      "bytes": 5401,
+      "sha256": "f8f014d31aa8e1224d165b961f51739d618f342af59916145f1665ab94d2c4c6"
+    },
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": {
+      "bytes": 5209,
+      "sha256": "8dde10ebd9c6aef60f91176bfdd458719e61aa705aa97ea6fd02bb4e04d239b5"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 11213,
+      "sha256": "4d2778bef27b770e8013febc54d79c091d3a1ee05fad71c13a3af115f737f607"
+    },
+    "probes/nsh-validation/desktop-sidebar-activity-check.tsx": {
+      "bytes": 1769,
+      "sha256": "e09d97b176ebe0d18bb62146c6b5405b7809d1eb0fba3f35834154f196143014"
+    },
+    "probes/nsh-validation/check-sidebar-activity-pixels.py": {
+      "bytes": 1247,
+      "sha256": "09ce01e3afddccb5d8175f0251599b0ed8e3c8daf30e2e72a1d681521440886b"
+    }
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "94a3c59664d468d8260b86e904fb26c7f6dd67299c5948bdf6fe553d420c8f5b",
+    "probes/nsh-validation/DesktopApp.test.tsx": "4dc2c84f7a1f31d1e4857a08b16502d9520c34a128e75b36b90a60303c68bab9",
+    "probes/nsh-validation/desktop-sidebar-tree.ts": "3b5c55d90ff2f2f16e375625d2fc958e4a3ed81f3ab032adbd5a7973590cbb30",
+    "probes/nsh-validation/desktop-sidebar-tree.test.mjs": "de40d168f637e5c79c94f2f2d63ef0b1d01e880e96cfbafb5b69b8a3112be32e",
+    "probes/nsh-validation/desktop-theme-native-check.tsx": "70518a77398adcfacd5135090fc7df9d1e5b1e30ee969392b29c476f5137d93d",
+    "probes/nsh-validation/desktop-live-sidebar-check.tsx": "fbc6100393d4c10046daa0135821ea1c2503d1e3b369fe4f9a51b109df872114",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "b7f8091930ec04d67be0319ff3fc028a90b5710d30ccb81413cce65b1c181835"
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": {
+      "bytes": 94,
+      "sha256": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+      "unchanged": true
+    },
+    "probes/nsh-validation/DesktopUIHost.swift": {
+      "bytes": 5261,
+      "sha256": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": {
+      "bytes": 4138,
+      "sha256": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "bytes": 10935,
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "bytes": 729,
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+      "unchanged": true
+    },
+    "probes/nsh-validation/desktop-ui.test.mjs": {
+      "bytes": 8328,
+      "sha256": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+      "unchanged": true
+    },
+    "probes/nsh-validation/verify-desktop-ui.mjs": {
+      "bytes": 6362,
+      "sha256": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f",
+      "unchanged": true
+    }
+  },
+  "candidate": {
+    "synthetic": true,
+    "piExecuted": false,
+    "installed": false,
+    "runtime": "NSH 0.5.0 (f4d68f7) macOS development host",
+    "scale": 1,
+    "withArt": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-6CLNm0",
+      "captureInputs": {
+        "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/capture-inputs.json",
+        "bytes": 10127,
+        "sha256": "f1414257ddc287036c7054379cfbe4e806526030ab3c6689a29d4cda9c0d0e48"
+      },
+      "testLog": {
+        "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/test.log",
+        "bytes": 466,
+        "sha256": "0ca490e9b0d20b25841bfd27a457783b4489133ba844ffd4f39e2f0371fe8266"
+      },
+      "images": [
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-dark-idle.png",
+          "bytes": 1457277,
+          "sha256": "f227a9b5096b761da6a6108f905ad0ae47b676ffd2ef9027cf33322bd0856a98",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-dark-narrow.png",
+          "bytes": 765883,
+          "sha256": "d24453c5443c0af6a51dbb70c58744cef8d58c4be0a1a673bc2eca7115ac0c92",
+          "pixels": [
+            680,
+            720
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-dark-unselected.png",
+          "bytes": 1457317,
+          "sha256": "10ac69b46af6d5556bd302d727063bf16756ef7690aa2a6a5ea3130b01a431a8",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-dark-working-next.png",
+          "bytes": 1479132,
+          "sha256": "266b138678b2aff992e2e844c5b8cf5be9e787ec7104d9931bfc8215eb01329e",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-dark-working.png",
+          "bytes": 1479132,
+          "sha256": "266b138678b2aff992e2e844c5b8cf5be9e787ec7104d9931bfc8215eb01329e",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-light-idle.png",
+          "bytes": 1619339,
+          "sha256": "449aa0072304670d8afcef97f7499d1fcee0e0861e7e8805326dfe34287c2a1e",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-light-narrow.png",
+          "bytes": 805982,
+          "sha256": "8c047a55453d7d9874ecb85fb5fe8bd93f56003a99fd5dd7e6b20426d5eaf780",
+          "pixels": [
+            680,
+            720
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-light-unselected.png",
+          "bytes": 1619250,
+          "sha256": "066fcf616e2c3c09ddd8a0071241bc2f60a0fee779a2c9312d827f662d4cbc01",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-light-working-next.png",
+          "bytes": 1613584,
+          "sha256": "615c6fdc9c7682c86a604af07c5e7efa9e0a7e28d82c5e5c7428e8e2fbe4ac81",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-6CLNm0/tree-light-working.png",
+          "bytes": 1613545,
+          "sha256": "c522e6455ceb1c1135bed1e7ccfd9c883492229770ecca7e3f52a45044846d45",
+          "pixels": [
+            1240,
+            820
+          ]
+        }
+      ],
+      "motion": {
+        "light": {
+          "crop": [
+            26,
+            420,
+            42,
+            438
+          ],
+          "changedPixels": 52,
+          "reducedMotion": false
+        },
+        "dark": {
+          "crop": [
+            26,
+            420,
+            42,
+            438
+          ],
+          "changedPixels": 0,
+          "reducedMotion": true
+        }
+      }
+    },
+    "fallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ",
+      "captureInputs": {
+        "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/capture-inputs.json",
+        "bytes": 7370,
+        "sha256": "19873bb9af00777fa5c27997f7e9b1115b44625dbdffae8f78011e914dc7d22e"
+      },
+      "testLog": {
+        "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/test.log",
+        "bytes": 466,
+        "sha256": "9397295c841ffa979a171a2d1dd8574583a461242e1da6fe634819d7a198ed12"
+      },
+      "images": [
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-dark-idle.png",
+          "bytes": 461221,
+          "sha256": "076dc326f246d864eda91e80016a485644ab9967ce75f382cc03070de181feab",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-dark-narrow.png",
+          "bytes": 295234,
+          "sha256": "e56e7ae630eb6676228998f28102ca499e75c3b22b9c83a42fbbe9a67d5c270a",
+          "pixels": [
+            680,
+            720
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-dark-unselected.png",
+          "bytes": 461913,
+          "sha256": "1005588f140039eaf552b15f3eeccc51a1156c8577fd9b0c051d9d392de67156",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-dark-working-next.png",
+          "bytes": 477542,
+          "sha256": "697252646c4f1f98d6b16cbad8897c717250e5f936cf66b68706c8f0a8756aa1",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-dark-working.png",
+          "bytes": 477542,
+          "sha256": "697252646c4f1f98d6b16cbad8897c717250e5f936cf66b68706c8f0a8756aa1",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-light-idle.png",
+          "bytes": 504142,
+          "sha256": "42751a34e3d8c4f0dce36ec7dc0f5c727e1580437e8ddbff0d5452eab2b3d059",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-light-narrow.png",
+          "bytes": 340870,
+          "sha256": "5f4824d21f7a71d47402fe6805ba4af8f9ab4754e985d5ddd252120e37679809",
+          "pixels": [
+            680,
+            720
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-light-unselected.png",
+          "bytes": 504493,
+          "sha256": "04625bf912c637073f3b466ac3f487ff70e889d2e1de7c6aaac143fcef071661",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-light-working-next.png",
+          "bytes": 541816,
+          "sha256": "919465373a21413fce1c077f092a8a3d330f82bcdd4f359b9a1fbce5ea039e25",
+          "pixels": [
+            1240,
+            820
+          ]
+        },
+        {
+          "file": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ/tree-light-working.png",
+          "bytes": 541514,
+          "sha256": "6126531f2d439d9ff4942880c1f440f0854fe92f8b595cc350a93de4b863abcf",
+          "pixels": [
+            1240,
+            820
+          ]
+        }
+      ],
+      "motion": {
+        "light": {
+          "crop": [
+            26,
+            420,
+            42,
+            438
+          ],
+          "changedPixels": 60,
+          "reducedMotion": false
+        },
+        "dark": {
+          "crop": [
+            26,
+            420,
+            42,
+            438
+          ],
+          "changedPixels": 0,
+          "reducedMotion": true
+        }
+      }
+    },
+    "comparisons": [
+      {
+        "file": "artifacts/nsh-validation/sidebar-activity/light-comparison.png",
+        "bytes": 120533,
+        "sha256": "84bd5c163e545a987c159d2d8713888491ae9c50c89deb07f099ca9a87eda331",
+        "pixels": [
+          1552,
+          368
+        ]
+      },
+      {
+        "file": "artifacts/nsh-validation/sidebar-activity/dark-comparison.png",
+        "bytes": 99411,
+        "sha256": "e4d82e2203cda122bf6e5e871788f19b64949b129f7c239a8cf5d75b896789c0",
+        "pixels": [
+          1552,
+          368
+        ]
+      }
+    ]
+  },
+  "rights": {
+    "fontsBundled": false,
+    "artCommitted": false,
+    "hooksExecuted": false
+  },
+  "tests": {
+    "unit": {
+      "file": "artifacts/nsh-validation/sidebar-activity/unit.log",
+      "bytes": 884,
+      "sha256": "bf7172d3376fc2ca9af3a390415755cc927a8542f7e36e2279f2a4d2b985d8b2",
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "core": {
+      "file": "artifacts/nsh-validation/sidebar-activity/core.log",
+      "bytes": 85526,
+      "sha256": "42dbe1bf09f381b2c40bfda2c6a60239c17fa913dc6107639a51efdaaa67d786",
+      "pass": 363,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "electron": {
+      "file": "artifacts/nsh-validation/sidebar-activity/electron.log",
+      "bytes": 41321,
+      "sha256": "ca3df73ffadf440afd531f91767e289446e00e5483bd9bc42d9c88f94079aa84",
+      "pass": 133,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 10
+    },
+    "rust": {
+      "file": "artifacts/nsh-validation/sidebar-activity/rust.log",
+      "bytes": 799,
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc",
+      "exit": 101,
+      "missing": "defmt"
+    },
+    "ownerHarness": {
+      "file": "artifacts/nsh-validation/sidebar-activity/owner-harness.log",
+      "bytes": 78016,
+      "sha256": "f9498795e00cfc6165701ef80daeea58c33a6197ed08cf4c5411c95e51d4a005",
+      "exit": 1,
+      "reason": "existing isolated copy list omits desktop theme/sidebar imports"
+    },
+    "nativeFirst": {
+      "file": "artifacts/nsh-validation/sidebar-activity/native.log",
+      "bytes": 64718,
+      "sha256": "842fc6e0ade215c1402064769295d8bc60e971be46b0e99c94dbb6c13722b43d",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-EyAhAb",
+      "passed": 8,
+      "failed": 1,
+      "runnerPassed": false
+    },
+    "richFirst": {
+      "file": "artifacts/nsh-validation/sidebar-activity/rich.log",
+      "bytes": 12617,
+      "sha256": "bc1f0fb386051be14f19a1911e7415d7768e42ef7371e1a562cfeffdb75c2013",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-vkeNqY",
+      "passed": 6,
+      "failed": 0,
+      "runnerPassed": false
+    },
+    "activity": {
+      "file": "artifacts/nsh-validation/sidebar-activity/activity-final.log",
+      "bytes": 576,
+      "sha256": "4979c506fb31a893a8d041ef3966eaeb9659510ce91cb3173c2bc0472f245984",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-6CLNm0",
+      "passed": 2,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "fallback": {
+      "file": "artifacts/nsh-validation/sidebar-activity/fallback-final.log",
+      "bytes": 576,
+      "sha256": "ea4e1d10bedc2fa853260e4a0c36f08f232da3115e736c4ec2639f88af47a165",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-RNhrtZ",
+      "passed": 2,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "headless": {
+      "file": "artifacts/nsh-validation/sidebar-activity/headless-final.log",
+      "bytes": 20402,
+      "sha256": "8c42ec30f4ed28c457f54e2ec48ea717ae1173c5db6935edbc41dbc2d9326c22",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-DQn2kX",
+      "passed": 14,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "native": {
+      "file": "artifacts/nsh-validation/sidebar-activity/native-final.log",
+      "bytes": 63186,
+      "sha256": "22147232a78f786ad101a0b6b8b8c363be17f011c06ea0c26a55619b8392a4a7",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-r9dIp7",
+      "passed": 9,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "rich": {
+      "file": "artifacts/nsh-validation/sidebar-activity/rich-final.log",
+      "bytes": 11859,
+      "sha256": "0403ad37b6a5b205bb117ee668382ccf70c08cad0aa0a4811e96789bb5712866",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-bGk0Kc",
+      "passed": 6,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "evidence": {
+      "file": "artifacts/nsh-validation/sidebar-activity/evidence-final.log",
+      "bytes": 11065,
+      "sha256": "eea49f6f5192a5b047e99211576783a08bd193ad842e47507fd894074a9d1da8",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-n8Hd50",
+      "passed": 3,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "live-sidebar": {
+      "file": "artifacts/nsh-validation/sidebar-activity/live-sidebar-final.log",
+      "bytes": 11403,
+      "sha256": "e667a5f71f67f5a90be6d73c7efd7630210c983c948f851fa8620654d1e446f4",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-cchwCz",
+      "passed": 3,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "typography": {
+      "file": "artifacts/nsh-validation/sidebar-activity/typography-final.log",
+      "bytes": 1817,
+      "sha256": "14f853fa1472942b9919684656380b3df2c24b305bbe5c0d4ffd1bc475644ab5",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-dj5Tqm",
+      "passed": 2,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "window-chrome": {
+      "file": "artifacts/nsh-validation/sidebar-activity/window-chrome-final.log",
+      "bytes": 6515,
+      "sha256": "f11b6e033730d0d86c3ef6716213dd42be85f3bac6ad0a1cc2da39405b1c803f",
+      "directory": "artifacts/nsh-validation/desktop-theme/run-ISBCql",
+      "passed": 2,
+      "failed": 0,
+      "runnerPassed": true
+    },
+    "docsNsh": {
+      "file": "artifacts/nsh-validation/sidebar-activity/docs-nsh.log",
+      "bytes": 6415,
+      "sha256": "b8a56be572bc27e9cba4ca18ca76f9a886796ab86b683eb964029774c7f825ad",
+      "passed": 57,
+      "failed": 0
+    },
+    "docsAll": {
+      "file": "artifacts/nsh-validation/sidebar-activity/docs.log",
+      "bytes": 24166,
+      "sha256": "dfd69045a5b0419276f044937ccda7b64556cb8c70f9a1a64629e972dd61e9bd",
+      "passed": 203,
+      "failed": 1,
+      "reason": "Existing E124 report.json absent"
+    }
+  },
+  "acceptance": {
+    "userVisual": false,
+    "manualWindowOperations": false,
+    "realPI": false,
+    "cleanCheckout": false,
+    "resourceComparison": false,
+    "deployed": false
+  }
+}

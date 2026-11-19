@@ -16,9 +16,10 @@ const evidence = process.argv.includes('--evidence');
 const rich = process.argv.includes('--rich');
 const live = process.argv.includes('--live-sidebar');
 const typography = process.argv.includes('--typography');
+const activity = process.argv.includes('--sidebar-activity');
 const chrome = process.argv.includes('--window-chrome');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
 const files = ['DesktopView.tsx', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));

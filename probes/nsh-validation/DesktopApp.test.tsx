@@ -20,7 +20,7 @@ test('desktop controls submit ordinary text once, stop and isolate project/sessi
   expect(app.shows('text:真实公开文本投影')).toBe(false);await app.press('id:project-Desktop A');await app.waitFor('text:真实公开文本投影');
   await app.press('id:stop');await app.waitUntil(()=>app.texts().some(t=>t.includes('cancelled · 已排空')));
   expect(app.host.calls().filter(c=>c.name==='tasks.submit')).toHaveLength(1);
-  await app.press('id:create-session');await app.waitFor('text:● 新会话 2');expect(app.shows('text:真实公开文本投影')).toBe(false);
+  await app.press('id:create-session');await app.waitFor('id:session-新会话 2');expect(app.shows('text:真实公开文本投影')).toBe(false);
 });
 test('desktop Host rejection is visible and never looks like successful completion',async()=>{
   const h=handlers();h['tasks.submit']=()=>{throw Error('secret /private/path');};

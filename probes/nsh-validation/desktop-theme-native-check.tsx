@@ -10,7 +10,7 @@ test('native theme columns, tool status, stop and selection', async () => {
   expect(app.enabled('id:stop')).toBe(false);
   await app.press('id:project-主题验证 B'); await app.waitFor('text:项目 主题验证 B');
   expect(app.shows('text:tool_end · read · 错误')).toBe(false);
-  await app.press('id:session-第二会话'); await app.waitFor('text:● 第二会话');
+  await app.press('id:session-第二会话'); await app.waitFor('id:session-label-other-b');
 });
 test('native theme narrow window and Host failure disable submission', async () => {
   const app = await open('./ThemeError.tsx', { width: 680, height: 720 });

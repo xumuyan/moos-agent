@@ -25,7 +25,11 @@ class DesktopWindowChromeTests(unittest.TestCase):
         self.assertEqual(len(m['inputs']), 5)
         self.assertEqual(len(m['protected']), 7)
         self.assertTrue(m['inputs'].keys().isdisjoint(m['protected']))
+        activity = evidence('sidebar-activity')
         for name, record in m['inputs'].items():
+            if name in activity['previousInputs']:
+                self.assertEqual(activity['previousInputs'][name], record['sha256'])
+                record = activity['inputs'][name]
             data = (ROOT / name).read_bytes()
             self.assertEqual(record['bytes'], len(data), name)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), name)

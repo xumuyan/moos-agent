@@ -21,10 +21,14 @@ class DesktopTypographyTests(unittest.TestCase):
         for name, sha in m['previousInputs'].items():
             self.assertEqual(sha, old[name]['sha256'])
         chrome = manifest('window-chrome')
+        activity = manifest('sidebar-activity')
         for name, record in m['inputs'].items():
             if name in chrome['previousInputs']:
                 self.assertEqual(chrome['previousInputs'][name], record['sha256'])
                 record = chrome['inputs'][name]
+            if name in activity['previousInputs']:
+                self.assertEqual(activity['previousInputs'][name], record['sha256'])
+                record = activity['inputs'][name]
             data = (ROOT / name).read_bytes()
             self.assertEqual(len(data), record['bytes'])
             self.assertEqual(hashlib.sha256(data).hexdigest(), record['sha256'])

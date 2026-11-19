@@ -67,6 +67,6 @@ test('native project tree scroll reaches sixteenth session and eighth project in
   // Variable-height group moves on project switch; explicitly scroll, never a test-only jump.
   await app.scroll('id:projects', 2000);
   await app.waitFor('id:session-合成会话 16'); await app.press('id:session-合成会话 16');
-  await app.waitFor('text:● 合成会话 16');
+  await app.waitFor('id:session-label-h-15');
   await app.screenshot('tree-dense-project-h.png');
 });

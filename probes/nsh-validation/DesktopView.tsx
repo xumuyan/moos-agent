@@ -1,4 +1,4 @@
-import { cleanup, colorScheme, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
+import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView } from 'nsh/base';
 import { DesktopController, type DesktopCall } from './desktop-ui-controller';
@@ -6,9 +6,18 @@ import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
-import { sidebarTree as tree, projectTreeHeight } from './desktop-sidebar-tree';
+import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
 import { sidebarFooter } from './desktop-sidebar-footer';
 import brandIcon from './assets/desktop/sidebar-icon.png';
+function SessionActivity(props: { id: string }) {
+  const motion = createMotion({ enter: { keyframes: { rotate: [0, 360] }, duration: 950, easing: 'linear', iterations: 'infinite', frameRate: 24 } });
+  cleanup(() => motion.stop());
+  return <View testID={`session-activity-${props.id}`} style={{ transform: [{ rotate: motion.rotate }], width: 12, height: 12 }}>
+    {[[5,0],[9,1],[10,5],[9,9],[5,10],[1,9],[0,5],[1,1]].map(([left, top], i) =>
+      <View style={{ position: 'absolute', left, top, width: 2, height: 2, borderRadius: 1, backgroundColor: i < 2 ? '#fff1bc' : i < 5 ? '#edce84a6' : '#e3c47b60' }} />)}
+  </View>;
+}
+
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
   const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
@@ -19,6 +28,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const controller = new DesktopController(props.call ?? desktopCall, () => revision.set(revision() + 1));
   function snapshot() { revision(); return controller; }
+  const sessions = computed(() => snapshot().sessions);
   const cachedRows = createMessageRows();
   const messageRows = () => {
     const c = snapshot().current;
@@ -73,17 +83,23 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
               <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 7, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 8, alignItems: 'center' }} onPress={() => void project(p().id)}>
                 {artAvailable && <View style={{ width: 30, height: 38, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 30, height: 38, objectFit: 'contain' }} /></View>}
-                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: t.ornamentFont, color: '#f4ead5' }}>{p().name}</Text>
+                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: tree.fontFamily, color: snapshot().projectId === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
               </Button>
             </View>
             {snapshot().projectId === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: snapshot().sessions.length * tree.sessionHeight }}>
-              {snapshot().sessions.map((s, i) => <View style={{ height: tree.sessionHeight }}>
-                <View style={{ position: 'absolute', pointerEvents: 'none', left: 8, top: 0, height: i === snapshot().sessions.length - 1 ? 18 : 36, borderLeftWidth: 1, borderColor: '#dfcc9a99' }} />
-                <View style={{ position: 'absolute', pointerEvents: 'none', left: 8, top: 18, width: 10, borderTopWidth: 1, borderColor: '#dfcc9a99' }} />
-                <Button testID={`session-${s.title}`} style={{ height: tree.sessionHeight, marginLeft: 2, paddingLeft: 22, paddingRight: 9, borderRadius: 7, borderWidth: snapshot().sessionId === s.id ? 1 : 0, borderColor: '#e2be70b8', backgroundImage: snapshot().sessionId === s.id ? 'linear-gradient(90deg, #526fb84d, #2b468b38 72%, #142a5e1f)' : undefined, backgroundColor: 'transparent' }} onPress={() => session(s.id)}>
-                  <Text class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.ornamentFont, color: snapshot().sessionId === s.id ? '#fff8e8' : '#d7c8a8' }}>{`${snapshot().sessionId === s.id ? '● ' : ''}${s.title}`}</Text>
-                </Button>
-              </View>)}
+              {sessions().map((item, index) => {
+                const row = () => sessionTreeState(item, snapshot(), snapshot().conversations.get(item.id));
+                const last = index === sessions().length - 1;
+                const mid = tree.sessionHeight / 2;
+                return <View style={{ height: tree.sessionHeight }}>
+                  <View testID={`branch-stem-${item.id}`} style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: 0, height: last ? mid : tree.sessionHeight, borderLeftWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
+                  <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid, width: tree.branchWidth, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
+                  <Button testID={`session-${item.title}`} selected={row().selected} accessibilityLabel={`${item.title}${row().working ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: row().selected ? '#e2be70b8' : 'transparent', backgroundImage: row().selected ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} onPress={() => session(item.id)}>
+                    <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: tree.fontFamily, color: row().selected ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
+                  </Button>
+                  {row().working && <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX + tree.branchWidth - 6, top: mid - 6 }}><SessionActivity id={item.id} /></View>}
+                </View>;
+              })}
             </View>}
           </View>}
         </List>
