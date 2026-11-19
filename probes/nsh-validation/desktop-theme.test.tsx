@@ -2,6 +2,39 @@ import { expect, open, test } from 'nsh/test';
 import { desktopLayout, desktopTheme, frameTopSegments, styleLayout, sidebarCorners } from './desktop-theme';
 import { defaultChoice, modelCatalog, modelGroups } from './desktop-model-picker';
 import { fixture } from './desktop-theme-fixture';
+import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
+test('session metadata stays scoped and malformed or private locations are omitted', () => {
+  const previews = sessionPreviews(), createdAt = '2026-11-19T12:00:00.000Z';
+  const make = (projectId: string, workspaceLabel: string, time = createdAt) => ({
+    id: 'shared', projectId, preview: { workspaceLabel, createdAt: time },
+  });
+  previews.remember('a', [make('b', '项目B')]);
+  expect(previews.read('a', 'shared')).toBe(undefined);
+  previews.remember('a', [make('a', '示例工作区/项目A')]);
+  previews.remember('b', [make('b', 'workspace-1')]);
+  expect(previews.read('a', 'shared')).toEqual({ workspaceLabel: '示例工作区/项目A', createdAt });
+  expect(previews.read('b', 'shared')?.workspaceLabel).toBe('workspace-1');
+  for (const label of ['/private/tmp/workspace-0', '../other', 'a/../b', 'a//b', 'a\nprivate', 'https://x']) {
+    previews.remember('a', [make('a', label)]);
+    expect(previews.read('a', 'shared')).toBe(undefined);
+  }
+  previews.remember('a', [make('a', 'workspace-0', '2026-02-30T12:00:00.000Z')]);
+  expect(previews.read('a', 'shared')).toBe(undefined);
+  expect(sessionAge(createdAt, Date.parse(createdAt) - 1000)).toBe('刚刚');
+  expect(sessionAge(createdAt, Date.parse(createdAt) + 60000)).toBe('1 分钟前');
+  expect(sessionAge(createdAt, Date.parse(createdAt) + 86400000)).toBe('1 天前');
+});
+test('session hover only reflects the associated task and waits for drain', () => {
+  const active = { busy: true, stopping: false, error: '', task: { status: 'running' as const } };
+  expect(sessionPreviewStatus()).toBe('');
+  expect(sessionPreviewStatus(active, true)).toBe('提交中');
+  expect(sessionPreviewStatus(active)).toBe('进行中');
+  expect(sessionPreviewStatus({ ...active, stopping: true })).toBe('正在停止');
+  expect(sessionPreviewStatus({ ...active, error: 'invalid_response' })).toBe('状态未确认');
+  const ending = { ...active, task: { status: 'cancelled' as const } };
+  expect(sessionPreviewStatus(ending)).toBe('等待收尾');
+  expect(sessionPreviewStatus({ ...ending, busy: false })).toBe('已停止');
+});
 test('theme geometry keeps reference dimensions and collapses narrow panels', () => {
   expect(desktopTheme.sidebarWidth).toBe(280); expect(desktopTheme.headerHeight).toBe(75);
   expect(desktopLayout(1240, false).inset).toBe(120);

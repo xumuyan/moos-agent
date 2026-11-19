@@ -3072,3 +3072,15 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): unify native chevrons and control hover feedback`；查询 `git log --all --oneline --grep='unify native chevrons and control hover feedback'`。
 
 本轮收尾：补历史来源链后，文档第二轮仍 219/221：新日志时区缩写 `+0800` 不满足格式，已改为等价 `+08:00`。最终 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 74/74；全量 `discover -s tests -v` 220/221，唯一失败是 `tests/test_repository_docs.py:604` E124 `report.json` 缺失。保留各轮日志，不代造报告或弱化检查。GitHub 未推送，也未核查新的远端提交。
+
+## 2026-11-19 21:27:43 +08:00｜N01-D3 项目会话悬停卡（候选源码检查点）
+
+- 修改或新增内容：由 a481f9b 接续。已加载的每条会话复用圆角蓝色悬停底，停留 500ms 在右侧显示对应标题、可用的工作区标签、创建时间和任务状态。悬停不换对话，不增加置顶／归档。隔离 Host 六方法不变，sessions.list/create 可选响应字段只传 workspace-N 和创建时间，不传绝对路径、聊天或凭据。无元数据的 Host 兼容；终态未排空不提前报完成。背景、人物、边饰、正式工程和七份 owner 输入不改。
+- 遇到的难题：run-fhzGfv、run-vbnkOT 在活动任务的悬停阶段均超时；run-4duEi7 在 Button 上新增鼠标事件不受类型支持，改外层显式计时的 run-uQxpbz 仍 0/2。首次像素脚本导入带连字符的旧脚本名失败，改用独立的小裁剪校验函数。
+- 处理方式：保留原生 Tooltip，将会话树选择和活动状态按值筛选依赖，不随无关轮询重建锚点；run-CJCDXO 和最终两组通过。保留首轮记录，不把结果外推为历史活动往返超时已根治。元数据按项目与会话校验和限制，任务状态沿用控制器所见，未知字段省略。同一提交前混合工作区，七份 owner 输入 SHA 不变、未暂存。
+- 验证结果：macOS 27.0.1 arm64、NSH 0.5.0 AppKit、Node 22.22.0、临时目录 0700、umask 022。node probes/nsh-validation/verify-desktop-theme.mjs --session-preview 带本机获准艺术 run-XPWvG2／无艺术 run-4ee7NX 各 2/2、14 帧；浅/深 1240×820／680×720（1×），验证延迟、退出悬停、Esc、点击、状态归属、切项目和关闭侧栏清空。两组均用 check-session-preview-pixels.py 与现有 Pillow 12.2.0 确认目标行、相邻行、右卡和复位；查看暗色窄窗运行图，不等于用户签收。证据 SIDEBAR-SESSION-PREVIEW.md、desktop-session-preview-verification.json 和 artifacts/nsh-validation/session-preview/。
+- 回归结果：同 runner headless 22/22；带艺术 native 9/9、rich 6/6、evidence 3/3、live-sidebar 3/3、typography/window-chrome/chat-cards/icons/sidebar-activity/control-hover 各 2/2（不销记历史失败）；composer 有/无艺术均 2/2。node --test probes/nsh-validation/desktop-host.test.mjs 14/14；node probes/nsh-validation/verify-desktop-host.mjs 真实 PI＋私有管道＋回环 12 项，非 GUI。node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs 核心 365/365；npm run test:electron 133 过、10 跳、0 败；cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 退出101（缺 defmt），无下载。Python 文档结果见收尾。
+- 遗留问题：真实用户视觉确认、真人鼠标/键盘/IME、Retina、真实 PI＋GUI、历史/恢复、干净签名整包及同负载全进程测量均未验收。E124 需真机隔离重验、Rust 需核实的离线依赖、隔离 DSH 前置和 owner 装箱确认待补。完整门禁未过，不推送；未构建、安装、退出、重启或部署正式沐码，不动正式用户数据、未恢复手机。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): preview project sessions on hover`，查询 `git log --all --oneline --grep='preview project sessions on hover'`。
+
+本轮收尾：全量文档首轮 221/223，旧树检查硬编码了轮询前的选择表达式，更新为同时验证稳定选择、仅选中项目展开和树行高度。最终 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 76/76；全量 `discover -s tests -v` 222/223，唯一失败仍是 `tests/test_repository_docs.py:604`，E124 缺 `report.json`，未替换报告或放宽检查。未新建团队快照或 Electron 构建；检查原有 196 份 `gui-*`，193 份保留、3 份较旧无符合清理规则的内容，两个现有 Electron 构建保留；本轮捕获仍活跃。未推送，也未核查新的远端提交。

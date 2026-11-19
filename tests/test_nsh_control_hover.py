@@ -2,7 +2,7 @@
 import hashlib
 import unittest
 
-from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence
+from nsh_composer_provenance import ROOT, hover_evidence, picker_evidence, session_preview_evidence, successor_input
 
 
 class NativeControlHoverTests(unittest.TestCase):
@@ -18,7 +18,9 @@ class NativeControlHoverTests(unittest.TestCase):
         self.assertTrue(set(hover['protected']).isdisjoint(hover['inputs']))
         for path in set(previous) & set(picker['inputs']):
             self.assertEqual(previous[path], picker['inputs'][path]['sha256'], path)
+        successor = session_preview_evidence()
         for path, record in hover['inputs'].items():
+            record = successor_input(self, successor, path, record)
             data = (ROOT / path).read_bytes()
             self.assertEqual(record, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
 

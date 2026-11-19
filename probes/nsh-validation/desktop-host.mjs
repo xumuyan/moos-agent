@@ -50,7 +50,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     for (const [index, name] of projectNames.entries()) {
       const path = join(root, `workspace-${index}`); await mkdir(path, { mode: 0o700 });
       const project = await store.addProject(await realpath(path));
-      trustedProjects.push({ id: project.id, name, path: project.path });
+      trustedProjects.push({ id: project.id, name, path: project.path, workspaceLabel: `workspace-${index}` });
       store.createConversation(project.id, '新会话');
     }
     const provider = { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
@@ -86,17 +86,25 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       let found; try { found = store.getTask(params.taskId); } catch { reject('not_found'); }
       if (found.projectId !== params.projectId || found.conversationId !== params.sessionId) reject('not_found'); return found;
     }
+    function sessionView(s, trusted) {
+      return { id: s.id, projectId: s.projectId, title: s.title,
+        preview: { workspaceLabel: trusted.workspaceLabel, createdAt: s.createdAt } };
+    }
     function dispatch(method, p) {
       switch (method) {
         case 'projects.list': exact(p, []); return {
           projects: trustedProjects.map(({ id, name }) => ({ id, name })),
           models: { options: desktopFixtureModels, defaultId: defaultModelId },
         };
-        case 'sessions.list': exact(p, ['projectId']); project(p.projectId);
-          return { sessions: store.listConversations(p.projectId).map(s => ({ id: s.id, projectId: s.projectId, title: s.title })) };
-        case 'sessions.create': exact(p, ['projectId', 'title']); project(p.projectId); title(p.title);
+        case 'sessions.list': {
+          exact(p, ['projectId']); const trusted = project(p.projectId);
+          return { sessions: store.listConversations(p.projectId).map(s => sessionView(s, trusted)) };
+        }
+        case 'sessions.create': {
+          exact(p, ['projectId', 'title']); const trusted = project(p.projectId); title(p.title);
           if (store.listConversations(p.projectId).length >= 16) reject('limit');
-          { const s = store.createConversation(p.projectId, p.title); return { session: { id: s.id, projectId: s.projectId, title: s.title } }; }
+          return { session: sessionView(store.createConversation(p.projectId, p.title), trusted) };
+        }
         case 'tasks.submit': {
           const explicit = p && Object.hasOwn(p, 'modelId');
           const explicitEffort = p && Object.hasOwn(p, 'reasoningEffort');

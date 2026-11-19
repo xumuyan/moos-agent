@@ -44,7 +44,17 @@ test('N01-D1 exact versioned allowlist, trusted registry, selection and resource
     assert.equal((await stat(p.path)).mode & 0o777, 0o700);
   }
   const s = call('sessions.create', { projectId: a.projectId, title: '第二会话' }).result.session;
-  assert.ok(call('sessions.list', { projectId: a.projectId }).result.sessions.some(x => x.id === s.id));
+  const listed = call('sessions.list', { projectId: a.projectId }).result.sessions;
+  assert.deepEqual(listed.find(x => x.id === s.id), s);
+  assert.deepEqual(Object.keys(s.preview).sort(), ['createdAt', 'workspaceLabel']);
+  assert.equal(s.preview.workspaceLabel, 'workspace-0');
+  assert.equal(new Date(s.preview.createdAt).toISOString(), s.preview.createdAt);
+  assert.ok(Math.abs(Date.now() - Date.parse(s.preview.createdAt)) < 30000);
+  assert.ok(!JSON.stringify(listed).includes(host.trustedProjects[0].path));
+  const other = call('sessions.list', { projectId: b.projectId }).result.sessions;
+  assert.equal(other[0].preview.workspaceLabel, 'workspace-1');
+  assert.equal(other.some(x => x.id === s.id), false);
+  assert.equal(call('sessions.list', { projectId: a.projectId, workspaceLabel: 'workspace-1' }).error.code, 'invalid_request');
   for (const input of [null, [], {}, { version: 2, id: 'x', method: 'projects.list', params: {} },
     { version: 1, id: 'x', method: 'projects.list', params: {}, path: '/tmp' }]) assert.equal(host.call(input).ok, false);
   for (const method of ['shell', 'files.read', 'http.request', 'projects.register', 'close']) assert.equal(call(method).error.code, 'unsupported_method');

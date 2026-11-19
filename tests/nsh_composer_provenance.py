@@ -18,6 +18,10 @@ def hover_evidence():
     return json.loads((PROBE / 'desktop-control-hover-verification.json').read_text())
 
 
+def session_preview_evidence():
+    return json.loads((PROBE / 'desktop-session-preview-verification.json').read_text())
+
+
 def successor_input(test, evidence, path, previous):
     if path not in evidence['previousInputs']:
         return previous
@@ -28,6 +32,6 @@ def successor_input(test, evidence, path, previous):
 
 
 def current_composer_input(test, path, previous):
-    for evidence in (controls_evidence(), picker_evidence(), hover_evidence()):
+    for evidence in (controls_evidence(), picker_evidence(), hover_evidence(), session_preview_evidence()):
         previous = successor_input(test, evidence, path, previous)
     return previous

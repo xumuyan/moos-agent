@@ -20,11 +20,12 @@ const activity = process.argv.includes('--sidebar-activity');
 const chrome = process.argv.includes('--window-chrome');
 const cards = process.argv.includes('--chat-cards');
 const icons = process.argv.includes('--icons');
+const sessionPreview = process.argv.includes('--session-preview');
 const controlHover = process.argv.includes('--control-hover');
 const composer = process.argv.includes('--composer');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
-const files = ['DesktopView.tsx', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
+const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover || sessionPreview, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = sessionPreview ? 'desktop-session-preview-check.tsx' : controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const files = ['DesktopView.tsx', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
   ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
 await cp(resolve('probes/nsh-validation/assets/desktop'), join(source, 'assets/desktop'), { recursive: true });
@@ -58,6 +59,12 @@ ${chrome ? `  const window = currentWindow();
     ${composer ? `if (method === 'tasks.submit' || method === 'tasks.cancel' ||
       (method === 'tasks.events' && (params as { cursor?: string }).cursor?.endsWith(':4'))) await new Promise(r => setTimeout(r, 700));` : ''}
     const result = (h as any)[method](params).result;
+    ${sessionPreview ? `
+    const withPreview = (s: any) => ({ ...s, preview: { workspaceLabel: s.projectId === 'a'
+      ? '示例工作区/很长的目录用于验证换行/NSH候选版' : '示例工作区/项目B',
+      createdAt: new Date(Date.now() - (s.id.startsWith('other-') ? 7200000 : 60000)).toISOString() } });
+    if (method === 'sessions.list') result.sessions = result.sessions.map(withPreview);
+    if (method === 'sessions.create') result.session = withPreview(result.session);` : ''}
     ${composer ? `calls.set(h.diagnostics());` : ''}
     return result;
    }}

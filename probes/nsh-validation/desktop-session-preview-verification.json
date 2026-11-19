@@ -1,0 +1,451 @@
+{
+  "base": "a481f9b17a38277dc5573b0da5ce3a5c5feb37d6",
+  "commitSubject": "feat(N01-D3): preview project sessions on hover",
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-control-hover-verification.json",
+    "bytes": 26583,
+    "sha256": "3cf452f882c9b714c1c01dc03814818691b0fb4e308ca4219e95282180250438"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "45407c40f4e8f76a2fe15e41d7502aa00e076ebab11c29bc0ae353fbfecbbac2",
+    "probes/nsh-validation/desktop-contract.ts": "8bd0e0f56d8a269154e3d6643f5f18e73d1eb846c0c4bf269b4174a4f25ede53",
+    "probes/nsh-validation/desktop-host.mjs": "461777059aeebe39910e600eb0bf28c3c6cd8d6b6361359ec1d0986ac3846b89",
+    "probes/nsh-validation/desktop-host.test.mjs": "4f413603c98cf6c73b9278678892dd8f00f8f07476ebcb86e468c58342a30da0",
+    "probes/nsh-validation/desktop-theme.test.tsx": "db0943b13d063d3afff5980f0eb917754f4bc6c7f0d8463a241f47a7f7130531",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "8f8a97d7e856b94b3c229069367572287b01f3f2446b8ce0b93ba27229cf7bbb"
+  },
+  "added": [
+    "probes/nsh-validation/check-session-preview-pixels.py",
+    "probes/nsh-validation/desktop-session-preview-check.tsx",
+    "probes/nsh-validation/desktop-session-preview.ts"
+  ],
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 30656,
+      "sha256": "4fe5fb68e201d03d15c43c3e66ef670972cc79ff573b36857d68da5cadc3ab20"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 4937,
+      "sha256": "a2eeb2b4b0fba957e8a4df95aa021097d56cc5d97afec6965fda7e8d748dbd1f"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 11133,
+      "sha256": "f88705157179faa0eb7cfa4ec8917e186f905a365b70a15a11218c22fa151949"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 21785,
+      "sha256": "afde9efd9055fe0c5e0f2e4df3aa388d1ad97123aac11fcfbebe6a4831bad48d"
+    },
+    "probes/nsh-validation/desktop-theme.test.tsx": {
+      "bytes": 14559,
+      "sha256": "091b1abbd57b4aa598837ccd512aae73faa4c74901504598807c19663648a05a"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 13119,
+      "sha256": "0597b2b544b8f14d8b073407bd61cb6363fd9436f56651671c5a28281beaadf3"
+    },
+    "probes/nsh-validation/check-session-preview-pixels.py": {
+      "bytes": 3122,
+      "sha256": "c5f2e876b637e7591af7aa507193e1ab4b55e506fd5e741bf0b014f783e5750a"
+    },
+    "probes/nsh-validation/desktop-session-preview-check.tsx": {
+      "bytes": 3791,
+      "sha256": "b9625fc43b2488df0503457084ed1af1f7ec6c3bae2db34ebe71f88d12d7bb0c"
+    },
+    "probes/nsh-validation/desktop-session-preview.ts": {
+      "bytes": 2804,
+      "sha256": "f6eba1b074fafbd11d673b0bf25a72749d468c6eb8b7006bf5bf889a225ed047"
+    }
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "candidate": {
+    "platform": "NSH 0.5.0 AppKit macOS 27.0.1 arm64 1×",
+    "synthetic": true,
+    "installed": false,
+    "piExecuted": false,
+    "withArt": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-XPWvG2",
+      "artwork": true,
+      "passed": 2,
+      "artifacts": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-XPWvG2/capture-inputs.json",
+          "bytes": 11854,
+          "sha256": "a253c986fb5fcd5e8d4071492547517770117379a113d60278ecacf3752b2063"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-XPWvG2/check.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-XPWvG2/test.log",
+          "bytes": 15439,
+          "sha256": "4f8675b856564665ea180d513ecf68e47b111c1f3658cebc579f879587f6a926"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-XPWvG2/result.json",
+          "bytes": 951,
+          "sha256": "47024a0d8c910c04ded1e2bf63a59d91af1aab8353744f6ed102947c45c32d73"
+        }
+      ],
+      "images": [
+        {
+          "file": "session-preview-dark-1240-hover.png",
+          "bytes": 1413464,
+          "sha256": "59274aba3a730bf6db278f6f8419511a1abe09a4e200ebe5dabf00f10da2e9eb"
+        },
+        {
+          "file": "session-preview-dark-1240-leave.png",
+          "bytes": 1444508,
+          "sha256": "8673ceb155b3d5fafa6b02c3874a56f900da575f750a110910a70bb96c1ce56a"
+        },
+        {
+          "file": "session-preview-dark-1240-rest.png",
+          "bytes": 1444508,
+          "sha256": "8673ceb155b3d5fafa6b02c3874a56f900da575f750a110910a70bb96c1ce56a"
+        },
+        {
+          "file": "session-preview-dark-680-hover.png",
+          "bytes": 745182,
+          "sha256": "6881b46b40f56a646c0a3c7e40a351b6d6b5eb422aca01ab9827936a7de394c8"
+        },
+        {
+          "file": "session-preview-dark-680-leave.png",
+          "bytes": 757275,
+          "sha256": "85466354781b6415652bac3d46757699c5024ce331bbe83fb1c250b5cab8dd2e"
+        },
+        {
+          "file": "session-preview-dark-680-rest.png",
+          "bytes": 757275,
+          "sha256": "85466354781b6415652bac3d46757699c5024ce331bbe83fb1c250b5cab8dd2e"
+        },
+        {
+          "file": "session-preview-dark-running.png",
+          "bytes": 723263,
+          "sha256": "c3c668f05a6c18b8055573abad5979641eae4bbf8ddea9caa9af06c0e52e48ee"
+        },
+        {
+          "file": "session-preview-light-1240-hover.png",
+          "bytes": 1569512,
+          "sha256": "c8aa0140b47253d611118562cc9a2cafca60d3df1cbe2147e73ea51f8498892c"
+        },
+        {
+          "file": "session-preview-light-1240-leave.png",
+          "bytes": 1603447,
+          "sha256": "905dcb4ba07bbbd959b501d70b9083f18975879b6abb9418c842b82d05fa636f"
+        },
+        {
+          "file": "session-preview-light-1240-rest.png",
+          "bytes": 1603447,
+          "sha256": "905dcb4ba07bbbd959b501d70b9083f18975879b6abb9418c842b82d05fa636f"
+        },
+        {
+          "file": "session-preview-light-680-hover.png",
+          "bytes": 798004,
+          "sha256": "d4dc65f27a405c718c83910d9517af4b7d969126ed762ecc8536d09622515bec"
+        },
+        {
+          "file": "session-preview-light-680-leave.png",
+          "bytes": 814587,
+          "sha256": "aae04f3522e284a21ad873e4d096f9dcf5611230d571115906f987ad59b3278b"
+        },
+        {
+          "file": "session-preview-light-680-rest.png",
+          "bytes": 814587,
+          "sha256": "aae04f3522e284a21ad873e4d096f9dcf5611230d571115906f987ad59b3278b"
+        },
+        {
+          "file": "session-preview-light-running.png",
+          "bytes": 762614,
+          "sha256": "a61411efddb151e37f183dae38a4efc9e956b04dc6dcda14493dce848556aa97"
+        }
+      ],
+      "paint": {
+        "session-preview-light-1240": {
+          "row": [
+            34,
+            450,
+            264,
+            482
+          ],
+          "rowChangedPixels": 7320,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            282,
+            463,
+            526,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-light-680": {
+          "row": [
+            34,
+            450,
+            168,
+            482
+          ],
+          "rowChangedPixels": 4251,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            186,
+            463,
+            430,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-dark-1240": {
+          "row": [
+            34,
+            450,
+            264,
+            482
+          ],
+          "rowChangedPixels": 7341,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            282,
+            463,
+            526,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-dark-680": {
+          "row": [
+            34,
+            450,
+            168,
+            482
+          ],
+          "rowChangedPixels": 4269,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            186,
+            463,
+            430,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        }
+      }
+    },
+    "fallback": {
+      "directory": "artifacts/nsh-validation/desktop-theme/run-4ee7NX",
+      "artwork": false,
+      "passed": 2,
+      "artifacts": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-4ee7NX/capture-inputs.json",
+          "bytes": 8980,
+          "sha256": "c6b8279f254a3fb9185a80147bfdf1658de3fcf6ff076279529f17a96afac419"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-4ee7NX/check.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-4ee7NX/test.log",
+          "bytes": 14814,
+          "sha256": "851ac06b8111182e988c5f52eca18a907794969bdee59674fb821eb466714a93"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-4ee7NX/result.json",
+          "bytes": 952,
+          "sha256": "311470e5641384987f6cf6bda58d85bae90ab8bcee749c0fc22dbf86faa51163"
+        }
+      ],
+      "images": [
+        {
+          "file": "session-preview-dark-1240-hover.png",
+          "bytes": 470662,
+          "sha256": "9f53bf110b9b638a59c3fb522411e4b98794a15f0d34cbfeb86b82d7e33628d5"
+        },
+        {
+          "file": "session-preview-dark-1240-leave.png",
+          "bytes": 460865,
+          "sha256": "15e0c6f8da49bdc32adceff016e911a47a7915c758b7c2d0750b45e7ef0fa668"
+        },
+        {
+          "file": "session-preview-dark-1240-rest.png",
+          "bytes": 460865,
+          "sha256": "15e0c6f8da49bdc32adceff016e911a47a7915c758b7c2d0750b45e7ef0fa668"
+        },
+        {
+          "file": "session-preview-dark-680-hover.png",
+          "bytes": 292242,
+          "sha256": "c96c2e80c6680ac5af615caf5709f2593770943600273511a227b11a4b87f53b"
+        },
+        {
+          "file": "session-preview-dark-680-leave.png",
+          "bytes": 287752,
+          "sha256": "4604419e35589ecb354d5602a78fdccd4e154f776edb3a8b80bbc74afde507dc"
+        },
+        {
+          "file": "session-preview-dark-680-rest.png",
+          "bytes": 287752,
+          "sha256": "4604419e35589ecb354d5602a78fdccd4e154f776edb3a8b80bbc74afde507dc"
+        },
+        {
+          "file": "session-preview-dark-running.png",
+          "bytes": 301016,
+          "sha256": "00bfe5f5ff4c227e5ee7158aec46d8bc948ad1f54846ec340321add54f4f14e9"
+        },
+        {
+          "file": "session-preview-light-1240-hover.png",
+          "bytes": 510280,
+          "sha256": "5e3afaccc1f96a28ceccbee745a63ec110cfe82582b36a6fe54f14fbf64b943b"
+        },
+        {
+          "file": "session-preview-light-1240-leave.png",
+          "bytes": 498956,
+          "sha256": "cd34f80ee85ee816ac3498e257d3002e06562bd8ca13bd9db98b2c63f9715c7f"
+        },
+        {
+          "file": "session-preview-light-1240-rest.png",
+          "bytes": 498956,
+          "sha256": "cd34f80ee85ee816ac3498e257d3002e06562bd8ca13bd9db98b2c63f9715c7f"
+        },
+        {
+          "file": "session-preview-light-680-hover.png",
+          "bytes": 318324,
+          "sha256": "4202d928ed843dd8d249d39a0a6c1f679d4100fda26f852c256e7a5e1284ef17"
+        },
+        {
+          "file": "session-preview-light-680-leave.png",
+          "bytes": 314925,
+          "sha256": "d0274e50b28393e87c63902f92f5680b71c736ab543ab44280b93fc1218d77c4"
+        },
+        {
+          "file": "session-preview-light-680-rest.png",
+          "bytes": 314925,
+          "sha256": "d0274e50b28393e87c63902f92f5680b71c736ab543ab44280b93fc1218d77c4"
+        },
+        {
+          "file": "session-preview-light-running.png",
+          "bytes": 334205,
+          "sha256": "b67c5b7511f7b258fc89e44832acac7863453aff907e59adcf5dc57159ddcb5b"
+        }
+      ],
+      "paint": {
+        "session-preview-light-1240": {
+          "row": [
+            34,
+            450,
+            264,
+            482
+          ],
+          "rowChangedPixels": 7343,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            282,
+            463,
+            526,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-light-680": {
+          "row": [
+            34,
+            450,
+            168,
+            482
+          ],
+          "rowChangedPixels": 4273,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            186,
+            463,
+            430,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-dark-1240": {
+          "row": [
+            34,
+            450,
+            264,
+            482
+          ],
+          "rowChangedPixels": 7343,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            282,
+            463,
+            526,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        },
+        "session-preview-dark-680": {
+          "row": [
+            34,
+            450,
+            168,
+            482
+          ],
+          "rowChangedPixels": 4273,
+          "siblingChangedPixels": 0,
+          "cardSample": [
+            186,
+            463,
+            430,
+            464
+          ],
+          "cardChangedPixels": 244,
+          "leaveChangedPixels": 0
+        }
+      }
+    }
+  },
+  "failedAttempts": [
+    {
+      "path": "artifacts/nsh-validation/session-preview/fallback-initial.log",
+      "bytes": 9905,
+      "sha256": "255ebf67672aaaf85d6eacb76681b170cc1e2e2980a15dd1300891b1c87e4830"
+    },
+    {
+      "path": "artifacts/nsh-validation/session-preview/fallback-attempt2.log",
+      "bytes": 9877,
+      "sha256": "d2935d83e45f50998a0fefb35dcd37f2b2916f6f702b88a8b7285afa6a286014"
+    },
+    {
+      "path": "artifacts/nsh-validation/session-preview/fallback-attempt3.log",
+      "bytes": 1235,
+      "sha256": "9a54f53c8c8e8a8ea1a550b2cba4c8a8383b3fae4e96acd887d496a76b5f02b5"
+    },
+    {
+      "path": "artifacts/nsh-validation/session-preview/fallback-attempt4.log",
+      "bytes": 9877,
+      "sha256": "4af2b69e00ed28ae60cbf1ad891ddd821672d35f0ee0d7d67ab588024ad0f54d"
+    }
+  ],
+  "acceptance": {
+    "manualGUI": false,
+    "userApproved": false,
+    "retina": false,
+    "independentPackage": false,
+    "realPIPlusGUI": false,
+    "deployed": false
+  }
+}

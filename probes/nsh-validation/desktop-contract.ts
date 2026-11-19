@@ -9,7 +9,9 @@ export type Project = { id: string; name: string };
 type LabeledId = { id: string; label: string };
 export type DesktopModel = LabeledId & { group?: LabeledId; reasoning?: { defaultId: string; levels: LabeledId[] } };
 export type DesktopModelCatalog = { options: DesktopModel[]; defaultId: string };
-export type Session = { id: string; projectId: string; title: string };
+// Optional read-only hover metadata. workspaceLabel is relative to the isolated
+// Host root, not a full filesystem path or a value accepted by any request.
+export type Session = { id: string; projectId: string; title: string; preview?: { workspaceLabel: string; createdAt: string } };
 export type PublicEvent = { sequence: number } & (
   { type: 'text_delta'; payload: { delta: string; truncated: boolean } } |
   { type: 'task_state'; payload: { status: TaskStatus; errorCode: string | null } } |

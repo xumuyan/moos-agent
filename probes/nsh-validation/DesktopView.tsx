@@ -1,6 +1,7 @@
 import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
-import { Button, Input, TextView } from 'nsh/base';
+import { Button, Input, TextView, Tooltip } from 'nsh/base';
+import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
 import type { DesktopModelCatalog } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
@@ -49,6 +50,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const submitting = new Set<string>(), cancelling = new Set<string>();
   let disposed = false;
   const transport = props.call ?? desktopCall;
+  const previews = sessionPreviews();
   const call: DesktopCall = async (method, params) => {
     const choice = method === 'tasks.submit' ? modelChoice(scopeKey(params as { projectId: string; sessionId: string })) : undefined;
     const result = await transport(method, choice ? { ...params, ...choice } : params);
@@ -56,12 +58,21 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       const data = result as { models?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
     }
+    if (!disposed && (method === 'sessions.list' || method === 'sessions.create')) {
+      const { projectId } = params as { projectId: string };
+      const data = result as { sessions?: unknown; session?: unknown } | null;
+      previews.remember(projectId, method === 'sessions.list' ? data?.sessions : [data?.session]);
+    }
     return result;
   };
   const refresh = () => revision.set(revision() + 1);
   const controller = new DesktopController(call, refresh);
   function snapshot() { revision(); return controller; }
   const sessions = computed(() => snapshot().sessions);
+  // Keep the native row/tooltip anchors stable across the per-task polling ticks.
+  const selectedProject = computed(() => snapshot().projectId);
+  const selectedSession = computed(() => snapshot().sessionId);
+  const projects = computed(() => snapshot().projects);
   const cachedRows = createMessageRows();
   const messageRows = () => {
     const c = snapshot().current;
@@ -142,27 +153,42 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <DesktopIcon name={icon} color={t.goldSoft} testID={`icon-${id}`} onLayout={measured(`icon-${id}`)} />
           </Button>)}
         </View>
-        <List testID="projects" each={snapshot().projects} estimatedItemSize={126} style={{ flex: 1, minHeight: 0 }}>
-          {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(snapshot().projectId === p().id, snapshot().sessions.length) }}>
+        <List testID="projects" each={projects()} estimatedItemSize={126} style={{ flex: 1, minHeight: 0 }}>
+          {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(selectedProject() === p().id, sessions().length) }}>
             <View style={{ height: tree.projectHeight }}>
-              {snapshot().projectId === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
+              {selectedProject() === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
               <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 0, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 4, alignItems: 'center' }} onPress={() => void project(p().id)}>
-                {artAvailable ? <View style={{ width: 22, height: 34, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 22, height: 34, objectFit: 'contain' }} /></View> : <DesktopIcon name={snapshot().projectId === p().id ? 'folderOpen' : 'folder'} color={t.goldSoft} testID={`icon-project-${p().id}`} />}
-                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: tree.fontFamily, color: snapshot().projectId === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
+                {artAvailable ? <View style={{ width: 22, height: 34, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 22, height: 34, objectFit: 'contain' }} /></View> : <DesktopIcon name={selectedProject() === p().id ? 'folderOpen' : 'folder'} color={t.goldSoft} testID={`icon-project-${p().id}`} />}
+                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: tree.fontFamily, color: selectedProject() === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
               </Button>
             </View>
-            {snapshot().projectId === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: snapshot().sessions.length * tree.sessionHeight }}>
+            {selectedProject() === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: sessions().length * tree.sessionHeight }}>
               {sessions().map((item, index) => {
-                const row = () => sessionTreeState(item, snapshot(), snapshot().conversations.get(item.id));
+                const activity = () => snapshot().conversations.get(item.id);
+                const row = () => sessionTreeState(item, { projectId: selectedProject(), sessionId: selectedSession() }, snapshot().conversations.get(item.id));
+                const selected = computed(() => row().selected);
+                const working = computed(() => row().working);
+                const preview = previews.read(item.projectId, item.id);
+                const shownAt = signal(Date.now());
+                const taskStatus = computed(() => sessionPreviewStatus(activity(), submitting.has(item.id)));
+                const previewInk = { fontFamily: t.fontFamily, color: '#d3d3d7', fontSize: 12, lineHeight: 17 };
                 const last = index === sessions().length - 1;
                 const mid = tree.sessionHeight / 2;
                 return <View style={{ height: tree.sessionHeight }}>
                   <View testID={`branch-stem-${item.id}`} style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: 0, height: last ? mid : tree.sessionHeight, borderLeftWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
                   <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid, width: tree.branchWidth, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
-                  <Button testID={`session-${item.title}`} selected={row().selected} accessibilityLabel={`${item.title}${row().working ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: row().selected ? '#e2be70b8' : 'transparent', backgroundImage: row().selected ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} onPress={() => session(item.id)}>
-                    <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: tree.fontFamily, color: row().selected ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
+                  <Button testID={`session-${item.title}`} onLayout={measured(`session-row-${item.id}`)} selected={selected()} accessibilityLabel={`${item.title}${working() ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundImage: selected() ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} hoverStyle={controlHover} onPress={() => session(item.id)}
+                    tooltip={<Tooltip testID={`session-preview-${item.id}`} placement="right" align="start" offset={18} margin={8} delay={500}
+                      onOpen={() => shownAt.set(Date.now())}
+                      style={{ width: 244, padding: 14, gap: 6, borderRadius: 12, backgroundColor: '#29292b', boxShadow: '0 4px 14px #00000030' }}>
+                      <Text style={{ ...previewInk, color: '#fff', fontSize: 14, fontWeight: '500', lineHeight: 20, numberOfLines: 3 }}>{item.title}</Text>
+                      {preview && <Text style={{ ...previewInk, numberOfLines: 2, textOverflow: 'ellipsis-middle' }}>{preview.workspaceLabel}</Text>}
+                      {preview && <Text style={previewInk}>{sessionAge(preview.createdAt, shownAt())}</Text>}
+                      {taskStatus() && <Text style={previewInk}>{taskStatus()}</Text>}
+                    </Tooltip>}>
+                    <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: tree.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
                   </Button>
-                  {row().working && <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX + tree.branchWidth - 6, top: mid - 6 }}><SessionActivity id={item.id} /></View>}
+                  {working() && <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX + tree.branchWidth - 6, top: mid - 6 }}><SessionActivity id={item.id} /></View>}
                 </View>;
               })}
             </View>}
