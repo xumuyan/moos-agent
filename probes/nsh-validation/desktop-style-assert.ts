@@ -17,12 +17,15 @@ export async function assertStyleBounds(app: App, active: boolean, height: numbe
   expect(composerTop - safe.frameTop).toBeGreaterThanOrEqual(bottom(b['chat-header']));
   expect(previewTop).toBeGreaterThanOrEqual(composerBottom + safe.frameBottom);
   expect(body.origin.y + bottom(b['art-status'])).toBeLessThanOrEqual(height - safe.bottom);
-  expect(b.prompt.origin.y).toBeGreaterThanOrEqual(52);
-  expect(bottom(b['composer-actions'])).toBeLessThanOrEqual(b.composer.size.height - 24);
+  // The top artwork ends 52pt into the card, and the lower slice begins
+  // 34pt from its bottom. Fallback has no decorative exclusion zones.
+  expect(b.prompt.origin.y).toBeGreaterThanOrEqual(artAvailable ? 52 : 12);
+  expect(bottom(b['composer-actions'])).toBeLessThanOrEqual(b.composer.size.height - (artAvailable ? 34 : 12));
   expect(bottom(b.send)).toBeLessThanOrEqual(b['composer-actions'].size.height);
   expect(bottom(b.stop)).toBeLessThanOrEqual(b['composer-actions'].size.height);
-  expect(b['composer-actions'].origin.x + b.send.origin.x).toBeGreaterThanOrEqual(24);
-  expect(b['composer-actions'].origin.x + b.send.origin.x + b.send.size.width).toBeLessThanOrEqual(b.composer.size.width - 24);
+  expect(b['composer-actions'].origin.x + b.stop.origin.x).toBeGreaterThanOrEqual(artAvailable ? 24 : 12);
+  expect(b.stop.origin.x + b.stop.size.width).toBeLessThanOrEqual(b.send.origin.x);
+  expect(b['composer-actions'].origin.x + b.send.origin.x + b.send.size.width).toBeLessThanOrEqual(b.composer.size.width - (artAvailable ? 24 : 12));
   expect(b.prompt.size.width).toBeGreaterThan(100);
   expect(b.prompt.size.height).toBeGreaterThanOrEqual(28);
   expect(b.send.size.width).toBeGreaterThan(30);
@@ -35,4 +38,5 @@ export async function assertStyleBounds(app: App, active: boolean, height: numbe
     expect(b['message-PI 公开文本'].size.width).toBeLessThan(b.composer.size.width * .96);
   }
   console.log('STYLE_BOUNDS ' + JSON.stringify({ active, height, artAvailable, bounds: b }));
+  return b;
 }

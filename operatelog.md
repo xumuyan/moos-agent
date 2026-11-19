@@ -3024,3 +3024,15 @@
 - 对应 Git 提交：唯一说明 `fix(N01-D3): align native sidebar menu and control icons`，查询 `git log --all --oneline --grep='align native sidebar menu and control icons'`。完整门禁未通过，只保留本地检查点、不推送。
 
 本轮收尾（证据指向提交前混合工作区，不是干净检出）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` 首次 206/209，除 E124 外两个旧静态检查未识别菜单/搜索共用渲染器生成的 ID；更新为验证实际 ID 组成，并保留 `--icons` 原生禁用断言，未改候选行为或删约束。最终 `discover -s tests -p 'test_nsh*.py' -v` 62/62；全量 208/209，唯一失败为 `test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 缺 `report.json`）。原始首末回执均保留。签收与完整门禁未通过，不推送、不部署。
+
+## 2026-11-19 17:01:23 +08:00｜N01-D3 输入框和底饰（候选源码检查点）
+
+- 修改或新增内容：基准 `b43cb81`，接续用户确认继续。独立 NSH 候选输入框保留深蓝与浅色文字；框顶弓片按等比绘制，仅左右翼伸缩。金边圆形发送按钮空会话 44pt、聊天 38pt，保留原来独立停止和禁用条件。空会话的窗底徽饰沿聊天栏居中，出现消息后收起；不改背景、人物、侧栏、控制器或业务契约。见 `probes/nsh-validation/DESKTOP-COMPOSER.md`、`desktop-composer-verification.json`。
+- 遇到的难题：旧九宫格顶边整段拉伸，窄窗蝴蝶结显著压窄；首轮专项 `run-y0RLde` 0/2，输入横向 32pt 没避开到 x=40 的完整侧片。已有活动专项也复现切到第二会话后空态超时，根因未确定。
+- 处理方式：从同一原图在顶边取中央 360px，按 72/170 统一缩放；框片不接收指针，艺术模式保留内边距 44/56/34pt，不削弱避让断言。无艺术回退取消多余边饰留位。艺术只在审核 SHA 后本机使用，未执行 hooks、重新采集正式窗口或分发素材。七份 owner 未跟踪文件不改、不暂存。
+- 实际验收：合成 `verify-desktop-theme.mjs --composer` 含授权素材 `run-84pXou` 与无艺术 `run-Bh45yQ` 各 2/2、各八帧。明暗 1240×820／680×720，窄窗草稿分别经发送按钮、回车驱动提交，公开读取卡片可见，执行中发送禁用，停止后达到终态和排空再禁用停止；实际布局显示弓片 152×72pt，输入比其下沿至少低 4pt。截图属于 1× NSH 开发宿主，不是正式 GUI 或真人键盘输入。原始回执在 `artifacts/nsh-validation/composer/`。
+- 验证结果：同一提交前混合工作区（非干净检出），`node probes/nsh-validation/verify-desktop-theme.mjs` 无艺术 headless 15/15，含切片单测；带艺术 `--native` 9/9、`--rich` 6/6、`--evidence` 3/3、`--live-sidebar` 3/3、`--typography` 2/2、`--window-chrome` 2/2、`--chat-cards` 2/2、`--icons` 2/2。`--sidebar-activity` 初 1/2（`run-2OxyNh`）、单独复跑 0/2（`run-gbTQao`），第二会话空态／返回原会话错误卡超时；取 `git archive b43cb81 probes/nsh-validation` 加同 SHA 的 controller/transport 在 0700 临时目录运行旧实现，亦 1/2（`run-kbivEM`，空态超时）。不宣称根因、修复或全通过，不改断言。`node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 364/364（255390ms）；`npm run test:electron` 133 通过/10 跳过（隔离 DSH 前置未齐）；`cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 退出101，离线缺 `defmt`，未下载。全量文档首 210/212，新增日志初缺验证结果字段并有 E124 历史缺报告；修正日志字段后最终结果见收尾。未新建 Electron 构建或团队 GUI 快照；保留两份已有构建及活跃捕获。
+- 遗留问题：用户视觉核对、手工鼠标/键盘/IME/2×、真实 PI、干净安装包和同负载全进程资源比较未验收；背景、人物及边饰尚待细化。会话往返超时需独立定位；E124 需实跑恢复、Rust 需补经核实的离线依赖、独立 Host 装箱待 owner 确认，不扩大本轮范围。门禁未齐，只做本地提交不推送；未构建、安装、退出或启动正式 Electron，不操作用户数据，不恢复手机。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): preserve native composer bow and control clearances`；查询 `git log --all --oneline --grep='preserve native composer bow and control clearances'`。
+
+本轮收尾（证据对应提交前混合工作区）：`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_nsh*.py' -v` 65/65；全量 `discover -s tests -v` 211/212，唯一失败为 `test_fork_restart_recovery_evidence_and_plan_state`（`tests/test_repository_docs.py:604`，E124 缺 `report.json`）。原始回执保留，不伪造报告。七份保护输入 SHA-256 不变；仍不推送或部署。

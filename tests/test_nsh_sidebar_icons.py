@@ -22,7 +22,11 @@ class SidebarIconTests(unittest.TestCase):
         })
         self.assertEqual(icons['protected'], prior['protected'])
         self.assertTrue(icons['inputs'].keys().isdisjoint(icons['protected']))
+        composer = evidence('composer')
         for path, entry in icons['inputs'].items():
+            if path in composer['previousInputs']:
+                self.assertEqual(composer['previousInputs'][path], entry['sha256'], path)
+                entry = composer['inputs'][path]
             data = (ROOT / path).read_bytes()
             self.assertEqual(entry, dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), path)
         notice = (PROBE / 'DSH-ICONS-LICENSE.txt').read_text()

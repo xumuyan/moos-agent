@@ -17,6 +17,7 @@ class SidebarActivityTests(unittest.TestCase):
         activity = manifest('sidebar-activity')
         cards = manifest('chat-cards')
         icons = manifest('sidebar-icons')
+        composer = manifest('composer')
         for path, record in activity['inputs'].items():
             if path in cards['previousInputs']:
                 self.assertEqual(cards['previousInputs'][path], record['sha256'])
@@ -24,6 +25,9 @@ class SidebarActivityTests(unittest.TestCase):
             if path in icons['previousInputs']:
                 self.assertEqual(icons['previousInputs'][path], record['sha256'])
                 record = icons['inputs'][path]
+            if path in composer['previousInputs']:
+                self.assertEqual(composer['previousInputs'][path], record['sha256'])
+                record = composer['inputs'][path]
             data = (ROOT / path).read_bytes()
             self.assertEqual(record['bytes'], len(data), path)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), path)

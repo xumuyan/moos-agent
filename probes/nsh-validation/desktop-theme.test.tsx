@@ -1,5 +1,5 @@
 import { expect, open, test } from 'nsh/test';
-import { desktopLayout, desktopTheme, styleLayout, sidebarCorners } from './desktop-theme';
+import { desktopLayout, desktopTheme, frameTopSegments, styleLayout, sidebarCorners } from './desktop-theme';
 import { fixture } from './desktop-theme-fixture';
 test('theme geometry keeps reference dimensions and collapses narrow panels', () => {
   expect(desktopTheme.sidebarWidth).toBe(280); expect(desktopTheme.headerHeight).toBe(75);
@@ -83,6 +83,17 @@ test('style safe envelopes reserve trim and frame without deleting source art', 
   for (const width of [699,700,701,759,760,761,1099,1100,1101,1199,1200,1201]) {
     expect(desktopLayout(width, true).right).toBe(width >= 1100);
     expect(desktopLayout(width, true).compact).toBe(width < 760);
+  }
+});
+
+test('composer top slices preserve the centered bow aspect and meet edge to edge', () => {
+  const scale = 72 / 170;
+  for (const width of [484, 748, 988]) {
+    const [left, center, right] = frameTopSegments(120, 1680, 54, width - 54, scale, 360);
+    expect([left[0], left[1], center[0], center[1], right[0], right[1]]).toEqual([120, 720, 720, 1080, 1080, 1680]);
+    expect([left[2], left[3], right[2], right[3]]).toEqual([54, center[2], center[3], width - 54]);
+    expect(Math.abs((center[3] - center[2]) / 360 - scale)).toBeLessThan(.000001);
+    expect((center[2] + center[3]) / 2).toBe(width / 2);
   }
 });
 

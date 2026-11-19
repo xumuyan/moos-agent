@@ -28,6 +28,7 @@ class DesktopWindowChromeTests(unittest.TestCase):
         activity = evidence('sidebar-activity')
         cards = evidence('chat-cards')
         icons = evidence('sidebar-icons')
+        composer = evidence('composer')
         for name, record in m['inputs'].items():
             if name in activity['previousInputs']:
                 self.assertEqual(activity['previousInputs'][name], record['sha256'])
@@ -38,6 +39,9 @@ class DesktopWindowChromeTests(unittest.TestCase):
             if name in icons['previousInputs']:
                 self.assertEqual(icons['previousInputs'][name], record['sha256'])
                 record = icons['inputs'][name]
+            if name in composer['previousInputs']:
+                self.assertEqual(composer['previousInputs'][name], record['sha256'])
+                record = composer['inputs'][name]
             data = (ROOT / name).read_bytes()
             self.assertEqual(record['bytes'], len(data), name)
             self.assertEqual(record['sha256'], hashlib.sha256(data).hexdigest(), name)

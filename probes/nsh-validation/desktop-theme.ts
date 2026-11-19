@@ -14,7 +14,9 @@ export const desktopTheme = {
   sidebarGradient: 'radial-gradient(circle at 50% 14%, #5b77bc3b, #0000 31%), linear-gradient(#102456f7, #050e2bf5), repeating-linear-gradient(135deg, #ffffff07 0 1px, #0000 1px 7px)',
   sidebarShadow: '8px 0 34px #08113038, inset -1px 0 #fff5d7d1, inset -3px 0 #e2cfa6b8',
   composerGradient: 'linear-gradient(#1b2c54f0, #0a173ae6)',
-  composerBase: '#0d193bb8', composerInk: '#e7ecf7', caret: '#bcd2ff', placeholder: '#b6c2e0',
+  composerBase: '#0d193bb8', composerInk: '#eef3fc', caret: '#bcd2ff', placeholder: '#b6c2e0',
+  darkComposerGradient: 'linear-gradient(#192a53eb, #0c193ce6)',
+  sendGradient: 'linear-gradient(145deg, #6680bd, #304a91)',
   composerShadow: '0 18px 52px #1d305e2e, inset 0 1px #ffffff14',
   assistantShadow: '0 4px 14px #13265714', userShadow: '0 6px 20px #1326571a',
   scrim: 'linear-gradient(rgba(248,250,255,.12) 0%, rgba(235,240,250,.18) 55%, rgba(220,230,245,.25) 100%)',
@@ -53,7 +55,19 @@ export function styleLayout(active: boolean, artwork: boolean, titleBarHeight = 
   return { trim, headerTop: Math.max(trim, titleBarHeight) + (artwork || titleBarHeight > 0 ? 8 : 0), headerBody: 64,
     composerTop: 24, composerBottom: 24, frameTop: 20, frameBottom: 18,
     previewHeight: 36, bottom: artwork && !active ? 60 : 8,
-    composerHeight: 158, composerPaddingX: 32, composerPaddingBottom: 28 };
+    composerHeight: artwork ? (active ? 170 : 188) : (active ? 108 : 124),
+    composerPaddingX: artwork ? 44 : 16, composerPaddingTop: artwork ? 56 : 14,
+    composerPaddingBottom: artwork ? 34 : 16, composerActionHeight: active ? 38 : 44 };
+}
+// Keep the bow at the same scale on both axes. Only the lace/ribbon on
+// either side stretches; do not crop or double-paint the original bow.
+export function frameTopSegments(from: number, to: number, left: number, right: number, scale: number, centerSource: number) {
+  const sourceMid = (from + to) / 2, destMid = (left + right) / 2;
+  const s = centerSource / 2;
+  const d = Math.min((right - left) / 2, s * scale);
+  const source = [from, sourceMid - s, sourceMid + s, to];
+  const dest = [left, destMid - d, destMid + d, right];
+  return Array.from({ length: 3 }, (_, i) => [source[i], source[i + 1], dest[i], dest[i + 1]] as const);
 }
 export const sidebarCorners = [
   { name: 'top-left', top: 1, left: 1, scaleX: -1, scaleY: 1 },
