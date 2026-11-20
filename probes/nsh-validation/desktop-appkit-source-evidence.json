@@ -1,0 +1,258 @@
+{
+  "source": {
+    "version": "0.5.0",
+    "commit": "f4d68f7f9f31eb7b3ecc8a4cbc31096d5c6238a1",
+    "verifiedGitBlobs": 2865,
+    "archive": {
+      "bytes": 20408526,
+      "sha256": "16045f19df1848078d9b1d389b3d16828ef750542e07beae7e968ac4193eade3"
+    },
+    "lock": {
+      "bytes": 224846,
+      "sha256": "ff247ac90de7f22fd74de8dceee1b8c8de7e1408e50d7ceb210e9e542be73f37"
+    },
+    "cargo": "1.100.0",
+    "features": [
+      "js"
+    ],
+    "profile": {
+      "lto": "fat",
+      "codegenUnits": 1
+    },
+    "signatureAttestation": false
+  },
+  "scope": {
+    "platform": "27.0.1",
+    "arch": "arm64",
+    "model": "loopback fixture",
+    "installed": false,
+    "standaloneAppKitPiPackage": false,
+    "humanGui": false,
+    "externalProvider": false,
+    "formalDataAccess": false
+  },
+  "sourceShellOnly": {
+    "source-release": {
+      "runnerBytes": 28294400,
+      "runnerSHA256": "ab4a47dd9afcdfca063ff7db806950622fad5db2c72e11bcc76b828edae699b5",
+      "allocatedKiB": 27652,
+      "zipBytes": 11806116,
+      "signed": "ad-hoc deep strict",
+      "exit": 0,
+      "hostAvailable": false
+    },
+    "source-stripped": {
+      "runnerBytes": 23649552,
+      "runnerSHA256": "7796764c1e5b3487fba4d836835eae9c0012b4f6ea7b8776642d71e6f3e010a9",
+      "allocatedKiB": 23116,
+      "zipBytes": 11032517,
+      "signed": "ad-hoc deep strict",
+      "exit": 0,
+      "hostAvailable": false
+    }
+  },
+  "custom": {
+    "exit": 0,
+    "hostExit": 0,
+    "forced": false,
+    "stderrBytes": 0,
+    "inputs": {
+      "DesktopPipe.swift": {
+        "bytes": 13328,
+        "sha256": "d03e31a6c0465dfd04708ba609e1abe7ba9ec50d306843c050d55f5773f8deac"
+      },
+      "desktop-host-stdio.mjs": {
+        "bytes": 4214,
+        "sha256": "3860772afd2e76bb357464594721079860de09be36d5c5ff896a00abb63ca802"
+      },
+      "appkit-hostcheck/main.rs": {
+        "bytes": 3786,
+        "sha256": "ae25f20dfa6e56c4d13c13db9f5970d76f739987408d0d9f88273ec6aa4a2e18"
+      },
+      "appkit-hostcheck/AppKitPipe.swift": {
+        "bytes": 1986,
+        "sha256": "71e5d9ac43396a048c31cd5a65698ceab5a4c4f7c481efcc2ca29f82428c28a6"
+      },
+      "appkit-hostcheck/App.tsx": {
+        "bytes": 4894,
+        "sha256": "f3775f6a18ffa7b869a7411c74437cd4d2b38fcbee3c220ee70f38b1882372ee"
+      },
+      "appkit-hostcheck/nsh.json": {
+        "bytes": 349,
+        "sha256": "1be14edcc9c4f89bd0e91160c5fe66906efc707dcb55693838b56e43769a715f"
+      }
+    },
+    "checks": [
+      "positive AppKit layout and host availability",
+      "ungranted method denied",
+      "scoped project and session",
+      "SDK text and successful write/read",
+      "foreign project denied",
+      "active bash cancelled, terminal backlog fully drained",
+      "same-session Send after drain",
+      "AppKit Quit with active bash and normal Host exit"
+    ]
+  },
+  "artifacts": {
+    "build-baseline.sh": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-baseline.sh",
+      "bytes": 435,
+      "sha256": "17df11e0e15273381cc3719a2713adf09c9531a1e6addd043e83d2f0e8e1f12c"
+    },
+    "build-baseline.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-baseline.log",
+      "bytes": 29416,
+      "sha256": "7a68d2777fd2e38137908a95c1ad2632ee453c891bc64eed56bca860ed117dc2"
+    },
+    "build-retry.sh": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-retry.sh",
+      "bytes": 465,
+      "sha256": "c36a7f58933677563f76e6d64edd065fbaecdda7ea775606169ffc2a79528c25"
+    },
+    "build-retry.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-retry.log",
+      "bytes": 13681,
+      "sha256": "9a0febb86a7a5bb68f74ae111203388d887143a85e33f5128c48c1a867750c68"
+    },
+    "build-retry.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-retry.status",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "build-custom.sh": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-custom.sh",
+      "bytes": 1065,
+      "sha256": "5bf76eda117a9867a5c24587c6325836cbbf477875c15d755e35134fb7015a56"
+    },
+    "rebuild-link.sh": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/rebuild-link.sh",
+      "bytes": 845,
+      "sha256": "2e48a71a18a7a3d630f23fd85a68ebbd7b8911632d216ad54534db2a0770443c"
+    },
+    "build-custom-retry.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-custom-retry.log",
+      "bytes": 548,
+      "sha256": "30ec88aa102356d279f69b947922e34d58875528ee1e4adb49baaa87bbe80aa6"
+    },
+    "build-custom-retry.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/build-custom-retry.status",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "run-custom.py": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/run-custom.py",
+      "bytes": 505,
+      "sha256": "014a7f838237c6be589da23452d787a8c0f32d3ade6b5883932a9a444320ed11"
+    },
+    "check-stock.py": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/check-stock.py",
+      "bytes": 2052,
+      "sha256": "9022faa27ca4288153273f3456a3532d6efda5505be1071eea5cfe80b9d5b0b6"
+    },
+    "check-stock.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/check-stock.status",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "stock-sizes.json": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/stock-sizes.json",
+      "bytes": 554,
+      "sha256": "b1adaddf690ceff7b4330b5d413cd9c02ff16647bd63da89822195aeec318474"
+    },
+    "stock-nsh-macos-app": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/stock-nsh-macos-app",
+      "bytes": 28459712,
+      "sha256": "563676c101e2dbafc4b3b649bd61ee408596725f01f89e625d02d9a6d0d5b709"
+    },
+    "source-release/launch.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/source-release/launch.log",
+      "bytes": 67,
+      "sha256": "3e9b2dcaeab76fd3edafab6ac9cc592e5835dcc41d43b9e7437b822d97a1ee58"
+    },
+    "source-stripped/launch.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/source-stripped/launch.log",
+      "bytes": 67,
+      "sha256": "3e9b2dcaeab76fd3edafab6ac9cc592e5835dcc41d43b9e7437b822d97a1ee58"
+    },
+    "link-first/build-custom.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/link-first/build-custom.log",
+      "bytes": 13261,
+      "sha256": "425e6a84ff9cc978953b3226ed49290f9afb5f68bcdcbd7cb5dadecd334c5a28"
+    },
+    "link-first/build-custom.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/link-first/build-custom.status",
+      "bytes": 4,
+      "sha256": "39b8dc3fc8b44765c8e6f1adee04c5b465e555ab791cc42d0d9e810d5b64297c"
+    },
+    "swift-exports.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/swift-exports.log",
+      "bytes": 105,
+      "sha256": "42bdb92f1783c0f2827f9064efb1c5a3639ec120219b0cd8e1392d92220d3bee"
+    },
+    "layout-first/custom-run.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/layout-first/custom-run.log",
+      "bytes": 405,
+      "sha256": "cd3b387f827e4eeba2261b08d02d6f8a24152aa9fff76b3d8cd9b0734f6776af"
+    },
+    "layout-first/custom-run.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/layout-first/custom-run.status",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "layout-first/wrong-output.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/layout-first/wrong-output.log",
+      "bytes": 405,
+      "sha256": "cd3b387f827e4eeba2261b08d02d6f8a24152aa9fff76b3d8cd9b0734f6776af"
+    },
+    "layout-retry-build.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/layout-retry-build.log",
+      "bytes": 67,
+      "sha256": "b2f2cd3fd8ae533a8e430c8b5647a3e63cc10da279ffa0d0d4b25bf4dca602a7"
+    },
+    "layout-final-build.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/layout-final-build.log",
+      "bytes": 64,
+      "sha256": "95b9d254886a74e679a4102524fcbaf2bfa8208768aa427dc609277d24250d61"
+    },
+    "custom-run.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom-run.log",
+      "bytes": 169,
+      "sha256": "03f0e7462a22b62175c6e2cdb140739bed139b03da82528d74ddb6aa5d051761"
+    },
+    "custom-run.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom-run.status",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "custom/appkit-host": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom/appkit-host",
+      "bytes": 28277664,
+      "sha256": "b48a759169bdb57a253477bb9af2585fbbba78cbd58dc3f618f913aff10c5dbc"
+    },
+    "custom/libN01AppKitPipe.dylib": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom/libN01AppKitPipe.dylib",
+      "bytes": 135248,
+      "sha256": "146ad211c32450d9f6555aafa2b1a974da35c5c0e5faaa72e1e6400177c8943c"
+    },
+    "custom/tsx/build/bundle.js": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom/tsx/build/bundle.js",
+      "bytes": 3087,
+      "sha256": "7b7f8f6f6e7d15ac5fc0a628bf2e9c4ef210e21ad2b5eda22f822b4a5b540fb2"
+    },
+    "custom/tsx/build/capabilities.json": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom/tsx/build/capabilities.json",
+      "bytes": 294,
+      "sha256": "33d8e3453dc35e5575391cf60bd4147b510245f6fb4aefb262e3b3087af4362b"
+    },
+    "custom-repeat.log": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom-repeat.log",
+      "bytes": 169,
+      "sha256": "03f0e7462a22b62175c6e2cdb140739bed139b03da82528d74ddb6aa5d051761"
+    },
+    "custom-repeat.status": {
+      "path": "artifacts/nsh-validation/appkit-source.C2fZxl/custom-repeat.status",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  }
+}

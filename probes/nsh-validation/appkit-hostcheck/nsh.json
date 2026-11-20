@@ -1,0 +1,18 @@
+{
+  "name": "N01 AppKit TSX PI probe",
+  "id": "dev.muma.probe.nsh.appkit.hostcheck",
+  "version": "1.0.0",
+  "build": 1,
+  "capabilities": {
+    "host": [
+      "projects.list",
+      "sessions.list",
+      "sessions.create",
+      "tasks.submit",
+      "tasks.cancel",
+      "tasks.events",
+      "n01.complete"
+    ],
+    "statusBar": true
+  }
+}
