@@ -1,4 +1,4 @@
-/** N01-D1 trusted desktop launch layer. No listener, UI paths or model credentials. */
+/** N01 trusted desktop launch layer. No listener, UI paths or renderer credentials. */
 import { mkdtemp, mkdir, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -10,7 +10,6 @@ import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-
 
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
 
-const defaultModelId = desktopFixtureModels[0].id;
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
 class Rejected extends Error { constructor(code) { super(code); this.code = code; } }
@@ -39,7 +38,7 @@ function publicPayload(type, payload) {
  * Projects are created/realpathed here, not supplied by TSX. All state is disposable.
  * Keep trustedProjects and close outside the renderer; expose only call via a private pipe.
  */
-export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk } = {}) {
+export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk, liveModels } = {}) {
   if (!Array.isArray(projectNames) || projectNames.length < 1 || projectNames.length > 8) throw new Error('Invalid trusted registry');
   projectNames.forEach(title);
   const root = await mkdtemp(join(tmpdir(), 'muma-n01-desktop-'));
@@ -48,22 +47,29 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
   try {
     const dataDir = join(root, 'data'); await mkdir(dataDir, { mode: 0o700 });
     store = new Store({ dbPath: join(dataDir, 'desktop.sqlite') });
-    fixture = await startDesktopModelFixture();
+    if (!liveModels) fixture = await startDesktopModelFixture();
+    const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
     for (const [index, name] of projectNames.entries()) {
       const path = join(root, `workspace-${index}`); await mkdir(path, { mode: 0o700 });
       const project = await store.addProject(await realpath(path));
       trustedProjects.push({ id: project.id, name, path: project.path, workspaceLabel: `workspace-${index}` });
       store.createConversation(project.id, '新会话');
     }
-    const provider = { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
-      api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 };
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
+      const { modelId, reasoningEffort } = journals.get(options.task.id);
+      const entry = liveModels ? liveModels.routes.get(modelId) : { apiKey: fixture.apiKey,
+        provider: { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
+          model: modelId, api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 } };
       try { return await run({ ...options, task: { ...options.task, text: options.task.message },
-        provider: { ...provider, model: journals.get(options.task.id).modelId,
-          thinkingLevel: journals.get(options.task.id).reasoningEffort ?? 'off' }, apiKey: fixture.apiKey, dataDir, imageGen: null,
+        provider: { ...entry.provider, thinkingLevel: reasoningEffort ?? 'off' }, apiKey: entry.apiKey, dataDir, imageGen: null,
         permissions: { getMode: () => 'workspace-write' },
-        sessionPolicy: { allowedTools: ['read', 'write', 'bash'] } }); }
-      catch { throw new TaskFailure(options.signal.aborted ? 'cancelled' : 'internal'); }
+        sessionPolicy: { allowedTools: liveModels ? ['read', 'write', 'edit', 'ls', 'bash'] : ['read', 'write', 'bash'] } }); }
+      catch (error) {
+        if (options.signal.aborted) throw new TaskFailure('cancelled');
+        // Preserve only known, sanitized PI failure codes; never forward an upstream error body.
+        if (liveModels && error instanceof TaskFailure) throw new TaskFailure(error.code);
+        throw new TaskFailure('internal');
+      }
     }, onEvent: event => {
       const journal = journals.get(event.taskId);
       journal.statistics.observe(event);
@@ -97,7 +103,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       switch (method) {
         case 'projects.list': exact(p, []); return {
           projects: trustedProjects.map(({ id, name }) => ({ id, name })),
-          models: { options: desktopFixtureModels, defaultId: defaultModelId },
+          models: catalog,
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
@@ -113,8 +119,8 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           const explicitEffort = p && Object.hasOwn(p, 'reasoningEffort');
           exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : []), ...(explicitEffort ? ['reasoningEffort'] : [])]);
           session(p.projectId, p.sessionId);
-          const modelId = explicit ? p.modelId : defaultModelId;
-          const model = desktopFixtureModels.find(m => m.id === modelId);
+          const modelId = explicit ? p.modelId : catalog.defaultId;
+          const model = catalog.options.find(m => m.id === modelId);
           if (!model) reject('invalid_request');
           if (explicitEffort && !model.reasoning?.levels.some(e => e.id === p.reasoningEffort)) reject('invalid_request');
           const reasoningEffort = explicitEffort ? p.reasoningEffort : model.reasoning?.defaultId;
@@ -177,7 +183,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       if (!closing) closing = (async () => {
         const drained = await scheduler.shutdown({ timeoutMs: 15000 });
         if (!drained.drained) throw new Error('Desktop drain incomplete; temporary state retained');
-        await fixture.close(); store.close(); await rm(root, { recursive: true, force: true });
+        await fixture?.close(); store.close(); await rm(root, { recursive: true, force: true });
       })();
       return closing;
     }

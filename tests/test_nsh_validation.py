@@ -14,7 +14,8 @@ class NshValidationScopeTests(unittest.TestCase):
         for marker in ('手机端暂停开发、构建、安装', '保留已有手机代码',
                        '手机配对/TLS证书分发不再作为本机桌面闭环的前置依赖',
                        '- [ ] N01-D1', '- [ ] N01-D2', '- [ ] N01-D3',
-                       'Mac Catalyst 受限桥和真实 PI SDK', '模型仅用本机回环夹具',
+                       'Mac Catalyst 受限桥和真实 PI SDK', '自动化模型仅用本机回环夹具',
+                       'GLM Coding Plan 默认，OpenAI 兼容中转可选', '实际迁移尚未执行',
                        '尚无人工 GUI、外部模型和可分发运行时验收',
                        '不安装、替换或重启正式应用', '同业务同负载'):
             self.assertIn(marker, current)

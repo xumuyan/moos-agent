@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, wenkai_evidence
+from nsh_composer_provenance import PROBE, ROOT, wenkai_evidence, live_models_evidence, successor_input
 
 
 class DesktopPIIntegrationTests(unittest.TestCase):
@@ -28,6 +28,7 @@ class DesktopPIIntegrationTests(unittest.TestCase):
         self.assertEqual(set(e['newInputs']), {f'probes/nsh-validation/{name}' for name in
                          ('DesktopPIHost.swift', 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs')})
         for path, record in e['newInputs'].items():
+            record = successor_input(self, live_models_evidence(), path, record)
             source = (ROOT / path).read_bytes()
             self.assertEqual(len(source), record['bytes'])
             self.assertEqual(hashlib.sha256(source).hexdigest(), record['sha256'])

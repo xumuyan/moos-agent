@@ -1,0 +1,16 @@
+{
+  "glm-coding": {
+    "baseUrl": "https://open.bigmodel.cn/api/v1",
+    "api": "openai-responses",
+    "model": "glm-5.3",
+    "contextWindow": 64000,
+    "maxTokens": 8192
+  },
+  "openai-relay": {
+    "baseUrl": "https://relay.example.invalid/v1",
+    "api": "openai-completions",
+    "model": "replace-with-relay-model-id",
+    "contextWindow": 64000,
+    "maxTokens": 8192
+  }
+}

@@ -6,12 +6,18 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { parseArtRoot, prepareArtwork } from './desktop-theme-assets.mjs';
+import { loadLiveModels } from './desktop-live-models.mjs';
 
 process.chdir(fileURLToPath(new URL('../../', import.meta.url)));
 process.umask(0o077);
 const args = process.argv.slice(2), interactive = args.includes('--interactive'), buildOnly = args.includes('--build-only');
+const live = args.includes('--live-models');
 const artRoot = parseArtRoot(args);
-assert.ok(!(interactive && buildOnly) && args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only'].includes(a)), 'Unknown/conflicting option');
+assert.ok(!(interactive && buildOnly) && (!live || interactive || buildOnly) &&
+  args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only', '--live-models'].includes(a)), 'Unknown/conflicting option');
+// An explicit interactive launch may make billable requests on Send only.
+// Refuse to launch with missing/invalid private config; build-only does not read it.
+if (live && interactive) await loadLiveModels();
 const run = (path, args, options = {}) => execFileSync(path, args, { encoding: 'utf8', timeout: 30000, maxBuffer: 24 * 1024 * 1024, ...options });
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const record = async path => { const bytes = await readFile(path); return { bytes: bytes.length, sha256: sha(bytes) }; };
@@ -36,6 +42,8 @@ const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatisti
 const native = ['DesktopPipe.swift', 'DesktopNativeBridge.swift', 'DesktopPIHost.swift'];
 const methods = ['projects.list', 'sessions.list', 'sessions.create', 'tasks.submit', 'tasks.cancel', 'tasks.events'];
 const acceptance = !buildOnly && !interactive;
+const bundleIdentifier = live ? 'dev.muma.probe.nsh.piui.live' : 'dev.muma.probe.nsh.piui';
+const script = live ? 'desktop-live-stdio.mjs' : 'desktop-host-stdio.mjs';
 const json = (name, value) => writeFile(join(dir, name), JSON.stringify(value, null, 2) + '\n');
 try {
   assert.equal(process.platform, 'darwin');
@@ -50,7 +58,8 @@ try {
   await mkdir(join(source, 'assets/desktop'), { recursive: true });
   const inputs = {};
   for (const file of [...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
-    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs']) {
+    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs',
+    'desktop-live-stdio.mjs', 'desktop-live-models.mjs']) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }
   for (const file of ['package-lock.json', ...run('git', ['ls-files', 'services/agent', 'packages/pi-runtime', 'packages/pi-adapter']).trim().split('\n')]) inputs[file] = await record(resolve(file));
@@ -58,14 +67,14 @@ try {
   if (artRoot) await prepareArtwork(artRoot, source, JSON.parse(await readFile(join(probe, 'skin-source.json'), 'utf8')));
   if (acceptance) await cp(join(probe, 'desktop-pi-check.tsx'), join(source, 'App.tsx'));
   else await writeFile(join(source, 'App.tsx'), "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(DesktopView);\n");
-  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: 'NSH 候选 · PI 本地夹具', id: 'dev.muma.probe.nsh.piui',
+  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
     capabilities: { statusBar: true, host: [...methods, ...(acceptance ? ['piui.disconnect', 'piui.report'] : [])] } }));
   const node = await realpath(process.execPath);
   const fixed = join(dir, 'DesktopFixedLaunch.swift');
-  await writeFile(fixed, `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(join(probe, 'desktop-host-stdio.mjs'))} }\n`);
+  await writeFile(fixed, `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(join(probe, script))} }\n`);
   await json('inputs.json', { at: new Date().toISOString(), head: run('git', ['rev-parse', 'HEAD']).trim(), status: run('git', ['status', '--short']),
     node: process.version, nsh: version, system: run('/usr/bin/sw_vers', []), arch: process.arch, frameworkHash,
-    acceptance, artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
+    acceptance, modelMode: live ? 'external' : 'fixture', artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
   async function logged(label, command, params, timeout) {
     try { await writeFile(join(dir, `${label}.log`), run(command, params, { timeout })); }
     catch (error) {
@@ -80,7 +89,7 @@ try {
   const project = { name: 'DesktopPI', targets: { DesktopPI: { type: 'application', platform: 'iOS', deploymentTarget: '15.0',
     sources: [...native.map(file => join(probe, file)), fixed], dependencies: [{ framework, embed: false }],
     info: { path: 'Info.plist', properties: { UIApplicationSceneManifest: { UIApplicationSupportsMultipleScenes: false, UISceneConfigurations: {} } } },
-    settings: { base: { PRODUCT_BUNDLE_IDENTIFIER: 'dev.muma.probe.nsh.piui', GENERATE_INFOPLIST_FILE: 'YES', SUPPORTS_MACCATALYST: 'YES',
+    settings: { base: { PRODUCT_BUNDLE_IDENTIFIER: bundleIdentifier, GENERATE_INFOPLIST_FILE: 'YES', SUPPORTS_MACCATALYST: 'YES',
       DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: 'NO', SWIFT_VERSION: '5.0', SWIFT_ACTIVE_COMPILATION_CONDITIONS: acceptance ? 'PI_UI_CHECK' : '',
       CODE_SIGNING_ALLOWED: 'NO', ENABLE_APP_SANDBOX: 'NO', TARGETED_DEVICE_FAMILY: '2', INFOPLIST_KEY_UILaunchScreen_Generation: 'YES' } },
   } } };

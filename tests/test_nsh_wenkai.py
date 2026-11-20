@@ -6,7 +6,7 @@ import struct
 import subprocess
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, settings_evidence, wenkai_evidence
+from nsh_composer_provenance import PROBE, ROOT, settings_evidence, wenkai_evidence, current_composer_input
 
 
 def digest(data):
@@ -37,7 +37,8 @@ class DesktopWenKaiTests(unittest.TestCase):
         self.assertTrue(evidence['protected'].keys().isdisjoint(evidence['inputs']))
         self.assertTrue(all(value is False for value in evidence['acceptance'].values()))
         for path, summary in evidence['inputs'].items():
-            self.assertEqual(digest((ROOT / path).read_bytes()), summary, path)
+            current = current_composer_input(self, path, summary, after=wenkai_evidence)
+            self.assertEqual(digest((ROOT / path).read_bytes()), current, path)
         for path, sha in evidence['previousInputs'].items():
             before = subprocess.check_output(['git', 'show', f"{evidence['base']}:{path}"], cwd=ROOT)
             self.assertEqual(digest(before)['sha256'], sha, path)

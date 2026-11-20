@@ -1,0 +1,171 @@
+{
+  "task": "N01-D2",
+  "base": "785ad7acfe2f02318ae78f3544e8ada9f57a9839",
+  "previousInputs": {
+    "probes/nsh-validation/desktop-host.mjs": "6592f1c452141b0c08c917073b1adf893c28dab085d1568a849f4daf4c393aa3",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "8e7acea1bc2e258e112737c5637828cafe940866450f671d351bbe3bab8cbd72",
+    "tests/nsh_composer_provenance.py": "840f4bdc99e3a1a1e5908ea5316a1d89e496ee8e4d634967e2a54a8328d276cd",
+    "tests/test_nsh_wenkai.py": "076fb0801444cf3cd02075b9ab1ed1732e5c05ae762ef0e3aa503a7b5a73b7e9"
+  },
+  "inputs": {
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 11851,
+      "sha256": "8d71e3bb7bf9446b8ab5903677f40dea8af776027afe2b2256c594f41aaae266"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 10890,
+      "sha256": "43cb523a74cec918df480b14c51af5662f883b8a205a3cc038e8bda99e6e96b6"
+    },
+    "probes/nsh-validation/desktop-live-stdio.mjs": {
+      "bytes": 1122,
+      "sha256": "7d35fbb747ab02ff203fc73d9333f27a39c1e33ea97802e2b7253bfe424610a9"
+    },
+    "probes/nsh-validation/desktop-live-models.mjs": {
+      "bytes": 3819,
+      "sha256": "f988663b2114328c4e2eb1551ff785d980145d48098d936faf052912261b051a"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 2397,
+      "sha256": "fcb2e582ba1d7da7911c83815ff44a121079cb142b757e6c43b436f41595515c"
+    },
+    "tests/test_nsh_wenkai.py": {
+      "bytes": 4369,
+      "sha256": "884f30d4eaf06dbfa9f1c8027628c02fbd97a7b72894f4250f8cf6988aaccad3"
+    }
+  },
+  "checks": {
+    "realPiSdk": true,
+    "dualLoopback": true,
+    "liveBuild": true,
+    "fixtureWindow": true,
+    "manualGUI": false,
+    "externalUpstreams": false,
+    "productionMigration": false,
+    "deployment": false
+  },
+  "focused": {
+    "log": {
+      "path": "artifacts/nsh-validation/dual-models/focused-final.log",
+      "bytes": 4217,
+      "sha256": "3bc218c3d76b23ab2f6db264690c23ad5c522de04ee5314972ffabc8f4ceecc4"
+    },
+    "passed": 32
+  },
+  "missingConfig": {
+    "status": 1,
+    "stdout": {
+      "path": "artifacts/nsh-validation/dual-models/missing-stdio-final.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "artifacts/nsh-validation/dual-models/missing-stdio-final.stderr",
+      "bytes": 88,
+      "sha256": "77d668dec52e35dda3b3040144acd530ee3ed83da9f2e14dbca24478034d5bd1"
+    }
+  },
+  "runs": {
+    "liveBuild": {
+      "status": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/dual-models/build-live-final.log",
+        "bytes": 776,
+        "sha256": "dec67c7313122f0a293ecede6319c36cf1ceb93114eda0e4e04767f7d4cb1f92"
+      },
+      "inputs": {
+        "path": "artifacts/nsh-validation/pi-ui/run-hTHeyJ/inputs.json",
+        "bytes": 14875,
+        "sha256": "83f6aaa2c9777325b8d17893e862b22df7451e84d438b0f6d7394be564c2e8bb"
+      },
+      "output": {
+        "path": "artifacts/nsh-validation/pi-ui/run-hTHeyJ/build-result.json",
+        "bytes": 86,
+        "sha256": "e421caa3d9e7659a5505b3e5a0b6a3fd53146d4ba0de41c28366fd2f7efabbd3"
+      },
+      "result": {
+        "built": true,
+        "launched": false,
+        "installed": false,
+        "acceptance": false
+      },
+      "nsConfig": {
+        "path": "artifacts/nsh-validation/pi-ui/run-hTHeyJ/source/nsh.json",
+        "bytes": 214,
+        "sha256": "ea30f5c33f238c00168031e38fb8152cea8c05ff8a0207e36c3daf43cf48c555"
+      }
+    },
+    "fixtureWindow": {
+      "status": 0,
+      "log": {
+        "path": "artifacts/nsh-validation/dual-models/native-fixture-final.log",
+        "bytes": 1697,
+        "sha256": "58a216968cae451b3df440f32d2272441cde1a3a379e5bb7e44d33637c9cb3cf"
+      },
+      "inputs": {
+        "path": "artifacts/nsh-validation/pi-ui/run-YX4kqR/inputs.json",
+        "bytes": 14875,
+        "sha256": "ee6f87ca48cf1ce1f55a2cfc6f20ee71bea0385e0ac3623588c294750f2c5b05"
+      },
+      "output": {
+        "path": "artifacts/nsh-validation/pi-ui/run-YX4kqR/result.json",
+        "bytes": 1259,
+        "sha256": "60e4a9ad9f0e423000e24e8e36c57f670983340954842e9ec9a62d588b9589be"
+      },
+      "result": {
+        "backlogEvents": 204,
+        "backlogPages": 2,
+        "backlogPolls": 3,
+        "checks": [
+          "isolated startup",
+          "native window layout",
+          "public text once",
+          "create selects clean session",
+          "real write/read",
+          "separate project",
+          "foreign task denied",
+          "session round trip",
+          "real multi-page drain",
+          "working task stays scoped",
+          "working session restored",
+          "stop active command",
+          "send again after stop",
+          "no polling after drain",
+          "active EOF drained",
+          "disconnect not success",
+          "JS waiters disposed"
+        ],
+        "eventCalls": 16,
+        "forced": false,
+        "mainRunLoopMaxGapMs": 256,
+        "normalChildExit": true,
+        "passed": true,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "stage": "complete",
+        "stderrBytes": 0,
+        "timings": {
+          "bash start": 270,
+          "disconnect bash start": 316,
+          "disconnect visible to controller": 224,
+          "max:projects.list": 1628,
+          "max:sessions.create": 12,
+          "max:sessions.list": 11,
+          "max:tasks.cancel": 13,
+          "max:tasks.events": 10,
+          "max:tasks.submit": 9,
+          "ordinary drain": 538,
+          "page drain": 830,
+          "same session recovery": 297,
+          "startup": 1648,
+          "stop drain": 237,
+          "tools drain": 270,
+          "window layout": 0
+        }
+      },
+      "nsConfig": {
+        "path": "artifacts/nsh-validation/pi-ui/run-YX4kqR/source/nsh.json",
+        "bytes": 241,
+        "sha256": "d9c66da2987fb1b40dd712b5668cb04011141a3492b609a6bbd7ffc6e759636f"
+      }
+    }
+  }
+}
