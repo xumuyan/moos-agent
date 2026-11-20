@@ -1,0 +1,256 @@
+{
+  "base": "57c0110ba530d2c2ddf8b9f00c003bb5853519bb",
+  "platform": {
+    "kind": "Mac Catalyst",
+    "macOS": "27.0.1 (26A434)",
+    "architecture": "arm64",
+    "xcode": "27.0 (27A266a)",
+    "node": "v24.15.0",
+    "nsh": "nsh 0.5.0 (f4d68f7)",
+    "pi": "1.5.0"
+  },
+  "acceptance": {
+    "scriptedWindow": true,
+    "realPiSdk": true,
+    "loopbackFixtureOnly": true,
+    "manualGui": false,
+    "externalModel": false,
+    "signedDistribution": false,
+    "cleanCheckout": false,
+    "installed": false,
+    "resourceComparison": false
+  },
+  "methods": [
+    "projects.list",
+    "sessions.list",
+    "sessions.create",
+    "tasks.submit",
+    "tasks.cancel",
+    "tasks.events"
+  ],
+  "newInputs": {
+    "probes/nsh-validation/DesktopPIHost.swift": {
+      "bytes": 5243,
+      "sha256": "defdfbb2ee029b82ddcae2d77d1d82b8ef575693088b3d46db861e58d3503214"
+    },
+    "probes/nsh-validation/desktop-pi-check.tsx": {
+      "bytes": 6262,
+      "sha256": "8abdee53531b06daeb492ef6351baa6588271a4c0bfa8b57b26ffd0a66a7cff8"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 10246,
+      "sha256": "8e7acea1bc2e258e112737c5637828cafe940866450f671d351bbe3bab8cbd72"
+    }
+  },
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "runs": {
+    "withArt": {
+      "result": {
+        "backlogEvents": 204,
+        "backlogPages": 2,
+        "backlogPolls": 3,
+        "checks": [
+          "isolated startup",
+          "native window layout",
+          "public text once",
+          "create selects clean session",
+          "real write/read",
+          "separate project",
+          "foreign task denied",
+          "session round trip",
+          "real multi-page drain",
+          "working task stays scoped",
+          "working session restored",
+          "stop active command",
+          "send again after stop",
+          "no polling after drain",
+          "active EOF drained",
+          "disconnect not success",
+          "JS waiters disposed"
+        ],
+        "eventCalls": 16,
+        "forced": false,
+        "mainRunLoopMaxGapMs": 369,
+        "normalChildExit": true,
+        "passed": true,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "stage": "complete",
+        "stderrBytes": 0,
+        "timings": {
+          "bash start": 358,
+          "disconnect bash start": 362,
+          "disconnect visible to controller": 169,
+          "max:projects.list": 2722,
+          "max:sessions.create": 11,
+          "max:sessions.list": 23,
+          "max:tasks.cancel": 23,
+          "max:tasks.events": 30,
+          "max:tasks.submit": 31,
+          "ordinary drain": 604,
+          "page drain": 858,
+          "same session recovery": 321,
+          "startup": 2766,
+          "stop drain": 228,
+          "tools drain": 355,
+          "window layout": 0
+        }
+      },
+      "capabilities": {
+        "statusBar": true,
+        "host": [
+          "projects.list",
+          "sessions.list",
+          "sessions.create",
+          "tasks.submit",
+          "tasks.cancel",
+          "tasks.events",
+          "piui.disconnect",
+          "piui.report"
+        ]
+      },
+      "bundleIdentifier": "dev.muma.probe.nsh.piui",
+      "inputReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-KlwjLc/inputs.json",
+        "bytes": 14254,
+        "sha256": "019e437b85099f6939744332314451efdb3d2e6dc3396491dffd6287782ea012"
+      },
+      "runLog": {
+        "path": "artifacts/nsh-validation/pi-ui/art-final.log",
+        "bytes": 1701,
+        "sha256": "fd151f57e26f2e0fc38e6ae7192323a6a4a2b7484c1e110d71465d725d5a4147"
+      },
+      "resultReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-KlwjLc/result.json",
+        "bytes": 1260,
+        "sha256": "84d1484ffbd6d904d2c9435b5839fd60620d54dbf1f8e1e34a2911323f64b52f"
+      },
+      "status": 0
+    },
+    "fallback": {
+      "result": {
+        "backlogEvents": 204,
+        "backlogPages": 2,
+        "backlogPolls": 3,
+        "checks": [
+          "isolated startup",
+          "native window layout",
+          "public text once",
+          "create selects clean session",
+          "real write/read",
+          "separate project",
+          "foreign task denied",
+          "session round trip",
+          "real multi-page drain",
+          "working task stays scoped",
+          "working session restored",
+          "stop active command",
+          "send again after stop",
+          "no polling after drain",
+          "active EOF drained",
+          "disconnect not success",
+          "JS waiters disposed"
+        ],
+        "eventCalls": 16,
+        "forced": false,
+        "mainRunLoopMaxGapMs": 588,
+        "normalChildExit": true,
+        "passed": true,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "stage": "complete",
+        "stderrBytes": 0,
+        "timings": {
+          "bash start": 357,
+          "disconnect bash start": 359,
+          "disconnect visible to controller": 162,
+          "max:projects.list": 2498,
+          "max:sessions.create": 23,
+          "max:sessions.list": 12,
+          "max:tasks.cancel": 22,
+          "max:tasks.events": 21,
+          "max:tasks.submit": 33,
+          "ordinary drain": 642,
+          "page drain": 872,
+          "same session recovery": 340,
+          "startup": 2554,
+          "stop drain": 238,
+          "tools drain": 351,
+          "window layout": 0
+        }
+      },
+      "capabilities": {
+        "statusBar": true,
+        "host": [
+          "projects.list",
+          "sessions.list",
+          "sessions.create",
+          "tasks.submit",
+          "tasks.cancel",
+          "tasks.events",
+          "piui.disconnect",
+          "piui.report"
+        ]
+      },
+      "bundleIdentifier": "dev.muma.probe.nsh.piui",
+      "inputReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-85dfFY/inputs.json",
+        "bytes": 14336,
+        "sha256": "c146dc0bd8daafb931d6c2f92fa2fcbf247a2e49706eacd7330dd61ece6c3594"
+      },
+      "runLog": {
+        "path": "artifacts/nsh-validation/pi-ui/fallback-final.log",
+        "bytes": 1699,
+        "sha256": "6c9fb7787c1308f0b63284c7a8394abb868e5b47c9672b95b1526aa14253c933"
+      },
+      "resultReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-85dfFY/result.json",
+        "bytes": 1260,
+        "sha256": "fa6e2f17d5b88c79b08751f7887d7b277798ae214a18e91c027e7e14342d6088"
+      },
+      "status": 0
+    },
+    "buildOnly": {
+      "result": {
+        "built": true,
+        "launched": false,
+        "installed": false,
+        "acceptance": false
+      },
+      "capabilities": {
+        "statusBar": true,
+        "host": [
+          "projects.list",
+          "sessions.list",
+          "sessions.create",
+          "tasks.submit",
+          "tasks.cancel",
+          "tasks.events"
+        ]
+      },
+      "bundleIdentifier": "dev.muma.probe.nsh.piui",
+      "inputReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-H9GFfq/inputs.json",
+        "bytes": 14334,
+        "sha256": "7a37d2e4eafe2dd72e73ae377ac4feed5771a574f889bd9f8c8e797712012e66"
+      },
+      "runLog": {
+        "path": "artifacts/nsh-validation/pi-ui/build-final.log",
+        "bytes": 779,
+        "sha256": "5a1d1fb0ae247454a0fe207a759b1159f25d717dab150dd233b196ca07576f98"
+      },
+      "resultReceipt": {
+        "path": "artifacts/nsh-validation/pi-ui/run-H9GFfq/build-result.json",
+        "bytes": 86,
+        "sha256": "e421caa3d9e7659a5505b3e5a0b6a3fd53146d4ba0de41c28366fd2f7efabbd3"
+      },
+      "status": 0
+    }
+  }
+}

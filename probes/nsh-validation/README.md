@@ -1,16 +1,16 @@
 # N01｜NSH 隔离验证（不是沐码迁移版）
 
-独立工程，固定 **NSH 0.5.0 (f4d68f7)**。NSH界面仍仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。新增独立Mac Host依赖探针使用真实PI SDK+本地模拟模型，仅监听TLS回环地址，不与当前手机UI连接；见 [HOST-CHECK.md](./HOST-CHECK.md)。新增未接UI的HTTPS任务客户端和原生证书拒绝检查，当前手机可信TLS/配对仍待验证，见 [MOBILE-TRANSPORT.md](./MOBILE-TRANSPORT.md)。应用内专用锚+叶证书固定原语已获Mac原生实际网络测试，Swift嵌入iOS设备包构建/链接通过（未签名/未安装，桥接运行未验），详见 [PINNED-TLS-CHECK.md](./PINNED-TLS-CHECK.md)。后续独立Mac Catalyst宿主已实际跑通NSH→Swift→受限HTTPS及取消/能力拒绝/超时，21项断言通过；这不是iPhone联网，详见 [BRIDGE-RUNTIME.md](./BRIDGE-RUNTIME.md)。原手机应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录同步计划、日志、文档检查，`npm test`补入隔离Host测试；不改 `apps/electron`、依赖或正式构建入口。
+独立工程，固定 **NSH 0.5.0 (f4d68f7)**。早期手机 NSH 界面仅使用内存合成会话，无模型、PI、网络、持久化、文件或命令工具。新增独立Mac Host依赖探针使用真实PI SDK+本地模拟模型，仅监听TLS回环地址，不与当前手机UI连接；见 [HOST-CHECK.md](./HOST-CHECK.md)。新增未接UI的HTTPS任务客户端和原生证书拒绝检查，当前手机可信TLS/配对仍待验证，见 [MOBILE-TRANSPORT.md](./MOBILE-TRANSPORT.md)。应用内专用锚+叶证书固定原语已获Mac原生实际网络测试，Swift嵌入iOS设备包构建/链接通过（未签名/未安装，桥接运行未验），详见 [PINNED-TLS-CHECK.md](./PINNED-TLS-CHECK.md)。后续独立Mac Catalyst宿主已实际跑通NSH→Swift→受限HTTPS及取消/能力拒绝/超时，21项断言通过；这不是iPhone联网，详见 [BRIDGE-RUNTIME.md](./BRIDGE-RUNTIME.md)。原手机应用 ID `dev.muma.probe.nsh`；不复用正式应用 ID/数据目录，不安装或更新正式应用。根目录同步计划、日志、文档检查，`npm test`补入隔离Host测试；不改 `apps/electron`、依赖或正式构建入口。
 
 ## 当前安排：桌面优先，手机暂停
 
 2026-11-16 用户明确要求先做 NSH 桌面。手机开发、构建、安装及联网/配对验收暂停，既有代码、安装状态和历史证据保留，不代表完成；恢复须用户重新指定。以下手机命令及配对“下一步”仅保留作历史/复现说明，不是当前执行安排。
 
-桌面当前是**模拟UI与独立Host分别通过部分验证，尚未接通NSH桌面UI→真实PI任务**。接下来按根计划 N01-D1→D2→D3：本机受限桥/Host生命周期及提交、事件、停止闭环→独立历史/模型配置/项目隔离与恢复→完整桌面交互和同负载性能对照。手机配对不阻塞本机桌面闭环，不开放LAN；正式应用仍为Electron，不安装或替换正式应用，不读写正式聊天/配置。N01继续未完成。
+当前桌面候选通过 [隔离 PI 接入](DESKTOP-PI-INTEGRATION.md) 连接现有 DesktopView、Mac Catalyst 原生桥和真实 PI SDK；模型使用仅回环的确定性夹具，不是正式模型配置。接下来按根计划 N01-D1→D2→D3：完成可复现桌面入口与人工停止/退出验证→独立历史/模型配置/项目隔离与恢复→完整桌面交互和同负载性能对照。手机配对不阻塞本机桌面闭环，不开放LAN；正式应用仍为Electron，不安装或替换正式应用，不读写正式聊天/配置。N01继续未完成。
 
 ### 桌面原生桥检查点（2026-11-17）
 
-新增隔离 **Mac Catalyst** 验收宿主，真实NSH host.call→Swift六方法受限桥→固定Node私有管道→真实PI SDK/本地认证夹具已运行；不是原聊天UI交付，也不是AppKit产品完成。普通macOS原生管道专项及可信正常退出/桥销毁见 [DESKTOP-NATIVE-BRIDGE.md](./DESKTOP-NATIVE-BRIDGE.md)，入口 `node probes/nsh-validation/verify-desktop-native.mjs`（`--native-only`/`--build-only`）。无LAN、不构建安装手机、不改正式应用/真实数据。前述“尚未接通”描述原交互UI；本新增自动验收TSX已接桥，但N01-D1仍未完成。
+新增隔离 **Mac Catalyst** 验收宿主，真实NSH host.call→Swift六方法受限桥→固定Node私有管道→真实PI SDK/本地认证夹具已运行；不是原聊天UI交付，也不是AppKit产品完成。普通macOS原生管道专项及可信正常退出/桥销毁见 [DESKTOP-NATIVE-BRIDGE.md](./DESKTOP-NATIVE-BRIDGE.md)，入口 `node probes/nsh-validation/verify-desktop-native.mjs`（`--native-only`/`--build-only`）。无LAN、不构建安装手机、不改正式应用/真实数据。此历史检查点只覆盖桥专项。原交互 UI 的后续接入以本页「当前安排」为准；N01-D1 仍未完成。
 
 ## 准备与运行
 
