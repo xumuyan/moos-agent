@@ -1,0 +1,100 @@
+{
+  "verifiedInputsCommit": "eb81d1c0e23975c402d33ca9bcd13ee2fe2fae82",
+  "platform": "27.0.1",
+  "arch": "arm64",
+  "interactive": {
+    "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat",
+    "scriptedCheck": false,
+    "signature": "ad-hoc deep strict",
+    "wrongMode": {
+      "exitCode": 1,
+      "diagnostic": "N01 AppKit chat launch mode mismatch",
+      "createdStateRoots": false
+    }
+  },
+  "window": {
+    "transactionResult": "focus-unavailable",
+    "focusProbe": {
+      "axTrustedForThisProcess": true,
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat",
+      "exactRunningBundle": true,
+      "focusedElement": {
+        "element": true,
+        "status": 0
+      },
+      "focusedWindow": {
+        "element": true,
+        "status": 0
+      },
+      "frontmost": false,
+      "mode": "read only"
+    },
+    "inputDispatched": false,
+    "reacquiredFocus": false,
+    "humanAcceptance": false
+  },
+  "scriptedRerun": {
+    "exitCode": 0,
+    "fixtureOnly": true,
+    "upstreamRequests": 0,
+    "registeredToolGone": true,
+    "launches": [
+      {
+        "restart": false,
+        "scope": {
+          "projectId": "c22dae42-73e5-492a-a944-398f41edec99",
+          "sessionId": "2adeb54d-c56b-4572-be84-933151071b27"
+        },
+        "checks": [
+          "fixture catalog",
+          "no replay before Send",
+          "empty profile",
+          "first public reply",
+          "live rows not duplicated by history",
+          "no polling after drain"
+        ]
+      },
+      {
+        "restart": true,
+        "scope": {
+          "projectId": "c22dae42-73e5-492a-a944-398f41edec99",
+          "sessionId": "2adeb54d-c56b-4572-be84-933151071b27"
+        },
+        "checks": [
+          "fixture catalog",
+          "no replay before Send",
+          "exact pre-Send history",
+          "old rows laid out",
+          "other project stays empty",
+          "scope round trip",
+          "PI continued from prior context",
+          "live rows not duplicated by history",
+          "controller observes terminal backlog",
+          "terminal backlog blocks Send until drained",
+          "resend write/read on original scope",
+          "no polling after drain"
+        ]
+      }
+    ]
+  },
+  "scope": {
+    "formalAppChanged": false,
+    "formalDataRead": false,
+    "installed": false,
+    "upstreamModels": false
+  },
+  "localReceipts": {
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/focus.json": "0d52583a1b8f566409a21b8681e326825f9f5ba37ce57e05acbafd9a986ffa04",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/package-mode.log": "2fa143c16623c3709672d0122fc58a3a1595f1c1f2f40745b7532ededdd9edee",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/native-check-rerun.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/native-check-rerun.log": "1991e65468c5cd0a9db9de6cb6ee273f6b3f1f53fc5f3631b9c87ff40ca8a7b3",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/copy-signature.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/interactive-refused.log": "0d7f619f6f042256416b35f3631e416a776578062b7d701553605bd09f8b4e38",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/interactive-refused.status": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "artifacts/nsh-validation/appkit-interaction.YtCMi5/interactive-refused-state.log": "52968b653bef57ab81a620111bc3214dbf807091379218c40ac07f19177d2ea3",
+    "artifacts/nsh-validation/appkit-chat-check.EWBRA3/first.log": "8069ee21fbddcf0a4ef2f694a2ff703454b7d8b8908abb99405bd36e8e9e1cd9",
+    "artifacts/nsh-validation/appkit-chat-check.EWBRA3/reopened.log": "4e13e0ce73f1a5e0a79c4643d0d9c1f2ba162fca741eed2bb3d7439e00d5a0f8",
+    "artifacts/nsh-validation/appkit-chat-check.EWBRA3/result.json": "c597dc0b3a15d866e17cd7e068a8c6bf1091fce48da98f774b4d5f0d5d66fd56",
+    "artifacts/nsh-validation/appkit-chat-check.EWBRA3/launch-refused.log": "0d7f619f6f042256416b35f3631e416a776578062b7d701553605bd09f8b4e38"
+  }
+}

@@ -65,3 +65,30 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             path = ROOT / name
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
+
+    def test_window_retry_and_inverse_mode_guard_do_not_imply_gui_acceptance(self):
+        retry = json.loads((PROBE / 'desktop-appkit-interaction-evidence.json').read_text())
+        self.assertEqual(retry['interactive']['bundleIdentifier'], self.evidence['interactive']['identity']['bundleIdentifier'])
+        self.assertFalse(retry['interactive']['scriptedCheck'])
+        self.assertEqual(retry['interactive']['wrongMode'], {
+            'exitCode': 1, 'diagnostic': 'N01 AppKit chat launch mode mismatch', 'createdStateRoots': False,
+        })
+        window = retry['window']
+        self.assertEqual(window['transactionResult'], 'focus-unavailable')
+        self.assertFalse(window['focusProbe']['frontmost'])
+        self.assertTrue(window['focusProbe']['exactRunningBundle'])
+        self.assertFalse(any(window[k] for k in ('inputDispatched', 'reacquiredFocus', 'humanAcceptance')))
+        self.assertFalse(any(retry['scope'].values()))
+        rerun = retry['scriptedRerun']
+        self.assertEqual(rerun['exitCode'], 0)
+        self.assertTrue(rerun['fixtureOnly'] and rerun['registeredToolGone'])
+        self.assertEqual(rerun['upstreamRequests'], 0)
+        first, reopened = rerun['launches']
+        self.assertEqual(first['scope'], reopened['scope'])
+        for new, old in zip(rerun['launches'], self.evidence['check']['launches']):
+            self.assertEqual(new['checks'], old['checks'])
+        self.assertTrue(retry['localReceipts'])
+        for name, expected in retry['localReceipts'].items():
+            path = ROOT / name
+            if path.is_file():
+                self.assertEqual(expected, sha(path), name)
