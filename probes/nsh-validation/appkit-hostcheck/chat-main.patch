@@ -1,0 +1,78 @@
+--- main.rs
++++ main.rs
+@@ -1,12 +1,12 @@
+-//! Local AppKit TSX probe using a private PI fixture transport.
++//! Local AppKit desktop chat and scripted check over the private PI fixture transport.
+
+ use nsh_engine::{HostCall, HostChannel};
+-use nsh_platform_macos::{ActivationPolicy, AppOptions, AppSource, Bundle, run_app};
++use nsh_platform_macos::{ActivationPolicy, AppOptions, AppSource, AssetBase, Bundle, CacheOptions, run_app};
+ use serde_json::Value;
+ use std::{ffi::{CStr, CString, c_char, c_void}, path::PathBuf, slice, sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst}, process::ExitCode};
+
+ const METHODS: [&str; 7] = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events", "sessions.history"];
+-const ID: &str = "dev.muma.probe.nsh.appkit.package.check";
++const ID: &str = "dev.muma.probe.nsh.appkit.chat";
+ static PENDING: AtomicUsize = AtomicUsize::new(0);
+ static PASSED: AtomicBool = AtomicBool::new(false);
+ unsafe extern "C" {
+@@ -14,6 +14,7 @@
+     fn n01_pipe_call(method: *const c_char, bytes: *const u8, count: usize, ctx: *mut c_void,
+         reply: unsafe extern "C" fn(*mut c_void, *const u8, usize));
+     fn n01_pipe_finish() -> bool;
++    fn n01_chat_is_check() -> bool;
+     fn n01_package_storage() -> *mut c_char;
+     fn n01_package_free(path: *mut c_char);
+ }
+@@ -44,9 +45,17 @@
+     let mut logging = nsh_platform_apple::unified_log::Options::default();
+     logging.development = true;
+     nsh_platform_apple::unified_log::install(logging);
++    // The signed test build only runs its automation when explicitly invoked.
++    let args: Vec<_> = std::env::args_os().skip(1).collect();
++    let scripted = unsafe { n01_chat_is_check() };
++    if !(if scripted { args.len() == 1 && args[0] == "--check" } else { args.is_empty() }) {
++        eprintln!("N01 AppKit chat launch mode mismatch");
++        return ExitCode::FAILURE;
++    }
+     let root = std::env::current_exe().expect("executable");
+     let root = root.parent().and_then(|macos| macos.parent()).unwrap();
+     let Ok(bundle) = Bundle::read(&root.join("Resources/ui/bundle.js")) else { eprintln!("N01 bundle unavailable"); return ExitCode::FAILURE };
++    if bundle.app_id.as_deref() != Some(ID) { return ExitCode::FAILURE; }
+     // SAFETY: Swift returns null or an owned C string; release it after copying.
+     let path = unsafe { n01_package_storage() };
+     if path.is_null() { eprintln!("N01 isolated package storage unavailable"); return ExitCode::FAILURE; }
+@@ -63,20 +72,24 @@
+         let method = CString::new(name).unwrap();
+         host.handle(name, move |call| forward(call, &method));
+     }
+-    host.handle("n01.complete", |call| {
+-        if call.is_post() { return }
+-        if call.data() != &Value::Bool(true) { call.reject("incomplete"); return }
+-        PASSED.store(true, SeqCst);
+-        call.resolve(Value::Null);
+-    });
++    if scripted {
++        host.handle("n01.complete", |call| {
++            if call.is_post() { return }
++            if call.data() != &Value::Bool(true) { call.reject("incomplete"); return }
++            PASSED.store(true, SeqCst);
++            call.resolve(Value::Null);
++        });
++    }
+     let app_exit = run_app(AppSource::Bundle(bundle), AppOptions {
+         host: host.clone(), data_dir, app_id: ID.into(),
+-        background: true, activation_policy: ActivationPolicy::Accessory, size: (430, 180),
++        asset_base: Some(AssetBase::Directory(root.join("Resources/ui/assets"))),
++        cache: CacheOptions::off(),
++        background: scripted, activation_policy: ActivationPolicy::Regular, size: (1240, 820),
+         title: "沐码".into(), ..AppOptions::default()
+     });
+     for name in METHODS { host.remove_handler(name); }
+-    host.remove_handler("n01.complete");
++    if scripted { host.remove_handler("n01.complete"); }
+     // SAFETY: The AppKit runner has returned on the owner thread.
+     let clean = unsafe { n01_pipe_finish() };
+-    if app_exit == ExitCode::SUCCESS && PASSED.load(SeqCst) && clean && PENDING.load(SeqCst) == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
++    if app_exit == ExitCode::SUCCESS && (!scripted || PASSED.load(SeqCst)) && clean && PENDING.load(SeqCst) == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+ }
