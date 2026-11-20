@@ -133,6 +133,61 @@ class AppKitChatEvidenceTests(unittest.TestCase):
                 self.assertEqual(expected, sha(path), name)
         self.assertIn('desktop-appkit-chat-pruned-window-evidence.json', (ROOT / 'PLAN.md').read_text())
 
+    def test_archive_audit_distinguishes_archive_savings_from_payload_savings(self):
+        data = json.loads((PROBE / 'desktop-appkit-chat-archive-audit-evidence.json').read_text())
+        ref = data['buildEvidence']
+        self.assertEqual(ref['name'], 'desktop-appkit-chat-prune-evidence.json')
+        path = PROBE / ref['name']
+        self.assertEqual(ref['sha256'], sha(path))
+        prune = json.loads(path.read_text())
+        build = prune['prunedInteractive']
+        audit = data['archiveExperiment']
+        baseline, trial = (audit[key] for key in ('control', 'experiment'))
+        self.assertEqual(baseline['sha256'], prune['localReceipts'][baseline['path']])
+        self.assertEqual(baseline['bytes'], build['sizes']['zipBytes'])
+        self.assertEqual(baseline['bytes'] - trial['bytes'], audit['savedBytes'])
+        self.assertGreater(audit['savedBytes'], 0)
+        self.assertLess(audit['savedBytes'] / baseline['bytes'], 0.002)
+        for archive in (baseline, trial):
+            self.assertEqual(archive['extractedKiB'], build['sizes']['bundleKiB'])
+            archive_path = ROOT / archive['path']
+            if archive_path.is_file():
+                self.assertEqual(archive['bytes'], archive_path.stat().st_size)
+                self.assertEqual(archive['sha256'], sha(archive_path))
+        comparison = audit['comparison']
+        self.assertTrue(comparison['typeModeContentAndLinkTargetsIdentical'])
+        self.assertEqual(comparison['logicalRegularBytes'], prune['comparison']['prunedLogicalBytes'])
+        self.assertGreater(comparison['byType']['link'], 0)
+        for name in ('unzipIntegrity', 'dittoExtraction', 'deepStrictSignatures'):
+            self.assertTrue(audit['checks'][name], name)
+        self.assertEqual(audit['checks']['bundleIdentifier'], build['identity']['bundleIdentifier'])
+        self.assertFalse(audit['checks']['scriptedCheck'])
+        self.assertEqual(audit['checks']['bundledNode'], build['node'])
+        self.assertFalse(audit['adopted'])
+        self.assertFalse(any(data['boundaries'].values()))
+
+        inventory = data['productionInventory']
+        collisions = inventory['duplicateNames']
+        self.assertEqual(inventory['installed'] - inventory['names'], sum(len(p) - 1 for p in collisions.values()))
+        self.assertEqual(inventory['optionalProductionLockEntries'], 0)
+        self.assertTrue(inventory['sameVersionIdentical'])
+        pair = [p for p in collisions['@smithy/node-http-handler'] if p['version'] == '4.14.1']
+        self.assertEqual(len(pair), 2)
+        self.assertEqual(pair[0]['logicalBytes'], pair[1]['logicalBytes'])
+        self.assertLess(pair[0]['allocatedBytes'], 1024 * 1024)
+        resolution = data['entryResolution']
+        self.assertTrue(resolution['genaiImport'].endswith('/dist/node/index.mjs'))
+        self.assertTrue(resolution['genaiRequire'].endswith('/dist/node/index.cjs'))
+        self.assertTrue(resolution['genaiWeb'].endswith('/dist/web/index.mjs'))
+        self.assertTrue(resolution['piSdk'].endswith('/dist/index.js'))
+        self.assertTrue(resolution['piRpc'].endswith('/dist/bundle/rpc-entry.js'))
+        self.assertTrue(resolution['piBinLink'].endswith('/dist/bundle/cli.js'))
+        for name, expected in data['localReceipts'].items():
+            receipt = ROOT / name
+            if receipt.is_file():
+                self.assertEqual(expected, sha(receipt), name)
+        self.assertIn('desktop-appkit-chat-archive-audit-evidence.json', (ROOT / 'PLAN.md').read_text())
+
     def test_compression_reduces_archive_and_app_without_changing_runtime(self):
         data = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
         full, compact, scripted = (data[key] for key in ('fullInteractive', 'compactInteractive', 'compactCheck'))

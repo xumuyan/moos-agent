@@ -1,0 +1,286 @@
+{
+  "recordedAt": "2026-11-20T23:30:44+08:00",
+  "head": "b899dc6ba3f8a7c4d50ac5ec9b2c1bba88539cc7",
+  "buildEvidence": {
+    "name": "desktop-appkit-chat-prune-evidence.json",
+    "sha256": "17e16e292edbdd0ce42b3c3ddf7102f9aad124a5a386baf5f6f33562a250ba3e"
+  },
+  "platform": "macOS 27.0.1 arm64",
+  "productionInventory": {
+    "lockSha256": "9bd1d9e6b01b8be690869bed7b15b7ee1dd7ab23178fa5441eeae26a9fee31b5",
+    "installed": 123,
+    "names": 117,
+    "optionalProductionLockEntries": 0,
+    "largest": [
+      {
+        "path": "node_modules/@earendil-works/pi-coding-agent",
+        "version": "1.5.0",
+        "files": 780,
+        "logicalBytes": 18497665,
+        "allocatedBytes": 20434944
+      },
+      {
+        "path": "node_modules/openai",
+        "version": "7.19.0",
+        "files": 1629,
+        "logicalBytes": 9993070,
+        "allocatedBytes": 14557184
+      },
+      {
+        "path": "node_modules/@google/genai",
+        "version": "2.21.0",
+        "files": 19,
+        "logicalBytes": 8561071,
+        "allocatedBytes": 8605696
+      },
+      {
+        "path": "node_modules/@anthropic-ai/sdk",
+        "version": "0.129.0",
+        "files": 789,
+        "logicalBytes": 5230371,
+        "allocatedBytes": 7397376
+      },
+      {
+        "path": "node_modules/typebox",
+        "version": "1.3.27",
+        "files": 1385,
+        "logicalBytes": 1512886,
+        "allocatedBytes": 6090752
+      },
+      {
+        "path": "node_modules/@smithy/core",
+        "version": "3.38.1",
+        "files": 1169,
+        "logicalBytes": 1964293,
+        "allocatedBytes": 5812224
+      },
+      {
+        "path": "node_modules/@earendil-works/pi-ai",
+        "version": "1.5.0",
+        "files": 453,
+        "logicalBytes": 2330791,
+        "allocatedBytes": 3698688
+      },
+      {
+        "path": "node_modules/web-streams-polyfill",
+        "version": "3.3.3",
+        "files": 28,
+        "logicalBytes": 2809297,
+        "allocatedBytes": 2887680
+      },
+      {
+        "path": "node_modules/@types/node",
+        "version": "26.6.6",
+        "files": 92,
+        "logicalBytes": 2586357,
+        "allocatedBytes": 2793472
+      },
+      {
+        "path": "node_modules/highlight.js",
+        "version": "10.7.3",
+        "files": 398,
+        "logicalBytes": 1710256,
+        "allocatedBytes": 2727936
+      }
+    ],
+    "duplicateNames": {
+      "@aws-sdk/token-providers": [
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-sso/node_modules/@aws-sdk/token-providers",
+          "version": "3.1161.0",
+          "files": 37,
+          "logicalBytes": 39604,
+          "allocatedBytes": 167936
+        },
+        {
+          "path": "node_modules/@aws-sdk/token-providers",
+          "version": "3.1127.0",
+          "files": 37,
+          "logicalBytes": 38250,
+          "allocatedBytes": 163840
+        }
+      ],
+      "@smithy/node-http-handler": [
+        {
+          "path": "node_modules/@aws-sdk/credential-provider-http/node_modules/@smithy/node-http-handler",
+          "version": "4.14.1",
+          "files": 59,
+          "logicalBytes": 135960,
+          "allocatedBytes": 323584
+        },
+        {
+          "path": "node_modules/@aws-sdk/nested-clients/node_modules/@smithy/node-http-handler",
+          "version": "4.14.1",
+          "files": 59,
+          "logicalBytes": 135960,
+          "allocatedBytes": 323584
+        },
+        {
+          "path": "node_modules/@smithy/node-http-handler",
+          "version": "4.12.1",
+          "files": 56,
+          "logicalBytes": 128867,
+          "allocatedBytes": 303104
+        }
+      ],
+      "agent-base": [
+        {
+          "path": "node_modules/agent-base",
+          "version": "9.0.0",
+          "files": 7,
+          "logicalBytes": 13243,
+          "allocatedBytes": 32768
+        },
+        {
+          "path": "node_modules/gaxios/node_modules/agent-base",
+          "version": "7.1.4",
+          "files": 7,
+          "logicalBytes": 16400,
+          "allocatedBytes": 32768
+        }
+      ],
+      "https-proxy-agent": [
+        {
+          "path": "node_modules/gaxios/node_modules/https-proxy-agent",
+          "version": "7.0.6",
+          "files": 7,
+          "logicalBytes": 18328,
+          "allocatedBytes": 32768
+        },
+        {
+          "path": "node_modules/https-proxy-agent",
+          "version": "9.1.0",
+          "files": 7,
+          "logicalBytes": 20343,
+          "allocatedBytes": 36864
+        }
+      ],
+      "retry": [
+        {
+          "path": "node_modules/proper-lockfile/node_modules/retry",
+          "version": "0.12.0",
+          "files": 17,
+          "logicalBytes": 32210,
+          "allocatedBytes": 81920
+        },
+        {
+          "path": "node_modules/retry",
+          "version": "0.13.1",
+          "files": 8,
+          "logicalBytes": 18852,
+          "allocatedBytes": 40960
+        }
+      ]
+    },
+    "sameVersionIdentical": true,
+    "sameVersionConsumers": [
+      "node_modules/@aws-sdk/credential-provider-http",
+      "node_modules/@aws-sdk/nested-clients"
+    ],
+    "inspectedPayloads": {
+      "@earendil-works/pi-coding-agent/dist/bundle": {
+        "files": 82,
+        "logicalBytes": 9546231,
+        "allocatedBytes": 9736192
+      },
+      "@earendil-works/pi-coding-agent/docs": {
+        "files": 47,
+        "logicalBytes": 3019954,
+        "allocatedBytes": 3100672
+      },
+      "@earendil-works/pi-coding-agent/examples": {
+        "files": 129,
+        "logicalBytes": 982636,
+        "allocatedBytes": 1302528
+      },
+      "@google/genai/dist/web": {
+        "files": 2,
+        "logicalBytes": 1716388,
+        "allocatedBytes": 1720320
+      },
+      "@smithy/core/dist-es": {
+        "files": 373,
+        "logicalBytes": 546236,
+        "allocatedBytes": 1720320
+      },
+      "@smithy/core/dist-types": {
+        "files": 746,
+        "logicalBytes": 609637,
+        "allocatedBytes": 3121152
+      },
+      "@types/node": {
+        "files": 92,
+        "logicalBytes": 2586357,
+        "allocatedBytes": 2793472
+      }
+    }
+  },
+  "entryResolution": {
+    "genaiImport": "node_modules/@google/genai/dist/node/index.mjs",
+    "genaiRequire": "node_modules/@google/genai/dist/node/index.cjs",
+    "genaiWeb": "node_modules/@google/genai/dist/web/index.mjs",
+    "piSdk": "node_modules/@earendil-works/pi-coding-agent/dist/index.js",
+    "piRpc": "node_modules/@earendil-works/pi-coding-agent/dist/bundle/rpc-entry.js",
+    "piBinLink": "../@earendil-works/pi-coding-agent/dist/bundle/cli.js"
+  },
+  "archiveExperiment": {
+    "control": {
+      "path": "artifacts/nsh-validation/appkit-chat-interactive.dzLxje/MuMa-AppKit-Chat.zip",
+      "method": "ditto -c -k --keepParent",
+      "bytes": 72011012,
+      "sha256": "0df4bf1015e02e3979bb94fa938c3476c0b0aee0ece59a6784867723343f65e4",
+      "extractedKiB": 231768
+    },
+    "experiment": {
+      "path": "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/max-deflate.zip",
+      "method": "zip -9 -r -y",
+      "bytes": 71905553,
+      "sha256": "75ee1a6162820bce3f2ffcb9c5cd13673decb3f7fc76d89ffd00185ff70105df",
+      "extractedKiB": 231768
+    },
+    "savedBytes": 105459,
+    "comparison": {
+      "byType": {
+        "directory": 1480,
+        "file": 10979,
+        "link": 8
+      },
+      "logicalRegularBytes": 204835464,
+      "typeModeContentAndLinkTargetsIdentical": true
+    },
+    "checks": {
+      "unzipIntegrity": true,
+      "dittoExtraction": true,
+      "deepStrictSignatures": true,
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat",
+      "scriptedCheck": false,
+      "bundledNode": "v24.15.0",
+      "extendedAttributeOutputEmpty": true
+    },
+    "adopted": false
+  },
+  "boundaries": {
+    "payloadPrunedFurther": false,
+    "builderChanged": false,
+    "finderDoubleClickVerified": false,
+    "appLaunched": false,
+    "modelRequests": false,
+    "installed": false,
+    "formalDataAccessed": false
+  },
+  "localReceipts": {
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/run.sh": "c7de78fa8cf22f6e0911fccce410599bbaad63d427ded7e3b91707f95342c2f4",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/archive.log": "30a3428d1b5df668a1938277543c3b7e320723ddd5bd0e930033eba6bc7c8415",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/archive.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/compare.py": "848f990092670e95dc254fb9a2024ac933f06b5197213c07c10dffd4b2b611a0",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/compare.json": "03c63295ad404fa077720afcad733986b4998b100392830c2479ed848342b3cc",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/compare.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/inventory.py": "4023a74a7b6047cb8d3e514b6018ff33962f45e88c5779fa0a99b8889666bfc6",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/inventory.json": "9e37ef6cfbb401951043e9f0a3cd238c6eef029f7cce845198c159396689c641",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/inventory.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/resolution.json": "3fdc052343051a4659660a896bebc6c33f8acb06f0330c1bd3d7862ad03ebca3",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/resolution.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/control-xattr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/nsh-validation/appkit-chat-archive-audit.uPyP22/roundtrip-xattr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
