@@ -50,12 +50,13 @@ class NativeControlHoverTests(unittest.TestCase):
                     self.assertEqual((result['otherChangedPixels'], result['leaveChangedPixels']), (0, 0))
         self.assertTrue(all(value is False for value in evidence['acceptance'].values()))
 
-    def test_visual_feedback_is_not_a_settings_action(self):
+    def test_visual_feedback_uses_the_enabled_settings_button(self):
         probe = ROOT / 'probes/nsh-validation'
         view = (probe / 'DesktopView.tsx').read_text()
-        surface = view.split('testID="settings-surface"', 1)[1].split('</Button>', 1)[0]
+        surface = view.split('testID="settings-trigger"', 1)[1].split('</Button>', 1)[0]
         self.assertIn('hoverStyle={controlHover}', surface)
-        self.assertIn('testID="settings-unavailable" accessibilityLabel="设置" disabled', surface)
-        self.assertNotIn('onPress', surface)
+        self.assertIn('accessibilityLabel="设置"', surface)
+        self.assertIn('onPress={() => settingsOpen.set(true)}', surface)
+        self.assertNotIn(' disabled', surface)
         self.assertNotIn('⌃', (probe / 'DesktopModelPicker.tsx').read_text())
         self.assertNotIn('⌄', (probe / 'DesktopModelPicker.tsx').read_text())

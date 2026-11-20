@@ -5,7 +5,7 @@ function geometry(app: App) {
   return JSON.parse(app.texts().find(t => t.startsWith(prefix))!.slice(prefix.length));
 }
 
-const picker = 'id:model-trigger', navigation = 'id:toggle-navigation', settings = 'id:settings-surface';
+const picker = 'id:model-trigger', navigation = 'id:toggle-navigation', settings = 'id:settings-trigger';
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`matching native control chrome and pointer feedback (${colorScheme})`, async () => {
     const app = await open('./ThemeGeometry.tsx', { width: 1240, height: 820, colorScheme, reducedMotion: true });
@@ -19,7 +19,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       const bounds = geometry(app);
       expect(app.shows('id:icon-model-down')).toBe(true);
       expect(app.shows('id:icon-model-up')).toBe(false);
-      expect(app.enabled('id:settings-unavailable')).toBe(false);
+      expect(app.enabled('id:settings-trigger')).toBe(true);
       await app.hover('id:empty-state');
       await app.screenshot(`${prefix}-rest.png`);
       for (const [name, target] of [['picker', picker], ['navigation', navigation], ['settings', settings]]) {
@@ -28,7 +28,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         expect(geometry(app)['model-picker']).toEqual(bounds['model-picker']);
         expect(geometry(app)['sidebar-settings']).toEqual(bounds['sidebar-settings']);
         expect(geometry(app)['toggle-navigation']).toEqual(bounds['toggle-navigation']);
-        expect(app.enabled('id:settings-unavailable')).toBe(false);
+        expect(app.enabled('id:settings-trigger')).toBe(true);
         expect(app.shows('id:model-pane-root')).toBe(false);
       }
       await app.hover('id:empty-state');

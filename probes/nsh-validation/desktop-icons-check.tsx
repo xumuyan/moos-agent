@@ -31,7 +31,7 @@ async function assertSidebar(app: App, scheme: string, width: number) {
   }
   expect(g['workspace-options'].origin.x - g.search.origin.x).toBe(32);
   expect(g['add-project'].origin.x - g['workspace-options'].origin.x).toBe(32);
-  expect(app.enabled('id:settings-unavailable')).toBe(false);
+  expect(app.enabled('id:settings-trigger')).toBe(true);
   expect(app.shows('id:icon-settings')).toBe(true);
   expect(app.shows('id:icon-project-a')).toBe(!artAvailable);
   console.log('ICON_GEOMETRY ' + JSON.stringify({ scheme, width, bounds: g }));

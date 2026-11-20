@@ -60,7 +60,7 @@ class SidebarFooterTests(unittest.TestCase):
         self.assertIn('each={messageRows()}', view)
         self.assertNotIn('NSH 0.5.0 · 独立验证', view)
         check = (NSH / 'desktop-live-sidebar-check.tsx').read_text()
-        for token in ('bottom(footer) - b.sidebar.size.height', 'id:sidebar-mascot', 'id:settings-unavailable', 'toBe(false)', 'app.scroll'):
+        for token in ('bottom(footer) - b.sidebar.size.height', 'id:sidebar-mascot', 'id:settings-trigger', 'toBe(false)', 'app.scroll'):
             self.assertIn(token, check)
         self.assertEqual(len(m['candidate']['images']), 8)
         self.assertTrue(m['candidate']['synthetic'])

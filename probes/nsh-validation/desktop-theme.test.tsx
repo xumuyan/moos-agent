@@ -155,7 +155,7 @@ test('skin-only fallback is honest, unavailable entries disabled, controls prese
   const app = await open('./DesktopApp.tsx', { width: 1240, height: 820, host: { handlers: fixture() } });
   await app.waitFor('text:项目 主题验证 A');
   expect(app.enabled('id:search-unavailable')).toBe(false);
-  expect(app.enabled('id:settings-unavailable')).toBe(false);
+  expect(app.enabled('id:settings-trigger')).toBe(true);
   expect(app.shows('text:— 轮 — 步')).toBe(true);
   expect(app.shows('id:palace-background')).toBe(false);
   expect(app.shows('id:bottom-trim')).toBe(true);

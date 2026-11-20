@@ -32,7 +32,7 @@ test('native optional art layers, unavailable controls and dark appearance keep 
   const app = await open('./ThemeNative.tsx', { width: 1240, height: 820, colorScheme: 'dark' });
   await app.waitFor('text:项目 主题验证 A');
   expect(app.enabled('id:search-unavailable')).toBe(false);
-  expect(app.enabled('id:settings-unavailable')).toBe(false);
+  expect(app.enabled('id:settings-trigger')).toBe(true);
   expect(app.shows('id:palace-background')).toBe(artAvailable);
   expect(app.shows('id:character-left')).toBe(artAvailable);
   expect(app.shows('id:character-right')).toBe(artAvailable);

@@ -38,9 +38,9 @@ async function checkTree(app: any) {
   expect(b['project-group-a'].size.height).toBe(126);
   expect(b['project-group-b'].size.height).toBe(54);
   for (const id of ['plugins','background','more']) expect(app.enabled(`id:nav-${id}-unavailable`)).toBe(false);
-  for (const id of ['search','settings','workspace-options','add-project']) expect(app.enabled(`id:${id}-unavailable`)).toBe(false);
+  for (const id of ['search','workspace-options','add-project']) expect(app.enabled(`id:${id}-unavailable`)).toBe(false);
   expect(app.shows('id:sidebar-mascot')).toBe(false); // source skin hides mascot when a tree is present
-  expect(app.enabled('id:settings-unavailable')).toBe(false);
+  expect(app.enabled('id:settings-trigger')).toBe(true);
   const footer = b['sidebar-footer'], settings = b['sidebar-settings'];
   const swag = Math.max(54, Math.min(94, footer.size.width * .2575));
   expect(Math.abs(footer.size.height - (swag + 82))).toBeLessThan(1);

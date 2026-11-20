@@ -34,7 +34,7 @@ export function NineSlice(props: { name: string; source: [number, number]; cuts:
     })}
   </View>;
 }
-export function Wallpaper(props: { sidebar: number; active: boolean; details: boolean }) {
+export function Wallpaper(props: { sidebar: number; active: boolean; details: boolean; characters: boolean }) {
   const dark = () => colorScheme() === 'dark';
   const filter = () => dark() ? 'brightness(.84) saturate(.92) drop-shadow(0 22px 28px #0000004d)' : 'drop-shadow(0 20px 24px #1b2c5b24)';
   const w = () => windowSize().width, h = () => windowSize().height;
@@ -42,8 +42,8 @@ export function Wallpaper(props: { sidebar: number; active: boolean; details: bo
   return <View testID="skin-layers" style={{ ...absolute, top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
     <Art testID="palace-background" name={dark() ? 'palace-night' : 'palace-day'} style={{ top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 50%' }} />
     <View testID="wallpaper-scrim" style={{ ...absolute, top: 0, left: 0, right: 0, bottom: 0, backgroundImage: dark() ? t.darkScrim : t.scrim }} />
-    <Art testID="character-left" name="maid-left" style={{ left: chars().left, bottom: chars().bottomLeft, width: chars().leftW, height: chars().leftH, opacity: chars().opacity, objectFit: 'contain', objectPosition: 'center bottom', filter: filter() }} />
-    {chars().rightVisible && <Art testID="character-right" name="maid-right" style={{ right: chars().right, bottom: chars().bottomRight, width: chars().rightW, height: chars().rightH, opacity: props.details && props.active ? .86 : chars().opacity, objectFit: 'contain', objectPosition: 'center bottom', filter: filter() }} />}
+    {props.characters && <Art testID="character-left" name="maid-left" style={{ left: chars().left, bottom: chars().bottomLeft, width: chars().leftW, height: chars().leftH, opacity: chars().opacity, objectFit: 'contain', objectPosition: 'center bottom', filter: filter() }} />}
+    {props.characters && chars().rightVisible && <Art testID="character-right" name="maid-right" style={{ right: chars().right, bottom: chars().bottomRight, width: chars().rightW, height: chars().rightH, opacity: props.details && props.active ? .86 : chars().opacity, objectFit: 'contain', objectPosition: 'center bottom', filter: filter() }} />}
   </View>;
 }
 // Artwork starts at the content origin, even when the content extends into the

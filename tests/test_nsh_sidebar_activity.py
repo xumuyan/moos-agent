@@ -87,14 +87,17 @@ class SidebarActivityTests(unittest.TestCase):
         for path, current in evidence['inputs'].items():
             previous = subprocess.check_output(['git', 'show', f"{evidence['base']}:{path}"], cwd=ROOT)
             self.assertEqual(hashlib.sha256(previous).hexdigest(), evidence['previousInputs'][path], path)
-            verified({**current, 'path': path})
+            record = current_composer_input(self, path, current, after=sidebar_jewel_evidence)
+            verified({**record, 'path': path})
         self.assertEqual(evidence['matrices'].keys(), {'withArt', 'fallback'})
         for mode, run in evidence['matrices'].items():
             capture = json.loads(verified(run['capture']))
             self.assertEqual(capture['head'], evidence['base'])
             self.assertTrue(capture['synthetic'] and not capture['piExecuted'])
             for path, current in capture['workspaceHashes'].items():
-                verified({**current, 'path': PROBE / path})
+                full = PROBE / path
+                record = current_composer_input(self, str(full.relative_to(ROOT)), current, after=sidebar_jewel_evidence)
+                verified({**record, 'path': full})
             result = json.loads(verified(run['result']))
             self.assertTrue(result['passed'] and not result['installed'])
             self.assertIs(result['artwork'], mode == 'withArt')

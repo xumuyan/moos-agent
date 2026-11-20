@@ -1,4 +1,4 @@
-import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
+import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, setColorScheme, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
@@ -7,6 +7,7 @@ import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-p
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
 import { composerStatistics } from './desktop-composer-statistics';
+import { DesktopSettings, type DesktopAppearance } from './DesktopSettings';
 import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
@@ -55,7 +56,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
+  const settingsOpen = signal(false), appearance = signal<DesktopAppearance>('system');
+  const showCharacters = signal(true), showStatistics = signal(true);
+  const changeAppearance = (next: DesktopAppearance) => {
+    setColorScheme(next);
+    appearance.set(next);
+  };
+  cleanup(() => { if (appearance() !== 'system') setColorScheme('system'); });
   const catalog = signal<DesktopModelCatalog | undefined>(undefined);
+  const defaultModelLabel = () => {
+    const directory = catalog();
+    return directory?.options.find(model => model.id === directory.defaultId)?.label;
+  };
   const choices = signal(new Map<string, ModelChoice>());
   const scopeKey = (scope: { projectId: string; sessionId: string }) => JSON.stringify([scope.projectId, scope.sessionId]);
   const modelChoice = (key: string) => {
@@ -164,7 +176,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     refresh();
   }
   function send() {
-    if (disposed || disabled()) return;
+    if (settingsOpen() || disposed || disabled()) return;
     const text = draft();
     draft.set('');
     submitTurn(text, modelChoice(pickerScope()));
@@ -203,7 +215,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const newSessionInk = artAvailable ? '#152246' : t.goldSoft;
   return (
     <View testID="desktop-root" style={{ flex: 1, flexDirection: 'row', backgroundColor: dark() ? t.dark.canvas : t.canvas, overflow: 'hidden' }}>
-      <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} />
+      <Wallpaper sidebar={sidebarWidth()} active={active()} details={layout().right} characters={showCharacters()} />
       {navigation() && <View testID="sidebar" onLayout={measured('sidebar')} style={{ width: layout().sidebar, backgroundColor: sidebarStyle().backgroundColor, backgroundImage: sidebarStyle().backgroundImage, boxShadow: t.sidebarShadow, padding: 16, gap: 10, overflow: 'hidden' }}>
         <SidebarCorners />
         <View testID="sidebar-brand" onLayout={measured('sidebar-brand')} style={{ ...sidebarStyle().brand, flexDirection: 'row', alignItems: 'center', gap: 10 }}><Image src={brandIcon} style={{ width: 28, height: 28 }} /><Text style={{ fontSize: 20, color: t.brand, fontFamily: t.fontFamily, fontWeight: '600', textShadow: '0 1px 3px #02071980' }}>沐码</Text></View>
@@ -267,17 +279,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             </View>}
           </View>}
         </List>
-        {footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
+        {showCharacters() && footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
         <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16 }}>
           <Art testID="sidebar-swag" name="sidebar-swag" style={{ top: 0, left: 0, right: 0, height: footer().swagHeight, objectFit: 'fill', filter: 'brightness(1.1) saturate(1.04) contrast(1.04)' }} />
-          {/* A disabled Button suppresses its own hoverStyle. Paint the shared hover on its wrapper, not a fake settings action. */}
-          <View testID="settings-surface" onLayout={measured('sidebar-settings')} hoverStyle={controlHover}
-            style={{ ...controlSurface, position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset, height: footer().settingsHeight }}>
-            <Button testID="settings-unavailable" accessibilityLabel="设置" disabled style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20, backgroundColor: 'transparent' }}>
-              <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
-              <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
-            </Button>
-          </View>
+          <Button testID="settings-trigger" onLayout={measured('sidebar-settings')} accessibilityLabel="设置" onPress={() => settingsOpen.set(true)}
+            hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
+            style={{ ...controlSurface, position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset,
+              height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20 }}>
+            <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
+            <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
+          </Button>
         </View>
       </View>}
       <View testID="chat-column" onLayout={measured('chat-column')} style={{ flex: 1, minWidth: 0 }}>
@@ -353,9 +364,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               </View>
             </View>
           </View>
-          <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
+          {showStatistics() && <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
             height={safe().previewHeight} onLayout={measured('composer-statistics')} onTriggerLayout={measured('round-statistics')}
-            onMetricsLayout={measured('statistics-metrics')} onPopupLayout={measured('statistics-popup')} />
+            onMetricsLayout={measured('statistics-metrics')} onPopupLayout={measured('statistics-popup')} />}
         </View>
         {!active() && <BottomTrim width={windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0)} onLayout={measured('bottom-trim')} />}
       </View>
@@ -368,6 +379,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         style={{ ...controlSurface, position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
         <DesktopIcon name="panel" color={navigation() ? t.sidebarInk : artAvailable ? t.brand : ink()} testID="icon-navigation" />
       </Button>
+      {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
+        appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}
+        statistics={showStatistics()} onStatistics={showStatistics.set} defaultModel={defaultModelLabel()} onLayout={measured('settings-content')} />}
     </View>
   );
 }

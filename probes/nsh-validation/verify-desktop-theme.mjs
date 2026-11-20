@@ -21,14 +21,15 @@ const chrome = process.argv.includes('--window-chrome');
 const cards = process.argv.includes('--chat-cards');
 const icons = process.argv.includes('--icons');
 const sessionPreview = process.argv.includes('--session-preview');
+const settings = process.argv.includes('--settings');
 const statistics = process.argv.includes('--statistics');
 const turnQueue = process.argv.includes('--turn-queue');
 const controlHover = process.argv.includes('--control-hover');
 const composer = process.argv.includes('--composer');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover || sessionPreview || turnQueue || statistics, native = process.argv.includes('--native') || capture || rich || live;
-const nativeCheck = statistics ? 'desktop-composer-statistics-check.tsx' : turnQueue ? 'desktop-turn-queue-check.tsx' : sessionPreview ? 'desktop-session-preview-check.tsx' : controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
-const files = ['DesktopView.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts', 'desktop-turn-queue.ts', 'DesktopTurnQueue.tsx', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
-  ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : []), ...(turnQueue ? ['ThemeTurnQueue.tsx'] : []), ...(statistics ? ['ThemeStatistics.tsx'] : [])];
+const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover || sessionPreview || turnQueue || statistics || settings, native = process.argv.includes('--native') || capture || rich || live;
+const nativeCheck = settings ? 'desktop-settings-check.tsx' : statistics ? 'desktop-composer-statistics-check.tsx' : turnQueue ? 'desktop-turn-queue-check.tsx' : sessionPreview ? 'desktop-session-preview-check.tsx' : controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
+const files = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts', 'desktop-turn-queue.ts', 'DesktopTurnQueue.tsx', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
+  ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : []), ...(turnQueue ? ['ThemeTurnQueue.tsx'] : []), ...(statistics || settings ? ['ThemeStatistics.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
 await cp(resolve('probes/nsh-validation/assets/desktop'), join(source, 'assets/desktop'), { recursive: true });
 // Explicit local-only artwork opt-in. No default production HOME or downloads.
@@ -45,7 +46,7 @@ for (const [entry, options] of [['ThemeNative', {}], ['ThemeError', { error: tru
   await writeFile(join(source, `${entry}.tsx`), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nimport { fixture } from './desktop-theme-fixture';\nconst h = fixture(${JSON.stringify(options)});\nmount(() => <DesktopView call={async (method, params) => (h as any)[method](params).result} />);\n`);
 }
 // Isolated layout diagnostic only: no Host bridge, filesystem or production data.
-await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View, Text } from 'nsh';
+await writeFile(join(source, 'ThemeGeometry.tsx'), `import { mount, signal, View, Text${settings ? ', colorScheme' : ''} } from 'nsh';
 ${chrome ? "import { currentWindow } from 'nsh/desktop';" : ''}
 import { DesktopView } from './DesktopView';
 import { fixture } from './desktop-theme-fixture';
@@ -72,6 +73,7 @@ ${chrome ? `  const window = currentWindow();
    }}
    onGeometry={(name, bounds) => { if (JSON.stringify(measured()[name]) !== JSON.stringify(bounds)) measured.set({...measured(), [name]: bounds}); }} />
   <Text testID="geometry-readout" style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'STYLE_GEOMETRY ' + JSON.stringify(measured())}</Text>
+  ${settings ? `<Text style={{position:'absolute',opacity:0,pointerEvents:'none',fontSize:1}}>{'SETTINGS_SCHEME ' + colorScheme()}</Text>` : ''}
   ${composer ? `<Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'COMPOSER_CALLS ' + JSON.stringify(calls())}</Text>` : ''}
   ${chrome ? `<Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'WINDOW_CHROME ' + JSON.stringify(window.titleBar())}</Text>
   <Text style={{position:'absolute',top:0,left:0,opacity:0,pointerEvents:'none',fontSize:1}}>{'CHROME_CLOSE ' + closeReason()}</Text>` : ''}</View>;
