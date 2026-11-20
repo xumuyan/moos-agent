@@ -1,0 +1,130 @@
+{
+  "base": "5b63dbbe1f697ea3908f67e492f763ba7e07362a",
+  "run": {
+    "version": "nsh 0.5.0 (f4d68f7)",
+    "node": "v24.15.0",
+    "arch": "arm64",
+    "id": "dev.muma.probe.nsh.appkit.baseline",
+    "inputs": {
+      "desktop-appkit-baseline.tsx": {
+        "bytes": 1034,
+        "sha256": "d9af35c6b14cde6d01c60e198cce9100a4c4a8046bbe87d22b5b410f502fac6a"
+      },
+      "desktop-appkit-baseline.test.tsx": {
+        "bytes": 453,
+        "sha256": "2f6bf26cdee5c1d2fedeed4197083177a9f782e570d9cacf177912bef5377f62"
+      },
+      "DesktopAppKitPipeCheck.swift": {
+        "bytes": 8421,
+        "sha256": "a6c271021741960b94742d8a2d4383f0b3daac5f528c146ec3a953372abcd390"
+      },
+      "DesktopPipe.swift": {
+        "bytes": 13328,
+        "sha256": "d03e31a6c0465dfd04708ba609e1abe7ba9ec50d306843c050d55f5773f8deac"
+      },
+      "desktop-host-stdio.mjs": {
+        "bytes": 4214,
+        "sha256": "3860772afd2e76bb357464594721079860de09be36d5c5ff896a00abb63ca802"
+      },
+      "verify-desktop-appkit.mjs": {
+        "bytes": 5985,
+        "sha256": "4608dabaefdcc6c76255b10df0a4abec48a22144a7dac199e589f663e3af03d4"
+      }
+    },
+    "installed": false,
+    "externalModel": false,
+    "platform": "27.0.1",
+    "baseline": {
+      "app": "artifacts/nsh-validation/appkit-spike.IkpfMd/release/NSH AppKit Baseline.app",
+      "runner": {
+        "bytes": 48838832,
+        "sha256": "9fd17a4eddc4cc0cd4bbe290b19cc0265aa4692f8d59eb73bf209554d7b9c006"
+      },
+      "stripped": {
+        "bytes": 48838832,
+        "sha256": "9fd17a4eddc4cc0cd4bbe290b19cc0265aa4692f8d59eb73bf209554d7b9c006"
+      },
+      "bundleKiB": 47716,
+      "zipBytes": 20138710,
+      "signed": "ad-hoc deep strict",
+      "headlessPassed": 1,
+      "available": false,
+      "error": "ERR_FEATURE_UNAVAILABLE_ON_PLATFORM",
+      "quit": true
+    },
+    "transport": {
+      "checks": [
+        "window",
+        "projects and session",
+        "real PI write/read and public text",
+        "foreign task denied",
+        "Stop then terminal and full drain",
+        "same-session Send after drain",
+        "active EOF and normal child exit"
+      ],
+      "forced": false,
+      "hostExit": 0,
+      "nshEmbedded": false,
+      "passed": true,
+      "stage": "complete",
+      "stderrBytes": 0
+    }
+  },
+  "artifacts": {
+    "result.json": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/result.json",
+      "bytes": 2092,
+      "sha256": "18a68885db1fa9c48d2a49c526e769a20f86398f0da75a48077a7cca62870f84"
+    },
+    "baseline-test.log": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/baseline-test.log",
+      "bytes": 233,
+      "sha256": "883605cf1633b6a5240529f4e6618c5ef13b21a5f650e2c6c1b17ada9d5588cf"
+    },
+    "baseline-build.log": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/baseline-build.log",
+      "bytes": 131,
+      "sha256": "cf573c603a9b085da380deaf5323dc62a8da02137197a697411f8800f1d86291"
+    },
+    "baseline-exit.log": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/baseline-exit.log",
+      "bytes": 67,
+      "sha256": "3e9b2dcaeab76fd3edafab6ac9cc592e5835dcc41d43b9e7437b822d97a1ee58"
+    },
+    "strip-copy.log": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/strip-copy.log",
+      "bytes": 341,
+      "sha256": "88947b25679c89c22ba370161e07f2a38e3132baaa6da269be8fdb660101a764"
+    },
+    "pipe-run.log": {
+      "path": "artifacts/nsh-validation/appkit-spike.IkpfMd/pipe-run.log",
+      "bytes": 305,
+      "sha256": "38a1e7cadc3792f3491f57a5367d95b55b7527b64ea1cb1cfa6c95d2d0aa2b4f"
+    }
+  },
+  "optimizedBuild": {
+    "offline": true,
+    "status": 1,
+    "missing": "nsh-core",
+    "version": "0.5.0",
+    "profile": {
+      "CARGO_PROFILE_RELEASE_LTO": "fat",
+      "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+      "CARGO_PROFILE_RELEASE_STRIP": "true"
+    },
+    "log": {
+      "path": "artifacts/nsh-validation/appkit-spike.ss3Z8T/mixed-build-offline.log",
+      "bytes": 521,
+      "sha256": "46fc80cf59a1a4d3d0152a7081173559c80c5fbb790a17fdb5bcfa549712733b"
+    }
+  },
+  "notAccepted": [
+    "custom AppKit NSH embedding",
+    "optimized LTO shell size",
+    "complete AppKit PI bundle",
+    "manual GUI",
+    "formal deployment",
+    "external provider",
+    "portable distribution"
+  ]
+}
