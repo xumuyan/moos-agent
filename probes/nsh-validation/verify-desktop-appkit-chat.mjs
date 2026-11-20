@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { copyFile, cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hostFiles, packageRuntime, verifyInternalLinks, verifyPackageIdentity } from './desktop-package.mjs';
@@ -17,9 +17,11 @@ assert.equal(process.platform, 'darwin');
 assert.equal(process.arch, 'arm64');
 assert.equal(process.version, 'v24.15.0');
 const [mode, buildPath, ...extra] = process.argv.slice(2);
-const trimMaps = extra.length === 1 && extra[0] === '--trim-maps';
-assert.ok(buildPath && (!extra.length || trimMaps) && ['--check', '--interactive'].includes(mode),
-  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optionally --trim-maps');
+assert.ok(buildPath && new Set(extra).size === extra.length && extra.every(arg => ['--trim-maps', '--strip-node'].includes(arg)) &&
+  ['--check', '--interactive'].includes(mode),
+  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node');
+const trimMaps = extra.includes('--trim-maps');
+const stripNode = extra.includes('--strip-node');
 const scripted = mode === '--check';
 const base = await realpath('artifacts/nsh-validation');
 const build = await realpath(resolve(buildPath));
@@ -92,6 +94,32 @@ if (trimMaps) {
   removedMaps = removed.length;
   await writeFile(join(dir, 'trimmed-maps.json'), `${JSON.stringify(removed, null, 2)}\n`);
 }
+const stagedNode = join(macos, 'moos-node');
+let nodeStrip = null;
+if (stripNode) {
+  // Only touch the freshly copied runtime; keep external symbols for native addons.
+  assert.equal(run('/usr/bin/lipo', ['-archs', stagedNode]).trim(), 'arm64');
+  const exports = () => run('/usr/bin/dyld_info', ['-exports', stagedNode], { maxBuffer: 16 * 1024 * 1024 })
+    .trimEnd().split('\n').slice(3).map(line => line.trim()).sort();
+  const libraries = () => run('/usr/bin/otool', ['-L', stagedNode]);
+  const original = await lstat(stagedNode);
+  assert.ok(original.isFile() && original.nlink === 1, 'Expected a private regular Node copy');
+  const nodeMode = original.mode & 0o777;
+  const before = { bytes: original.size, sha256: await record(stagedNode), mode: nodeMode };
+  const exported = exports(), linked = libraries();
+  assert.ok(exported.some(line => line.endsWith(' _napi_get_version')), 'Expected a Node N-API export');
+  run('/usr/bin/strip', ['-S', '-x', stagedNode]);
+  await chmod(stagedNode, nodeMode); // strip's temporary file obeys the private build umask.
+  run('/usr/bin/codesign', ['--force', '--sign', '-', stagedNode]);
+  run('/usr/bin/codesign', ['--verify', '--strict', stagedNode]);
+  assert.deepEqual(exports(), exported, 'Node dyld exports changed');
+  assert.equal(libraries(), linked, 'Node dylink dependencies changed');
+  const stripped = await stat(stagedNode);
+  const after = { bytes: stripped.size, sha256: await record(stagedNode), mode: stripped.mode & 0o777 };
+  assert.equal(after.mode, nodeMode);
+  assert.ok(after.bytes < before.bytes, 'Stripped Node is not smaller');
+  nodeStrip = { before, after, exportCount: exported.length, exportsSha256: createHash('sha256').update(exported.join('\n')).digest('hex') };
+}
 run('/usr/bin/codesign', ['--force', '--sign', '-', join(macos, dylib)]);
 run('/usr/bin/codesign', ['--force', '--sign', '-', staging]);
 await verifyInternalLinks(staging);
@@ -116,13 +144,19 @@ const identity = verify(app);
 await rm(staging, { recursive: true }); // Only our fresh build inside dir.
 for (const part of ['profile', 'storage']) await mkdir(join(destination, part), { mode: 0o700 });
 const binary = join(app, 'Contents/MacOS', executable);
-assert.equal(run(join(app, 'Contents/MacOS/moos-node'), ['--version']).trim(), process.version);
+const packagedNode = join(app, 'Contents/MacOS/moos-node');
+assert.equal(run(packagedNode, ['--version']).trim(), process.version);
+const nodeSha256 = await record(packagedNode);
+if (nodeStrip) {
+  const relocated = await stat(packagedNode);
+  assert.deepEqual({ bytes: relocated.size, sha256: nodeSha256, mode: relocated.mode & 0o777 }, nodeStrip.after);
+}
 const kib = path => Number(run('/usr/bin/du', ['-sk', path]).trim().split(/\s+/)[0]);
 const receipt = { builtAt: new Date().toISOString(), head: run('/usr/bin/git', ['rev-parse', 'HEAD']).trim(),
   platform: run('/usr/bin/sw_vers', ['-productVersion']).trim(), arch: process.arch, nsh: version, node: process.version,
   identity, mode, fixtureOnly: true, installed: false, signed: 'ad-hoc deep strict', foreground: false, launches: [],
   upstreamRequests: 0, nativeBuild: relative(process.cwd(), build), viewInputs, hostInputs: inputs, entry: await record(entry),
-  runner: await record(binary), resources: config.capabilities, trimMaps, removedMaps,
+  runner: await record(binary), resources: config.capabilities, trimMaps, removedMaps, nodeSha256, nodeStrip,
   sizes: { bundleKiB: kib(app), nodeKiB: kib(join(app, 'Contents/MacOS/moos-node')), dependencyKiB: kib(join(app, deps)),
     zipBytes: (await stat(zip)).size }, extractedFromZip: true };
 if (scripted) {

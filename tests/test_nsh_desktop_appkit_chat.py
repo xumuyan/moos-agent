@@ -11,7 +11,11 @@ PROBE = ROOT / 'probes/nsh-validation'
 
 
 def sha(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 class AppKitChatEvidenceTests(unittest.TestCase):
@@ -61,8 +65,10 @@ class AppKitChatEvidenceTests(unittest.TestCase):
 
     def test_bind_new_inputs_and_available_logs(self):
         compression = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
+        strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
         for name, expected in self.evidence['inputs'].items():
             current = successor_input(self, compression, name, expected)
+            current = successor_input(self, strip, name, current)
             self.assertEqual(current, sha(ROOT / name), name)
         self.assertEqual(self.evidence['check']['entry'], sha(PROBE / 'appkit-hostcheck/ChatCheck.tsx'))
         for name, expected in self.evidence['artifacts'].items():
@@ -137,10 +143,76 @@ class AppKitChatEvidenceTests(unittest.TestCase):
                          [launch['checks'] for launch in self.evidence['check']['launches']])
         self.assertFalse(any(data['boundaries'].values()))
         self.assertEqual(len(data['archives']), 3)
+        strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
         for name, expected in data['inputs'].items():
-            self.assertEqual(expected['sha256'], sha(ROOT / name), name)
+            current = successor_input(self, strip, name, expected)
+            self.assertEqual(current['sha256'], sha(ROOT / name), name)
         for name, expected in {**data['localReceipts'], **data['archives']}.items():
             path = ROOT / name
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
         self.assertIn('desktop-appkit-chat-compression-evidence.json', (ROOT / 'PLAN.md').read_text())
+
+    def test_node_strip_only_changes_runtime_symbols_and_reseals(self):
+        data = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
+        base, slim, check = (data[k] for k in ('baseline', 'strippedInteractive', 'strippedCheck'))
+        for bundle in (base, slim, check):
+            self.assertEqual(bundle['identity'], base['identity'])
+            self.assertEqual(bundle['head'], base['head'])
+            self.assertEqual(bundle['nativeBuild'], base['nativeBuild'])
+            self.assertTrue(bundle['trimMaps'] and bundle['fixtureOnly'] and bundle['extractedFromZip'])
+            self.assertFalse(bundle['installed'])
+            self.assertEqual(bundle['removedMaps'], base['removedMaps'])
+            self.assertEqual(bundle['signed'], 'ad-hoc deep strict')
+            self.assertEqual(bundle['upstreamRequests'], 0)
+            self.assertEqual(bundle['sizes']['dependencyKiB'], base['sizes']['dependencyKiB'])
+        self.assertGreater(base['removedMaps'], 0)
+        self.assertIsNone(base['nodeStrip'])
+        self.assertEqual(base['entry'], slim['entry'])
+        self.assertEqual(base['resources'], slim['resources'])
+        self.assertEqual(base['mode'], '--interactive')
+        self.assertEqual(slim['mode'], '--interactive')
+        self.assertEqual(base['launches'], [])
+        self.assertEqual(slim['launches'], [])
+        self.assertEqual(check['mode'], '--check')
+        trim = slim['nodeStrip']
+        self.assertEqual(trim, check['nodeStrip'])
+        self.assertEqual(trim['before']['sha256'], base['nodeSha256'])
+        self.assertEqual(trim['after']['sha256'], slim['nodeSha256'])
+        self.assertEqual(slim['nodeSha256'], check['nodeSha256'])
+        self.assertNotEqual(trim['before']['sha256'], trim['after']['sha256'])
+        self.assertEqual(trim['before']['mode'], trim['after']['mode'])
+        self.assertEqual(trim['after']['mode'] & 0o111, 0o111)
+        self.assertGreater(trim['before']['bytes'], trim['after']['bytes'])
+        self.assertGreater(trim['exportCount'], 0)
+        self.assertRegex(trim['exportsSha256'], r'^[0-9a-f]{64}$')
+        for field in ('bundleKiB', 'nodeKiB', 'zipBytes'):
+            self.assertLess(slim['sizes'][field], base['sizes'][field], field)
+        audit = data['comparison']
+        self.assertTrue(audit['retainedEntriesIdentical'])
+        self.assertGreater(audit['retainedEntries'], 0)
+        self.assertEqual(audit['baselineLogicalBytes'] - audit['stripLogicalBytes'],
+                         trim['before']['bytes'] - trim['after']['bytes'])
+        self.assertRegex(audit['unsignedRunnerSha256'], r'^[0-9a-f]{64}$')
+        self.assertRegex(audit['mapInventorySha256'], r'^[0-9a-f]{64}$')
+        required = {'Contents/_CodeSignature/CodeResources', 'Contents/MacOS/moos-node'}
+        self.assertLessEqual(required, set(audit['changedEntries']))
+        self.assertLessEqual(set(audit['changedEntries']), required | {'Contents/MacOS/AppKitPI'})
+        self.assertFalse(data['nativeAddon']['calledMethods'])
+        exports = data['nativeAddon']['exportsByBuild']
+        self.assertEqual(set(exports), {'baseline', 'strip-interactive', 'strip-check'})
+        for names in exports.values():
+            self.assertEqual(names, ['getFilePaths', 'getImage', 'getText', 'isModifierPressed', 'setText'])
+        self.assertFalse(any(data['boundaries'].values()))
+        self.assertTrue(check['registeredToolGone'])
+        self.assertEqual(check['launches'][0]['scope'], check['launches'][1]['scope'])
+        self.assertEqual([run['checks'] for run in check['launches']],
+                         [run['checks'] for run in self.evidence['check']['launches']])
+        for name, expected in data['inputs'].items():
+            self.assertEqual(expected['sha256'], sha(ROOT / name), name)
+        self.assertTrue(data['localReceipts'])
+        for name, expected in data['localReceipts'].items():
+            path = ROOT / name
+            if path.is_file():
+                self.assertEqual(expected, sha(path), name)
+        self.assertIn('desktop-appkit-chat-node-strip-evidence.json', (ROOT / 'PLAN.md').read_text())

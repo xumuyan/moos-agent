@@ -12,6 +12,10 @@
 
 [压缩对照回执](desktop-appkit-chat-compression-evidence.json) 使用同一聊天视图、Node 和 AppKit runner。实测交互包移除 3,863 个映射：落盘 298.33→256.66 MiB（−13.97%），ZIP 81.23→73.36 MiB（−9.68%）。全包比对中除新的资源封条及其主执行文件签名外，剩余 11,535 个文件／链接一致。两种交互包均未打开；裁剪后的脚本包实际首启 6/6、重开 12/12（真实 PI＋本机回环）。没有换掉当前运行的候选，也没有压缩或部署正式应用。
 
+可另加 `--strip-node`：只在新包的 `moos-node` 副本上执行 `strip -S -x`，删除本地/调试符号；保持原执行权限、比较 dyld 导出（含地址）和链接库，然后重签 Node 和整包。提取 ZIP 后再核对内置 Node 的版本、哈希和权限。需要原生故障符号诊断时不加该参数；不更改本机 Node 安装。两个裁剪参数独立、均默认关闭。
+
+[Node 裁剪对照回执](desktop-appkit-chat-node-strip-evidence.json)：两版都先去掉同样的 3,863 个源码映射。保留 32,898 个 dyld 导出，包内 arm64 原生模块能加载（未调用剪贴板方法）。交互包落盘 256.66→233.76 MiB、ZIP 73.36→70.13 MiB；相对最初完整包，累计分别减少 21.64% 和 13.66%。同源交互包未打开；裁剪后的独立脚本包从 ZIP 解压后，用真实 PI 和本机回环再通过 6 项首启＋12 项重开验证。不是人工窗口或跨机发行验收，也不说明 RAM 减少。
+
 ## 实窗验证（未完成）
 
 本机 [复查回执](desktop-appkit-interaction-evidence.json) 区分了两项结果：原交互包与其副本通过深度签名校验，交互副本显式传 `--check` 会拒绝，未写入 profile/storage；对已运行交互包的新桌面事务因 `focus-unavailable` 停止。单独的只读诊断可从候选进程取得 AX 窗口和元素，但当时候选不是前台应用；这不证明前台可编辑，也不证明上次 `target-occluded` 的具体原因。没有发出键鼠事件。
@@ -30,9 +34,9 @@ out=$(mktemp -d "$PWD/artifacts/nsh-validation/appkit-chat.XXXXXX")
 upstream=$(cat /private/tmp/n01-appkit-source-dir)
 /bin/bash probes/nsh-validation/appkit-hostcheck/build-chat-runner.sh "$upstream" "$out" >"$out/native.log" 2>&1 &&
   printf '0\n' >"$out/native.status"
-node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out" --trim-maps
-node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out" --trim-maps
-# 对照：移除 --trim-maps 即生成完整诊断版。
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out" --trim-maps --strip-node
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out" --trim-maps --strip-node
+# 对照：仅传 --trim-maps 即保留完整 Node；两个参数都去掉是完整诊断版。
 ```
 
 早期完整包脚本、实际打开和回归结果见 `desktop-appkit-chat-evidence.json` 及根目录 `operatelog.md`。优先完成包体测量；本轮不做同负载性能对照。ad-hoc 签名不代表 Developer ID、公证或跨设备发行。人工按键/按钮和 Quit 退出重开、隔离双模型持久配置、异常恢复、合成迁移与资源对照仍待分开验收。

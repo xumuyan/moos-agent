@@ -1,0 +1,282 @@
+{
+  "baseline": {
+    "head": "5879c51ab61c21eff097b2f25c1b608f966e340d",
+    "arch": "arm64",
+    "platform": "27.0.1",
+    "nsh": "nsh 0.5.0 (f4d68f7)",
+    "node": "v24.15.0",
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat"
+    },
+    "mode": "--interactive",
+    "signed": "ad-hoc deep strict",
+    "fixtureOnly": true,
+    "upstreamRequests": 0,
+    "installed": false,
+    "nativeBuild": "artifacts/nsh-validation/appkit-chat.efkm0v",
+    "entry": "c5ce6221811632b753e332672565fd25122123dc02cb2781c68c5150238d2ecf",
+    "runner": "c424259b7d70a7cf0c49f92e97d7d069e74b5b48a2bff9ed4709e34387881231",
+    "trimMaps": true,
+    "removedMaps": 3863,
+    "nodeSha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89",
+    "nodeStrip": null,
+    "extractedFromZip": true,
+    "sizes": {
+      "bundleKiB": 262820,
+      "nodeKiB": 116436,
+      "dependencyKiB": 114044,
+      "zipBytes": 76922825
+    },
+    "launches": [],
+    "resources": {
+      "host": [
+        "projects.list",
+        "sessions.list",
+        "sessions.create",
+        "sessions.history",
+        "tasks.submit",
+        "tasks.cancel",
+        "tasks.events"
+      ],
+      "statusBar": true
+    }
+  },
+  "strippedInteractive": {
+    "head": "5879c51ab61c21eff097b2f25c1b608f966e340d",
+    "arch": "arm64",
+    "platform": "27.0.1",
+    "nsh": "nsh 0.5.0 (f4d68f7)",
+    "node": "v24.15.0",
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat"
+    },
+    "mode": "--interactive",
+    "signed": "ad-hoc deep strict",
+    "fixtureOnly": true,
+    "upstreamRequests": 0,
+    "installed": false,
+    "nativeBuild": "artifacts/nsh-validation/appkit-chat.efkm0v",
+    "entry": "c5ce6221811632b753e332672565fd25122123dc02cb2781c68c5150238d2ecf",
+    "runner": "e030b6bf054c8ac54a2a00ed0f47851d6a0964108e750b708d1eabd9889dfcab",
+    "trimMaps": true,
+    "removedMaps": 3863,
+    "nodeSha256": "96990d051ea00bb78d23423012505553625dbb6168224fadd94df0adeccce548",
+    "nodeStrip": {
+      "before": {
+        "bytes": 119228096,
+        "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89",
+        "mode": 493
+      },
+      "after": {
+        "bytes": 95218688,
+        "sha256": "96990d051ea00bb78d23423012505553625dbb6168224fadd94df0adeccce548",
+        "mode": 493
+      },
+      "exportCount": 32898,
+      "exportsSha256": "137d12eb5eae3794881c5adaabca5e77c0e8c07565614717d4691cff7fed8048"
+    },
+    "extractedFromZip": true,
+    "sizes": {
+      "bundleKiB": 239372,
+      "nodeKiB": 92988,
+      "dependencyKiB": 114044,
+      "zipBytes": 73537279
+    },
+    "launches": [],
+    "resources": {
+      "host": [
+        "projects.list",
+        "sessions.list",
+        "sessions.create",
+        "sessions.history",
+        "tasks.submit",
+        "tasks.cancel",
+        "tasks.events"
+      ],
+      "statusBar": true
+    }
+  },
+  "strippedCheck": {
+    "head": "5879c51ab61c21eff097b2f25c1b608f966e340d",
+    "arch": "arm64",
+    "platform": "27.0.1",
+    "nsh": "nsh 0.5.0 (f4d68f7)",
+    "node": "v24.15.0",
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat"
+    },
+    "mode": "--check",
+    "signed": "ad-hoc deep strict",
+    "fixtureOnly": true,
+    "upstreamRequests": 0,
+    "installed": false,
+    "nativeBuild": "artifacts/nsh-validation/appkit-chat.efkm0v",
+    "entry": "7132c1258a3a7e27b94988cb6b6f1d72f534b1bb12ee23e4c915d010e21250e4",
+    "runner": "7f6ff508f71faf6bddd9e6ca26af6cb2b7c9bd1b74ef040466bf23426825c02a",
+    "trimMaps": true,
+    "removedMaps": 3863,
+    "nodeSha256": "96990d051ea00bb78d23423012505553625dbb6168224fadd94df0adeccce548",
+    "nodeStrip": {
+      "before": {
+        "bytes": 119228096,
+        "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89",
+        "mode": 493
+      },
+      "after": {
+        "bytes": 95218688,
+        "sha256": "96990d051ea00bb78d23423012505553625dbb6168224fadd94df0adeccce548",
+        "mode": 493
+      },
+      "exportCount": 32898,
+      "exportsSha256": "137d12eb5eae3794881c5adaabca5e77c0e8c07565614717d4691cff7fed8048"
+    },
+    "extractedFromZip": true,
+    "sizes": {
+      "bundleKiB": 239376,
+      "nodeKiB": 92988,
+      "dependencyKiB": 114044,
+      "zipBytes": 73538878
+    },
+    "launches": [
+      {
+        "restart": false,
+        "scope": {
+          "projectId": "15529a33-18ca-46fa-a933-7461cbe78676",
+          "sessionId": "375e5fc2-4ef4-439b-abe8-45f3bfa12acc"
+        },
+        "checks": [
+          "fixture catalog",
+          "no replay before Send",
+          "empty profile",
+          "first public reply",
+          "live rows not duplicated by history",
+          "no polling after drain"
+        ]
+      },
+      {
+        "restart": true,
+        "scope": {
+          "projectId": "15529a33-18ca-46fa-a933-7461cbe78676",
+          "sessionId": "375e5fc2-4ef4-439b-abe8-45f3bfa12acc"
+        },
+        "checks": [
+          "fixture catalog",
+          "no replay before Send",
+          "exact pre-Send history",
+          "old rows laid out",
+          "other project stays empty",
+          "scope round trip",
+          "PI continued from prior context",
+          "live rows not duplicated by history",
+          "controller observes terminal backlog",
+          "terminal backlog blocks Send until drained",
+          "resend write/read on original scope",
+          "no polling after drain"
+        ]
+      }
+    ],
+    "resources": {
+      "host": [
+        "projects.list",
+        "sessions.list",
+        "sessions.create",
+        "sessions.history",
+        "tasks.submit",
+        "tasks.cancel",
+        "tasks.events",
+        "n01.complete"
+      ],
+      "statusBar": true
+    },
+    "registeredToolGone": true
+  },
+  "comparison": {
+    "retainedEntriesIdentical": true,
+    "retainedEntries": 11534,
+    "changedEntries": [
+      "Contents/MacOS/AppKitPI",
+      "Contents/MacOS/moos-node",
+      "Contents/_CodeSignature/CodeResources"
+    ],
+    "unsignedRunnerSha256": "761eac44d7f7142d005d89f0b365727debba6f6fe21c058a150efa21cdd62634",
+    "mapInventorySha256": "53306277a9225df3bfe7a14a242fb09f0abbf560e549d11fb4074cfab706ed2c",
+    "baselineLogicalBytes": 235190872,
+    "stripLogicalBytes": 211181464
+  },
+  "nativeAddon": {
+    "path": "Contents/Resources/host/node_modules/@earendil-works/pi-tui/native/darwin/prebuilds/darwin-arm64/darwin-platform.node",
+    "sha256": "36e909adf35c2734a2a52b3d65b7dbfb83f2278f306d51b7e32c5045516dfb7f",
+    "exportsByBuild": {
+      "baseline": [
+        "getFilePaths",
+        "getImage",
+        "getText",
+        "isModifierPressed",
+        "setText"
+      ],
+      "strip-interactive": [
+        "getFilePaths",
+        "getImage",
+        "getText",
+        "isModifierPressed",
+        "setText"
+      ],
+      "strip-check": [
+        "getFilePaths",
+        "getImage",
+        "getText",
+        "isModifierPressed",
+        "setText"
+      ]
+    },
+    "calledMethods": false
+  },
+  "boundaries": {
+    "humanGUI": false,
+    "upstream": false,
+    "developerID": false,
+    "notarized": false,
+    "productionCutover": false,
+    "matchedPerformance": false
+  },
+  "previousInputs": {
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "12fa5927dc8be02e48f775c2f437844ccc220fa5f1abb7684ff7e69dff7b95ec"
+  },
+  "inputs": {
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "sha256": "e501b6df3f29b031db8fa435eb7aaa0714c21ce2147771f078d949d3a181b10e"
+    }
+  },
+  "localReceipts": {
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/trial.log": "b2aba58766bd0072b5865324d844d8490d456cf322bb71097f9833c5246c1678",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/compare.py": "21863504ebf3c8e9dc0a96210754d0f4fe385727c16a16ccea3e33825dd5f98d",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/native-addon.json": "f91476c17e232e395e00a2489d94cfeecbca692327860cc7c38297e7c369c306",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/baseline.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/baseline.log": "1e95611894b20a31c8a9204662491f866cec784c4c0e57eae798b7118adac164",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/strip-interactive.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/strip-interactive.log": "31bfa25ec0aeb253ab4eadb21c6c357f60078107d75d4ac3022e8c9a03632c30",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/strip-check.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-chat-node-strip.HhQIrh/strip-check.log": "329ddb10e88a5502f8e26b518a77fe3c07e22e7f3aa83815f429a35a541cc0ac",
+    "artifacts/nsh-validation/appkit-chat-interactive.4Xg2nA/result.json": "c749bc7ce937453d13e17f1b7fba0d2d134cfcafce7524b0027c9d39e90e4968",
+    "artifacts/nsh-validation/appkit-chat-interactive.4Xg2nA/trimmed-maps.json": "53306277a9225df3bfe7a14a242fb09f0abbf560e549d11fb4074cfab706ed2c",
+    "artifacts/nsh-validation/appkit-chat-interactive.O31Ocx/result.json": "6a8e52079bebbb6b62007ff60bf403d6ed3bedbbe28994485447cadeca5a52a2",
+    "artifacts/nsh-validation/appkit-chat-interactive.O31Ocx/trimmed-maps.json": "53306277a9225df3bfe7a14a242fb09f0abbf560e549d11fb4074cfab706ed2c",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/result.json": "db73a34e4b5a7d3db908f0c551f3cddf84dbe5a390e1348ff8eefc6a8fa8ded7",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/trimmed-maps.json": "53306277a9225df3bfe7a14a242fb09f0abbf560e549d11fb4074cfab706ed2c",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/first.log": "ea4cf033be4d87b741d01b3d5434feaa03dd3e9cc4d1884b95b82f001e54cbb0",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/reopened.log": "182b9dbfe61f507de9f9f6ea48930e363f08680bc8960df4f912c41ea6c898ca",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/launch-refused.log": "0d7f619f6f042256416b35f3631e416a776578062b7d701553605bd09f8b4e38",
+    "artifacts/nsh-validation/appkit-chat-interactive.4Xg2nA/MuMa-AppKit-Chat.zip": "0385de339126d2b7d3a3f4133dea7ddb82669a55dde104c7030aa667a193a762",
+    "artifacts/nsh-validation/appkit-chat-interactive.O31Ocx/MuMa-AppKit-Chat.zip": "f1a4b7871580ec931bcd78e8705f831f64092306b90a9666591fac61caf9ab4c",
+    "artifacts/nsh-validation/appkit-chat-check.zNswjH/MuMa-AppKit-Chat.zip": "490e9fcdda2ebb36ef687d0eaccca98c5eaa2803f8dd2f4f3334e85eeb273e59"
+  }
+}
