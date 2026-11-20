@@ -223,7 +223,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           <NineSlice name="new-session" source={[1400,308]} cuts={[0,210,0,210]} edges={[0,layout().compact ? 32 : 40,0,layout().compact ? 32 : 40]} fill style={{ top: 0, left: 0, right: 0, bottom: 0 }} />
           <Button testID="create-session" style={{ height: tree.newSessionHeight, flexDirection: 'row', gap: 6, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }} disabled={snapshot().loading || !snapshot().projectId} disabledStyle={{ opacity: .4 }} onPress={() => void create()}>
             <DesktopIcon name="newChat" size={14} color={newSessionInk} testID="icon-new-chat" />
-            <Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: newSessionInk }}>新会话</Text>
+            <Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 14 : 16, fontWeight: '600', color: newSessionInk }}>新会话</Text>
           </Button>
         </View>
         <View testID="sidebar-navigation" onLayout={measured('sidebar-navigation')} style={{ flexShrink: 0, marginTop: 4 }}>
@@ -233,7 +233,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>)}
         </View>
         <View testID="workspace-heading" onLayout={measured('workspace-heading')} style={{ height: tree.workspaceHeight, flexShrink: 0, flexDirection: 'row', alignItems: 'center', marginTop: -2, marginRight: -8, paddingLeft: 4 }}>
-          <Text class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: '500', fontFamily: t.ornamentFont, color: t.goldSoft }}>工作区</Text>
+          <Text class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: '500', fontFamily: t.fontFamily, color: t.goldSoft }}>工作区</Text>
           {workspaceActions.map(({ id, icon, label }) => <Button testID={`${id}-unavailable`} onLayout={measured(id)} accessibilityLabel={label} disabled style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
             <DesktopIcon name={icon} color={t.goldSoft} testID={`icon-${id}`} onLayout={measured(`icon-${id}`)} />
           </Button>)}
@@ -244,7 +244,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               {selectedProject() === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
               <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 0, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 4, alignItems: 'center' }} onPress={() => void project(p().id)}>
                 {artAvailable ? <View style={{ width: 22, height: 34, flexShrink: 0 }}><Art name="workspace-shield" style={{ top: 0, left: 0, width: 22, height: 34, objectFit: 'contain' }} /></View> : <DesktopIcon name={selectedProject() === p().id ? 'folderOpen' : 'folder'} color={t.goldSoft} testID={`icon-project-${p().id}`} />}
-                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: tree.fontFamily, color: selectedProject() === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
+                <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: t.fontFamily, color: selectedProject() === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
               </Button>
             </View>
             {selectedProject() === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: sessions().length * tree.sessionHeight }}>
@@ -271,7 +271,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                       {preview && <Text style={previewInk}>{sessionAge(preview.createdAt, shownAt())}</Text>}
                       {taskStatus() && <Text style={previewInk}>{taskStatus()}</Text>}
                     </Tooltip>}>
-                    <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: tree.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
+                    <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
                   </Button>
                   {working() && <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} />}
                 </View>;
@@ -287,7 +287,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             style={{ ...controlSurface, position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset,
               height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20 }}>
             <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
-            <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.ornamentFont }}>设置</Text>
+            <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.fontFamily }}>设置</Text>
           </Button>
         </View>
       </View>}
@@ -296,18 +296,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
         <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, paddingHorizontal: layout().inset, paddingTop: 4, gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: ink(), textShadow: headingShadow(), fontFamily: t.ornamentFont, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
+            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: ink(), textShadow: headingShadow(), fontFamily: t.fontFamily, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
             <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
-              <Text style={{ fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
+              <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
               <DesktopIcon name="panel" mirror color={ink()} size={14} testID="icon-details" />
             </Button>
           </View>
           <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: ink(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
         </View>
         <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
-          <Text testID="status" style={{ fontSize: 12, color: muted() }}>{status()}</Text>
-          {!!error() && <Text testID="error" style={{ color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
-          {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.ornamentFont, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
+          <Text testID="status" style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>{status()}</Text>
+          {!!error() && <Text testID="error" style={{ fontFamily: t.fontFamily, color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
+          {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
           <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
             {r => {
               const tool = computed(() => toolCard(r().role, r().body, dark()));
@@ -355,7 +355,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 {busy() && <Button testID="queue-submit" accessibilityLabel="排队发送" onPress={enqueue} disabled={!canEnqueue()}
                   hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus} disabledStyle={{ opacity: .48 }}
                   style={{ ...controlSurface, flexShrink: 0, height: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: t.composerInk, fontSize: 12 }}>排队发送</Text>
+                  <Text style={{ fontFamily: t.fontFamily, color: t.composerInk, fontSize: 12 }}>排队发送</Text>
                 </Button>}
                 <DesktopModelPicker scope={pickerScope()} models={catalog()?.options ?? []} choice={modelChoice(pickerScope())}
                   disabled={pickerDisabled()} dark={dark()} art={artAvailable} onLayout={measured('model-picker')} onPopupLayout={measured('model-popup')}
@@ -371,7 +371,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         {!active() && <BottomTrim width={windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0)} onLayout={measured('bottom-trim')} />}
       </View>
       {layout().right && <View testID="details-panel" style={{ width: t.rightWidth, padding: 20, paddingTop: Math.max(20, titleBarHeight() + 8), gap: 18, backgroundColor: dark() ? t.dark.details : '#f2f6fdd1', backdropFilter: 'blur(12px)', borderLeftWidth: 1, borderColor: '#c5a46885' }}>
-        <Text style={{ fontSize: 16, color: ink(), fontWeight: '600' }}>任务详情</Text><Text style={{ color: muted(), fontSize: 13 }}>当前会话</Text><Text style={{ color: ink() }}>{title()}</Text><Text style={{ color: muted(), fontSize: 13 }}>{status()}</Text><Text style={{ color: ink(), fontSize: 13 }}>{`任务 ID：${snapshot().current?.task?.id ?? '尚未提交'}`}</Text><Text style={{ fontSize: 12, color: muted() }}>停止响应不等于工具已退出。只有终态且事件排空才能确认本次读取结束。工具过程在对话内按真实顺序展示，此面板不生成思考文本或虚构任务。</Text>
+        <Text style={{ fontFamily: t.fontFamily, fontSize: 16, color: ink(), fontWeight: '600' }}>任务详情</Text><Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 13 }}>当前会话</Text><Text style={{ fontFamily: t.fontFamily, color: ink() }}>{title()}</Text><Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 13 }}>{status()}</Text><Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>{`任务 ID：${snapshot().current?.task?.id ?? '尚未提交'}`}</Text><Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>停止响应不等于工具已退出。只有终态且事件排空才能确认本次读取结束。工具过程在对话内按真实顺序展示，此面板不生成思考文本或虚构任务。</Text>
       </View>}
       {titleBarHeight() > 0 && <View testID="window-drag-region" onLayout={measured('window-drag-region')} desktop={{ windowDrag: true }} style={{ position: 'absolute', top: 0, left: navigationLeft() + 32, right: (titleBar()?.right ?? 0) + 8, height: titleBarHeight(), zIndex: 8 }} />}
       <Button testID="toggle-navigation" onLayout={measured('toggle-navigation')} accessibilityLabel={navigation() ? '收起侧栏' : '展开侧栏'} onPress={() => navigation.set(!navigation())}

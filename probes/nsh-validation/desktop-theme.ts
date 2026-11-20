@@ -6,9 +6,8 @@ export const desktopTheme = {
   accent: '#536eae', gold: '#c5a468', goldSoft: '#e2cfaa', brand: '#f3e3c0',
   sidebarInk: '#f8f3e8', sidebarMuted: '#d7def0', danger: '#ab3248',
   font: 14, lineHeight: 22,
-  // Translate the web stack to Mac system families; no bundled or downloaded fonts.
-  fontFamily: 'system-ui, "PingFang SC", "Hiragino Sans GB", sans-serif',
-  ornamentFont: 'Georgia, "Times New Roman", "Songti SC", serif',
+  // Prefer the locally installed Mac face; no bundled or downloaded font files.
+  fontFamily: '"LXGW WenKai", system-ui, "PingFang SC", "Hiragino Sans GB", sans-serif',
   monoFont: 'Menlo, "PingFang SC", monospace',
   sidebarWidth: 280, headerHeight: 75, rightWidth: 260,
   sidebarGradient: 'radial-gradient(circle at 50% 14%, #5b77bc3b, #0000 31%), linear-gradient(#102456f7, #050e2bf5), repeating-linear-gradient(135deg, #ffffff07 0 1px, #0000 1px 7px)',

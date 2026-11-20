@@ -1,6 +1,12 @@
 // Synthetic content only; no real user messages or Font/Host permissions.
 import { expect, open, test } from 'nsh/test';
 
+test('capture equivalent font samples for native glyph comparison', async () => {
+  const app = await open('./ThemeFontSamples.tsx', { width: 976, height: 200, colorScheme: 'light', locale: 'zh-CN', reducedMotion: true });
+  await app.waitFor('id:font-input-3');
+  await app.screenshot('type-font-samples.png');
+});
+
 for (const scheme of ['light', 'dark'] as const) {
   test(`native typography, code and narrow one-line title ${scheme}`, async () => {
     const app = await open('./ThemeTypography.tsx', { width: 1240, height: 820, colorScheme: scheme, locale: 'zh-CN', reducedMotion: true });
@@ -14,6 +20,11 @@ for (const scheme of ['light', 'dark'] as const) {
     await app.press('id:primary-action');
     await app.waitUntil(() => app.texts().some(t => t.includes('cancelled · 已排空')));
     await app.screenshot(`type-${scheme}-wide-chat.png`);
+    await app.press('id:settings-trigger');
+    await app.waitFor('text:外观与显示');
+    await app.screenshot(`type-${scheme}-wide-settings.png`);
+    await app.press('id:settings-close');
+    await app.waitUntil(() => !app.shows('id:settings-content'));
     await app.setViewport(680, 720);
     await app.waitFor('id:toggle-navigation');
     await app.press('id:toggle-navigation');

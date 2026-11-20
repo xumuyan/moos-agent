@@ -8,7 +8,6 @@ export const sidebarTree = {
   projectHeight: 54,
   sessionHeight: 36,
   projectTextRightInset: 36, // preserve ribbon end-cap safety from scroll_fix
-  fontFamily: '"Songti SC", Georgia, serif', // Mac's built-in serif; no font assets
   branchX: 8,
   branchWidth: 10,
 } as const;

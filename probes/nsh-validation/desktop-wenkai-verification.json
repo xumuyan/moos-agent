@@ -1,0 +1,371 @@
+{
+  "base": "2256da1e8d8c9dd0e6b2718a80634fda9135813e",
+  "predecessorReceipt": {
+    "path": "probes/nsh-validation/desktop-settings-verification.json",
+    "bytes": 11850,
+    "sha256": "5361ee5efae156ad17c00eee119d64853d612a34fdcbd75dba8667f17663e217"
+  },
+  "commitSubject": "feat(N01-D3): use local LXGW WenKai in desktop candidate",
+  "protected": {
+    "probes/nsh-validation/DesktopApp.tsx": "5d5df702a0e7037390b35559d23d01cc7394f795fd367efd4fce2f45f738d87b",
+    "probes/nsh-validation/DesktopUIHost.swift": "e658ba7516d8ad8961d49c12cde74ba1e68ee2fe0e108ced128322f35583be0f",
+    "probes/nsh-validation/desktop-ui-acceptance.tsx": "aeb04f70d7474c1f077626c4deff575f5b847f95832bda084cd98ad484719384",
+    "probes/nsh-validation/desktop-ui-controller.ts": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d",
+    "probes/nsh-validation/desktop-ui-transport.ts": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6",
+    "probes/nsh-validation/desktop-ui.test.mjs": "829064306d990134ceb1f4fa9f546ad89d536432e88c9892980147c163512e5c",
+    "probes/nsh-validation/verify-desktop-ui.mjs": "9dd6ec193e166a60200a98022bc8fb3306fa491c772f0f00c4d5b5f3bb85807f"
+  },
+  "acceptance": {
+    "visualReview": false,
+    "userApproved": false,
+    "retina": false,
+    "realPIPlusGUI": false,
+    "externalModel": false,
+    "independentPackage": false,
+    "deployed": false
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopModelPicker.tsx": {
+      "bytes": 8428,
+      "sha256": "f5ec6a4a659432385bc418087b2801f7d77d9919e8089911e237a7581444a10a"
+    },
+    "probes/nsh-validation/DesktopSettings.tsx": {
+      "bytes": 7333,
+      "sha256": "740877d58eed55f670915fdfb3c927b325bbdf13f5c79f93f5921a4a61186c49"
+    },
+    "probes/nsh-validation/DesktopTurnQueue.tsx": {
+      "bytes": 5484,
+      "sha256": "9f042277e9c06a3769a870974c9be43f29666dda28a8f38d130422a581272e06"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 36935,
+      "sha256": "42994653fa27fd61edc7eceb74a94890c6f19e14a86ce88f3098ed92a9143afc"
+    },
+    "probes/nsh-validation/check-wenkai-pixels.py": {
+      "bytes": 1545,
+      "sha256": "3603bab42164c406be346d6029525d7525a790449d6549ca6cbab4ea8f6990ee"
+    },
+    "probes/nsh-validation/desktop-sidebar-tree.ts": {
+      "bytes": 1139,
+      "sha256": "d9ce021df4bb7cb08e34765366822e6d971d51a4b98848eea7e2a0598753f60c"
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "bytes": 7697,
+      "sha256": "18c2c513c6abdf10ebc6ce923c1ba24100cb8e3559db27c45bd1735e02264b74"
+    },
+    "probes/nsh-validation/desktop-typography-check.tsx": {
+      "bytes": 2868,
+      "sha256": "6711ed1b0c1ee452acd7118eb17e7ed4f296d838bf054c0f5c7885a798cc3fec"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 14946,
+      "sha256": "6e535c745755cbb571a67fc7cbfb102fe9547221575960c131b54ec2926aeeb4"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 2264,
+      "sha256": "840f4bdc99e3a1a1e5908ea5316a1d89e496ee8e4d634967e2a54a8328d276cd"
+    },
+    "tests/test_nsh_desktop_typography.py": {
+      "bytes": 4157,
+      "sha256": "527b2ecb56a3c643e20fcc0414fcd8ec9af9501149de9fe29ecc734c8a286b6e"
+    },
+    "tests/test_nsh_settings.py": {
+      "bytes": 3854,
+      "sha256": "fcfcc692238110381c6f6bf9602142bf40a5f33f470b781a4fe019c5f538a5cd"
+    },
+    "tests/test_nsh_sidebar_activity.py": {
+      "bytes": 7647,
+      "sha256": "8d81b6df2796108b08d76d27a34e21b9ca826a0b95a2bbf51de8fedb5bfcec6b"
+    },
+    "tests/test_nsh_wenkai.py": {
+      "bytes": 4256,
+      "sha256": "076fb0801444cf3cd02075b9ab1ed1732e5c05ae762ef0e3aa503a7b5a73b7e9"
+    }
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopModelPicker.tsx": "1e29443c2f04d94afc4ece7ee690f0b82d73a09369ff696da870fdfee446551f",
+    "probes/nsh-validation/DesktopSettings.tsx": "e7a5db9d6b9e2ddf12aa626e0ee9b6e78e234a8f2ae4626e525619a99c183279",
+    "probes/nsh-validation/DesktopTurnQueue.tsx": "aa7d9bb967a049bafb8a57f7a35eacde201a108eab20df7f2335b067bb23d3b6",
+    "probes/nsh-validation/DesktopView.tsx": "af5d77318f3913aae92eccf09c4116ceb27a35400025f76c84200aba07315279",
+    "probes/nsh-validation/desktop-sidebar-tree.ts": "dbb5ec0f58620825899dfb7dff30bdd0ecca3980a7d244797c8180fa67773499",
+    "probes/nsh-validation/desktop-theme.ts": "c3e9d10d524cad0701173660196ca51318be19e6c4650e15bcb9b14e70e68454",
+    "probes/nsh-validation/desktop-typography-check.tsx": "f28dfce8731414a7582bab73b5b1479af331e581bdebe2456f83a73fd599527e",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "16d4d3f21a18c67ce51f6c8e91d46753640e2b195ae5c70cea24e5b10f8429be",
+    "tests/nsh_composer_provenance.py": "82b62f29bc4a57b14b6529e5eb448daa039e8d88abded0009dad6b4d74996be4",
+    "tests/test_nsh_desktop_typography.py": "6cb263433ebda532cf1c05dae5d1d5360c3e1fb4169feab98d3cc58f5507bf1d",
+    "tests/test_nsh_settings.py": "d9d3de9af8b73b81d814c44e6aa1d33a6272420b6f1982127f43e922e91d00fa",
+    "tests/test_nsh_sidebar_activity.py": "c57dfd19f4d9a65ae12aed6d5450071f4f7a89bef4db76d9d7b9590597796b67"
+  },
+  "fontLookup": {
+    "path": "artifacts/nsh-validation/wenkai/appkit-fonts.log",
+    "bytes": 125,
+    "sha256": "c77be534ba52cef34ffdb328227b56e436b564339be9555c32c56eb1fd8998d9"
+  },
+  "matrices": {
+    "withArt": {
+      "capture": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/capture-inputs.json",
+        "bytes": 13597,
+        "sha256": "14b83173233024bdb9f4c9d390c3c204076a04c0ac11fb577f106dc6bf74d98f"
+      },
+      "result": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/result.json",
+        "bytes": 1110,
+        "sha256": "d9e3fd48001d619ebcd6a339df51dda7bdc90cc188c737fd98122bce67e7d37e"
+      },
+      "testLog": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/test.log",
+        "bytes": 1892,
+        "sha256": "1c4273bd317b77770d28080ae49ec9e146fc4abe20500a6a9609046ed6f2034f"
+      },
+      "sampleSource": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/source/ThemeFontSamples.tsx",
+        "bytes": 978,
+        "sha256": "87e39037d2c9f1eee62bbbc28f9e8354b10f12c2de6eaefa9497a696c23c59a0"
+      },
+      "pixels": {
+        "path": "artifacts/nsh-validation/wenkai/pixels-art.json",
+        "bytes": 371,
+        "sha256": "99d83939201ca74dd5e5d35453cb4dc68b8b1abeceb5f1a7e733d41dd62411b5"
+      },
+      "images": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-dark-narrow-chat.png",
+          "bytes": 678038,
+          "sha256": "1c66e5c52230ff299e53003664b68cc542b4bb66546a4a6b54df08c6dd175c29"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-dark-narrow-long-title.png",
+          "bytes": 770094,
+          "sha256": "5a7012d0811e3808acf4d82f184838d359de15b00eccc51f32b450ac7b4c077c"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-dark-wide-chat.png",
+          "bytes": 1453183,
+          "sha256": "25ee1b1069be8770436abb38b5095960debbe7e11f0bd77eb861dd7f0034e0df"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-dark-wide-idle.png",
+          "bytes": 1494530,
+          "sha256": "28b2a66a0519133093164bcddf70554110a3bd223033b3ffcc9ff0fd311ecca5"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-dark-wide-settings.png",
+          "bytes": 1217460,
+          "sha256": "38f96570e21d006ac52c3bb28ef786c781ea8f1527a42c139575f6601cdabd69"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-font-samples.png",
+          "bytes": 36229,
+          "sha256": "5e1316a4e34b892a6cb2a8f73003b53dad6b58784ef6d62549e8e5945468397c"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-light-narrow-chat.png",
+          "bytes": 702632,
+          "sha256": "0b436650742c84cdda30c9cc0347bcc6797c78a1d127e4193cd9819d93663285"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-light-narrow-long-title.png",
+          "bytes": 829490,
+          "sha256": "904a4aa1e2aeb47082db255ebfcee54f2580e898c633c6b23d59ca97cf7c6ec9"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-light-wide-chat.png",
+          "bytes": 1587609,
+          "sha256": "b37ea56c97777fe216c824d9d0e38340f0c3c6c545ddcf6bf3c114c8604031cc"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-light-wide-idle.png",
+          "bytes": 1658987,
+          "sha256": "95387a8d520705d4be95d3d9f092f7da2b180755504979ed3ed9c8935b0ad3ee"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-jAhMrV/type-light-wide-settings.png",
+          "bytes": 1347315,
+          "sha256": "7c49abaf7ebec39bf5c1079a2f47e1934cb3574577408ef748888271e7d4cb13"
+        }
+      ]
+    },
+    "fallback": {
+      "capture": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/capture-inputs.json",
+        "bytes": 10744,
+        "sha256": "4179e07c50531040f3dcefd6b519f054266adb4c2cae3fd291d3ad154eaaee79"
+      },
+      "result": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/result.json",
+        "bytes": 1111,
+        "sha256": "c09c6be7b6849993d2a283f7100563fec1cc2e6bbb0249eb209f446c5ea215ea"
+      },
+      "testLog": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/test.log",
+        "bytes": 1892,
+        "sha256": "c0d8cc69054ee229bff946d912dede1d6eb2c8d4f2f6452ebf61b09730841ea8"
+      },
+      "sampleSource": {
+        "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/source/ThemeFontSamples.tsx",
+        "bytes": 978,
+        "sha256": "87e39037d2c9f1eee62bbbc28f9e8354b10f12c2de6eaefa9497a696c23c59a0"
+      },
+      "pixels": {
+        "path": "artifacts/nsh-validation/wenkai/pixels-fallback.json",
+        "bytes": 371,
+        "sha256": "99d83939201ca74dd5e5d35453cb4dc68b8b1abeceb5f1a7e733d41dd62411b5"
+      },
+      "images": [
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-dark-narrow-chat.png",
+          "bytes": 177092,
+          "sha256": "4ffad75661b9c08f1f0e12e6904540bb995454c628b51072ab88fa8fd3ff5b25"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-dark-narrow-long-title.png",
+          "bytes": 301077,
+          "sha256": "972e02aadc307badcd1e843a047645eb5782a4c77da67dd81a4a67d197de1460"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-dark-wide-chat.png",
+          "bytes": 488478,
+          "sha256": "0bc5b365f9d82cff15b2a762119fbe99e8f3bb78d63d69d952fd90702e376eca"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-dark-wide-idle.png",
+          "bytes": 477382,
+          "sha256": "a9457eb4df6e3eaf1a579da053778dc566a53f12e89a85e87c85e438c7358c9e"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-dark-wide-settings.png",
+          "bytes": 624285,
+          "sha256": "9500a1a8eb7d6fb8621e93f5f1b93ea95735701be1c87983d3fd3ba428481e06"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-font-samples.png",
+          "bytes": 36229,
+          "sha256": "5e1316a4e34b892a6cb2a8f73003b53dad6b58784ef6d62549e8e5945468397c"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-light-narrow-chat.png",
+          "bytes": 189476,
+          "sha256": "13bcd74464ad79c0303e387b4d439ea12be15daa4659b032d15ea650445c71e2"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-light-narrow-long-title.png",
+          "bytes": 329017,
+          "sha256": "ea0bbe81061471ac7616957a8d1dae06fa23f0c99ec337492ca38bcae2f2e567"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-light-wide-chat.png",
+          "bytes": 543280,
+          "sha256": "79e91499198b70660975a3edd01354139ecd20be7c7f6e9de2d148b334ccaaab"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-light-wide-idle.png",
+          "bytes": 514289,
+          "sha256": "892a94a694a47e87fd6e992a7dc99865fcf3012981020952b8eaeacf7667e8ec"
+        },
+        {
+          "path": "artifacts/nsh-validation/desktop-theme/run-8rxpXB/type-light-wide-settings.png",
+          "bytes": 782247,
+          "sha256": "086cda42ef55a7cb7ecef6f13de5005fea815a45d8190a93bb3726cf72f19972"
+        }
+      ]
+    }
+  },
+  "verificationLogs": [
+    {
+      "path": "artifacts/nsh-validation/wenkai/art-first.log",
+      "bytes": 2002,
+      "sha256": "639c7fa1b7a4de78d67a690aabdaf1a63ef24a805a666d3b6dcd2bd336922bf8"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/headless.log",
+      "bytes": 35865,
+      "sha256": "3765713bf2313266fa1a6138bf4f434451d886416eefa6f80fc76d829cd2eb03"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/native.log",
+      "bytes": 117142,
+      "sha256": "d51c7e3fb791d524b83a2b39bef137660d1ad8fe65eab038858078e72c18b0db"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/live-sidebar.log",
+      "bytes": 19490,
+      "sha256": "b6c91df05e078fe85782be11cfe08c4ed2a4b6231821d8da21c5b37206031ec0"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/icons.log",
+      "bytes": 17631,
+      "sha256": "4419da14c8c05cb153a6f0ddf88a3705ae248d28d74a0733842100d1ac3d1e30"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/control-hover.log",
+      "bytes": 16327,
+      "sha256": "5b2c5153190e710b4c92e4f8f44f7ae78923b509636ea786f366be82c25dce96"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/statistics.log",
+      "bytes": 36041,
+      "sha256": "ca2fc3f27e269d09770bcba4b06fbbbf9433e4f39bfb8f94e7e4521621515c05"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/settings.log",
+      "bytes": 1096,
+      "sha256": "91d89f5d40d2ec76efd9aab5fa9a53f297d21fec7f699f0a79fd40bf839be61d"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/composer.log",
+      "bytes": 45077,
+      "sha256": "e53cd34237fad699e1502e4cd7d91928d71f240b0f9d5ee3414f27430aaf8353"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/sidebar-activity.log",
+      "bytes": 579,
+      "sha256": "fe666d74b05aed53e404945a7713e04ceb8f1dd265c205e22f19a3af95199c16"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/session-preview.log",
+      "bytes": 16221,
+      "sha256": "a09954fc01ad85a6f1d30f96d5f060dfa52a8f190ee70013250b25bdd39248d5"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/turn-queue.log",
+      "bytes": 4037,
+      "sha256": "388a69dd744e06313c5878ae7820bd26449272420ad6ea0e53d597f4ab736e11"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/rich.log",
+      "bytes": 19789,
+      "sha256": "074fa56870bfc40ff6643b93cb15a58ce8c97a7c5c583e3f63c3c8568755cf8b"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/chat-cards.log",
+      "bytes": 1220,
+      "sha256": "8df633c148878725e80a3d0068858518e7f37072d13af9b8b7f952e119699006"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/window-chrome.log",
+      "bytes": 6520,
+      "sha256": "39cdf0915c37545462cdd3d62426a90fbb4fc1aeaa9454e72ca12abd5cf75931"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/core.log",
+      "bytes": 88985,
+      "sha256": "1026dcdb20057bdb672ee46581fea49b0f1ff3f2a495bbbca0f5060740136913"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/sample-rerun.log",
+      "bytes": 5844,
+      "sha256": "85d124188069afc66dc3b6fed7680ca58aa2f4ac86ac6a4ea57de868813962dc"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/electron.log",
+      "bytes": 41400,
+      "sha256": "989e5f9f12710b80452c3279d41e565b22175c60e90b014add6d427f1ee85aa5"
+    },
+    {
+      "path": "artifacts/nsh-validation/wenkai/rust.log",
+      "bytes": 799,
+      "sha256": "093d364a93775e20621a4c4be1168458f5c6cf6a2385220364f4f5cb9cff8bfc"
+    }
+  ]
+}

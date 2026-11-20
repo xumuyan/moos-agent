@@ -20,7 +20,7 @@ export function DesktopTurnQueue(props: {
   const action = (id: string, label: string, icon: 'edit' | 'trash' | 'toolDone', onPress: () => void, disabled = () => false) =>
     <Button testID={id} accessibilityLabel={label} style={actionStyle} {...focus} onPress={onPress} disabled={disabled()} disabledStyle={{ opacity: .48 }}
       tooltip={<Tooltip delay={500} style={{ backgroundColor: '#29292b', borderRadius: 8, padding: 8 }}>
-        <Text style={{ color: '#fffaf0', fontSize: 12 }}>{label}</Text>
+        <Text style={{ fontFamily: props.font, color: '#fffaf0', fontSize: 12 }}>{label}</Text>
       </Tooltip>}>
       <DesktopIcon name={icon} size={14} color={props.muted} />
     </Button>;
@@ -31,7 +31,7 @@ export function DesktopTurnQueue(props: {
       <Text testID="queue-status" class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontFamily: props.font, color: props.muted, fontSize: 12 }}>{props.status}</Text>
       {props.canResume && <Button testID="queue-resume" accessibilityLabel="继续发送排队消息" onPress={props.onResume} {...focus}
         style={{ borderRadius: 8, flexShrink: 0, paddingHorizontal: 7, height: 26, justifyContent: 'center' }}>
-        <Text style={{ color: props.ink, fontSize: 12 }}>继续发送</Text>
+        <Text style={{ fontFamily: props.font, color: props.ink, fontSize: 12 }}>继续发送</Text>
       </Button>}
     </View>}
     {multiple() && <Button testID="queue-toggle" accessibilityLabel={visible() ? '收起排队消息' : '展开排队消息'} onPress={() => expanded.set(visible() ? '' : props.scope)}
@@ -52,7 +52,7 @@ export function DesktopTurnQueue(props: {
               backgroundColor: props.dark ? '#0d162b' : '#f7f9ff', color: props.ink }} />
           {action('queued-save', '保存排队消息', 'toolDone', props.onSave, () => !validTurnText(props.edit?.text ?? ''))}
           <Button testID="queued-cancel-edit" accessibilityLabel="取消编辑" onPress={() => props.onEdit(null)} style={actionStyle} {...focus}>
-            <Text style={{ color: props.muted, fontSize: 16 }}>×</Text>
+            <Text style={{ fontFamily: props.font, color: props.muted, fontSize: 16 }}>×</Text>
           </Button>
         </> : <>
           <Text testID={`queued-text-${row.id}`} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontFamily: props.font,

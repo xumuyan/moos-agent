@@ -6,7 +6,7 @@ import struct
 import subprocess
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, settings_evidence, sidebar_jewel_evidence
+from nsh_composer_provenance import PROBE, ROOT, current_composer_input, settings_evidence, sidebar_jewel_evidence
 
 
 def record(data):
@@ -26,7 +26,8 @@ class DesktopSettingsTests(unittest.TestCase):
         self.assertTrue(evidence['protected'].keys().isdisjoint(evidence['inputs']))
         self.assertTrue(all(value is False for value in evidence['acceptance'].values()))
         for path, summary in evidence['inputs'].items():
-            self.assertEqual(record((ROOT / path).read_bytes()), summary, path)
+            current = current_composer_input(self, path, summary, after=settings_evidence)
+            self.assertEqual(record((ROOT / path).read_bytes()), current, path)
         for path, sha in evidence['previousInputs'].items():
             before = subprocess.check_output(['git', 'show', f"{evidence['base']}:{path}"], cwd=ROOT)
             self.assertEqual(record(before)['sha256'], sha, path)
@@ -36,7 +37,9 @@ class DesktopSettingsTests(unittest.TestCase):
             self.assertTrue(capture['synthetic'] and not capture['piExecuted'])
             self.assertEqual(capture['head'], evidence['base'])
             for name, summary in capture['workspaceHashes'].items():
-                self.assertEqual(record((PROBE / name).read_bytes()), summary, name)
+                path = PROBE / name
+                current = current_composer_input(self, str(path.relative_to(ROOT)), summary, after=settings_evidence)
+                self.assertEqual(record(path.read_bytes()), current, name)
             result = json.loads(self.verified(run['result']))
             self.assertTrue(result['passed'] and not result['installed'])
             self.assertIs(result['artwork'], mode == 'withArt')

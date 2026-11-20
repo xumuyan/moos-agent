@@ -107,6 +107,24 @@ mount(() => <View style={{flex:1}}><DesktopView onGeometry={(name, bounds) => {
   return result;
 }} /><Text style={{position:'absolute',opacity:0,pointerEvents:'none',fontSize:1}}>{'TYPE_GEOMETRY ' + JSON.stringify(measured())}</Text></View>);
 `);
+if (typography) await writeFile(join(source, 'ThemeFontSamples.tsx'), `import { mount, Text, View } from 'nsh';
+import { Input, TextView } from 'nsh/base';
+import { desktopTheme as t } from './desktop-theme';
+const sample = '霞鹜文楷 · WMi 123';
+const exact = 'LXGW WenKai';
+const fallback = t.fontFamily.slice(t.fontFamily.indexOf(',') + 2);
+mount(() => <View style={{ flex: 1, backgroundColor: '#ffffff', flexDirection: 'row' }}>
+  {[t.fontFamily, exact, '"Unavailable Moos Font", ' + fallback, fallback].map((fontFamily, i) => {
+    const style = {fontFamily, fontSize: 18, color: '#111111'};
+    return <View testID={'font-sample-' + i} style={{width: 244, height: 180, padding: 10, gap: 4}}>
+      <Text style={{...style, height: 28}}>{sample}</Text>
+      <Text style={{...style, height: 28, fontWeight: '600'}}>{sample}</Text>
+      <Input testID={'font-input-' + i} value={sample} style={{...style, height: 28, backgroundColor: 'transparent'}} />
+      <TextView styles={{root: style}} markdown={sample} />
+    </View>;
+  })}
+</View>);
+`);
 // Hash the exact copied/generated pre-build inputs; do not rely on HEAD alone.
 async function hashTree(root, prefix = '') {
   const records = {};

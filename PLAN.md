@@ -2,6 +2,12 @@
 
 ## 范围与状态
 
+### N01-D3 desktop_wenkai｜候选字体统一（2026-11-20，候选源码检查点）
+
+- 独立 NSH 候选的侧栏、标题、设置、聊天和输入统一优先使用本机霞鹜文楷；缺少时回退系统字体，代码保留 Menlo 优先的等宽栈。不随包分发字体，不改正式沐码。
+- 1× AppKit 合成 `--typography`：授权素材 `run-jAhMrV`／回退 `run-8rxpXB` 各 3/3、11 帧；Text、Input、Markdown 实际像素与原生指定 WenKai 一致。详见 `probes/nsh-validation/DESKTOP-TYPOGRAPHY.md` 和 `desktop-wenkai-verification.json`。
+- D1/D2/D3 保持未勾。需要用户视觉核对、人工 GUI／IME、2×、真实 PI＋GUI、签名整包和同负载资源测量。补齐 E124 历史报告、Rust 离线依赖、隔离 DSH 前置，并核查本轮两个 macOS 采样测试返回 `unavailable` 的原因。未推送或部署，手机暂停。
+
 ### N01-D3 desktop_settings｜桌面候选设置（2026-11-20，候选源码检查点）
 
 - 左下角「设置」打开蓝金面板。支持跟随系统、浅色、深色，独立开关人物装饰及输入栏统计，并从现有 Host 目录只读展示默认模型。显示选项即时生效，仅本次运行有效；隐藏统计不停止累计，不新增配置写入或 RPC。

@@ -32,8 +32,8 @@ function Preference(props: { id: string; label: string; description: string; che
     hoverStyle={controlHover} focusVisibleStyle={controlFocus}
     style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, borderRadius: 9 }}>
     <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-      <Text style={{ fontSize: 13, color: props.color }}>{props.label}</Text>
-      <Text style={{ fontSize: 12, lineHeight: 17, color: props.muted }}>{props.description}</Text>
+      <Text style={{ fontFamily: t.fontFamily, fontSize: 13, color: props.color }}>{props.label}</Text>
+      <Text style={{ fontFamily: t.fontFamily, fontSize: 12, lineHeight: 17, color: props.muted }}>{props.description}</Text>
     </View>
     <View style={{ width: 42, height: 23, borderRadius: 12, padding: 3, justifyContent: 'center', flexShrink: 0,
       alignItems: props.checked ? 'flex-end' : 'flex-start', backgroundColor: props.checked ? '#365891' : '#63759488',
@@ -67,25 +67,25 @@ export function DesktopSettings(props: SettingsProps) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 20, paddingVertical: 14,
         borderBottomWidth: 1, borderColor: props.dark ? '#cfac6d55' : '#a77b434d' }}>
         <DesktopIcon name="settings" color={gold()} size={19} />
-        <Text style={{ flex: 1, color: ink(), fontSize: 21, fontFamily: t.ornamentFont, fontWeight: '600' }}>设置</Text>
+        <Text style={{ fontFamily: t.fontFamily, flex: 1, color: ink(), fontSize: 21, fontWeight: '600' }}>设置</Text>
         <Button testID="settings-close" accessibilityLabel="关闭设置" onPress={props.onClose}
           hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
           style={{ ...controlSurface, paddingHorizontal: 12, height: 32, justifyContent: 'center' }}>
-          <Text style={{ fontSize: 12, color: ink() }}>关闭</Text>
+          <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: ink() }}>关闭</Text>
         </Button>
       </View>
       <Scroll testID="settings-scroll" style={{ flex: 1, minHeight: 0 }} contentStyle={{ padding: 20, gap: 13 }}>
         <View style={{ gap: 8 }}>
-          <Text style={{ color: gold(), fontSize: 14, fontWeight: '600' }}>外观与显示</Text>
+          <Text style={{ fontFamily: t.fontFamily, color: gold(), fontSize: 14, fontWeight: '600' }}>外观与显示</Text>
           <View style={card()}>
             <View style={{ padding: 10, gap: 7 }}>
-              <Text style={{ color: ink(), fontSize: 13 }}>界面颜色</Text>
+              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>界面颜色</Text>
               <RadioGroup style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
                 {appearances.map(option => <Radio testID={`settings-appearance-${option.id}`} checked={props.appearance === option.id}
                   onChange={() => props.onAppearance(option.id)} hoverStyle={controlHover} focusVisibleStyle={controlFocus}
                   style={{ ...controlSurface, borderWidth: 1, borderColor: 'transparent', minHeight: 32, justifyContent: 'center', paddingHorizontal: 10 }}
                   checkedStyle={{ backgroundColor: props.dark ? '#395689' : '#cdddf5', borderColor: '#c2a272' }}>
-                  <Text style={{ color: ink(), fontSize: 12 }}>{option.label}</Text>
+                  <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>{option.label}</Text>
                 </Radio>)}
               </RadioGroup>
             </View>
@@ -96,14 +96,14 @@ export function DesktopSettings(props: SettingsProps) {
           </View>
         </View>
         <View style={{ gap: 8 }}>
-          <Text style={{ color: gold(), fontSize: 14, fontWeight: '600' }}>模型</Text>
+          <Text style={{ fontFamily: t.fontFamily, color: gold(), fontSize: 14, fontWeight: '600' }}>模型</Text>
           <View style={{ ...card(), padding: 13, gap: 5 }}>
-            <Text style={{ color: ink(), fontSize: 13 }}>默认模型</Text>
-            <Text testID="settings-default-model" class="line-clamp-2" style={{ color: muted(), fontSize: 12, lineHeight: 17 }}>{props.defaultModel ?? '暂未提供'}</Text>
-            <Text style={{ color: muted(), fontSize: 12, lineHeight: 17 }}>在聊天输入栏可为当前会话选择模型和推理等级。</Text>
+            <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>默认模型</Text>
+            <Text testID="settings-default-model" class="line-clamp-2" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12, lineHeight: 17 }}>{props.defaultModel ?? '暂未提供'}</Text>
+            <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12, lineHeight: 17 }}>在聊天输入栏可为当前会话选择模型和推理等级。</Text>
           </View>
         </View>
-        <Text style={{ color: muted(), fontSize: 11, lineHeight: 16 }}>显示设置即时生效，仅在本次运行中保留。</Text>
+        <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 11, lineHeight: 16 }}>显示设置即时生效，仅在本次运行中保留。</Text>
       </Scroll>
     </View>
   </Dialog>;

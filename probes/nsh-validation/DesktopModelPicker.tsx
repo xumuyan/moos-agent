@@ -45,7 +45,7 @@ export function DesktopModelPicker(props: { scope: string; models: DesktopModel[
     return <Button testID={id} role="menuitemradio" accessibilityLabel={name} selected={selected}
       style={row} hoverStyle={{ backgroundColor: hover() }} focusVisibleStyle={{ backgroundColor: hover() }} onPress={choose}>
       <Text class="line-clamp-1" style={{ ...label(), flex: 1, minWidth: 0 }}>{name}</Text>
-      {selected && <Text testID={`${id}-check`} style={{ color: menuColor(), width: 14, fontSize: 13 }}>✓</Text>}
+      {selected && <Text testID={`${id}-check`} style={{ fontFamily: t.fontFamily, color: menuColor(), width: 14, fontSize: 13 }}>✓</Text>}
     </Button>;
   }
   const triggerInk = () => props.art && !props.dark ? '#bdcdea' : t.composerInk;
@@ -64,7 +64,7 @@ export function DesktopModelPicker(props: { scope: string; models: DesktopModel[
       selected={open()} disabled={props.disabled} disabledStyle={{ opacity: .54 }}
       style={{ height: 32, minWidth: 0, paddingLeft: 8, paddingRight: 5, gap: 4, ...controlSurface, flexDirection: 'row', alignItems: 'center' }}
       hoverStyle={controlHover} selectedStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}>
-      <Text testID="selected-model" class="line-clamp-1" style={{ flexShrink: 1, minWidth: 0, fontFamily: props.art ? t.ornamentFont : t.fontFamily, fontSize: 12, fontWeight: '600', color: triggerInk() }}>{modelLabel()}</Text>
+      <Text testID="selected-model" class="line-clamp-1" style={{ flexShrink: 1, minWidth: 0, fontFamily: t.fontFamily, fontSize: 12, fontWeight: '600', color: triggerInk() }}>{modelLabel()}</Text>
       {!!effortLabel() && <Text testID="selected-effort" class="line-clamp-1" style={{ minWidth: 0, flexShrink: 1, maxWidth: 64, fontFamily: t.fontFamily, fontSize: 11, fontWeight: '600', color: props.dark ? '#e1c17d' : t.goldSoft }}>{`· ${effortLabel()}`}</Text>}
       {!!props.models.length && <DesktopIcon name={open() ? 'chevronUp' : 'chevronDown'} size={14} color={triggerInk()} testID={open() ? 'icon-model-up' : 'icon-model-down'} />}
     </Button>}>
@@ -78,13 +78,13 @@ export function DesktopModelPicker(props: { scope: string; models: DesktopModel[
           <Input ref={node => { searchField = node; }} testID="model-search" accessibilityLabel="搜索模型" placeholder="搜索模型…" autoFocus autoCapitalize="none" autoCorrect={false} maxLength={80} submitBehavior="submit"
             value={query()} onChange={e => changeQuery(e.value)}
             onSubmit={() => { const first = groups()[0]?.models[0]; if (first) selectModel(first); }}
-            style={{ flex: 1, minWidth: 0, height: 28, paddingHorizontal: 7, color: menuColor(), backgroundColor: 'transparent', placeholderColor: menuMuted(), fontSize: 12 }} />
+            style={{ fontFamily: t.fontFamily, flex: 1, minWidth: 0, height: 28, paddingHorizontal: 7, color: menuColor(), backgroundColor: 'transparent', placeholderColor: menuMuted(), fontSize: 12 }} />
           <Button testID="model-search-clear" accessibilityLabel="清除搜索" disabled={!query()} disabledStyle={{ opacity: 0 }}
             onPress={() => { changeQuery(''); searchField?.focus(); }} style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}><Text style={label()}>×</Text></Button>
         </View>}
         <Scroll ref={node => { scrollList = node; }} testID="model-groups" style={{ maxHeight: maxHeight() - (searchable() ? 38 : 10), minHeight: 0 }}>
           {groups().map(group => <View accessibilityLabel={group.label || undefined}>
-            {!!group.label && <Text role="header" style={{ paddingHorizontal: 7, height: 23, paddingTop: 4, fontSize: 11, color: menuMuted() }}>{group.label}</Text>}
+            {!!group.label && <Text role="header" style={{ fontFamily: t.fontFamily, paddingHorizontal: 7, height: 23, paddingTop: 4, fontSize: 11, color: menuMuted() }}>{group.label}</Text>}
             {group.models.map(m => option(`model-${m.id}`, m.label, props.choice?.modelId === m.id, () => selectModel(m)))}
           </View>)}
           {!groups().length && <Text testID="model-no-results" style={{ ...label(), padding: 8 }}>没有匹配的模型。</Text>}

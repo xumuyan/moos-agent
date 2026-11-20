@@ -125,6 +125,7 @@ class SidebarActivityTests(unittest.TestCase):
         self.assertIn('cleanup(() => motion.stop())', view)
         self.assertIn('snapshot().conversations.get(item.id)', view)
         self.assertNotIn('● ', view)
-        self.assertIn('Songti SC', (PROBE / 'desktop-sidebar-tree.ts').read_text())
+        for label in ('project', 'session'):
+            self.assertRegex(view, rf'testID=\{{`{label}-label-[^`]+`\}}[^\n]*fontFamily: t\.fontFamily')
         for path in ('PLAN.md', 'operatelog.md'):
             self.assertIn('SIDEBAR-ACTIVITY.md', (ROOT / path).read_text())

@@ -53,7 +53,7 @@ class DesktopTypographyTests(unittest.TestCase):
     def test_native_typography_contract_and_evidence_limits(self):
         tokens = (NSH / 'desktop-theme.ts').read_text()
         view = (NSH / 'DesktopView.tsx').read_text()
-        for token in ('PingFang SC', 'Songti SC', 'Georgia', 'Menlo', 'font: 14, lineHeight: 22'):
+        for token in ('"LXGW WenKai", system-ui', 'PingFang SC', 'Menlo', 'font: 14, lineHeight: 22'):
             self.assertIn(token, tokens)
         for token in ('testID="chat-title"', 'each={messageRows()}', 'code: { fontFamily: t.monoFont }',
                       'codeBlockCode: { fontFamily: t.monoFont }', 'testID="selection"'):
