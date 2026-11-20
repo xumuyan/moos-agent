@@ -4,10 +4,11 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { copyFile, cp, lstat, mkdir, mkdtemp, readFile, realpath, rename, writeFile } from 'node:fs/promises';
+import { copyFile, cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hostFiles, packageRuntime, verifyInternalLinks, verifyPackageIdentity } from './desktop-package.mjs';
+import { trimDependencyMaps } from './desktop-appkit-size.mjs';
 
 const probe = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(probe, '../..'));
@@ -16,7 +17,9 @@ assert.equal(process.platform, 'darwin');
 assert.equal(process.arch, 'arm64');
 assert.equal(process.version, 'v24.15.0');
 const [mode, buildPath, ...extra] = process.argv.slice(2);
-assert.ok(buildPath && !extra.length && ['--check', '--interactive'].includes(mode), 'Pass --check or --interactive and an ignored appkit-chat native build directory');
+const trimMaps = extra.length === 1 && extra[0] === '--trim-maps';
+assert.ok(buildPath && (!extra.length || trimMaps) && ['--check', '--interactive'].includes(mode),
+  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optionally --trim-maps');
 const scripted = mode === '--check';
 const base = await realpath('artifacts/nsh-validation');
 const build = await realpath(resolve(buildPath));
@@ -81,6 +84,14 @@ const inputs = Object.fromEntries(await Promise.all(hostFiles.map(async file => 
 const runtimeRecord = async path => ({ sha256: await record(path) });
 const runtimeInputs = Object.fromEntries(Object.entries(inputs).map(([file, sha256]) => [file, { sha256 }]));
 await packageRuntime({ app: staging, node: process.execPath, dir, check: true, run, record: runtimeRecord, inputs: runtimeInputs });
+const deps = 'Contents/Resources/host/node_modules';
+let removedMaps = 0;
+if (trimMaps) {
+  const removed = await trimDependencyMaps(join(staging, deps));
+  assert.ok(removed.length > 0, 'No recognized dependency source maps to trim');
+  removedMaps = removed.length;
+  await writeFile(join(dir, 'trimmed-maps.json'), `${JSON.stringify(removed, null, 2)}\n`);
+}
 run('/usr/bin/codesign', ['--force', '--sign', '-', join(macos, dylib)]);
 run('/usr/bin/codesign', ['--force', '--sign', '-', staging]);
 await verifyInternalLinks(staging);
@@ -94,16 +105,26 @@ verify(staging);
 const destination = await mkdtemp(`/private/tmp/n01-appkit-chat-${scripted ? 'check' : 'interactive'}-`);
 await writeFile(join(dir, 'relocation.txt'), `${destination}\n`);
 const app = join(destination, '沐码.app');
-await rename(staging, app);
-for (const part of ['profile', 'storage']) await mkdir(join(destination, part), { mode: 0o700 });
+// Archive only the signed .app, before creating any writable state. Run the
+// extracted copy, so archive loss of executable modes, links or seals fails.
+const zip = join(dir, 'MuMa-AppKit-Chat.zip');
+run('/usr/bin/ditto', ['-c', '-k', '--keepParent', staging, zip]);
+run('/usr/bin/ditto', ['-x', '-k', zip, destination]);
+assert.deepEqual(await readdir(destination), ['沐码.app']);
+await verifyInternalLinks(app);
 const identity = verify(app);
+await rm(staging, { recursive: true }); // Only our fresh build inside dir.
+for (const part of ['profile', 'storage']) await mkdir(join(destination, part), { mode: 0o700 });
 const binary = join(app, 'Contents/MacOS', executable);
 assert.equal(run(join(app, 'Contents/MacOS/moos-node'), ['--version']).trim(), process.version);
+const kib = path => Number(run('/usr/bin/du', ['-sk', path]).trim().split(/\s+/)[0]);
 const receipt = { builtAt: new Date().toISOString(), head: run('/usr/bin/git', ['rev-parse', 'HEAD']).trim(),
   platform: run('/usr/bin/sw_vers', ['-productVersion']).trim(), arch: process.arch, nsh: version, node: process.version,
   identity, mode, fixtureOnly: true, installed: false, signed: 'ad-hoc deep strict', foreground: false, launches: [],
   upstreamRequests: 0, nativeBuild: relative(process.cwd(), build), viewInputs, hostInputs: inputs, entry: await record(entry),
-  runner: await record(binary), resources: config.capabilities };
+  runner: await record(binary), resources: config.capabilities, trimMaps, removedMaps,
+  sizes: { bundleKiB: kib(app), nodeKiB: kib(join(app, 'Contents/MacOS/moos-node')), dependencyKiB: kib(join(app, deps)),
+    zipBytes: (await stat(zip)).size }, extractedFromZip: true };
 if (scripted) {
   // An accidental double-click/direct launch without the argument runs no fixture tasks.
   const rejected = spawnSync(binary, [], { cwd: destination, env, encoding: 'utf8', timeout: 5000 });

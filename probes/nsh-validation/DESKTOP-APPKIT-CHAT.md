@@ -6,6 +6,12 @@
 - `--interactive` 仅构建同视图的独立交互包，不内置自动操作入口，也不自动打开。单独按实际路径执行 `open -a`，不要按同名应用搜索。机器上的两个「沐码」不可混淆。两模式共享本机探针 ID，各自拥有不同临时根；并用时不要通过标识查找或激活。
 - 本轮实际打开了交互包并看到首屏、两个合成项目与本地夹具入口。点击测试被 `target-occluded` 拦截，未送达，不抢回焦点。没有人工 Send / Stop / Quit / 重开验收。脚本通过不替代这些路径，也不证明异常父进程退出后可恢复。
 
+## 包体压缩：保留 AppKit 和 PI
+
+构建参数 `--trim-maps` 只删除新建包里经识别的生产依赖调试源码映射，不删除 Node、PI、任何运行模块或许可证。裁剪后缺少源码映射的调试栈回溯；需要完整诊断时去掉该参数。两种模式都先签名、生成只含 `.app` 的 ZIP，然后在独立临时目录解压并复核链接、签名和内置 Node 版本。脚本模式运行解压后的包，交互模式仍不自动打开。ZIP 大小是传输体积，`du -sk` 是解压落盘占用，两者都不是内存。
+
+[压缩对照回执](desktop-appkit-chat-compression-evidence.json) 使用同一聊天视图、Node 和 AppKit runner。实测交互包移除 3,863 个映射：落盘 298.33→256.66 MiB（−13.97%），ZIP 81.23→73.36 MiB（−9.68%）。全包比对中除新的资源封条及其主执行文件签名外，剩余 11,535 个文件／链接一致。两种交互包均未打开；裁剪后的脚本包实际首启 6/6、重开 12/12（真实 PI＋本机回环）。没有换掉当前运行的候选，也没有压缩或部署正式应用。
+
 ## 实窗验证（未完成）
 
 本机 [复查回执](desktop-appkit-interaction-evidence.json) 区分了两项结果：原交互包与其副本通过深度签名校验，交互副本显式传 `--check` 会拒绝，未写入 profile/storage；对已运行交互包的新桌面事务因 `focus-unavailable` 停止。单独的只读诊断可从候选进程取得 AX 窗口和元素，但当时候选不是前台应用；这不证明前台可编辑，也不证明上次 `target-occluded` 的具体原因。没有发出键鼠事件。
@@ -24,8 +30,9 @@ out=$(mktemp -d "$PWD/artifacts/nsh-validation/appkit-chat.XXXXXX")
 upstream=$(cat /private/tmp/n01-appkit-source-dir)
 /bin/bash probes/nsh-validation/appkit-hostcheck/build-chat-runner.sh "$upstream" "$out" >"$out/native.log" 2>&1 &&
   printf '0\n' >"$out/native.status"
-node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out"
-node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out"
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out" --trim-maps
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out" --trim-maps
+# 对照：移除 --trim-maps 即生成完整诊断版。
 ```
 
-脚本、实际打开和回归结果见 `desktop-appkit-chat-evidence.json` 及根目录 `operatelog.md`。本轮保留完整生产依赖，不测包体积收益，不做同负载性能对照。ad-hoc 签名不代表 Developer ID、公证或跨设备发行。下一步是在确认候选窗口可安全接收输入后核验真实按键/按钮和 Quit 退出重开，再分别处理隔离双模型持久配置、异常恢复、合成迁移与资源对照。
+早期完整包脚本、实际打开和回归结果见 `desktop-appkit-chat-evidence.json` 及根目录 `operatelog.md`。优先完成包体测量；本轮不做同负载性能对照。ad-hoc 签名不代表 Developer ID、公证或跨设备发行。人工按键/按钮和 Quit 退出重开、隔离双模型持久配置、异常恢复、合成迁移与资源对照仍待分开验收。

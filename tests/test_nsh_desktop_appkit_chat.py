@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import successor_input
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
@@ -58,8 +60,10 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertFalse(any(self.evidence['boundaries'].values()))
 
     def test_bind_new_inputs_and_available_logs(self):
+        compression = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
         for name, expected in self.evidence['inputs'].items():
-            self.assertEqual(expected, sha(ROOT / name), name)
+            current = successor_input(self, compression, name, expected)
+            self.assertEqual(current, sha(ROOT / name), name)
         self.assertEqual(self.evidence['check']['entry'], sha(PROBE / 'appkit-hostcheck/ChatCheck.tsx'))
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name
@@ -92,3 +96,51 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             path = ROOT / name
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
+
+    def test_compression_reduces_archive_and_app_without_changing_runtime(self):
+        data = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
+        full, compact, scripted = (data[key] for key in ('fullInteractive', 'compactInteractive', 'compactCheck'))
+        for bundle in (full, compact, scripted):
+            self.assertTrue(bundle['extractedFromZip'] and bundle['fixtureOnly'])
+            self.assertFalse(bundle['installed'])
+            self.assertEqual(bundle['signed'], 'ad-hoc deep strict')
+            self.assertEqual(bundle['upstreamRequests'], 0)
+            self.assertEqual(bundle['viewInputs'], full['viewInputs'])
+            self.assertEqual(bundle['hostInputs'], full['hostInputs'])
+        self.assertFalse(full['trimMaps'])
+        self.assertTrue(compact['trimMaps'] and scripted['trimMaps'])
+        self.assertEqual(full['entry'], compact['entry'])
+        audit = data['comparison']
+        self.assertTrue(audit['retainedEntriesIdentical'])
+        self.assertGreater(audit['retainedEntries'], 0)
+        self.assertGreater(audit['removedMapLogicalBytes'], 0)
+        self.assertGreater(audit['fullLogicalBytes'], audit['compactLogicalBytes'])
+        self.assertRegex(audit['unsignedRunnerSha256'], r'^[0-9a-f]{64}$')
+        self.assertIn('Contents/_CodeSignature/CodeResources', audit['resealedEntries'])
+        self.assertLessEqual(set(audit['resealedEntries']),
+                             {'Contents/_CodeSignature/CodeResources', 'Contents/MacOS/AppKitPI'})
+        self.assertGreater(compact['removedMaps'], 0)
+        self.assertEqual(full['removedMaps'], 0)
+        self.assertEqual(compact['removedMaps'], scripted['removedMaps'])
+        self.assertEqual(full['sizes']['nodeKiB'], compact['sizes']['nodeKiB'])
+        for field in ('bundleKiB', 'dependencyKiB', 'zipBytes'):
+            self.assertLess(compact['sizes'][field], full['sizes'][field], field)
+        self.assertEqual(full['launches'], [])
+        self.assertEqual(compact['launches'], [])
+        self.assertEqual(compact['mode'], '--interactive')
+        self.assertNotIn('n01.complete', compact['resources']['host'])
+        self.assertEqual(scripted['mode'], '--check')
+        self.assertTrue(scripted['registeredToolGone'])
+        self.assertEqual(len(scripted['launches']), 2)
+        self.assertEqual(scripted['launches'][0]['scope'], scripted['launches'][1]['scope'])
+        self.assertEqual([launch['checks'] for launch in scripted['launches']],
+                         [launch['checks'] for launch in self.evidence['check']['launches']])
+        self.assertFalse(any(data['boundaries'].values()))
+        self.assertEqual(len(data['archives']), 3)
+        for name, expected in data['inputs'].items():
+            self.assertEqual(expected['sha256'], sha(ROOT / name), name)
+        for name, expected in {**data['localReceipts'], **data['archives']}.items():
+            path = ROOT / name
+            if path.is_file():
+                self.assertEqual(expected, sha(path), name)
+        self.assertIn('desktop-appkit-chat-compression-evidence.json', (ROOT / 'PLAN.md').read_text())
