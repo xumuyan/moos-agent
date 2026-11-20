@@ -2,7 +2,7 @@ import { cleanup, colorScheme, computed, createMotion, host, Image, List, platfo
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { DesktopModelCatalog, TaskRef } from './desktop-contract';
+import type { Calls, DesktopModelCatalog, TaskRef } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
@@ -48,8 +48,9 @@ function SessionActivity(props: { id: string; onLayout?: (e: { bounds: Bounds })
   </View>;
 }
 
-export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void> };
-export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
+export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void>; history: () => HistoryPage | null };
+type HistoryPage = Calls['sessions.history']['result'];
+export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; persistentHistory?: boolean; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
   const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
   // Preserve the native window frame and controls, but extend artwork under them.
   macWindow?.set({ titleBar: { style: 'hidden', height: 32 } });
@@ -105,6 +106,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (disposed) return;
     statistics.confirm(controller.conversations.values());
     revision.set(revision() + 1);
+    syncHistory();
     if (!pumpScheduled) {
       pumpScheduled = true;
       // Run outside controller emissions, then recheck selection, errors and drain.
@@ -118,10 +120,59 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const selectedProject = computed(() => snapshot().projectId);
   const selectedSession = computed(() => snapshot().sessionId);
   const projects = computed(() => snapshot().projects);
+  const historyPage = signal<HistoryPage | null>(null);
+  const historyState = signal<'loading' | 'ready' | 'error'>('loading');
+  let historyScope = '', historyRequest = 0;
+  const selectedHistory = () => {
+    const page = historyPage();
+    return page && page.projectId === selectedProject() && page.sessionId === selectedSession() ? page : null;
+  };
+  const historyCapped = () => (selectedHistory()?.messages.length ?? 0) >= 120;
+  async function loadHistory(older = false) {
+    const scope = controller.current?.scope;
+    if (!props.persistentHistory || disposed || !scope) return;
+    const prior = selectedHistory();
+    const before = older && prior ? prior.before : null;
+    if (older && (!before || historyCapped() || historyState() === 'loading')) return;
+    const request = ++historyRequest;
+    historyState.set('loading');
+    try {
+      const page = await transport('sessions.history', { ...scope, before });
+      if (disposed || request !== historyRequest) return;
+      const existing = older && prior ? prior.messages : [];
+      const ids = new Set(existing.map(m => m.id));
+      if (page.projectId !== scope.projectId || page.sessionId !== scope.sessionId ||
+          !Array.isArray(page.messages) || page.messages.length > 12 || (page.before !== null &&
+            (page.messages.length !== 12 || page.before !== page.messages[0]?.id)) || page.messages.some(m => {
+            if (!m || typeof m.id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(m.id) || ids.has(m.id) ||
+                !['user', 'assistant'].includes(m.role) || typeof m.text !== 'string' || m.text.length > 8192 ||
+                typeof m.truncated !== 'boolean') return true;
+            ids.add(m.id); return false;
+          })) throw Error('invalid history page');
+      historyPage.set({ ...scope, before: page.before, messages: [...page.messages, ...existing] });
+      historyState.set('ready');
+      // Selection may have returned to a session whose queued turn drained while loading history.
+      refresh();
+    } catch { if (!disposed && request === historyRequest) historyState.set('error'); }
+  }
+  function syncHistory() {
+    if (!props.persistentHistory) return;
+    const scope = controller.current?.scope;
+    const key = scope ? scopeKey(scope) : '';
+    if (key === historyScope) return;
+    historyScope = key;
+    historyRequest++;
+    historyPage.set(null);
+    if (scope) void loadHistory();
+  }
   const cachedRows = createMessageRows();
   const messageRows = () => {
     const c = snapshot().current;
-    return cachedRows(c ? `${c.scope.projectId}/${c.scope.sessionId}` : '', c?.rows ?? []);
+    const key = c ? scopeKey(c.scope) : '';
+    if (!props.persistentHistory) return cachedRows(key, c?.rows ?? []);
+    const saved = selectedHistory()?.messages.map(m => ({ role: m.role === 'user' ? '你' : 'PI 公开文本',
+      body: m.text + (m.truncated ? ' [历史预览已截断]' : '') })) ?? [];
+    return cachedRows(key, [...saved, ...(c?.rows ?? [])]);
   };
   const layout = () => desktopLayout(windowSize().width, right());
   const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
@@ -132,11 +183,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
   const blocked = computed(() => disposed || !snapshot().current || snapshot().loading || !!snapshot().current?.error || !!snapshot().error);
+  const historyPending = () => !!props.persistentHistory && !selectedHistory();
   const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
   const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
   const hasQueuedRows = computed(() => queuedRows().length > 0);
-  const canEnqueue = () => { queueRevision(); return !blocked() && busy() && !queue.full(pickerScope()) && validTurnText(draft()); };
-  const disabled = () => blocked() || busy() || !!queuedRows().length || !validTurnText(draft());
+  const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !queue.full(pickerScope()) && validTurnText(draft()); };
+  const disabled = () => blocked() || historyPending() || busy() || !!queuedRows().length || !validTurnText(draft());
   const canStop = () => {
     const { current, sessionId } = snapshot();
     return !blocked() && !!current?.busy && !!current.task && !isTerminal(current.task.status) &&
@@ -144,7 +196,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   };
   const pickerDisabled = () => blocked() || busy() || !catalog();
   const queueHeld = () => queue.paused(pickerScope()) || !nextTurnReady(snapshot().current);
-  const canResume = () => !blocked() && !busy() && !editTurn() && queuedRows().length > 0 && queueHeld() && nextTurnReady(snapshot().current, true);
+  const canResume = () => !blocked() && !historyPending() && !busy() && !editTurn() && queuedRows().length > 0 && queueHeld() && nextTurnReady(snapshot().current, true);
   const queueStatus = computed(() => {
     if (snapshot().error || snapshot().current?.error) return '发送状态未确认 · 队列暂停';
     if (canResume()) return '队列已暂停';
@@ -162,7 +214,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     });
   }
   function pumpQueue(resume: boolean) {
-    if (disposed || blocked() || busy() || editTurn() || (resume && !canResume())) return;
+    if (disposed || blocked() || historyPending() || busy() || editTurn() || (resume && !canResume())) return;
     const row = queue.take(pickerScope(), controller.current, resume);
     if (row) { submitTurn(row.text, row.choice); queueChanged(); }
   }
@@ -196,13 +248,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const project = async (id: string) => { resetEditor(); await controller.selectProject(id); };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
   const create = async () => { resetEditor(); await controller.createSession(); };
-  props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create });
+  props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create, history: selectedHistory });
   void controller.start();
   const dark = () => colorScheme() === 'dark';
   const ink = () => dark() ? t.dark.ink : t.ink;
   const muted = () => dark() ? '#b7c3dd' : t.muted;
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
-  const active = () => !!snapshot().current?.rows.length;
+  const active = () => !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
   const safe = () => styleLayout(active(), artAvailable, titleBarHeight());
   const headingShadow = () => dark() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
@@ -307,7 +359,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
           <Text testID="status" style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>{status()}</Text>
           {!!error() && <Text testID="error" style={{ fontFamily: t.fontFamily, color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
-          {!snapshot().current?.rows.length && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
+          {props.persistentHistory && !!snapshot().current && historyState() === 'loading' &&
+            <Text testID="history-loading" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>正在读取历史…</Text>}
+          {props.persistentHistory && historyState() === 'error' && !!snapshot().current &&
+            <Button testID="history-retry" onPress={() => void loadHistory(!!selectedHistory())} style={{ ...button, alignSelf: 'flex-start' }}>
+              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>历史读取失败 · 重试</Text>
+            </Button>}
+          {!!selectedHistory()?.before && historyState() === 'ready' && (historyCapped() ?
+            <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>本次最多显示 120 条历史消息，较早记录未删除</Text> :
+            <Button testID="history-older" onPress={() => void loadHistory(true)} style={{ ...button, alignSelf: 'flex-start' }}>
+              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>加载更早消息</Text>
+            </Button>)}
+          {!active() && (!props.persistentHistory || historyState() === 'ready') && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
           <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
             {r => {
               const tool = computed(() => toolCard(r().role, r().body, dark()));

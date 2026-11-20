@@ -49,7 +49,9 @@ class DesktopWenKaiTests(unittest.TestCase):
             self.assertEqual(capture['head'], evidence['base'])
             self.assertTrue(capture['synthetic'] and not capture['piExecuted'])
             for name, summary in capture['workspaceHashes'].items():
-                self.assertEqual(digest((PROBE / name).read_bytes()), summary, name)
+                path = str((PROBE / name).relative_to(ROOT))
+                expected = current_composer_input(self, path, summary, after=wenkai_evidence)
+                self.assertEqual(digest((PROBE / name).read_bytes()), expected, name)
             self.assertEqual(digest(self.verified(run['sampleSource'])), capture['sourceHashes']['ThemeFontSamples.tsx'])
             result = json.loads(self.verified(run['result']))
             self.assertTrue(result['passed'] and not result['installed'])

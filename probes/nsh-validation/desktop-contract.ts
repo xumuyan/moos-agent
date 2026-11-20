@@ -27,6 +27,10 @@ export type Calls = {
   'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
+  // Only the trusted persistent fixture enables this historical (not live) view.
+  'sessions.history': { params: Scope & { before: string | null }; result: Scope & {
+    messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean }[]; before: string | null;
+  } };
   'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string }; result: { task: Task; replayed: boolean } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
@@ -64,6 +68,9 @@ export type Response<M extends Method> = { version: 1; id: string | null } & (
  *   bounded pending calls/response parsing. Native/UI integration is separately unverified.
  * - Terminal drained pages may include numeric task statistics. No raw usage, provider identity,
  *   tool arguments, response payloads, or history are exposed by these observations.
+ * - sessions.history is enabled only for the fixed persistent synthetic build; passes scoped
+ *   message ID cursors, returns up to 12 pre-start user/assistant previews (4096 code points each).
+ *   It is not a task/event replay, editing surface or import.
  * - Temporary projects/sessions disappear on clean shutdown. Failed drain retains state and
  *   exits nonzero. SDK is in-process; no separate PI child is implied. Only registered tool
  *   cleanup is tested, not arbitrary detached descendants or SIGKILL/crash recovery.

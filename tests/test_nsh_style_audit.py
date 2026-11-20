@@ -85,9 +85,14 @@ class NSHStyleAuditTests(unittest.TestCase):
         self.assertNotIn('testID="send"', view)
         contract = (NSH / 'desktop-contract.ts').read_text()
         methods = re.findall(r"^  '([^']+)': \{ params:", contract, re.M)
-        self.assertEqual(len(methods), 6)
-        for method in methods:
+        # The frozen review describes the default six methods. The successor
+        # adds a read-only history method only in the persistent trial build.
+        self.assertEqual(len(methods), 7)
+        self.assertEqual(methods.count('sessions.history'), 1)
+        for method in set(methods) - {'sessions.history'}:
             self.assertIn(method, self.review)
+        pipe = (NSH / 'DesktopPipe.swift').read_text()
+        self.assertIn('#if PI_PERSISTENT\n        return base + ["sessions.history"]\n#else\n        return base', pipe)
 
     def test_root_documents_keep_audit_and_pending_product_gates(self):
         for name in ('PLAN.md', 'operatelog.md'):

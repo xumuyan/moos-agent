@@ -63,10 +63,15 @@ def desktop_profile_evidence():
     return json.loads((PROBE / 'desktop-profile-evidence.json').read_text())
 
 
+def desktop_persistent_evidence():
+    return json.loads((PROBE / 'desktop-persistent-evidence.json').read_text())
+
+
 def current_composer_input(test, path, previous, *, after=None):
     evidence_chain = (controls_evidence, picker_evidence, hover_evidence, session_preview_evidence,
                       turn_queue_evidence, statistics_evidence, statistics_split_evidence, sidebar_jewel_evidence,
-                      settings_evidence, wenkai_evidence, live_models_evidence, desktop_profile_evidence)
+                      settings_evidence, wenkai_evidence, live_models_evidence, desktop_profile_evidence,
+                      desktop_persistent_evidence)
     start = evidence_chain.index(after) + 1 if after is not None else 0
     for evidence in evidence_chain[start:]:
         previous = successor_input(test, evidence(), path, previous)

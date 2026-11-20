@@ -83,10 +83,11 @@ test('one regressed workload, zero improvement or jitter covering the gain is no
   const x=fixture(); x.pairs[0].electron.samples['idle-new'].cpuPercent=1; assert.equal(validateComparison(x).status,'not-demonstrated');
   const y=fixture(); y.pairs[0].nsh.storage.fullDiskBytes=900; assert.equal(validateComparison(y).status,'not-demonstrated');
 });
-test('six-method wire remains the shared boundary; no renderer directory/credential method', async () => {
+test('shared wire adds only scoped read-only history; no renderer directory/credential method', async () => {
   const text=await readFile(new URL('./desktop-contract.ts',import.meta.url),'utf8');
   const block=text.split('export type Calls = {')[1].split('\n};')[0];
-  assert.deepEqual([...block.matchAll(/^  '([^']+)':/gm)].map(m=>m[1]),['projects.list','sessions.list','sessions.create','tasks.submit','tasks.cancel','tasks.events']);
+  assert.deepEqual([...block.matchAll(/^  '([^']+)':/gm)].map(m=>m[1]),['projects.list','sessions.list','sessions.create','sessions.history','tasks.submit','tasks.cancel','tasks.events']);
+  assert.match(block, /'sessions.history': \{ params: Scope & \{ before: string \| null \}/);
   assert.doesNotMatch(block,/credentials|provider|shell|directory|filePath/);
 });
 

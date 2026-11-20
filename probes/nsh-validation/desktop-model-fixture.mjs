@@ -11,7 +11,7 @@ export const desktopFixtureModels = Object.freeze([
   Object.freeze({ id: 'fixture-alternate', label: '本地夹具 · 备选', group, reasoning: Object.freeze({ defaultId: 'high', levels }) }),
 ]);
 
-export async function startDesktopModelFixture() {
+export async function startDesktopModelFixture({ restartCheck = false } = {}) {
   const apiKey = randomBytes(32).toString('hex');
   const textOf = content => typeof content === 'string' ? content : (Array.isArray(content)
     ? content.filter(p => p.type === 'text').map(p => p.text).join('\n') : '');
@@ -49,7 +49,16 @@ export async function startDesktopModelFixture() {
         chunk({}, 'tool_calls');
       } else {
         const prefix = input.model === 'fixture' ? '本地夹具响应' : '本地备选夹具响应';
-        const output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}${model.reasoning ? ` [${input.reasoning_effort}]` : ''}：${text.slice(0, 4096)}`;
+        const continued = restartCheck && text === 'N01_RESTART_CONTINUE';
+        let output;
+        if (continued) {
+          const prior = input.messages.slice(0, index);
+          const preserved = prior.some(m => m.role === 'user' && textOf(m.content) === 'N01_RESTART_FIRST') &&
+            prior.some(m => m.role === 'assistant' && textOf(m.content) === '本地夹具响应：N01_RESTART_FIRST');
+          output = preserved ? 'N01_CONTEXT_PRESERVED' : 'N01_CONTEXT_MISSING';
+        } else {
+          output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}${model.reasoning ? ` [${input.reasoning_effort}]` : ''}：${text.slice(0, 4096)}`;
+        }
         // Separate public deltas also exercise real PI streaming without a synthetic runner.
         for (const part of output.match(/.{1,16}/gs) ?? []) chunk({ content: part });
         chunk({}, 'stop', { prompt_tokens: 20, completion_tokens: 5, total_tokens: 25 });

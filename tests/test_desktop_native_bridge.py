@@ -4,6 +4,8 @@ import hashlib
 import json
 import unittest
 
+from nsh_composer_provenance import current_composer_input
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -11,7 +13,7 @@ class DesktopNativeBridgeTests(unittest.TestCase):
     def test_reproducible_native_checkpoint(self):
         evidence = json.loads((ROOT / 'probes/nsh-validation/desktop-native-evidence.json').read_text())
         for path, digest in evidence['sourceSha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest, path)
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), current_composer_input(self, path, digest), path)
         for item in evidence['logs'].values():
             self.assertEqual(hashlib.sha256((ROOT / item['log']).read_bytes()).hexdigest(), item['sha256'])
         self.assertEqual(evidence['native']['assertions'], 63)

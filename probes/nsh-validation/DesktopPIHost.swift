@@ -35,6 +35,17 @@ final class DesktopPIController: UIViewController {
                 guard let self, let bridge = self.bridge else { throw DesktopPipe.Failure.rejected }
                 return ["clean": await bridge.destroy()]
             }
+#if PI_PERSISTENT
+            shell.handle("piui.capture") { [weak self] _ in
+                guard let self, self.shell.bounds.width > 0, self.shell.bounds.height > 0 else { return ["captured": false] }
+                let image = UIGraphicsImageRenderer(bounds: self.shell.bounds).image { _ in
+                    self.shell.drawHierarchy(in: self.shell.bounds, afterScreenUpdates: true)
+                }
+                guard let png = image.pngData() else { return ["captured": false] }
+                try png.write(to: self.dir.appendingPathComponent("restored-history.png"), options: .atomic)
+                return ["captured": true]
+            }
+#endif
             shell.handle("piui.report") { [weak self] data, reply in
                 guard let self, let report = data as? [String: Any] else { reply.reject("invalid report"); return }
                 reply.resolve(["accepted": true])

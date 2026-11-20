@@ -9,6 +9,7 @@ import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
+import { openDesktopHistory } from './desktop-history.mjs';
 import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
@@ -36,8 +37,8 @@ function publicPayload(type, payload) {
 }
 
 /** Only trusted native code may construct this object. run is a test seam, never an RPC parameter.
- * Projects are created/realpathed here, not supplied by TSX. Fixed entrypoints remain disposable;
- * the trusted profileDir seam is only for testing candidate-owned persistence.
+ * Projects are created/realpathed here, not supplied by TSX. Only the fixed synthetic
+ * persistence probe sets profileDir; the regular fixture and live entries stay disposable.
  * Keep trustedProjects and close outside the renderer; expose only call via a private pipe.
  */
 export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk, liveModels, profileDir } = {}) {
@@ -47,7 +48,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
   const root = lease ? profileDir : await mkdtemp(join(tmpdir(), 'muma-n01-desktop-'));
   const fresh = lease?.fresh ?? true;
   const release = () => lease ? lease.close() : rm(root, { recursive: true, force: true });
-  let store, fixture, scheduler, closing, closed = false;
+  let store, history, fixture, scheduler, closing, closed = false;
   const journals = new Map(), requests = new Map(), trustedProjects = [];
   try {
     const dataDir = join(root, 'data');
@@ -79,7 +80,8 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       if (fresh) store.createConversation(project.id, '新会话');
     }
     if (!fresh) store.interruptUnfinished();
-    if (!liveModels) fixture = await startDesktopModelFixture();
+    if (lease && !liveModels) history = openDesktopHistory(dbPath);
+    if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
       const { modelId, reasoningEffort } = journals.get(options.task.id);
@@ -139,6 +141,14 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           exact(p, ['projectId', 'title']); const trusted = project(p.projectId); title(p.title);
           if (store.listConversations(p.projectId).length >= 16) reject('limit');
           return { session: sessionView(store.createConversation(p.projectId, p.title), trusted) };
+        }
+        case 'sessions.history': {
+          if (!history) reject('unsupported_method');
+          exact(p, ['projectId', 'sessionId', 'before']);
+          if (!token(p.projectId) || !token(p.sessionId)) reject('invalid_request');
+          session(p.projectId, p.sessionId);
+          if (p.before !== null && !token(p.before)) reject('invalid_cursor');
+          return history.read(p) ?? reject('invalid_cursor');
         }
         case 'tasks.submit': {
           const explicit = p && Object.hasOwn(p, 'modelId');
@@ -209,7 +219,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       if (!closing) closing = (async () => {
         const drained = await scheduler.shutdown({ timeoutMs: 15000 });
         if (!drained.drained) throw new Error('Desktop drain incomplete; state retained');
-        await fixture?.close(); store.close(); await release();
+        await fixture?.close(); history?.close(); store.close(); await release();
       })();
       return closing;
     }
@@ -217,7 +227,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     return { call, close, trustedProjects };
   } catch (error) {
     const drained = await scheduler?.shutdown({ timeoutMs: 15000 });
-    if (!drained || drained.drained) { await fixture?.close(); store?.close(); await release(); }
+    if (!drained || drained.drained) { await fixture?.close(); history?.close(); store?.close(); await release(); }
     throw error;
   }
 }

@@ -6,7 +6,14 @@ import Darwin
 // All callbacks/FD operations serialize on the main actor; every FD is nonblocking in the parent.
 @MainActor
 final class DesktopPipe {
-    static let methods = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events"]
+    static let methods: [String] = {
+        let base = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events"]
+#if PI_PERSISTENT
+        return base + ["sessions.history"]
+#else
+        return base
+#endif
+    }()
     enum Failure: Error { case rejected, closed, transport, timeout, limit }
     private struct Pending {
         let reply: (Result<[String: Any], Error>) -> Void

@@ -4,7 +4,7 @@ import json
 import subprocess
 import unittest
 
-from nsh_composer_provenance import ROOT, desktop_profile_evidence
+from nsh_composer_provenance import ROOT, current_composer_input, desktop_profile_evidence
 
 
 def record(data):
@@ -24,7 +24,8 @@ class DesktopProfileEvidenceTests(unittest.TestCase):
     def test_inputs_and_disposable_native_receipt(self):
         e = desktop_profile_evidence()
         for path, info in e['inputs'].items():
-            self.assertEqual(record((ROOT / path).read_bytes()), info, path)
+            self.assertEqual(record((ROOT / path).read_bytes()),
+                             current_composer_input(self, path, info, after=desktop_profile_evidence), path)
         for path, digest in e['previousInputs'].items():
             before = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
             self.assertEqual(record(before)['sha256'], digest, path)

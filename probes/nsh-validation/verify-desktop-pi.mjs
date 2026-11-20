@@ -1,6 +1,6 @@
 // Isolated candidate/acceptance builds only, never the installed Moos or phone.
 import { execFileSync, spawn } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, realpath, writeFile } from 'node:fs/promises';
+import { cp, mkdir, lstat, mkdtemp, readFile, realpath, rename, symlink, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -11,10 +11,10 @@ import { loadLiveModels } from './desktop-live-models.mjs';
 process.chdir(fileURLToPath(new URL('../../', import.meta.url)));
 process.umask(0o077);
 const args = process.argv.slice(2), interactive = args.includes('--interactive'), buildOnly = args.includes('--build-only');
-const live = args.includes('--live-models');
+const live = args.includes('--live-models'), persistent = args.includes('--persistent');
 const artRoot = parseArtRoot(args);
-assert.ok(!(interactive && buildOnly) && (!live || interactive || buildOnly) &&
-  args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only', '--live-models'].includes(a)), 'Unknown/conflicting option');
+assert.ok(!(interactive && buildOnly) && (!live || interactive || buildOnly) && !(persistent && live) &&
+  args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only', '--live-models', '--persistent'].includes(a)), 'Unknown/conflicting option');
 // An explicit interactive launch may make billable requests on Send only.
 // Refuse to launch with missing/invalid private config; build-only does not read it.
 if (live && interactive) await loadLiveModels();
@@ -42,7 +42,7 @@ const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatisti
 const native = ['DesktopPipe.swift', 'DesktopNativeBridge.swift', 'DesktopPIHost.swift'];
 const methods = ['projects.list', 'sessions.list', 'sessions.create', 'tasks.submit', 'tasks.cancel', 'tasks.events'];
 const acceptance = !buildOnly && !interactive;
-const bundleIdentifier = live ? 'dev.muma.probe.nsh.piui.live' : 'dev.muma.probe.nsh.piui';
+const bundleIdentifier = persistent ? 'dev.muma.probe.nsh.piui.persistent' : live ? 'dev.muma.probe.nsh.piui.live' : 'dev.muma.probe.nsh.piui';
 const script = live ? 'desktop-live-stdio.mjs' : 'desktop-host-stdio.mjs';
 const json = (name, value) => writeFile(join(dir, name), JSON.stringify(value, null, 2) + '\n');
 try {
@@ -57,24 +57,42 @@ try {
   assert.equal((await record(join(framework, 'NativeShell'))).sha256, frameworkHash);
   await mkdir(join(source, 'assets/desktop'), { recursive: true });
   const inputs = {};
-  for (const file of [...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
+  const persistentHost = ['desktop-persistent-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs',
+    'desktop-host-stdio.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs'];
+  for (const file of [...new Set([...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
     'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
-    'desktop-live-stdio.mjs', 'desktop-live-models.mjs']) {
+    'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs',
+    ...(persistent ? [...persistentHost, 'desktop-persistent-check.tsx'] : [])])]) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }
   for (const file of ['package-lock.json', ...run('git', ['ls-files', 'services/agent', 'packages/pi-runtime', 'packages/pi-adapter']).trim().split('\n')]) inputs[file] = await record(resolve(file));
   for (const file of view) await cp(join(probe, file), join(source, file));
   if (artRoot) await prepareArtwork(artRoot, source, JSON.parse(await readFile(join(probe, 'skin-source.json'), 'utf8')));
-  if (acceptance) await cp(join(probe, 'desktop-pi-check.tsx'), join(source, 'App.tsx'));
-  else await writeFile(join(source, 'App.tsx'), "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(DesktopView);\n");
-  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
-    capabilities: { statusBar: true, host: [...methods, ...(acceptance ? ['piui.disconnect', 'piui.report'] : [])] } }));
+  if (acceptance) await cp(join(probe, persistent ? 'desktop-persistent-check.tsx' : 'desktop-pi-check.tsx'), join(source, 'App.tsx'));
+  else await writeFile(join(source, 'App.tsx'), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(${persistent ? '() => <DesktopView persistentHistory />' : 'DesktopView'});\n`);
+  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: persistent ? 'NSH 候选 · 持久化合成试验' : live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
+    capabilities: { statusBar: true, host: [...methods, ...(persistent ? ['sessions.history'] : []), ...(acceptance ? ['piui.disconnect', 'piui.report', ...(persistent ? ['piui.capture'] : [])] : [])] } }));
   const node = await realpath(process.execPath);
   const fixed = join(dir, 'DesktopFixedLaunch.swift');
-  await writeFile(fixed, `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(join(probe, script))} }\n`);
+  let hostScript = join(probe, script), profile;
+  if (persistent) {
+    const runtime = join(dir, 'staged');
+    const stagedProbe = join(runtime, 'probes', 'nsh-validation');
+    await mkdir(stagedProbe, { recursive: true, mode: 0o700 });
+    profile = join(stagedProbe, 'profile');
+    await mkdir(profile, { mode: 0o700 });
+    for (const part of ['packages', 'services']) await symlink(resolve(part), join(runtime, part));
+    for (const file of persistentHost) {
+      const copy = join(stagedProbe, file);
+      await cp(join(probe, file), copy);
+      assert.deepEqual(await record(copy), inputs[`probes/nsh-validation/${file}`]);
+    }
+    hostScript = join(stagedProbe, 'desktop-persistent-stdio.mjs');
+  }
+  await writeFile(fixed, `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(hostScript)} }\n`);
   await json('inputs.json', { at: new Date().toISOString(), head: run('git', ['rev-parse', 'HEAD']).trim(), status: run('git', ['status', '--short']),
     node: process.version, nsh: version, system: run('/usr/bin/sw_vers', []), arch: process.arch, frameworkHash,
-    acceptance, modelMode: live ? 'external' : 'fixture', artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
+    acceptance, persistent, modelMode: live ? 'external' : 'fixture', artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
   async function logged(label, command, params, timeout) {
     try { await writeFile(join(dir, `${label}.log`), run(command, params, { timeout })); }
     catch (error) {
@@ -90,7 +108,7 @@ try {
     sources: [...native.map(file => join(probe, file)), fixed], dependencies: [{ framework, embed: false }],
     info: { path: 'Info.plist', properties: { UIApplicationSceneManifest: { UIApplicationSupportsMultipleScenes: false, UISceneConfigurations: {} } } },
     settings: { base: { PRODUCT_BUNDLE_IDENTIFIER: bundleIdentifier, GENERATE_INFOPLIST_FILE: 'YES', SUPPORTS_MACCATALYST: 'YES',
-      DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: 'NO', SWIFT_VERSION: '5.0', SWIFT_ACTIVE_COMPILATION_CONDITIONS: acceptance ? 'PI_UI_CHECK' : '',
+      DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: 'NO', SWIFT_VERSION: '5.0', SWIFT_ACTIVE_COMPILATION_CONDITIONS: [acceptance ? 'PI_UI_CHECK' : '', persistent ? 'PI_PERSISTENT' : ''].join(' ').trim(),
       CODE_SIGNING_ALLOWED: 'NO', ENABLE_APP_SANDBOX: 'NO', TARGETED_DEVICE_FAMILY: '2', INFOPLIST_KEY_UILaunchScreen_Generation: 'YES' } },
   } } };
   await json('project.json', project);
@@ -104,8 +122,8 @@ try {
   run('/usr/bin/codesign', ['--verify', '--strict', app]);
   console.log(`Candidate app: ${app}`);
   for (const [file, expected] of Object.entries(inputs)) assert.deepEqual(await record(resolve(file)), expected, `Input changed: ${file}`);
-  if (!buildOnly) {
-    const openArgs = ['-n', ...(acceptance ? ['-W', '-g', '-j'] : []), '--stdout', join(dir, 'stdout.log'), '--stderr', join(dir, 'stderr.log'), app];
+  async function launch(suffix = '') {
+    const openArgs = ['-n', ...(acceptance ? ['-W', '-g', '-j'] : []), '--stdout', join(dir, `stdout${suffix}.log`), '--stderr', join(dir, `stderr${suffix}.log`), app];
     const opened = spawn('/usr/bin/open', openArgs, { stdio: 'ignore' });
     await new Promise((resolve, reject) => {
       // Outer watchdog also covers a hung native main thread. Only signal our exact executable.
@@ -121,7 +139,32 @@ try {
       opened.once('close', code => { clearTimeout(deadline); code === 0 ? resolve() : reject(Error(`Launch exit: ${code}`)); });
     });
   }
-  if (acceptance) {
+  if (!buildOnly) await launch();
+  if (acceptance && persistent) {
+    const result = async () => {
+      const report = JSON.parse(await readFile(join(dir, 'result.json'), 'utf8'));
+      assert.ok(report.passed && report.normalChildExit && !report.forced, `Persistent candidate stopped at ${report.stage}`);
+      assert.equal(report.stderrBytes, 0);
+      assert.equal((await lstat(profile)).mode & 0o777, 0o700);
+      assert.ok((await lstat(join(profile, '.n01-profile'))).isFile());
+      await assert.rejects(lstat(join(profile, '.n01-active')), { code: 'ENOENT' });
+      return report;
+    };
+    const first = await result();
+    assert.equal(first.restart, false);
+    assert.deepEqual(first.checks, ['fresh profile is empty', 'first turn complete', 'live turn excluded from historical page']);
+    await rename(join(dir, 'result.json'), join(dir, 'first-result.json'));
+    await launch('-reopen');
+    const reopened = await result();
+    assert.equal(reopened.restart, true);
+    assert.deepEqual(reopened.scope, first.scope);
+    assert.deepEqual(reopened.checks, ['restored history without replay', 'other project stays empty', 'same session selected again',
+      'old user and assistant rows laid out', 'old messages captured before Send', 'PI continuation uses old context', 'live turn excluded from historical page']);
+    const png = await record(join(dir, 'restored-history.png'));
+    assert.ok(png.bytes > 0);
+    await json('persistent-result.json', { first, reopened, screenshot: png, manualQuit: false, portable: false, installed: false });
+    console.log(JSON.stringify({ first, reopened }));
+  } else if (acceptance) {
     const result = JSON.parse(await readFile(join(dir, 'result.json'), 'utf8'));
     console.log(JSON.stringify(result));
     assert.equal(result.passed, true, `Candidate stopped at ${result.stage}`);
