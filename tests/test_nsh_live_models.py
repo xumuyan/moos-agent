@@ -37,6 +37,15 @@ class DesktopLiveModelsTests(unittest.TestCase):
         self.assertTrue(all(set(profile) == {'baseUrl', 'model', 'api', 'contextWindow', 'maxTokens'}
                             for profile in example.values()))
 
+    def test_local_copy_is_not_upstream_acceptance_or_history_migration(self):
+        plan = (ROOT / 'PLAN.md').read_text()
+        local = next(line for line in plan.splitlines() if '本机配置：经用户明确要求一次性只读' in line)
+        for claim in ('原文件字节未变', '未发外部请求', '不是自动导入或持续同步', '真实两家联调仍待验收'):
+            self.assertIn(claim, local)
+        self.assertIn('- [ ] N01-D2', plan)
+        migration = next(line for line in plan.splitlines() if '正式项目/聊天迁移另设门禁' in line)
+        self.assertIn('实际迁移尚未执行', migration)
+
     def test_live_build_and_fixture_window_are_separate(self):
         e = live_models_evidence()
         self.assertEqual(e['missingConfig']['status'], 1)
