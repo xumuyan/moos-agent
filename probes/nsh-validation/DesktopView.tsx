@@ -27,12 +27,23 @@ const workspaceActions = [
   { id: 'search', icon: 'search', label: '搜索' }, { id: 'workspace-options', icon: 'workspaceOptions', label: '工作区选项' },
   { id: 'add-project', icon: 'addProject', label: '添加项目' },
 ] as const;
-function SessionActivity(props: { id: string }) {
-  const motion = createMotion({ enter: { keyframes: { rotate: [0, 360] }, duration: 950, easing: 'linear', iterations: 'infinite', frameRate: 24 } });
+function SessionActivity(props: { id: string; onLayout?: (e: { bounds: Bounds }) => void }) {
+  // Maid Atelier 0.3.2 uses a fixed sapphire center and a one-second gold chase.
+  const motion = createMotion({ enter: { keyframes: { opacity: [0, 1] }, duration: 1000, easing: 'linear', iterations: 'infinite', frameRate: 24 } });
   cleanup(() => motion.stop());
-  return <View testID={`session-activity-${props.id}`} style={{ transform: [{ rotate: motion.rotate }], width: 12, height: 12 }}>
-    {[[5,0],[9,1],[10,5],[9,9],[5,10],[1,9],[0,5],[1,1]].map(([left, top], i) =>
-      <View style={{ position: 'absolute', left, top, width: 2, height: 2, borderRadius: 1, backgroundColor: i < 2 ? '#fff1bc' : i < 5 ? '#edce84a6' : '#e3c47b60' }} />)}
+  return <View testID={`session-activity-${props.id}`} onLayout={props.onLayout} style={{ position: 'absolute',
+    pointerEvents: 'none', left: tree.branchX - 2, top: tree.sessionHeight / 2 - 6, width: 12, height: 12 }}>
+    <View style={{ position: 'absolute', left: 3, top: 3, width: 6, height: 6, borderRadius: 3,
+      backgroundColor: '#1a356f', borderWidth: 1, borderColor: '#6887c2', boxShadow: '0 0 3px #e7c7809e' }}>
+      <View style={{ position: 'absolute', left: 1, top: 0, width: 2, height: 2, borderRadius: 1, backgroundColor: '#e7efff' }} />
+    </View>
+    {[
+      { left: 5, top: 0, opacity: [1, .18, .42, .72, 1] },
+      { left: 10, top: 5, opacity: [.72, 1, .18, .42, .72] },
+      { left: 5, top: 10, opacity: [.42, .72, 1, .18, .42] },
+      { left: 0, top: 5, opacity: [.18, .42, .72, 1, .18] },
+    ].map(ray => <View style={{ position: 'absolute', left: ray.left, top: ray.top, width: 2, height: 2, borderRadius: 1,
+      backgroundColor: '#e2bd6e', opacity: motion.opacity.interpolate({ inputRange: [0, .25, .5, .75, 1], outputRange: ray.opacity }) }} />)}
   </View>;
 }
 
@@ -250,7 +261,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                     </Tooltip>}>
                     <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: tree.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
                   </Button>
-                  {working() && <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX + tree.branchWidth - 6, top: mid - 6 }}><SessionActivity id={item.id} /></View>}
+                  {working() && <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} />}
                 </View>;
               })}
             </View>}

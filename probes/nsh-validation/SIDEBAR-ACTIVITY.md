@@ -4,10 +4,11 @@
 
 - 项目与会话标题使用 macOS 自带宋体（`Songti SC`，后备 Georgia/serif）；正文、输入、代码字体保持原样。字族是样式声明，不等于逐字验证了原生字形选择。
 - 当前项目保留蓝色丝带，其他项目保留徽标但文字更淡。当前会话为半透明蓝底、细金边；普通会话只有淡色文字。会话缩进和点击区与树枝分开，连接线为细金色虚线，最后一个分支止于该行中心。没有时间字段，不编造分钟或日期，也不摆设删除/固定等未实现的操作。
-- 加载圈只跟对应的项目、会话和控制器 `busy` 状态。切到同一项目另一会话不移动加载圈；停止请求本身不提前清掉标记，正常待终态及事件排空，错误退出则随控制器结束忙碌而清掉。项目仍只展示当前项目已加载的会话。静态行没有循环动画；忙碌行用 NSH 原生旋转（24 Hz 上限提示、无 JS 动画定时器）并在卸载时停止。启用减少动态效果时留静态指示。本轮没有测量 CPU。
+- 加载标记对应项目、会话和控制器的 `busy` 状态。切到同一项目另一会话时，标记留在正在运行的会话。停止请求正常收到终态并排空事件后清除标记，错误退出时随控制器结束忙碌清除。
+- 2026-11-20 样式更新参考 Maid Atelier 0.3.2（Small-tailqwq）的 `patches.css`。在会话文字左侧的树枝上放置 12 点标记，中心为固定的蓝色宝石，外围四点金光按一秒周期交替亮起。使用 NSH 原生透明度动画，帧率提示 24 Hz，组件卸载时停止。开启减少动态效果时，蓝色宝石和金光均保持静止。
 
 ## 验证
 
-`node --test probes/nsh-validation/desktop-sidebar-tree.test.mjs` 验证几何与会话归属；`node probes/nsh-validation/verify-desktop-theme.mjs --sidebar-activity` 分别验证无艺术回退和经 `--art-root` 显式指定本机素材的版本。两种外观均用合成 bridge 响应检查空闲、发送、工作中换会话、停止排空、窄窗，动画用连续截图的局部像素差检查。明暗分别用普通及减少动态效果设置，本证据不是所有配色和系统组合的矩阵。参见 `desktop-sidebar-activity-verification.json` 与根目录操作日志。
+`node --test probes/nsh-validation/desktop-sidebar-tree.test.mjs` 验证几何与会话归属；`node probes/nsh-validation/verify-desktop-theme.mjs --sidebar-activity` 分别验证无艺术回退和经 `--art-root` 显式指定本机素材的版本。两种外观均用合成 bridge 响应检查空闲、发送、工作中换会话、窄窗运行、停止排空。授权素材 `run-mre1Ik` 和回退 `run-lz1tt4` 各通过 2 项并保存 12 帧。普通动态效果（浅色）下，两张截图之间外围有 16 个像素变化，宝石中心固定。减少动态效果（深色）下，整个标记的像素保持一致。几何检查覆盖 1240×820 和 680×720 下的尺寸、行内居中及点击区间距。新证据见 `desktop-sidebar-jewel-verification.json`，前序证据保存在 `desktop-sidebar-activity-verification.json`。
 
 未执行实际 Host/PI 任务，不代表正式应用或人工验收通过，不安装或部署。候选真实鼠标窗口操作和视觉确认仍未完成；历史顶栏和侧栏证据不重写。

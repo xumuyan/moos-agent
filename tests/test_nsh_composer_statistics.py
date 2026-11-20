@@ -88,7 +88,8 @@ class ComposerStatisticsTests(unittest.TestCase):
         for path, expected in evidence['inputs'].items():
             before = subprocess.check_output(['git', 'show', f"{evidence['base']}:{path}"], cwd=ROOT)
             self.assertEqual(record(before)['sha256'], evidence['previousInputs'][path], path)
-            self.assertEqual(record((ROOT / path).read_bytes()), expected, path)
+            current = current_composer_input(self, path, expected, after=statistics_split_evidence)
+            self.assertEqual(record((ROOT / path).read_bytes()), current, path)
         source = (PROBE / 'DesktopComposerStatistics.tsx').read_text()
         outer_row = source.split('return <View testID="composer-statistics"', 1)[1].split('}}>')[0]
         self.assertNotIn('background', outer_row)
@@ -106,7 +107,9 @@ class ComposerStatisticsTests(unittest.TestCase):
             self.assertEqual(capture['head'], evidence['base'])
             self.assertTrue(capture['synthetic'] and not capture['piExecuted'])
             for filename, expected in capture['workspaceHashes'].items():
-                self.assertEqual(record((PROBE / filename).read_bytes()), expected, filename)
+                path = f'probes/nsh-validation/{filename}'
+                current = current_composer_input(self, path, expected, after=statistics_split_evidence)
+                self.assertEqual(record((ROOT / path).read_bytes()), current, filename)
             lines = (directory / 'test.log').read_text().splitlines()
             geometry = [json.loads(line.removeprefix('STATISTICS_CHIPS ')) for line in lines
                         if line.startswith('STATISTICS_CHIPS ')]

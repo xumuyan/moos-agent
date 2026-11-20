@@ -2,9 +2,11 @@
 import hashlib
 import json
 from pathlib import Path
+import struct
+import subprocess
 import unittest
 
-from nsh_composer_provenance import current_composer_input
+from nsh_composer_provenance import current_composer_input, sidebar_jewel_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
@@ -67,6 +69,52 @@ class SidebarActivityTests(unittest.TestCase):
         for mode in ('activity', 'fallback'):
             self.assertEqual(activity['tests'][mode]['passed'], 2)
             self.assertTrue(activity['tests'][mode]['runnerPassed'])
+
+    def test_native_jewel_has_fixed_core_and_independent_rays(self):
+        evidence = sidebar_jewel_evidence()
+        def verified(artifact):
+            data = (ROOT / artifact['path']).read_bytes()
+            self.assertEqual(len(data), artifact['bytes'], artifact['path'])
+            self.assertEqual(hashlib.sha256(data).hexdigest(), artifact['sha256'], artifact['path'])
+            return data
+
+        verified(evidence['predecessorReceipt'])
+        self.assertEqual(evidence['protected'],
+                         {path: item['sha256'] for path, item in manifest('sidebar-activity')['protected'].items()})
+        self.assertTrue(evidence['protected'].keys().isdisjoint(evidence['inputs']))
+        self.assertTrue(all(value is False for value in evidence['acceptance'].values()))
+        self.assertEqual(evidence['inputs'].keys(), evidence['previousInputs'].keys())
+        for path, current in evidence['inputs'].items():
+            previous = subprocess.check_output(['git', 'show', f"{evidence['base']}:{path}"], cwd=ROOT)
+            self.assertEqual(hashlib.sha256(previous).hexdigest(), evidence['previousInputs'][path], path)
+            verified({**current, 'path': path})
+        self.assertEqual(evidence['matrices'].keys(), {'withArt', 'fallback'})
+        for mode, run in evidence['matrices'].items():
+            capture = json.loads(verified(run['capture']))
+            self.assertEqual(capture['head'], evidence['base'])
+            self.assertTrue(capture['synthetic'] and not capture['piExecuted'])
+            for path, current in capture['workspaceHashes'].items():
+                verified({**current, 'path': PROBE / path})
+            result = json.loads(verified(run['result']))
+            self.assertTrue(result['passed'] and not result['installed'])
+            self.assertIs(result['artwork'], mode == 'withArt')
+            motion = json.loads(verified(run['pixels']))
+            self.assertTrue(all(state['fixedCore'] and state['visibleCore'] for state in motion.values()))
+            self.assertFalse(motion['light']['reducedMotion'])
+            self.assertGreater(motion['light']['changedPixels'], 0)
+            self.assertTrue(motion['dark']['reducedMotion'])
+            self.assertEqual(motion['dark']['changedPixels'], 0)
+            states = ('idle', 'working', 'working-next', 'unselected', 'narrow-working', 'narrow')
+            self.assertEqual({Path(image['path']).name for image in run['images']},
+                             {f'tree-{scheme}-{state}.png' for scheme in ('light', 'dark') for state in states})
+            for image in run['images']:
+                data = verified(image)
+                self.assertEqual(data[:8], b'\x89PNG\r\n\x1a\n')
+                size = (680, 720) if '-narrow' in image['path'] else (1240, 820)
+                self.assertEqual(struct.unpack('>II', data[16:24]), size)
+            verified(run['testLog'])
+        for artifact in evidence['verificationLogs']:
+            verified(artifact)
 
     def test_dashed_tree_and_busy_display_are_candidate_only(self):
         view = (PROBE / 'DesktopView.tsx').read_text()

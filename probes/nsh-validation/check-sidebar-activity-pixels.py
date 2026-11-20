@@ -11,20 +11,33 @@ from PIL import Image, ImageChops
 
 
 def verify(directory):
-    # Contains the first session's 12pt marker anchored on the tree elbow.
-    box = (26, 420, 42, 438)
+    # Screen coordinates of the first row's status gutter at 1×.
+    box = (20, 420, 36, 438)
+    core = (25, 426, 31, 434)
+    center = (27, 430)
     report = {}
     for scheme in ('light', 'dark'):
-        frames = []
-        for suffix in ('working', 'working-next'):
+        frames = {}
+        for suffix in ('idle', 'working', 'working-next', 'unselected', 'narrow-working', 'narrow'):
             with Image.open(directory / f'tree-{scheme}-{suffix}.png') as image:
-                if image.size != (1240, 820):
+                expected = (680, 720) if suffix.startswith('narrow') else (1240, 820)
+                if image.size != expected:
                     raise ValueError(f'Unexpected fixture frame size: {image.size}')
-                frames.append(image.convert('RGB').crop(box))
-        difference = ImageChops.difference(*frames)
-        count = sum(pixel != (0, 0, 0) for pixel in difference.getdata())
-        report[scheme] = dict(crop=box, changedPixels=count, reducedMotion=scheme == 'dark')
-        if (count > 0) != (scheme == 'light'):
+                frames[suffix] = image.convert('RGB')
+        working = frames['working']
+        following = frames['working-next']
+        difference = ImageChops.difference(working.crop(box), following.crop(box))
+        count = sum(pixel != (0, 0, 0) for pixel in difference.get_flattened_data())
+        fixed_core = ImageChops.difference(working.crop(core), following.crop(core)).getbbox() is None
+        blue_core = working.getpixel(center)
+        visible = blue_core[2] - blue_core[0] > 65 and blue_core[0] < 50
+        for suffix in ('unselected', 'narrow-working'):
+            assert frames[suffix].getpixel(center) == blue_core, (scheme, suffix)
+        for suffix in ('idle', 'narrow'):
+            assert frames[suffix].getpixel(center) != blue_core, (scheme, suffix)
+        report[scheme] = dict(crop=box, changedPixels=count, fixedCore=fixed_core,
+                              visibleCore=visible, reducedMotion=scheme == 'dark')
+        if not (fixed_core and visible and (count > 0) == (scheme == 'light')):
             raise AssertionError(report[scheme])
     return report
 
