@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import unittest
 
+from nsh_composer_provenance import idle_host_evidence, successor_input
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'probes/nsh-validation'
@@ -47,9 +49,10 @@ class AppKitPackageEvidenceTests(unittest.TestCase):
             self.assertFalse(self.evidence['boundaries'][key])
 
     def test_bind_current_inputs_and_available_logs(self):
+        successor = idle_host_evidence()
         for name, expected in self.evidence['inputs'].items():
             data = (ROOT / name).read_bytes()
-            self.assertEqual(expected, hashlib.sha256(data).hexdigest(), name)
+            self.assertEqual(successor_input(self, successor, name, expected), hashlib.sha256(data).hexdigest(), name)
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name
             if path.is_file():

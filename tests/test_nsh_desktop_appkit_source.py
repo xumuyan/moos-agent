@@ -5,7 +5,7 @@ import re
 import unittest
 from pathlib import Path
 
-from nsh_composer_provenance import ROOT
+from nsh_composer_provenance import ROOT, idle_host_evidence, successor_input
 
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -61,10 +61,13 @@ class DesktopAppKitSourceEvidenceTests(unittest.TestCase):
             'active bash cancelled, terminal backlog fully drained', 'same-session Send after drain',
             'AppKit Quit with active bash and normal Host exit',
         ])
+        successor = idle_host_evidence()
         for name, source in proof['inputs'].items():
             self.assertFalse(Path(name).is_absolute() or '..' in Path(name).parts)
             data = (PROBE / name).read_bytes()
-            self.assertEqual({'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}, source, name)
+            path = (PROBE / name).relative_to(ROOT).as_posix()
+            expected = successor_input(self, successor, path, source)
+            self.assertEqual({'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}, expected, name)
         for name, marker in (
             ('link-first/build-custom.log', b'Undefined symbols for architecture arm64'),
             ('layout-first/custom-run.log', b'N01_APPKIT_TSX_FAILED boot'),

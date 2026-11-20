@@ -24,14 +24,17 @@ final class DesktopPipe {
     private var incoming = Data(), outgoing = Data()
     private var input: Int32 = -1, output: Int32 = -1, diagnostic: Int32 = -1
     private var reader: DispatchSourceRead?, errors: DispatchSourceRead?, writer: DispatchSourceWrite?
-    private var reaper: Timer?
+    private var processExit: DispatchSourceProcess?
+    private var terminateDeadline: DispatchWorkItem?
+    private var killDeadline: DispatchWorkItem?
     private(set) var pid: pid_t = 0
     private(set) var accepting = true
     private(set) var exitCode: Int32?
     private(set) var forced = false
-    private var closingAt: Date?
     private var waiters: [(Bool) -> Void] = []
     private let callSeconds: Double
+    private let shutdownGrace: Double
+    private let killGrace: Double
     private(set) var maxPending = 0
     private(set) var diagnosticsBytes = 0
 
@@ -39,8 +42,10 @@ final class DesktopPipe {
         try self.init(node: DesktopFixedLaunch.node, script: DesktopFixedLaunch.script, callSeconds: 10)
     }
     // Private constructor is reachable only by the compiled trusted launch configuration or test code.
-    private init(node: String, script: String, callSeconds: Double) throws {
+    private init(node: String, script: String, callSeconds: Double, shutdownGrace: Double = 20, killGrace: Double = 2) throws {
         self.callSeconds = callSeconds
+        self.shutdownGrace = shutdownGrace
+        self.killGrace = killGrace
         var toChild: [Int32] = [-1, -1], fromChild: [Int32] = [-1, -1], stderrPipe: [Int32] = [-1, -1]
         guard pipe(&toChild) == 0 else { throw Failure.transport }
         guard pipe(&fromChild) == 0 else { toChild.forEach { Darwin.close($0) }; throw Failure.transport }
@@ -77,13 +82,16 @@ final class DesktopPipe {
         r.setEventHandler { [weak self] in self?.readOutput() }; r.resume(); reader = r
         let e = DispatchSource.makeReadSource(fileDescriptor: diagnostic, queue: .main)
         e.setEventHandler { [weak self] in self?.readDiagnostics() }; e.resume(); errors = e
-        reaper = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reap() }
-        }
+        let exit = DispatchSource.makeProcessSource(identifier: child, eventMask: .exit, queue: .main)
+        exit.setEventHandler { [weak self] in self?.reap() }
+        processExit = exit
+        exit.resume()
+        // The child may already have exited before the source was registered.
+        DispatchQueue.main.async { [weak self] in self?.reap() }
     }
 #if BRIDGE_CHECK
-    static func testLaunch(script: String, callSeconds: Double = 0.2) throws -> DesktopPipe {
-        try DesktopPipe(node: DesktopFixedLaunch.node, script: script, callSeconds: callSeconds)
+    static func testLaunch(script: String, callSeconds: Double = 0.2, shutdownGrace: Double = 20, killGrace: Double = 2) throws -> DesktopPipe {
+        try DesktopPipe(node: DesktopFixedLaunch.node, script: script, callSeconds: callSeconds, shutdownGrace: shutdownGrace, killGrace: killGrace)
     }
     func breakOutputForTest() { if output >= 0 { Darwin.close(output); output = -1 }; shutdown() }
     func externallyReapForTest() {
@@ -178,7 +186,16 @@ final class DesktopPipe {
         else if n == 0 { errors?.cancel(); errors = nil; Darwin.close(diagnostic); diagnostic = -1 }
     }
     func shutdown(reason: Error = Failure.closed) {
-        guard accepting else { return }; accepting = false; closingAt = Date()
+        guard accepting else { return }; accepting = false
+        if exitCode == nil {
+            let terminate = DispatchWorkItem { [weak self] in self?.reap(thenSignal: SIGTERM) }
+            let kill = DispatchWorkItem { [weak self] in self?.reap(thenSignal: SIGKILL) }
+            terminateDeadline = terminate
+            killDeadline = kill
+            let now = DispatchTime.now()
+            DispatchQueue.main.asyncAfter(deadline: now + shutdownGrace, execute: terminate)
+            DispatchQueue.main.asyncAfter(deadline: now + shutdownGrace + killGrace, execute: kill)
+        }
         let callbacks = Array(pending.values); pending.removeAll()
         for entry in callbacks { entry.timer.cancel(); entry.reply(.failure(reason)) }
         outgoing.removeAll(); writer?.cancel(); writer = nil
@@ -189,30 +206,35 @@ final class DesktopPipe {
         if exitCode != nil { return exitCode == 0 && !forced }
         return await withCheckedContinuation { continuation in waiters.append { continuation.resume(returning: $0) } }
     }
-    private func reap() {
+    private func reap(thenSignal signal: Int32? = nil) {
         guard exitCode == nil else { return }
         var status: Int32 = 0
-        let result = waitpid(pid, &status, WNOHANG)
+        var result: pid_t
+        repeat { result = waitpid(pid, &status, WNOHANG) } while result == -1 && errno == EINTR
         if result == pid || (result == -1 && errno == ECHILD) {
             // Another native owner may have reaped this child. Never signal a now-reusable PID.
             // Its status is unknown, so it cannot be accepted as a normal successful exit.
             exitCode = result == pid ? ((status & 0x7f) == 0 ? (status >> 8) & 0xff : 128 + (status & 0x7f)) : 255
             shutdown(reason: Failure.transport)
-            reaper?.invalidate(); reaper = nil; reader?.cancel(); errors?.cancel(); writer?.cancel()
+            processExit?.cancel(); processExit = nil
+            terminateDeadline?.cancel(); terminateDeadline = nil
+            killDeadline?.cancel(); killDeadline = nil
+            reader?.cancel(); errors?.cancel(); writer?.cancel()
             for fd in [input, output, diagnostic] where fd >= 0 { Darwin.close(fd) }
             input = -1; output = -1; diagnostic = -1
             let callbacks = waiters; waiters.removeAll()
             for callback in callbacks { callback(exitCode == 0 && !forced) }
-        } else if result == 0, let date = closingAt {
+        } else if result == 0, let signal {
             // Only the exact unreaped child PID; no process-name matching or broad group kill.
-            if Date().timeIntervalSince(date) > 20 && !forced { forced = true; _ = kill(pid, SIGTERM) }
-            if Date().timeIntervalSince(date) > 22 { _ = kill(pid, SIGKILL) }
+            forced = true
+            _ = kill(pid, signal)
         }
     }
     deinit {
         // Owners await close(). Unexpected owner loss closes all pipes and reaps only this child.
         // This fallback is not evidence of graceful registered-tool cleanup.
-        reaper?.invalidate(); reader?.cancel(); errors?.cancel(); writer?.cancel()
+        processExit?.cancel(); terminateDeadline?.cancel(); killDeadline?.cancel()
+        reader?.cancel(); errors?.cancel(); writer?.cancel()
         for entry in pending.values { entry.timer.cancel(); entry.reply(.failure(Failure.closed)) }
         for fd in [input, output, diagnostic] where fd >= 0 { Darwin.close(fd) }
         if exitCode == nil {

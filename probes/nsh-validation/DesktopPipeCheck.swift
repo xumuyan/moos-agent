@@ -22,6 +22,24 @@ struct DesktopPipeCheck {
             lostStatus.externallyReapForTest()
             try check(!(await lostStatus.close()))
             try check(lostStatus.exitCode == 255 && !lostStatus.forced && !lostStatus.accepting)
+            // Observe immediate exit without a request or an explicit close() call.
+            for _ in 0..<8 {
+                let fast = try DesktopPipe.testLaunch(script: directory + "/instant-exit.mjs")
+                let deadline = DispatchTime.now() + 2
+                while fast.exitCode == nil && DispatchTime.now() < deadline {
+                    try await Task.sleep(nanoseconds: 10_000_000)
+                }
+                try check(fast.exitCode == 19 && !fast.accepting && !fast.forced)
+                try check(kill(fast.pid, 0) == -1 && errno == ESRCH)
+            }
+            let stuck = try DesktopPipe.testLaunch(script: directory + "/ignore-term.mjs",
+                                                   shutdownGrace: 0.15, killGrace: 0.15)
+            _ = try await stuck.request("projects.list")
+            async let closeOne = stuck.close()
+            async let closeTwo = stuck.close()
+            let closed = await [closeOne, closeTwo]
+            try check(closed == [false, false] && stuck.exitCode == 137 && stuck.forced)
+            try check(kill(stuck.pid, 0) == -1 && errno == ESRCH)
             for name in ["reverse", "timeout", "oversize", "badutf8", "unknown", "duplicate", "exit", "partial", "badversion", "badok", "baderror", "broken", "limit", "deinit", "blocked"] {
                 let pipe = try DesktopPipe.testLaunch(script: directory + "/" + name + ".mjs", callSeconds: name == "timeout" ? 0.3 : name == "blocked" ? 0.5 : 3)
                 if name == "reverse" {

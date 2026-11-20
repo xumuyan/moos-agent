@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import successor_input
+from nsh_composer_provenance import idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,10 +67,12 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         compression = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
         strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
         prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
+        idle_host = idle_host_evidence()
         for name, expected in self.evidence['inputs'].items():
             current = successor_input(self, compression, name, expected)
             current = successor_input(self, strip, name, current)
             current = successor_input(self, prune, name, current)
+            current = successor_input(self, idle_host, name, current)
             self.assertEqual(current, sha(ROOT / name), name)
         self.assertEqual(self.evidence['check']['entry'], sha(PROBE / 'appkit-hostcheck/ChatCheck.tsx'))
         for name, expected in self.evidence['artifacts'].items():

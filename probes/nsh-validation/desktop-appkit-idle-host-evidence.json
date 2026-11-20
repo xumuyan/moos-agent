@@ -1,0 +1,241 @@
+{
+  "task": "N01-D3",
+  "recordedAt": "2026-11-21T07:12:22.831402+08:00",
+  "baselineCommit": "48cf1480bca64b50b0c7dd6682506bc5e55030cc",
+  "commitSubject": "perf(N01-D3): reduce idle desktop host work",
+  "platform": "arm64 macOS 27.0.1",
+  "nsh": "0.5.0",
+  "pi": "1.5.0",
+  "node": "24.15.0",
+  "workload": {
+    "scope": "same pruned bundle and background AppKit window scripted using normal view actions; fresh isolated profile per run; shell 1240x820; loopback only",
+    "sampleSeconds": 20,
+    "streamDeltas": 250,
+    "deltaIntervalMs": 100,
+    "matchedCrossProcessOrder": "baseline then optimized, one pair",
+    "memoryMeasure": "macOS footprint for AppKit and child Host at sample end",
+    "wallClockFirstDelta": "from UI send through scripted controller observing nonempty public text; includes polling / fixture startup"
+  },
+  "runs": {
+    "baseline": {
+      "artifact": "artifacts/nsh-validation/appkit-host-idle.78h_hekn/baseline/report.json",
+      "sha256": "8fff71e730de2f8b25664d71c95f8ab830bd96fbcb248c0867d3dc701593a345",
+      "signedBundleVerified": true,
+      "hostExitNormal": true,
+      "firstVisibleDeltaMs": 270,
+      "stream": {
+        "status": "succeeded",
+        "events": 254,
+        "replyChars": 5401
+      },
+      "samples": {
+        "empty-idle": {
+          "cpuMeanOneCorePercent": 0.19546204696371625,
+          "footprintMiB": 127.53311157226562,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 0.19546204696371625,
+              "footprintMiB": 27.09477996826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 100.4852066040039
+            }
+          ]
+        },
+        "ordinary-stream": {
+          "cpuMeanOneCorePercent": 4.638262764618587,
+          "footprintMiB": 111.38873291015625,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 2.195939271679395,
+              "footprintMiB": 31.40727996826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 2.4423234929391904,
+              "footprintMiB": 80.02832794189453
+            }
+          ]
+        },
+        "warm-idle": {
+          "cpuMeanOneCorePercent": 0.19562464311938263,
+          "footprintMiB": 105.85748291015625,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 0.19562464311938263,
+              "footprintMiB": 30.76665496826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 75.13770294189453
+            }
+          ]
+        }
+      },
+      "uiSha256": "80555ed1302ef7be007fe5071d4da97812fa0f68cdd4afa78f024295d89cafaf",
+      "fixtureSha256": "275549b44f24799b792bf66ae62f1a30f4ef9056a0c11c1a1900ccdc7e890c0c",
+      "nativeRunnerSourceSha256": "79249391f203fd3ff2059bb105d875faa4d530ed754f975f0a61db01543f54bf",
+      "desktopHostSha256": "a39a9b71b4b65a43e305ddf5212dcdfa4a303494120138d7f17dc2206750242d",
+      "signedTransportSha256": "d23b7183ee8db272fbef17328d211fc3717cad397e669fa61a1e329b52d1b7d7"
+    },
+    "optimized": {
+      "artifact": "artifacts/nsh-validation/appkit-host-idle.78h_hekn/optimized/report.json",
+      "sha256": "2d97213125c92fae79771f93835e9e67ca4f86102815b3bc63144ac9729800f9",
+      "signedBundleVerified": true,
+      "hostExitNormal": true,
+      "firstVisibleDeltaMs": 890,
+      "stream": {
+        "status": "succeeded",
+        "events": 254,
+        "replyChars": 5401
+      },
+      "samples": {
+        "empty-idle": {
+          "cpuMeanOneCorePercent": 0,
+          "footprintMiB": 49.76947021484375,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 27.12602996826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 22.69031524658203
+            }
+          ]
+        },
+        "ordinary-stream": {
+          "cpuMeanOneCorePercent": 4.153002290839185,
+          "footprintMiB": 157.33177185058594,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 2.0035978920739943,
+              "footprintMiB": 31.20415496826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 2.14940439876519,
+              "footprintMiB": 126.17449188232422
+            }
+          ]
+        },
+        "warm-idle": {
+          "cpuMeanOneCorePercent": 0,
+          "footprintMiB": 111.12315368652344,
+          "processes": [
+            {
+              "role": "main",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 30.54790496826172
+            },
+            {
+              "role": "PI Host",
+              "cpuMeanOneCorePercent": 0,
+              "footprintMiB": 80.62212371826172
+            }
+          ]
+        }
+      },
+      "uiSha256": "80555ed1302ef7be007fe5071d4da97812fa0f68cdd4afa78f024295d89cafaf",
+      "fixtureSha256": "275549b44f24799b792bf66ae62f1a30f4ef9056a0c11c1a1900ccdc7e890c0c",
+      "nativeRunnerSourceSha256": "79249391f203fd3ff2059bb105d875faa4d530ed754f975f0a61db01543f54bf",
+      "desktopHostSha256": "8f8284c36e32404a0c6cede6d099281067684261bf7a5166f2731067239dc0fe",
+      "signedTransportSha256": "55d5d8447827d09e5d4efa7cfbc8c73208ee7222b59484f8173ddd1deb302afa"
+    }
+  },
+  "nativeFoundationChecks": 81,
+  "specializedHostTests": 22,
+  "processExit": "event-driven during normal lifetime; staged escalation after explicit close; owner-loss fallback remains",
+  "coldIdleMemoryReduced": true,
+  "warmIdleAndActiveMemoryReductionEstablished": false,
+  "isolatedBenchmarkCopiesCleaned": true,
+  "externalModel": false,
+  "teamModeMeasured": false,
+  "productionChanged": false,
+  "installed": false,
+  "humanGui": false,
+  "overallN01D3Complete": false,
+  "previousInputs": {
+    "probes/nsh-validation/DesktopPipe.swift": "d03e31a6c0465dfd04708ba609e1abe7ba9ec50d306843c050d55f5773f8deac",
+    "probes/nsh-validation/DesktopPipeCheck.swift": "79aaf0223f3c2198800f2ff65abcd1731ff1550cc18e30984b12e6589012eb25",
+    "probes/nsh-validation/desktop-host.mjs": "a39a9b71b4b65a43e305ddf5212dcdfa4a303494120138d7f17dc2206750242d",
+    "probes/nsh-validation/desktop-host.test.mjs": "b06b49363587952dbff57e108ff9c7645b547ad83fffe295da4db346b74d2f03",
+    "probes/nsh-validation/verify-desktop-native.mjs": "6869428e40e78d46b3c858531711488ab2f4e20ee39e5aa93b50ecb459f36321",
+    "tests/nsh_composer_provenance.py": "8791a860b98b72c683782b6851bd507b95fd469f98180d058233d6d7faea81f2"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopPipe.swift": {
+      "bytes": 14599,
+      "sha256": "cf3740303d8c07885e569e8e0d38c0cd68b8005b612c1233e97a002275ae3595"
+    },
+    "probes/nsh-validation/DesktopPipeCheck.swift": {
+      "bytes": 6102,
+      "sha256": "c50f6146939e96da4ad5d465a51b2aeb8dd1fd392539eac1b000c24c9884462f"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 14113,
+      "sha256": "8f8284c36e32404a0c6cede6d099281067684261bf7a5166f2731067239dc0fe"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 24547,
+      "sha256": "150fa0d6a5537b02358ad7180cd087aff90547293c512866f13139c9be0060d1"
+    },
+    "probes/nsh-validation/verify-desktop-native.mjs": {
+      "bytes": 9615,
+      "sha256": "24e84dffcc42744a5d2e8f4ddc2ec0ba8401846434879fc5f558fc1896da22b3"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 2973,
+      "sha256": "91c51fd9b8a4edba3fed36c8d869edef1b667547b3b378c54f9abb36398dc262"
+    }
+  },
+  "packageAcceptance": {
+    "report": "artifacts/nsh-validation/appkit-chat-check.S9TQNb/result.json",
+    "sha256": "70a6f08c8deb220f8f8a7f5fe52017bef24a0b1894427da137646d2752a82c9d",
+    "checksByLaunch": [
+      6,
+      12
+    ],
+    "normalExitAndStopDrain": true,
+    "packagedDualProtocolLoopback": true
+  },
+  "macCatalystAcceptance": {
+    "passed": true,
+    "good": 44,
+    "denied": 6,
+    "timeout": 5,
+    "normalOwnerExit": true,
+    "log": "artifacts/nsh-validation/appkit-host-idle.78h_hekn/native-catalyst.log"
+  },
+  "automatedTests": {
+    "node22Core": {
+      "passed": 387,
+      "skipped": 1,
+      "failed": 0
+    },
+    "electronPackaged": {
+      "passed": 142,
+      "skipped": 1,
+      "failed": 0
+    },
+    "independentM01RustOffline": "blocked: missing defmt",
+    "docs": {
+      "passed": 262,
+      "failed": 2,
+      "total": 264,
+      "unchangedBlockers": [
+        "older AppKit open.err no longer matches original hash",
+        "E124 original report.json missing"
+      ]
+    }
+  }
+}

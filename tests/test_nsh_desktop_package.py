@@ -5,7 +5,7 @@ import struct
 import subprocess
 import unittest
 
-from nsh_composer_provenance import ROOT, desktop_package_evidence
+from nsh_composer_provenance import ROOT, current_composer_input, desktop_package_evidence
 
 
 def record(data):
@@ -28,6 +28,7 @@ class DesktopPackageTests(unittest.TestCase):
             prior = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
             self.assertEqual(record(prior)['sha256'], digest, path)
         for path, expected in e['inputs'].items():
+            expected = current_composer_input(self, path, expected, after=desktop_package_evidence)
             self.assertEqual(record((ROOT / path).read_bytes()), expected, path)
         for mode in ('relocated', 'release'):
             info = e[mode]

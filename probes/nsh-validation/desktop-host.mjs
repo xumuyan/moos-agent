@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import { Store } from '../../services/agent/store.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { TaskFailure } from '../../services/agent/errors.mjs';
-import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
@@ -26,6 +25,14 @@ function title(value) {
 }
 const taskView = task => ({ id: task.id, projectId: task.projectId, sessionId: task.conversationId,
   status: task.status, errorCode: task.errorCode });
+
+async function runDesktopPi(options) {
+  options.signal.throwIfAborted();
+  // Project and history reads need SQLite, but not the model SDK or its providers.
+  const { runPiSdk } = await import('../../packages/pi-runtime/sdk-runtime.mjs');
+  options.signal.throwIfAborted();
+  return runPiSdk(options);
+}
 function publicPayload(type, payload) {
   if (type === 'task_state') return { status: payload.status, errorCode: payload.errorCode ?? null };
   if (type === 'text_delta' && typeof payload.delta === 'string') return { delta: payload.delta.slice(0, 4096), truncated: payload.delta.length > 4096 };
@@ -41,7 +48,7 @@ function publicPayload(type, payload) {
  * persistence probe sets profileDir; the regular fixture and live entries stay disposable.
  * Keep trustedProjects and close outside the renderer; expose only call via a private pipe.
  */
-export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk, liveModels, profileDir } = {}) {
+export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runDesktopPi, liveModels, profileDir } = {}) {
   if (!Array.isArray(projectNames) || projectNames.length < 1 || projectNames.length > 8) throw new Error('Invalid trusted registry');
   projectNames.forEach(title);
   const lease = profileDir === undefined ? null : await leaseDesktopProfile(profileDir);

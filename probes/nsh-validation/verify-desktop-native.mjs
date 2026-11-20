@@ -23,6 +23,8 @@ const fixtures = {
   unknown: `lines.once('line',()=>process.stdout.write(reply({id:'unknown',method:'x'})));`,
   duplicate: `lines.once('line',x=>{let r=JSON.parse(x); process.stdout.write(reply(r)+reply(r));});`,
   exit: `lines.once('line',()=>process.exit(7));`,
+  'instant-exit': `process.exit(19);`,
+  'ignore-term': `process.on('SIGTERM',()=>{}); setInterval(()=>{},1000); lines.once('line',x=>process.stdout.write(reply(JSON.parse(x))));`,
   partial: `lines.once('line',()=>{process.stdout.write('{');process.exit(0);});`,
   badversion: `lines.once('line',x=>process.stdout.write(JSON.stringify({version:true,id:JSON.parse(x).id,ok:true,result:{}})+'\\n'));`,
   badok: `lines.once('line',x=>process.stdout.write(JSON.stringify({version:1,id:JSON.parse(x).id,ok:1,result:{}})+'\\n'));`,

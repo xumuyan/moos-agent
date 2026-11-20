@@ -28,6 +28,21 @@ class DesktopAppKitEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.e = json.loads((PROBE / 'desktop-appkit-evidence.json').read_text())
 
+    def test_idle_host_pair_keeps_workload_and_coverage_boundaries(self):
+        data = json.loads((PROBE / 'desktop-appkit-idle-host-evidence.json').read_text())
+        baseline = data['runs']['baseline']
+        optimized = data['runs']['optimized']
+        for key in ('uiSha256', 'fixtureSha256', 'nativeRunnerSourceSha256', 'stream'):
+            self.assertEqual(baseline[key], optimized[key])
+        self.assertNotEqual(baseline['desktopHostSha256'], optimized['desktopHostSha256'])
+        self.assertTrue(all(run['hostExitNormal'] and run['signedBundleVerified'] for run in data['runs'].values()))
+        self.assertLess(optimized['samples']['empty-idle']['footprintMiB'], baseline['samples']['empty-idle']['footprintMiB'])
+        self.assertGreater(optimized['firstVisibleDeltaMs'], baseline['firstVisibleDeltaMs'])
+        for key in ('warmIdleAndActiveMemoryReductionEstablished', 'humanGui', 'teamModeMeasured',
+                    'externalModel', 'productionChanged', 'installed', 'overallN01D3Complete'):
+            self.assertFalse(data[key])
+        self.assertIn('desktop-appkit-idle-host-evidence.json', (ROOT / 'PLAN.md').read_text())
+
     def test_stock_sizes_and_explicitly_unavailable_host(self):
         run = self.e['run']
         baseline = run['baseline']
@@ -52,12 +67,16 @@ class DesktopAppKitEvidenceTests(unittest.TestCase):
 
     def test_pipe_inputs_and_blocked_custom_build_remain_distinct(self):
         run = self.e['run']
+        historical = {'DesktopPipe.swift', 'desktop-host-stdio.mjs'}
+        self.assertTrue(historical <= run['inputs'].keys())
         for name, record in run['inputs'].items():
             self.assertEqual(Path(name).name, name)
-            self.assertEqual(self.record(PROBE / name), record, name)
-        for name in ('DesktopPipe.swift', 'desktop-host-stdio.mjs'):
-            data = subprocess.check_output(['git', 'show', f"{self.e['base']}:probes/nsh-validation/{name}"], cwd=ROOT)
-            self.assertEqual(hashlib.sha256(data).hexdigest(), run['inputs'][name]['sha256'])
+            # The transport can evolve. Verify this receipt against its actual source revision.
+            if name in historical:
+                data = subprocess.check_output(['git', 'show', f"{self.e['base']}:probes/nsh-validation/{name}"], cwd=ROOT)
+                self.assertEqual(dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest()), record, name)
+            else:
+                self.assertEqual(self.record(PROBE / name), record, name)
         t = run['transport']
         self.assertTrue(t['passed'])
         self.assertEqual((t['stage'], t['nshEmbedded'], t['hostExit'], t['forced'], t['stderrBytes']),

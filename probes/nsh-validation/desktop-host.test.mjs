@@ -35,6 +35,46 @@ async function fixture(t, options) {
   const host = await startDesktopHost(options); t.after(() => host.close()); return host;
 }
 
+test('N01-D3 desktop startup and catalog reads defer PI until a real task starts', { timeout: 35000 }, async () => {
+  const program = `
+    import assert from 'node:assert/strict';
+    import { registerHooks } from 'node:module';
+    import { setTimeout as delay } from 'node:timers/promises';
+    const runtime = ${JSON.stringify(new URL('../../packages/pi-runtime/sdk-runtime.mjs', import.meta.url).href)};
+    let loads = 0, request = 0;
+    const hooks = registerHooks({ load(url, context, next) {
+      if (url === runtime) loads++;
+      return next(url, context);
+    } });
+    const { startDesktopHost } = await import(${JSON.stringify(new URL('./desktop-host.mjs', import.meta.url).href)});
+    const host = await startDesktopHost();
+    const call = (method, params = {}) => {
+      const response = host.call({ version: 1, id: 'lazy-' + ++request, method, params });
+      assert.ok(response.ok);
+      return response.result;
+    };
+    try {
+      const scopes = call('projects.list').projects.map(({ id: projectId }) =>
+        ({ projectId, sessionId: call('sessions.list', { projectId }).sessions[0].id }));
+      assert.equal(loads, 0, 'idle startup must not import the PI runtime');
+      const tasks = scopes.map((scope, i) => ({ ...scope,
+        taskId: call('tasks.submit', { ...scope, requestId: 'first-' + i, text: 'lazy start ' + i }).task.id }));
+      for (const [i, scope] of tasks.entries()) {
+        const deadline = Date.now() + 20000;
+        let page;
+        do {
+          page = call('tasks.events', { ...scope, cursor: null, limit: 100 });
+          if (!page.terminal) await delay(25);
+        } while (!page.terminal && Date.now() < deadline);
+        assert.equal(page.task.status, 'succeeded');
+        assert.equal(page.events.filter(e => e.type === 'text_delta').map(e => e.payload.delta).join(''), '本地夹具响应：lazy start ' + i);
+      }
+      assert.equal(loads, 1, 'concurrent first tasks share one runtime module');
+    } finally { await host.close(); hooks.deregister(); }
+  `;
+  await promisify(execFile)(process.execPath, ['--input-type=module', '-e', program], { timeout: 32000 });
+});
+
 test('N01-D1 exact versioned allowlist, trusted registry, selection and resource ownership', async t => {
   const host = await fixture(t, { run: async () => ({ text: 'ok' }) });
   const { call, scopes: [a, b] } = setup(host);
