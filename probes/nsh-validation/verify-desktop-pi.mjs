@@ -58,7 +58,7 @@ try {
   await mkdir(join(source, 'assets/desktop'), { recursive: true });
   const inputs = {};
   for (const file of [...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
-    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs',
+    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
     'desktop-live-stdio.mjs', 'desktop-live-models.mjs']) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }

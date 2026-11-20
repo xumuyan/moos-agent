@@ -1,0 +1,99 @@
+{
+  "task": "N01-D2",
+  "base": "9874a78c264d0ae0481331c7625939f399317192",
+  "platform": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "node": "24.15.0",
+    "nsh": "0.5.0"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/desktop-host.mjs": "8d71e3bb7bf9446b8ab5903677f40dea8af776027afe2b2256c594f41aaae266",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "43cb523a74cec918df480b14c51af5662f883b8a205a3cc038e8bda99e6e96b6",
+    "probes/nsh-validation/desktop-live-models.test.mjs": "4bbcdd24f9cd86c165b59c2abfc29872a0f24d64323456084384972592af6ce6",
+    "tests/nsh_composer_provenance.py": "fcb2e582ba1d7da7911c83815ff44a121079cb142b757e6c43b436f41595515c",
+    "tests/test_nsh_desktop_pi.py": "63ace0c37f50720067a116c9986ea2c9a96bc971be029662846bd3ca6e0e7ff7",
+    "tests/test_nsh_live_models.py": "988322853a3a6e544d9dab4c8d29bfa2868afd4591c7b3a6685cfd8cbaa5051a"
+  },
+  "inputs": {
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 13247,
+      "sha256": "ee1c4078ab0af69ca91de0ba3fc05d383f8e3652118e047317b2f5c729b83be9"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 10913,
+      "sha256": "80f80f57ac15b312418c6cc10c9951503c3847d5a7e211ed6d9c289d393abf1a"
+    },
+    "probes/nsh-validation/desktop-live-models.test.mjs": {
+      "bytes": 13056,
+      "sha256": "6395457be9ce8f81a0301a3b0db38905a7f4c1f3d4072f41fc0bdda1c7246f41"
+    },
+    "probes/nsh-validation/desktop-profile.mjs": {
+      "bytes": 2023,
+      "sha256": "ea3b0fe05058b60eebadfdccd7922b361b39280d5324f6c5ab35d72ffdc149fc"
+    },
+    "probes/nsh-validation/desktop-profile.test.mjs": {
+      "bytes": 8681,
+      "sha256": "64908cc6e9583492ea90267e003adf372190255ed665fdddb5bf2093b85f3a86"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 2534,
+      "sha256": "6146bc700bf78aa3bb175c718cb89c52720891217798b3d8a992cc282dd06549"
+    },
+    "tests/test_nsh_desktop_pi.py": {
+      "bytes": 4773,
+      "sha256": "f0ba7559242e25786f59aecbcdd2e847498fa50ed20c3654dc5f74abfd30842b"
+    },
+    "tests/test_nsh_live_models.py": {
+      "bytes": 9536,
+      "sha256": "e645c5e2de7fc91b562109611bda397b3509036a84ad2e1896e913de5cc7ecd1"
+    }
+  },
+  "restart": {
+    "scope": "synthetic-only",
+    "processes": 2,
+    "focusedPassed": 21,
+    "status": 0,
+    "log": {
+      "path": "artifacts/nsh-validation/pi-ui/profile-check-P5XYnK/focus.log",
+      "bytes": 3403,
+      "sha256": "a18945ed316711495041f31a003f2b935dc0c610d9920c2840d73f78883acd88"
+    },
+    "checks": [
+      "project/session identity",
+      "old SQLite rows",
+      "workspace persistence",
+      "PI upstream prior context",
+      "interrupted without replay",
+      "profile validation and exclusivity",
+      "RPC cannot attach a profile"
+    ]
+  },
+  "nativeRegression": {
+    "status": 0,
+    "scope": "scripted disposable fixture",
+    "inputs": {
+      "path": "artifacts/nsh-validation/pi-ui/run-fyDzxb/inputs.json",
+      "bytes": 14876,
+      "sha256": "a204043d6c7218123fa3ce7b18841ee7cc469eff56dc90dae8ae863246e1330a"
+    },
+    "result": {
+      "path": "artifacts/nsh-validation/pi-ui/run-fyDzxb/result.json",
+      "bytes": 1260,
+      "sha256": "9265fc29700a25fee7acbbfe1063037b39275cb65ab1c2e5ce7f84c6de4f087a"
+    },
+    "log": {
+      "path": "artifacts/nsh-validation/pi-ui/profile-check-P5XYnK/native-fixture.log",
+      "bytes": 1699,
+      "sha256": "e5baee33f46a19c02400d1afb4ad74ac66e0a41f2511960ff0e6cf1349024c53"
+    },
+    "passedChecks": 17
+  },
+  "notAccepted": [
+    "installed persistent app",
+    "GUI history restore",
+    "unclean Host recovery",
+    "formal export/import",
+    "formal cutover"
+  ]
+}

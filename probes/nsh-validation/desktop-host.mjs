@@ -1,5 +1,5 @@
 /** N01 trusted desktop launch layer. No listener, UI paths or renderer credentials. */
-import { mkdtemp, mkdir, realpath, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Store } from '../../services/agent/store.mjs';
@@ -9,6 +9,7 @@ import { runPiSdk } from '../../packages/pi-runtime/sdk-runtime.mjs';
 import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
+import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -35,26 +36,51 @@ function publicPayload(type, payload) {
 }
 
 /** Only trusted native code may construct this object. run is a test seam, never an RPC parameter.
- * Projects are created/realpathed here, not supplied by TSX. All state is disposable.
+ * Projects are created/realpathed here, not supplied by TSX. Fixed entrypoints remain disposable;
+ * the trusted profileDir seam is only for testing candidate-owned persistence.
  * Keep trustedProjects and close outside the renderer; expose only call via a private pipe.
  */
-export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk, liveModels } = {}) {
+export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B'], run = runPiSdk, liveModels, profileDir } = {}) {
   if (!Array.isArray(projectNames) || projectNames.length < 1 || projectNames.length > 8) throw new Error('Invalid trusted registry');
   projectNames.forEach(title);
-  const root = await mkdtemp(join(tmpdir(), 'muma-n01-desktop-'));
+  const lease = profileDir === undefined ? null : await leaseDesktopProfile(profileDir);
+  const root = lease ? profileDir : await mkdtemp(join(tmpdir(), 'muma-n01-desktop-'));
+  const fresh = lease?.fresh ?? true;
+  const release = () => lease ? lease.close() : rm(root, { recursive: true, force: true });
   let store, fixture, scheduler, closing, closed = false;
   const journals = new Map(), requests = new Map(), trustedProjects = [];
   try {
-    const dataDir = join(root, 'data'); await mkdir(dataDir, { mode: 0o700 });
-    store = new Store({ dbPath: join(dataDir, 'desktop.sqlite') });
+    const dataDir = join(root, 'data');
+    const dbPath = join(dataDir, 'desktop.sqlite');
+    if (fresh) {
+      await mkdir(dataDir, { mode: 0o700 });
+      if (lease) await writeFile(dbPath, '', { flag: 'wx', mode: 0o600 });
+    } else {
+      await verifyProfileEntry(dataDir, true);
+      if (!(await verifyProfileEntry(dbPath, false)).size) throw new Error('Missing isolated desktop database');
+      for (const suffix of ['-wal', '-shm']) {
+        try { await verifyProfileEntry(dbPath + suffix, false); }
+        catch (error) { if (error.code !== 'ENOENT') throw error; }
+      }
+    }
+    store = new Store({ dbPath });
+    const saved = store.listProjects();
+    if (!fresh && saved.length !== projectNames.length) throw new Error('Invalid isolated desktop project registry');
+    for (const [index, name] of projectNames.entries()) {
+      const workspaceLabel = `workspace-${index}`;
+      const path = join(root, workspaceLabel);
+      if (fresh) await mkdir(path, { mode: 0o700 });
+      else await verifyProfileEntry(path, true);
+      const project = fresh ? await store.addProject(await realpath(path)) : saved[index];
+      if (!fresh && (project.path !== path || !store.listConversations(project.id).length)) {
+        throw new Error('Invalid isolated desktop project registry');
+      }
+      trustedProjects.push({ id: project.id, name, path: project.path, workspaceLabel });
+      if (fresh) store.createConversation(project.id, '新会话');
+    }
+    if (!fresh) store.interruptUnfinished();
     if (!liveModels) fixture = await startDesktopModelFixture();
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
-    for (const [index, name] of projectNames.entries()) {
-      const path = join(root, `workspace-${index}`); await mkdir(path, { mode: 0o700 });
-      const project = await store.addProject(await realpath(path));
-      trustedProjects.push({ id: project.id, name, path: project.path, workspaceLabel: `workspace-${index}` });
-      store.createConversation(project.id, '新会话');
-    }
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
       const { modelId, reasoningEffort } = journals.get(options.task.id);
       const entry = liveModels ? liveModels.routes.get(modelId) : { apiKey: fixture.apiKey,
@@ -93,7 +119,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     function task(params) {
       session(params.projectId, params.sessionId);
       let found; try { found = store.getTask(params.taskId); } catch { reject('not_found'); }
-      if (found.projectId !== params.projectId || found.conversationId !== params.sessionId) reject('not_found'); return found;
+      if (found.projectId !== params.projectId || found.conversationId !== params.sessionId || !journals.has(found.id)) reject('not_found'); return found;
     }
     function sessionView(s, trusted) {
       return { id: s.id, projectId: s.projectId, title: s.title,
@@ -182,15 +208,16 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       closed = true;
       if (!closing) closing = (async () => {
         const drained = await scheduler.shutdown({ timeoutMs: 15000 });
-        if (!drained.drained) throw new Error('Desktop drain incomplete; temporary state retained');
-        await fixture?.close(); store.close(); await rm(root, { recursive: true, force: true });
+        if (!drained.drained) throw new Error('Desktop drain incomplete; state retained');
+        await fixture?.close(); store.close(); await release();
       })();
       return closing;
     }
+    await lease?.ready();
     return { call, close, trustedProjects };
   } catch (error) {
     const drained = await scheduler?.shutdown({ timeoutMs: 15000 });
-    if (!drained || drained.drained) { await fixture?.close(); store?.close(); await rm(root, { recursive: true, force: true }); }
+    if (!drained || drained.drained) { await fixture?.close(); store?.close(); await release(); }
     throw error;
   }
 }

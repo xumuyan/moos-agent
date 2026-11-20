@@ -4,7 +4,7 @@ import json
 import subprocess
 import unittest
 
-from nsh_composer_provenance import PROBE, ROOT, live_models_evidence
+from nsh_composer_provenance import PROBE, ROOT, current_composer_input, live_models_evidence
 
 
 def record(data):
@@ -24,7 +24,8 @@ class DesktopLiveModelsTests(unittest.TestCase):
     def test_receipt_advances_only_known_inputs(self):
         e = live_models_evidence()
         for path, item in e['inputs'].items():
-            self.assertEqual(record((ROOT / path).read_bytes()), item)
+            self.assertEqual(record((ROOT / path).read_bytes()),
+                             current_composer_input(self, path, item, after=live_models_evidence))
         for path, before in e['previousInputs'].items():
             predecessor = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
             self.assertEqual(record(predecessor)['sha256'], before)
