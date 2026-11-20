@@ -7,14 +7,17 @@ import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { parseArtRoot, prepareArtwork } from './desktop-theme-assets.mjs';
 import { loadLiveModels } from './desktop-live-models.mjs';
+import { brandRoot, hostFiles, packageCheckId, packageId, packageRuntime, verifyInternalLinks, verifyPackageIdentity } from './desktop-package.mjs';
 
 process.chdir(fileURLToPath(new URL('../../', import.meta.url)));
 process.umask(0o077);
 const args = process.argv.slice(2), interactive = args.includes('--interactive'), buildOnly = args.includes('--build-only');
-const live = args.includes('--live-models'), persistent = args.includes('--persistent');
+const live = args.includes('--live-models'), packaged = args.includes('--package');
+const persistent = packaged || args.includes('--persistent');
 const artRoot = parseArtRoot(args);
 assert.ok(!(interactive && buildOnly) && (!live || interactive || buildOnly) && !(persistent && live) &&
-  args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only', '--live-models', '--persistent'].includes(a)), 'Unknown/conflicting option');
+  (!packaged || (!interactive && !artRoot && !args.includes('--persistent'))) &&
+  args.filter(a => a !== artRoot).every(a => ['--art-root', '--interactive', '--build-only', '--live-models', '--persistent', '--package'].includes(a)), 'Unknown/conflicting option');
 // An explicit interactive launch may make billable requests on Send only.
 // Refuse to launch with missing/invalid private config; build-only does not read it.
 if (live && interactive) await loadLiveModels();
@@ -29,8 +32,9 @@ const dir = await mkdtemp(join(base, 'run-'));
 console.log(`Evidence directory: ${dir}`);
 const source = join(dir, 'source');
 const nsh = join(tools, 'nsh/bin/nsh');
-const app = join(dir, 'DesktopPI.app');
-const executable = join(app, 'Contents/MacOS/DesktopPI');
+let launchDir = dir;
+let app = join(dir, packaged ? '沐码.app' : 'DesktopPI.app');
+const executablePath = () => join(app, 'Contents/MacOS/DesktopPI');
 const cases = ['isolated startup', 'native window layout', 'public text once', 'create selects clean session', 'real write/read', 'separate project', 'foreign task denied',
   'session round trip', 'real multi-page drain', 'working task stays scoped', 'working session restored', 'stop active command',
   'send again after stop', 'no polling after drain', 'active EOF drained', 'disconnect not success', 'JS waiters disposed'];
@@ -42,7 +46,8 @@ const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatisti
 const native = ['DesktopPipe.swift', 'DesktopNativeBridge.swift', 'DesktopPIHost.swift'];
 const methods = ['projects.list', 'sessions.list', 'sessions.create', 'tasks.submit', 'tasks.cancel', 'tasks.events'];
 const acceptance = !buildOnly && !interactive;
-const bundleIdentifier = persistent ? 'dev.muma.probe.nsh.piui.persistent' : live ? 'dev.muma.probe.nsh.piui.live' : 'dev.muma.probe.nsh.piui';
+const bundleIdentifier = packaged ? (acceptance ? packageCheckId : packageId) :
+  persistent ? 'dev.muma.probe.nsh.piui.persistent' : live ? 'dev.muma.probe.nsh.piui.live' : 'dev.muma.probe.nsh.piui';
 const script = live ? 'desktop-live-stdio.mjs' : 'desktop-host-stdio.mjs';
 const json = (name, value) => writeFile(join(dir, name), JSON.stringify(value, null, 2) + '\n');
 try {
@@ -66,16 +71,18 @@ try {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }
   for (const file of ['package-lock.json', ...run('git', ['ls-files', 'services/agent', 'packages/pi-runtime', 'packages/pi-adapter']).trim().split('\n')]) inputs[file] = await record(resolve(file));
+  if (packaged) for (const file of [...hostFiles, `${brandRoot}/moos.icns`, `${brandRoot}/brand-assets.json`,
+    'probes/nsh-validation/desktop-package.mjs', 'probes/nsh-validation/DesktopPackagePaths.swift']) inputs[file] = await record(resolve(file));
   for (const file of view) await cp(join(probe, file), join(source, file));
   if (artRoot) await prepareArtwork(artRoot, source, JSON.parse(await readFile(join(probe, 'skin-source.json'), 'utf8')));
   if (acceptance) await cp(join(probe, persistent ? 'desktop-persistent-check.tsx' : 'desktop-pi-check.tsx'), join(source, 'App.tsx'));
   else await writeFile(join(source, 'App.tsx'), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(${persistent ? '() => <DesktopView persistentHistory />' : 'DesktopView'});\n`);
-  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: persistent ? 'NSH 候选 · 持久化合成试验' : live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
+  await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: packaged ? '沐码' : persistent ? 'NSH 候选 · 持久化合成试验' : live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
     capabilities: { statusBar: true, host: [...methods, ...(persistent ? ['sessions.history'] : []), ...(acceptance ? ['piui.disconnect', 'piui.report', ...(persistent ? ['piui.capture'] : [])] : [])] } }));
   const node = await realpath(process.execPath);
   const fixed = join(dir, 'DesktopFixedLaunch.swift');
   let hostScript = join(probe, script), profile;
-  if (persistent) {
+  if (persistent && !packaged) {
     const runtime = join(dir, 'staged');
     const stagedProbe = join(runtime, 'probes', 'nsh-validation');
     await mkdir(stagedProbe, { recursive: true, mode: 0o700 });
@@ -89,10 +96,12 @@ try {
     }
     hostScript = join(stagedProbe, 'desktop-persistent-stdio.mjs');
   }
-  await writeFile(fixed, `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(hostScript)} }\n`);
+  await writeFile(fixed, packaged
+    ? 'enum DesktopFixedLaunch { static let node = DesktopPackagePaths.node; static let script = DesktopPackagePaths.script }\n'
+    : `enum DesktopFixedLaunch { static let node = ${JSON.stringify(node)}; static let script = ${JSON.stringify(hostScript)} }\n`);
   await json('inputs.json', { at: new Date().toISOString(), head: run('git', ['rev-parse', 'HEAD']).trim(), status: run('git', ['status', '--short']),
     node: process.version, nsh: version, system: run('/usr/bin/sw_vers', []), arch: process.arch, frameworkHash,
-    acceptance, persistent, modelMode: live ? 'external' : 'fixture', artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
+    acceptance, persistent, packaged, modelMode: live ? 'external' : 'fixture', artwork: !!artRoot, inputs, entry: await record(join(source, 'App.tsx')), config: await record(join(source, 'nsh.json')) });
   async function logged(label, command, params, timeout) {
     try { await writeFile(join(dir, `${label}.log`), run(command, params, { timeout })); }
     catch (error) {
@@ -105,10 +114,11 @@ try {
   await logged('bundle', nsh, ['build', join(source, 'App.tsx'), '--release', '--out', bundle], 120000);
   assert.ok((await record(join(bundle, 'bundle.nshc'))).bytes > 0);
   const project = { name: 'DesktopPI', targets: { DesktopPI: { type: 'application', platform: 'iOS', deploymentTarget: '15.0',
-    sources: [...native.map(file => join(probe, file)), fixed], dependencies: [{ framework, embed: false }],
-    info: { path: 'Info.plist', properties: { UIApplicationSceneManifest: { UIApplicationSupportsMultipleScenes: false, UISceneConfigurations: {} } } },
+    sources: [...native.map(file => join(probe, file)), ...(packaged ? [join(probe, 'DesktopPackagePaths.swift')] : []), fixed], dependencies: [{ framework, embed: false }],
+    info: { path: 'Info.plist', properties: { UIApplicationSceneManifest: { UIApplicationSupportsMultipleScenes: false, UISceneConfigurations: {} },
+      ...(packaged ? { CFBundleDisplayName: '沐码', CFBundleName: 'MuMa', CFBundleIconFile: 'moos.icns', CFBundleLocalizations: ['en', 'zh-Hans', 'zh-Hant'] } : {}) } },
     settings: { base: { PRODUCT_BUNDLE_IDENTIFIER: bundleIdentifier, GENERATE_INFOPLIST_FILE: 'YES', SUPPORTS_MACCATALYST: 'YES',
-      DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: 'NO', SWIFT_VERSION: '5.0', SWIFT_ACTIVE_COMPILATION_CONDITIONS: [acceptance ? 'PI_UI_CHECK' : '', persistent ? 'PI_PERSISTENT' : ''].join(' ').trim(),
+      DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: 'NO', SWIFT_VERSION: '5.0', SWIFT_ACTIVE_COMPILATION_CONDITIONS: [acceptance ? 'PI_UI_CHECK' : '', persistent ? 'PI_PERSISTENT' : '', packaged ? 'PI_PACKAGE' : ''].filter(Boolean).join(' '),
       CODE_SIGNING_ALLOWED: 'NO', ENABLE_APP_SANDBOX: 'NO', TARGETED_DEVICE_FAMILY: '2', INFOPLIST_KEY_UILaunchScreen_Generation: 'YES' } },
   } } };
   await json('project.json', project);
@@ -118,8 +128,28 @@ try {
     '-destination', 'platform=macOS,variant=Mac Catalyst,arch=arm64', '-derivedDataPath', derived, 'CODE_SIGNING_ALLOWED=NO', 'build'], 180000);
   await cp(join(derived, 'Build/Products/Release-maccatalyst/DesktopPI.app'), app, { recursive: true, verbatimSymlinks: true });
   await cp(bundle, join(app, 'Contents/Resources/ui'), { recursive: true });
+  const runtime = packaged ? await packageRuntime({ app, node, dir, check: acceptance, run, record, inputs }) : null;
   run('/usr/bin/codesign', ['--force', '--sign', '-', app]);
-  run('/usr/bin/codesign', ['--verify', '--strict', app]);
+  const verify = () => run('/usr/bin/codesign', ['--verify', '--deep', '--strict', app]);
+  verify();
+  if (packaged) {
+    if (acceptance) {
+      // Move the complete signed .app out of the checkout before the actual two-launch test.
+      launchDir = await mkdtemp('/private/tmp/n01-package-relocated-');
+      const destination = join(launchDir, '沐码.app');
+      await rename(app, destination);
+      app = destination;
+      profile = join(launchDir, 'profile');
+      await mkdir(profile, { mode: 0o700 });
+      verify();
+    }
+    await verifyInternalLinks(app);
+    const identity = verifyPackageIdentity(app, bundleIdentifier);
+    const bytesOnDisk = Number(run('/usr/bin/du', ['-sk', app]).trim().split(/\s+/)[0]) * 1024;
+    await json('package-result.json', { identity, runtime, bytesOnDisk, signed: 'ad-hoc', verified: true, relocated: acceptance,
+      dataPolicy: acceptance ? 'private sibling test profile' : 'Application Support/dev.muma.probe.nsh.package',
+      modelMode: 'fixture', testOnly: acceptance, notarized: false, installed: false });
+  }
   console.log(`Candidate app: ${app}`);
   for (const [file, expected] of Object.entries(inputs)) assert.deepEqual(await record(resolve(file)), expected, `Input changed: ${file}`);
   async function launch(suffix = '') {
@@ -129,8 +159,8 @@ try {
       // Outer watchdog also covers a hung native main thread. Only signal our exact executable.
       const deadline = setTimeout(async () => {
         try {
-          const pid = Number(await readFile(join(dir, 'app.pid'), 'utf8'));
-          if (Number.isSafeInteger(pid) && pid > 1 && run('/bin/ps', ['-p', String(pid), '-o', 'command=']).trim() === executable) process.kill(pid, 'SIGTERM');
+          const pid = Number(await readFile(join(launchDir, 'app.pid'), 'utf8'));
+          if (Number.isSafeInteger(pid) && pid > 1 && run('/bin/ps', ['-p', String(pid), '-o', 'command=']).trim() === executablePath()) process.kill(pid, 'SIGTERM');
         } catch { /* already exited or unverified PID; never signal another instance */ }
         opened.kill('SIGTERM');
         reject(Error('Candidate launch deadline; not accepted'));
@@ -142,7 +172,7 @@ try {
   if (!buildOnly) await launch();
   if (acceptance && persistent) {
     const result = async () => {
-      const report = JSON.parse(await readFile(join(dir, 'result.json'), 'utf8'));
+      const report = JSON.parse(await readFile(join(launchDir, 'result.json'), 'utf8'));
       assert.ok(report.passed && report.normalChildExit && !report.forced, `Persistent candidate stopped at ${report.stage}`);
       assert.equal(report.stderrBytes, 0);
       assert.equal((await lstat(profile)).mode & 0o777, 0o700);
@@ -153,16 +183,20 @@ try {
     const first = await result();
     assert.equal(first.restart, false);
     assert.deepEqual(first.checks, ['fresh profile is empty', 'first turn complete', 'live turn excluded from historical page']);
-    await rename(join(dir, 'result.json'), join(dir, 'first-result.json'));
+    await rename(join(launchDir, 'result.json'), join(dir, 'first-result.json'));
     await launch('-reopen');
     const reopened = await result();
     assert.equal(reopened.restart, true);
     assert.deepEqual(reopened.scope, first.scope);
     assert.deepEqual(reopened.checks, ['restored history without replay', 'other project stays empty', 'same session selected again',
       'old user and assistant rows laid out', 'old messages captured before Send', 'PI continuation uses old context', 'live turn excluded from historical page']);
+    if (packaged) {
+      verify();
+      for (const file of ['result.json', 'restored-history.png']) await cp(join(launchDir, file), join(dir, file));
+    }
     const png = await record(join(dir, 'restored-history.png'));
     assert.ok(png.bytes > 0);
-    await json('persistent-result.json', { first, reopened, screenshot: png, manualQuit: false, portable: false, installed: false });
+    await json('persistent-result.json', { first, reopened, screenshot: png, manualQuit: false, portable: packaged, installed: false });
     console.log(JSON.stringify({ first, reopened }));
   } else if (acceptance) {
     const result = JSON.parse(await readFile(join(dir, 'result.json'), 'utf8'));

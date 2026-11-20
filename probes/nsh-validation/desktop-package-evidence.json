@@ -1,0 +1,298 @@
+{
+  "task": "N01-D3",
+  "base": "af8685742046070d2e911224f69a84f698de1505",
+  "platform": {
+    "os": "macOS 27.0.1",
+    "arch": "arm64",
+    "nsh": "0.5.0",
+    "node": "24.15.0",
+    "pi": "1.5.0"
+  },
+  "previousInputs": {
+    "probes/nsh-validation/DesktopPIHost.swift": "c2d34e8c2634d180082656c014072718075cfa97487f6288613126d3ad5c8d15",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "4458a1ef265795c9354c6e636c03c28a3a7ab273df17a1fd7aa57b66ab74a55b",
+    "tests/nsh_composer_provenance.py": "f58286d3ed6bcd1c2d1d7e75107bfc39e67ea686b54ed42360ee48d9b4478b17"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopPIHost.swift": {
+      "bytes": 6229,
+      "sha256": "7e75642af89974db55568b34e7bbaecc7373cf3aea77e43bfe74b8779454d952"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 16535,
+      "sha256": "942169396c60e7709dc5f093f29dc9c6e998c9d947c4c895b1a98c2b81428c58"
+    },
+    "probes/nsh-validation/DesktopPackagePaths.swift": {
+      "bytes": 2632,
+      "sha256": "48ed01eb795773bf34a17814095aa20aba97ee0203cf549f79ae8f7cfcd8b1d0"
+    },
+    "probes/nsh-validation/desktop-package-stdio.mjs": {
+      "bytes": 1562,
+      "sha256": "94317df6f26e3971b6e2572e8ce74f82276e0f46a5385f08fcd3a6508b33385b"
+    },
+    "probes/nsh-validation/desktop-package.mjs": {
+      "bytes": 5671,
+      "sha256": "1a241213222ceb70cdf3e60870847462e1903c95b81bb7edef4425298b592174"
+    },
+    "apps/electron/assets/moos.icns": {
+      "bytes": 130920,
+      "sha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+    },
+    "apps/electron/assets/brand-assets.json": {
+      "bytes": 578,
+      "sha256": "8f93f4bc75eacbd9ea8030679d64da2bcd41da22536cc3868ea199d2a8deb4ac"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 2839,
+      "sha256": "8791a860b98b72c683782b6851bd507b95fd469f98180d058233d6d7faea81f2"
+    }
+  },
+  "protectedRuntimeInputs": {
+    "probes/nsh-validation/desktop-ui-controller.ts": {
+      "bytes": 10935,
+      "sha256": "4117b6fdd6e586773a237a55476397d8e37a991dbe74417f55804669f665e72d"
+    },
+    "probes/nsh-validation/desktop-ui-transport.ts": {
+      "bytes": 729,
+      "sha256": "3fc762207598159b702d15be4515bc8b69ec252c22a96f3af721250c12b883b6"
+    }
+  },
+  "release": {
+    "status": 0,
+    "inspectStatus": 0,
+    "app": "artifacts/nsh-validation/pi-ui/run-fr0Prc/沐码.app",
+    "build": {
+      "built": true,
+      "launched": false,
+      "installed": false,
+      "acceptance": false
+    },
+    "package": {
+      "identity": {
+        "displayName": "沐码",
+        "bundleName": "MuMa",
+        "artifactName": "moos.icns",
+        "bundleIdentifier": "dev.muma.probe.nsh.package"
+      },
+      "runtime": {
+        "node": {
+          "bytes": 119228096,
+          "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89"
+        },
+        "nodeInput": {
+          "bytes": 119944608,
+          "sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32"
+        },
+        "nodeLicense": {
+          "bytes": 156926,
+          "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18"
+        },
+        "libraries": [
+          "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+          "/usr/lib/libc++.1.dylib",
+          "/usr/lib/libSystem.B.dylib"
+        ],
+        "icon": {
+          "bytes": 130920,
+          "sha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+        },
+        "offlineDependencies": true
+      },
+      "bytesOnDisk": 359841792,
+      "signed": "ad-hoc",
+      "verified": true,
+      "relocated": false,
+      "dataPolicy": "Application Support/dev.muma.probe.nsh.package",
+      "modelMode": "fixture",
+      "testOnly": false,
+      "notarized": false,
+      "installed": false
+    },
+    "inputReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-fr0Prc/inputs.json",
+      "bytes": 16494,
+      "sha256": "19814d9b6220a4d9daabe723a4c873c62572cdb6f4c2a999b622f5d8ed477acf"
+    },
+    "packageReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-fr0Prc/package-result.json",
+      "bytes": 1248,
+      "sha256": "53511cf6b94293700f15ed929a59bfd347d80a63116145066d7c3bd77f7dc585"
+    },
+    "buildReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-fr0Prc/build-result.json",
+      "bytes": 86,
+      "sha256": "e421caa3d9e7659a5505b3e5a0b6a3fd53146d4ba0de41c28366fd2f7efabbd3"
+    },
+    "log": {
+      "path": "artifacts/nsh-validation/pi-ui/package-check-NzBTtH/final/release.log",
+      "bytes": 1030,
+      "sha256": "fe7877b88d674b1c29b3397a18fa7b4837e354cb072a688dc16aeb14e6f91488"
+    },
+    "inspectLog": {
+      "path": "artifacts/nsh-validation/pi-ui/package-check-NzBTtH/final/release-inspect.log",
+      "bytes": 1581,
+      "sha256": "d0d744babc62ebc8b1d33e5e358dacd1bdefbee3b2af5a4371aaf2ef2499ab8a"
+    }
+  },
+  "relocated": {
+    "status": 0,
+    "package": {
+      "identity": {
+        "displayName": "沐码",
+        "bundleName": "MuMa",
+        "artifactName": "moos.icns",
+        "bundleIdentifier": "dev.muma.probe.nsh.package.check"
+      },
+      "runtime": {
+        "node": {
+          "bytes": 119228096,
+          "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89"
+        },
+        "nodeInput": {
+          "bytes": 119944608,
+          "sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32"
+        },
+        "nodeLicense": {
+          "bytes": 156926,
+          "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18"
+        },
+        "libraries": [
+          "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+          "/usr/lib/libc++.1.dylib",
+          "/usr/lib/libSystem.B.dylib"
+        ],
+        "icon": {
+          "bytes": 130920,
+          "sha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+        },
+        "offlineDependencies": true
+      },
+      "bytesOnDisk": 360583168,
+      "signed": "ad-hoc",
+      "verified": true,
+      "relocated": true,
+      "dataPolicy": "private sibling test profile",
+      "modelMode": "fixture",
+      "testOnly": true,
+      "notarized": false,
+      "installed": false
+    },
+    "restartResult": {
+      "first": {
+        "checks": [
+          "fresh profile is empty",
+          "first turn complete",
+          "live turn excluded from historical page"
+        ],
+        "forced": false,
+        "mainRunLoopMaxGapMs": 366,
+        "normalChildExit": true,
+        "passed": true,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "restart": false,
+        "scope": {
+          "projectId": "d6e0e175-f939-4cf0-bc3f-be0721a61511",
+          "sessionId": "df46d041-ea71-459b-b318-427be6137590"
+        },
+        "stage": "complete",
+        "stderrBytes": 0
+      },
+      "reopened": {
+        "checks": [
+          "restored history without replay",
+          "other project stays empty",
+          "same session selected again",
+          "old user and assistant rows laid out",
+          "old messages captured before Send",
+          "PI continuation uses old context",
+          "live turn excluded from historical page"
+        ],
+        "forced": false,
+        "mainRunLoopMaxGapMs": 186,
+        "normalChildExit": true,
+        "passed": true,
+        "platform": "Mac Catalyst NSH 0.5.0",
+        "restart": true,
+        "scope": {
+          "projectId": "d6e0e175-f939-4cf0-bc3f-be0721a61511",
+          "sessionId": "df46d041-ea71-459b-b318-427be6137590"
+        },
+        "stage": "complete",
+        "stderrBytes": 0
+      },
+      "screenshot": {
+        "bytes": 1017862,
+        "sha256": "9a38ba3819ff4300943f53d55e0e999bce5b536ac2c9c7f042f0d77c2b7ed5a0"
+      },
+      "manualQuit": false,
+      "portable": true,
+      "installed": false
+    },
+    "inputReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/inputs.json",
+      "bytes": 16494,
+      "sha256": "2464151e2e61816b188476e62b796cb5826d313c9086a2603e4e8f5b6ef8098d"
+    },
+    "packageReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/package-result.json",
+      "bytes": 1234,
+      "sha256": "4824e4d8ab777d1b6a9d00a8918d957f0398f30423b25f1a2cff254a1453c2cd"
+    },
+    "restartReceipt": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/persistent-result.json",
+      "bytes": 1381,
+      "sha256": "0aafaa7fd9697f3411e56842f2c5f1fb2b746c8fcd80ecf0f99a6f729df711df"
+    },
+    "first": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/first-result.json",
+      "bytes": 464,
+      "sha256": "46eb2536e2933e55873f9376cb82b71459b376d38df45c21a93904c3b36cd240"
+    },
+    "reopened": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/result.json",
+      "bytes": 638,
+      "sha256": "6beebe4bcf2bf754c9c83c44ccdd8136584ae4ed9e778d1ea692dee665ba1054"
+    },
+    "screenshot": {
+      "path": "artifacts/nsh-validation/pi-ui/run-obp7fR/restored-history.png",
+      "bytes": 1017862,
+      "sha256": "9a38ba3819ff4300943f53d55e0e999bce5b536ac2c9c7f042f0d77c2b7ed5a0",
+      "pixels": [
+        1330,
+        998
+      ]
+    },
+    "log": {
+      "path": "artifacts/nsh-validation/pi-ui/package-check-NzBTtH/final/relocated.log",
+      "bytes": 1836,
+      "sha256": "83268e0cdb4ab1445bc7248cdf72da389f28a2b3725e7da5772599ace6752203"
+    }
+  },
+  "disposableRegression": {
+    "status": 0,
+    "passedChecks": 17,
+    "result": {
+      "path": "artifacts/nsh-validation/pi-ui/run-ML0fky/result.json",
+      "bytes": 1258,
+      "sha256": "23d835ad50913f75132e015dede485c7211b22f459f47cbaff46783dbce928d8"
+    },
+    "log": {
+      "path": "artifacts/nsh-validation/pi-ui/package-check-NzBTtH/final/disposable.log",
+      "bytes": 1697,
+      "sha256": "5d40a4120692496933935ccf1c497f13c2e9edb23134bed5fc905c0314348556"
+    }
+  },
+  "notAccepted": [
+    "Developer ID and notarization",
+    "clean-checkout build",
+    "cross-machine distribution",
+    "release profile GUI startup",
+    "manual GUI",
+    "unclean exit recovery",
+    "real upstream in this package",
+    "formal migration",
+    "formal cutover"
+  ]
+}

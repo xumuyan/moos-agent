@@ -18,7 +18,11 @@ final class DesktopPIController: UIViewController {
         do {
             shell.frame = view.bounds
             shell.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+#if PI_PACKAGE
+            shell.storageDirectory = try DesktopPackagePaths.data().appendingPathComponent("storage", isDirectory: true)
+#else
             shell.storageDirectory = dir.appendingPathComponent("storage", isDirectory: true)
+#endif
             view.addSubview(shell)
             bridge = try DesktopNativeBridge(on: shell)
             shell.onError = { [weak self] _ in self?.finish(["passed": false, "stage": "engine"]) }
@@ -80,9 +84,12 @@ final class DesktopPIController: UIViewController {
             output["stderrBytes"] = bridge?.pipe.diagnosticsBytes ?? 0
             output["mainRunLoopMaxGapMs"] = Int(longestTick * 1000)
             output["platform"] = "Mac Catalyst NSH 0.5.0"
+#if !PI_PACKAGE || PI_UI_CHECK
             if let data = try? JSONSerialization.data(withJSONObject: output, options: [.prettyPrinted, .sortedKeys]) {
                 try? data.write(to: dir.appendingPathComponent("result.json"), options: .atomic)
             }
+#endif
+            if !passed { fputs("Isolated desktop initialization or shutdown failed\n", stderr) }
             exit(passed ? 0 : 2)
         }
     }
@@ -117,8 +124,10 @@ final class DesktopPIDelegate: UIResponder, UIApplicationDelegate {
     override init() {
         super.init()
         signal(SIGPIPE, SIG_IGN)
+#if !PI_PACKAGE || PI_UI_CHECK
         let dir = Bundle.main.bundleURL.deletingLastPathComponent()
         try? Data(String(getpid()).utf8).write(to: dir.appendingPathComponent("app.pid"), options: .atomic)
+#endif
     }
     func application(_ application: UIApplication, configurationForConnecting session: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let config = UISceneConfiguration(name: "DesktopPI", sessionRole: session.role)

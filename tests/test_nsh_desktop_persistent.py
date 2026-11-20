@@ -5,7 +5,7 @@ import struct
 import subprocess
 import unittest
 
-from nsh_composer_provenance import ROOT, desktop_persistent_evidence
+from nsh_composer_provenance import ROOT, current_composer_input, desktop_persistent_evidence
 
 
 def record(data):
@@ -25,7 +25,8 @@ class PersistentWindowReceiptTests(unittest.TestCase):
     def test_source_successors_and_available_native_capture(self):
         e = desktop_persistent_evidence()
         for path, current in e['inputs'].items():
-            self.assertEqual(record((ROOT / path).read_bytes()), current, path)
+            expected = current_composer_input(self, path, current, after=desktop_persistent_evidence)
+            self.assertEqual(record((ROOT / path).read_bytes()), expected, path)
         for path, prior in e['previousInputs'].items():
             self.assertIn(path, e['inputs'])
             old = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
