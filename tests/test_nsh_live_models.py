@@ -46,6 +46,44 @@ class DesktopLiveModelsTests(unittest.TestCase):
         migration = next(line for line in plan.splitlines() if '正式项目/聊天迁移另设门禁' in line)
         self.assertIn('实际迁移尚未执行', migration)
 
+    def test_real_provider_receipt_is_backend_only_and_binds_both_routes(self):
+        e = json.loads((PROBE / 'desktop-real-models-evidence.json').read_text())
+        self.assertEqual(e['task'], 'N01-D2')
+        for path, item in e['inputs'].items():
+            data = subprocess.check_output(['git', 'show', f"{e['base']}:{path}"], cwd=ROOT)
+            self.assertEqual(record(data), item, path)
+        self.optional_artifact(e['harness'])
+        self.assertEqual(e['report']['status'], 0)
+        local = self.optional_artifact(e['report'])
+        if local is not None:
+            self.assertEqual(json.loads(local), e['result'])
+        self.assertEqual({k for k, v in e['limits'].items() if v},
+                         {'realUpstreamBackends', 'syntheticProjectsOnly'})
+        result = e['result']
+        self.assertNotIn('blockedStage', result)
+        self.assertTrue(result['externalModeTasksAdmitted'])
+        self.assertEqual(result['cleanup'], dict(cleanExit=True, stderrBytes=0,
+                                                 temporaryStateRemoved=True, watchdog=False))
+        self.assertEqual(set(result['routes']), {'glm-coding', 'openai-relay'})
+        for route in result['routes'].values():
+            self.assertEqual(set(route), {'text', 'workspace', 'stop', 'resend'})
+            for name, turn in route.items():
+                self.assertTrue(turn['running'] and turn['drained'])
+                self.assertGreater(turn['textEvents'], 0)
+                self.assertGreater(turn['firstTextMs'], 0)
+                self.assertLessEqual(turn['firstTextMs'], turn['elapsedMs'])
+                if name == 'stop':
+                    self.assertEqual((turn['status'], turn['code'], turn['stop']),
+                                     ('cancelled', 'cancelled', 'after-public-text'))
+                    self.assertGreaterEqual(turn['stopToDrainMs'], 0)
+                else:
+                    self.assertEqual((turn['status'], turn['code']), ('succeeded', None))
+                    self.assertTrue(turn['expectedText'])
+            self.assertEqual(route['workspace']['tools'], dict(read=True, edit=True, bash=True))
+            self.assertEqual(route['workspace']['toolErrors'], 0)
+            self.assertTrue(route['workspace']['fileContentCorrect'])
+        self.assertIn('- [ ] N01-D2', (ROOT / 'PLAN.md').read_text())
+
     def test_live_build_and_fixture_window_are_separate(self):
         e = live_models_evidence()
         self.assertEqual(e['missingConfig']['status'], 1)

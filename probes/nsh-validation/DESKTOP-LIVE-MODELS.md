@@ -33,4 +33,8 @@ node probes/nsh-validation/verify-desktop-pi.mjs --build-only --live-models
 
 ## 证据边界
 
-`node --test --test-concurrency=1 probes/nsh-validation/desktop-live-models.test.mjs` 用合成密钥和本地模拟服务验证真实 PI SDK、双协议、同会话换服务、文件写入、停止/再发、认证失败和密钥不出现在 RPC。`--build-only --live-models` 仅验证普通双模型候选能构建和本机签名；原脚本 UI 验收仍使用本地夹具。**真实两家服务、人工界面、正式历史/项目迁移尚未验收**。没有生产数据变更、安装、手机工作或运行内存收益结论。
+`node --test --test-concurrency=1 probes/nsh-validation/desktop-live-models.test.mjs` 用合成密钥和本地模拟服务验证真实 PI SDK、双协议、同会话换服务、文件写入、停止/再发、认证失败和密钥不出现在 RPC。`--build-only --live-models` 仅验证普通双模型候选能构建和本机签名；原脚本 UI 验收仍使用本地夹具。
+
+2026-11-20 用户授权的[真实上游后端验收](desktop-real-models-evidence.json)直接启动固定 `desktop-live-stdio.mjs`。在两个隔离项目和会话里，GLM 用默认选择，中转显式选择；两家均取得预期文本、观察到成功的 `read` / `edit` / `bash` 公开事件且核对最终文件内容，在收到活动流文本后取消并排空，随后同会话再发成功。Host EOF 正常退出并清理临时状态。只保留脱敏指标，不记录回复正文、服务地址或密钥。
+
+这是后端验收，不是候选窗口的模型菜单或停止按钮实测。没有验证真实服务间同会话切换、上游侧是否停算、跨重启恢复、正式历史/项目迁移或性能对比。没有正式数据访问或变更、安装、部署和手机工作。

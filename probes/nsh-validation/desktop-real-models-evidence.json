@@ -1,0 +1,187 @@
+{
+  "task": "N01-D2",
+  "base": "c9f07ce1adc688208eaea8179d9e7e77228dbc35",
+  "observedAt": "2026-11-20T12:04:17+08:00",
+  "environment": {
+    "macOS": "27.0.1 (26A434)",
+    "arch": "arm64",
+    "node": "24.15.0",
+    "pi": "1.5.0"
+  },
+  "inputs": {
+    "probes/nsh-validation/desktop-live-stdio.mjs": {
+      "bytes": 1122,
+      "sha256": "7d35fbb747ab02ff203fc73d9333f27a39c1e33ea97802e2b7253bfe424610a9"
+    },
+    "probes/nsh-validation/desktop-live-models.mjs": {
+      "bytes": 3819,
+      "sha256": "f988663b2114328c4e2eb1551ff785d980145d48098d936faf052912261b051a"
+    },
+    "probes/nsh-validation/desktop-host-stdio.mjs": {
+      "bytes": 4214,
+      "sha256": "3860772afd2e76bb357464594721079860de09be36d5c5ff896a00abb63ca802"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 11851,
+      "sha256": "8d71e3bb7bf9446b8ab5903677f40dea8af776027afe2b2256c594f41aaae266"
+    },
+    "services/agent/scheduler.mjs": {
+      "bytes": 8904,
+      "sha256": "eb0748f414510a4dc8a64cb6e549486652def26594b4152ce5cf29ce30a756eb"
+    },
+    "services/agent/store.mjs": {
+      "bytes": 25957,
+      "sha256": "b4f0343c39fea138cf7d0266618f947eb1dff6eda9440be35b031bc4e64ac366"
+    },
+    "packages/pi-adapter/index.mjs": {
+      "bytes": 18263,
+      "sha256": "0ccc1b9e6c679a9aa0cd45c38bb609adcc50ea75baaf9d12fdcc92c63357afa2"
+    },
+    "packages/pi-runtime/sdk-runtime.mjs": {
+      "bytes": 22110,
+      "sha256": "c104d23ac84fcf52cdc5e306f4946b0e1e10266a31f16f254b99c63a9dedc249"
+    },
+    "packages/pi-runtime/tool-policy.mjs": {
+      "bytes": 7347,
+      "sha256": "8c7a71a2f657e68673b60704b2b24d3d121f5ebb1f8cda9cb32c5405e85a795d"
+    },
+    "package-lock.json": {
+      "bytes": 66182,
+      "sha256": "9bd1d9e6b01b8be690869bed7b15b7ee1dd7ab23178fa5441eeae26a9fee31b5"
+    }
+  },
+  "harness": {
+    "path": "artifacts/nsh-validation/real-models/run-once.mjs",
+    "bytes": 9255,
+    "sha256": "f82c52982b6eaf6fad63fa5a664a7e976514136c7569a848109c2f86d97ab672"
+  },
+  "report": {
+    "path": "artifacts/nsh-validation/real-models/acceptance.json",
+    "bytes": 2647,
+    "sha256": "e8f296dda7b828f1f2f3287fa27b52df4d8d081c025cc0c6de5a9cd1c15c19b5",
+    "status": 0
+  },
+  "result": {
+    "scope": "fixed isolated live stdio + real PI SDK; no GUI",
+    "routes": {
+      "glm-coding": {
+        "text": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 4862,
+          "textEvents": 2,
+          "elapsedMs": 4862,
+          "expectedText": true
+        },
+        "workspace": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 15703,
+          "textEvents": 2,
+          "elapsedMs": 15881,
+          "expectedText": true,
+          "tools": {
+            "read": true,
+            "edit": true,
+            "bash": true
+          },
+          "toolErrors": 0,
+          "fileContentCorrect": true
+        },
+        "stop": {
+          "status": "cancelled",
+          "code": "cancelled",
+          "drained": true,
+          "running": true,
+          "firstTextMs": 3524,
+          "textEvents": 3,
+          "elapsedMs": 3610,
+          "stop": "after-public-text",
+          "stopToDrainMs": 86
+        },
+        "resend": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 3919,
+          "textEvents": 2,
+          "elapsedMs": 3919,
+          "expectedText": true
+        }
+      },
+      "openai-relay": {
+        "text": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 3023,
+          "textEvents": 4,
+          "elapsedMs": 3200,
+          "expectedText": true
+        },
+        "workspace": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 9710,
+          "textEvents": 5,
+          "elapsedMs": 9710,
+          "expectedText": true,
+          "tools": {
+            "read": true,
+            "edit": true,
+            "bash": true
+          },
+          "toolErrors": 0,
+          "fileContentCorrect": true
+        },
+        "stop": {
+          "status": "cancelled",
+          "code": "cancelled",
+          "drained": true,
+          "running": true,
+          "firstTextMs": 2245,
+          "textEvents": 3,
+          "elapsedMs": 2324,
+          "stop": "after-public-text",
+          "stopToDrainMs": 79
+        },
+        "resend": {
+          "status": "succeeded",
+          "code": null,
+          "drained": true,
+          "running": true,
+          "firstTextMs": 2500,
+          "textEvents": 5,
+          "elapsedMs": 2500,
+          "expectedText": true
+        }
+      }
+    },
+    "externalModeTasksAdmitted": true,
+    "startupMs": 2507,
+    "cleanup": {
+      "cleanExit": true,
+      "stderrBytes": 0,
+      "temporaryStateRemoved": true,
+      "watchdog": false
+    }
+  },
+  "limits": {
+    "realUpstreamBackends": true,
+    "syntheticProjectsOnly": true,
+    "nativeOrManualGui": false,
+    "sameSessionLiveProviderSwitch": false,
+    "restartRecovery": false,
+    "remoteGenerationStoppedConfirmed": false,
+    "formalDataAccess": false,
+    "deployment": false
+  }
+}
