@@ -1,0 +1,56 @@
+{
+  "verifiedInputsCommit": "8b06c388b4883a8fb338cde1f0100d9e04d1ba3f",
+  "buildEvidence": {
+    "name": "desktop-appkit-chat-prune-evidence.json",
+    "sha256": "17e16e292edbdd0ce42b3c3ddf7102f9aad124a5a386baf5f6f33562a250ba3e"
+  },
+  "platform": "27.0.1",
+  "arch": "arm64",
+  "interactive": {
+    "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat",
+    "signature": "ad-hoc deep strict",
+    "mode": "--interactive",
+    "scriptedCheck": false,
+    "bundleKiB": 231768,
+    "launchByExactPath": true,
+    "screenAndAccessibilityPermissions": true,
+    "separateProfileAndStorage": true,
+    "hostStarted": true
+  },
+  "window": {
+    "candidatePIDMatches": true,
+    "size": [
+      1240,
+      820
+    ],
+    "visible": "Desktop A / Desktop B / 本地夹具",
+    "taskState": "idle · 已排空 · 0 事件",
+    "blockedAt": "composer click",
+    "transactionResult": "target-occluded",
+    "transactionAutoEnded": true,
+    "inputDispatched": false,
+    "reacquiredFocus": false,
+    "humanAcceptance": false
+  },
+  "notVerified": [
+    "Send",
+    "Stop",
+    "resend",
+    "IME",
+    "normal Quit",
+    "reopen history",
+    "matched performance"
+  ],
+  "scope": {
+    "formalAppChanged": false,
+    "formalDataRead": false,
+    "installed": false,
+    "upstreamModels": false
+  },
+  "localReceipts": {
+    "artifacts/nsh-validation/appkit-chat-pruned-gui.sSj9zB/open.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/nsh-validation/appkit-chat-pruned-gui.sSj9zB/open.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/nsh-validation/appkit-chat-pruned-gui.sSj9zB/processes.txt": "8f54162f08122dd0ba748772a4f2864a1e479dfd688d2d7197fca6f2957f4a09",
+    "artifacts/nsh-validation/appkit-chat-pruned-gui.sSj9zB/window-owner.txt": "a9d64e043b9e056bb7c2dd5fed2833b70d2521c24f702cc0f825158991dd86b8"
+  }
+}

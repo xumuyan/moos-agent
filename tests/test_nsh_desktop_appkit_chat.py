@@ -105,6 +105,34 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
 
+    def test_pruned_launch_records_guard_without_claiming_interaction(self):
+        data = json.loads((PROBE / 'desktop-appkit-chat-pruned-window-evidence.json').read_text())
+        ref = data['buildEvidence']
+        self.assertEqual(ref['name'], 'desktop-appkit-chat-prune-evidence.json')
+        path = PROBE / ref['name']
+        self.assertEqual(ref['sha256'], sha(path))
+        build = json.loads(path.read_text())['prunedInteractive']
+        launch = data['interactive']
+        self.assertEqual(launch['bundleIdentifier'], build['identity']['bundleIdentifier'])
+        self.assertEqual(launch['signature'], build['signed'])
+        self.assertEqual(launch['mode'], build['mode'])
+        self.assertEqual(launch['bundleKiB'], build['sizes']['bundleKiB'])
+        self.assertFalse(launch['scriptedCheck'])
+        self.assertTrue(launch['launchByExactPath'] and launch['separateProfileAndStorage'] and launch['hostStarted'])
+        window = data['window']
+        self.assertTrue(window['candidatePIDMatches'] and window['transactionAutoEnded'])
+        self.assertEqual(window['size'], [1240, 820])
+        self.assertEqual(window['taskState'], 'idle · 已排空 · 0 事件')
+        self.assertEqual(window['transactionResult'], 'target-occluded')
+        self.assertFalse(any(window[k] for k in ('inputDispatched', 'reacquiredFocus', 'humanAcceptance')))
+        self.assertEqual(set(data['notVerified']), {'Send', 'Stop', 'resend', 'IME', 'normal Quit', 'reopen history', 'matched performance'})
+        self.assertFalse(any(data['scope'].values()))
+        for name, expected in data['localReceipts'].items():
+            path = ROOT / name
+            if path.is_file():
+                self.assertEqual(expected, sha(path), name)
+        self.assertIn('desktop-appkit-chat-pruned-window-evidence.json', (ROOT / 'PLAN.md').read_text())
+
     def test_compression_reduces_archive_and_app_without_changing_runtime(self):
         data = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
         full, compact, scripted = (data[key] for key in ('fullInteractive', 'compactInteractive', 'compactCheck'))
