@@ -6,9 +6,10 @@ import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { chmod, copyFile, cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { hostFiles, packageRuntime, verifyInternalLinks, verifyPackageIdentity } from './desktop-package.mjs';
 import { trimDependencyMaps } from './desktop-appkit-size.mjs';
+import { pruneArm64DependencyPayload } from './desktop-appkit-prune.mjs';
 
 const probe = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(probe, '../..'));
@@ -17,11 +18,12 @@ assert.equal(process.platform, 'darwin');
 assert.equal(process.arch, 'arm64');
 assert.equal(process.version, 'v24.15.0');
 const [mode, buildPath, ...extra] = process.argv.slice(2);
-assert.ok(buildPath && new Set(extra).size === extra.length && extra.every(arg => ['--trim-maps', '--strip-node'].includes(arg)) &&
+assert.ok(buildPath && new Set(extra).size === extra.length && extra.every(arg => ['--trim-maps', '--strip-node', '--prune-runtime'].includes(arg)) &&
   ['--check', '--interactive'].includes(mode),
-  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node');
+  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node / --prune-runtime');
 const trimMaps = extra.includes('--trim-maps');
 const stripNode = extra.includes('--strip-node');
+const pruneRuntime = extra.includes('--prune-runtime');
 const scripted = mode === '--check';
 const base = await realpath('artifacts/nsh-validation');
 const build = await realpath(resolve(buildPath));
@@ -94,6 +96,8 @@ if (trimMaps) {
   removedMaps = removed.length;
   await writeFile(join(dir, 'trimmed-maps.json'), `${JSON.stringify(removed, null, 2)}\n`);
 }
+const pruned = pruneRuntime ? await pruneArm64DependencyPayload(join(staging, deps)) : [];
+if (pruneRuntime) await writeFile(join(dir, 'pruned-runtime.json'), `${JSON.stringify(pruned, null, 2)}\n`);
 const stagedNode = join(macos, 'moos-node');
 let nodeStrip = null;
 if (stripNode) {
@@ -141,6 +145,7 @@ run('/usr/bin/ditto', ['-x', '-k', zip, destination]);
 assert.deepEqual(await readdir(destination), ['沐码.app']);
 await verifyInternalLinks(app);
 const identity = verify(app);
+for (const { path } of pruned) await assert.rejects(lstat(join(app, deps, path)), { code: 'ENOENT' });
 await rm(staging, { recursive: true }); // Only our fresh build inside dir.
 for (const part of ['profile', 'storage']) await mkdir(join(destination, part), { mode: 0o700 });
 const binary = join(app, 'Contents/MacOS', executable);
@@ -157,6 +162,7 @@ const receipt = { builtAt: new Date().toISOString(), head: run('/usr/bin/git', [
   identity, mode, fixtureOnly: true, installed: false, signed: 'ad-hoc deep strict', foreground: false, launches: [],
   upstreamRequests: 0, nativeBuild: relative(process.cwd(), build), viewInputs, hostInputs: inputs, entry: await record(entry),
   runner: await record(binary), resources: config.capabilities, trimMaps, removedMaps, nodeSha256, nodeStrip,
+  pruneRuntime, prunedFiles: pruned.length,
   sizes: { bundleKiB: kib(app), nodeKiB: kib(join(app, 'Contents/MacOS/moos-node')), dependencyKiB: kib(join(app, deps)),
     zipBytes: (await stat(zip)).size }, extractedFromZip: true };
 if (scripted) {
@@ -190,6 +196,29 @@ if (scripted) {
   assert.ok(Number.isInteger(pid) && pid > 1);
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }); // read-only liveness check
   receipt.registeredToolGone = true;
+  if (pruneRuntime) {
+    // Keep test assets outside the signed bundle; all actual PI/Host code and
+    // runtime dependencies load from the extracted package.
+    const host = join(app, 'Contents/Resources/host');
+    const url = path => pathToFileURL(join(host, path)).href;
+    const routes = (await readFile(join(probe, 'desktop-live-models.mjs'), 'utf8'))
+      .replace("'../../packages/pi-adapter/index.mjs'", JSON.stringify(url('packages/pi-adapter/index.mjs')));
+    const test = (await readFile(join(probe, 'desktop-live-models.test.mjs'), 'utf8'))
+      .replace(/from '\.\/(desktop-host(?:-stdio)?\.mjs)'/g,
+        (_, file) => `from ${JSON.stringify(url(`probes/nsh-validation/${file}`))}`);
+    await writeFile(join(destination, 'desktop-live-models.mjs'), routes);
+    const testFile = join(destination, 'dual-protocol.test.mjs');
+    await writeFile(testFile, test);
+    const result = spawnSync(packagedNode, ['--test', '--test-reporter=tap',
+      '--test-name-pattern=private pipe . real PI SDK: both protocols', testFile],
+    { cwd: destination, env, encoding: 'utf8', timeout: 45000 });
+    const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+    await writeFile(join(dir, 'dual-protocol.log'), output);
+    assert.equal(result.status, 0, 'Packaged PI loopback failed; see dual-protocol.log');
+    assert.match(output, /^# pass 1$/m);
+    assert.match(output, /^# fail 0$/m);
+    receipt.dualProtocolLoopback = true;
+  }
   verify(app);
 }
 await writeFile(join(dir, 'result.json'), `${JSON.stringify(receipt, null, 2)}\n`);

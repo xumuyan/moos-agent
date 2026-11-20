@@ -12,9 +12,13 @@
 
 [压缩对照回执](desktop-appkit-chat-compression-evidence.json) 使用同一聊天视图、Node 和 AppKit runner。实测交互包移除 3,863 个映射：落盘 298.33→256.66 MiB（−13.97%），ZIP 81.23→73.36 MiB（−9.68%）。全包比对中除新的资源封条及其主执行文件签名外，剩余 11,535 个文件／链接一致。两种交互包均未打开；裁剪后的脚本包实际首启 6/6、重开 12/12（真实 PI＋本机回环）。没有换掉当前运行的候选，也没有压缩或部署正式应用。
 
-可另加 `--strip-node`：只在新包的 `moos-node` 副本上执行 `strip -S -x`，删除本地/调试符号；保持原执行权限、比较 dyld 导出（含地址）和链接库，然后重签 Node 和整包。提取 ZIP 后再核对内置 Node 的版本、哈希和权限。需要原生故障符号诊断时不加该参数；不更改本机 Node 安装。两个裁剪参数独立、均默认关闭。
+可另加 `--strip-node`：只在新包的 `moos-node` 副本上执行 `strip -S -x`，删除本地/调试符号；保持原执行权限、比较 dyld 导出（含地址）和链接库，然后重签 Node 和整包。提取 ZIP 后再核对内置 Node 的版本、哈希和权限。需要原生故障符号诊断时不加该参数；不更改本机 Node 安装。三个裁剪参数独立、均默认关闭。
 
 [Node 裁剪对照回执](desktop-appkit-chat-node-strip-evidence.json)：两版都先去掉同样的 3,863 个源码映射。保留 32,898 个 dyld 导出，包内 arm64 原生模块能加载（未调用剪贴板方法）。交互包落盘 256.66→233.76 MiB、ZIP 73.36→70.13 MiB；相对最初完整包，累计分别减少 21.64% 和 13.66%。同源交互包未打开；裁剪后的独立脚本包从 ZIP 解压后，用真实 PI 和本机回环再通过 6 项首启＋12 项重开验证。不是人工窗口或跨机发行验收，也不说明 RAM 减少。
+
+在 macOS arm64 候选上可再加 `--prune-runtime`。它只在新包里删固定版本的 OpenAI 7.19.0 / Anthropic 0.129.0 SDK 中已经有同名 `.js` 和 `.mjs` 的重复 `.ts` 源文件，以及 PI TUI 1.5.0 的五个 Linux、Windows、Intel Mac 原生插件。保留实际运行代码、arm64 插件、模型路由、许可、类型声明、PI 文档、示例和资源（部分文档路径由 PI 提示词引用）。版本、导出路径或文件类型不符时停止，不改已生成或已安装的包。
+
+[依赖瘦身回执](desktop-appkit-chat-prune-evidence.json)：共删除 550 个文件（545 个重复源码＋5 个异平台插件），同源精简交互包落盘由 233.76 降到 226.34 MiB，ZIP 由 70.13 降到 68.68 MiB。重新验签后，解包脚本版以真实 PI 和本机回环通过首启/重开 6＋12 项，包内 Node/Host 另通过 GLM 路由 Responses 与显式 Relay Completions 的本机协议测试。没有请求真实上游或验收人工窗口。
 
 ## 实窗验证（未完成）
 
@@ -36,7 +40,10 @@ upstream=$(cat /private/tmp/n01-appkit-source-dir)
   printf '0\n' >"$out/native.status"
 node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out" --trim-maps --strip-node
 node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out" --trim-maps --strip-node
-# 对照：仅传 --trim-maps 即保留完整 Node；两个参数都去掉是完整诊断版。
+# 只清理探针的新包；不改已运行的候选或正式沐码。
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check "$out" --trim-maps --strip-node --prune-runtime
+node probes/nsh-validation/verify-desktop-appkit-chat.mjs --interactive "$out" --trim-maps --strip-node --prune-runtime
+# 对照：不传三个裁剪参数即完整诊断版。
 ```
 
 早期完整包脚本、实际打开和回归结果见 `desktop-appkit-chat-evidence.json` 及根目录 `operatelog.md`。优先完成包体测量；本轮不做同负载性能对照。ad-hoc 签名不代表 Developer ID、公证或跨设备发行。人工按键/按钮和 Quit 退出重开、隔离双模型持久配置、异常恢复、合成迁移与资源对照仍待分开验收。

@@ -66,9 +66,11 @@ class AppKitChatEvidenceTests(unittest.TestCase):
     def test_bind_new_inputs_and_available_logs(self):
         compression = json.loads((PROBE / 'desktop-appkit-chat-compression-evidence.json').read_text())
         strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
+        prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
         for name, expected in self.evidence['inputs'].items():
             current = successor_input(self, compression, name, expected)
             current = successor_input(self, strip, name, current)
+            current = successor_input(self, prune, name, current)
             self.assertEqual(current, sha(ROOT / name), name)
         self.assertEqual(self.evidence['check']['entry'], sha(PROBE / 'appkit-hostcheck/ChatCheck.tsx'))
         for name, expected in self.evidence['artifacts'].items():
@@ -144,8 +146,10 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertFalse(any(data['boundaries'].values()))
         self.assertEqual(len(data['archives']), 3)
         strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
+        prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
         for name, expected in data['inputs'].items():
             current = successor_input(self, strip, name, expected)
+            current = successor_input(self, prune, name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         for name, expected in {**data['localReceipts'], **data['archives']}.items():
             path = ROOT / name
@@ -208,11 +212,62 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertEqual(check['launches'][0]['scope'], check['launches'][1]['scope'])
         self.assertEqual([run['checks'] for run in check['launches']],
                          [run['checks'] for run in self.evidence['check']['launches']])
+        prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
         for name, expected in data['inputs'].items():
-            self.assertEqual(expected['sha256'], sha(ROOT / name), name)
+            current = successor_input(self, prune, name, expected)
+            self.assertEqual(current['sha256'], sha(ROOT / name), name)
         self.assertTrue(data['localReceipts'])
         for name, expected in data['localReceipts'].items():
             path = ROOT / name
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
         self.assertIn('desktop-appkit-chat-node-strip-evidence.json', (ROOT / 'PLAN.md').read_text())
+
+    def test_prune_removes_only_allowlisted_payload_and_retests_packaged_pi(self):
+        data = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
+        base, slim, check = (data[k] for k in ('baseline', 'prunedInteractive', 'prunedCheck'))
+        for report in (base, slim, check):
+            for field in ('identity', 'head', 'nativeBuild', 'nodeSha256', 'removedMaps'):
+                self.assertEqual(base[field], report[field], field)
+            self.assertTrue(report['trimMaps'] and report['fixtureOnly'] and report['extractedFromZip'])
+            self.assertEqual(report['signed'], 'ad-hoc deep strict')
+            self.assertEqual(report['upstreamRequests'], 0)
+            self.assertFalse(report['installed'])
+            self.assertEqual(base['sizes']['nodeKiB'], report['sizes']['nodeKiB'])
+        self.assertFalse(base['pruneRuntime'])
+        self.assertEqual(base['prunedFiles'], 0)
+        self.assertEqual(base['mode'], slim['mode'])
+        self.assertEqual(base['entry'], slim['entry'])
+        self.assertEqual(base['launches'], slim['launches'])
+        self.assertEqual(slim['launches'], [])
+        self.assertEqual(check['mode'], '--check')
+        self.assertTrue(slim['pruneRuntime'] and check['pruneRuntime'])
+        self.assertEqual(slim['prunedFiles'], check['prunedFiles'])
+        for field in ('bundleKiB', 'dependencyKiB', 'zipBytes'):
+            self.assertLess(slim['sizes'][field], base['sizes'][field], field)
+        self.assertEqual(check['sizes']['dependencyKiB'], slim['sizes']['dependencyKiB'])
+        audit = data['comparison']
+        self.assertTrue(audit['retainedEntriesIdentical'])
+        self.assertGreater(audit['retainedEntries'], 0)
+        self.assertEqual(set(audit['removedByReason']), {'duplicate-sdk-source', 'non-darwin-arm64-addon'})
+        self.assertGreater(audit['removedByReason']['duplicate-sdk-source'], 0)
+        self.assertEqual(audit['removedByReason']['non-darwin-arm64-addon'], 5)
+        self.assertEqual(sum(audit['removedByReason'].values()), slim['prunedFiles'])
+        self.assertGreaterEqual(audit['baselineLogicalBytes'] - audit['prunedLogicalBytes'], audit['removedBytes'])
+        seal = {'Contents/_CodeSignature/CodeResources'}
+        self.assertLessEqual(seal, set(audit['changedEntries']))
+        self.assertLessEqual(set(audit['changedEntries']), seal | {'Contents/MacOS/AppKitPI'})
+        self.assertEqual(audit['nativeAddonExports'], ['getFilePaths', 'getImage', 'getText', 'isModifierPressed', 'setText'])
+        self.assertTrue(check['registeredToolGone'] and check['dualProtocolLoopback'])
+        self.assertEqual(check['launches'][0]['scope'], check['launches'][1]['scope'])
+        self.assertEqual([run['checks'] for run in check['launches']],
+                         [run['checks'] for run in self.evidence['check']['launches']])
+        self.assertFalse(any(data['boundaries'].values()))
+        for name, expected in data['inputs'].items():
+            self.assertEqual(expected['sha256'], sha(ROOT / name), name)
+        self.assertEqual(sum(p.endswith('/pruned-runtime.json') for p in data['localReceipts']), 2)
+        for name, expected in data['localReceipts'].items():
+            path = ROOT / name
+            if path.is_file():
+                self.assertEqual(expected, sha(path), name)
+        self.assertIn('desktop-appkit-chat-prune-evidence.json', (ROOT / 'PLAN.md').read_text())
