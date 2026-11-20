@@ -1,0 +1,188 @@
+{
+  "full": {
+    "platform": "27.0.1",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.package.check"
+    },
+    "signed": "ad-hoc deep strict",
+    "relocated": true,
+    "installed": false,
+    "fixtureOnly": true,
+    "downloadsAtFirstRun": 0,
+    "bundleKiB": 306120,
+    "zipBytes": 85141602,
+    "runner": {
+      "bytes": 28277824,
+      "sha256": "d2dc9adc4ca8dfc6746b4c896c981c720aa726cf59fd08935f361e807d167ee8"
+    },
+    "nodeKiB": 116436,
+    "dependencyKiB": 156036,
+    "trimMaps": false,
+    "runtime": {
+      "node": {
+        "bytes": 119228096,
+        "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89"
+      },
+      "nodeInput": {
+        "bytes": 119944608,
+        "sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32"
+      },
+      "nodeLicense": {
+        "bytes": 156926,
+        "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18"
+      },
+      "libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libc++.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "icon": {
+        "bytes": 130920,
+        "sha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+      },
+      "offlineDependencies": true
+    },
+    "scope": [
+      "2a6f3f70-d0e0-4902-9eef-09446a82653e",
+      "7e7a5b06-a734-461c-9ca0-18244c79a217"
+    ],
+    "checks": [
+      "empty profile",
+      "reopen prior text before submission",
+      "scope preserved",
+      "PI continuation uses prior context",
+      "Stop then terminal and fully drained",
+      "same-session write/read",
+      "both protocols on packaged Node/PI using loopback",
+      "clean EOF and lease release twice"
+    ]
+  },
+  "trimmed": {
+    "platform": "27.0.1",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.package.check"
+    },
+    "signed": "ad-hoc deep strict",
+    "relocated": true,
+    "installed": false,
+    "fixtureOnly": true,
+    "downloadsAtFirstRun": 0,
+    "bundleKiB": 263484,
+    "zipBytes": 76893077,
+    "runner": {
+      "bytes": 28277824,
+      "sha256": "6901422d685f89c3ceb7f430f5b1586b35e53a8611451d6ba37601c8a497527b"
+    },
+    "nodeKiB": 116436,
+    "dependencyKiB": 114696,
+    "trimMaps": true,
+    "runtime": {
+      "node": {
+        "bytes": 119228096,
+        "sha256": "c6f6c764a9c6aafba03cecf164a6b783f936f3461e87cd57162c5310ba1b6d89"
+      },
+      "nodeInput": {
+        "bytes": 119944608,
+        "sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32"
+      },
+      "nodeLicense": {
+        "bytes": 156926,
+        "sha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18"
+      },
+      "libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libc++.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "icon": {
+        "bytes": 130920,
+        "sha256": "3b945c23254d66309693aed7e400e22ebdaf72d75b6a04d98df824c398583028"
+      },
+      "offlineDependencies": true
+    },
+    "scope": [
+      "b0de76c0-c397-4780-8439-1588745396d7",
+      "93f65660-ac28-4290-a259-19b01f7847fe"
+    ],
+    "checks": [
+      "empty profile",
+      "reopen prior text before submission",
+      "scope preserved",
+      "PI continuation uses prior context",
+      "Stop then terminal and fully drained",
+      "same-session write/read",
+      "both protocols on packaged Node/PI using loopback",
+      "clean EOF and lease release twice"
+    ]
+  },
+  "comparison": {
+    "removedMapCount": 3863,
+    "removedMapLogicalBytes": 31251485,
+    "removedMapAllocatedBytes": 42369024,
+    "remainingDependencyEntriesIdentical": true,
+    "remainingDependencyEntryCount": 11494,
+    "fullLogicalBytes": 267692827,
+    "trimmedLogicalBytes": 235113336,
+    "unsignedRunnerSha256": "ef25934386e7c924339bcd2797c50bc97dd9bfb104a17291e45d487b95322d7f"
+  },
+  "boundaries": {
+    "developerID": false,
+    "notarized": false,
+    "humanGUI": false,
+    "externalModels": false,
+    "productionCutover": false,
+    "matchedPerformance": false
+  },
+  "inputs": {
+    "probes/nsh-validation/appkit-hostcheck/main.rs": "ae25f20dfa6e56c4d13c13db9f5970d76f739987408d0d9f88273ec6aa4a2e18",
+    "probes/nsh-validation/appkit-hostcheck/AppKitPipe.swift": "71e5d9ac43396a048c31cd5a65698ceab5a4c4f7c481efcc2ca29f82428c28a6",
+    "probes/nsh-validation/appkit-hostcheck/Package.swift": "02d85f0228efb82373715df585b4fdaf64b657db38691b88ad5de987125d2e9d",
+    "probes/nsh-validation/appkit-hostcheck/PackageCheck.tsx": "6fcc51faf0c4a42b52b5d5de2a9c5822736fd55842a3f1b4ec94528b6e43d2f1",
+    "probes/nsh-validation/appkit-hostcheck/package-main.patch": "4f68665e3448438f5920f25803cc49c9e5706274ca42c7dcce110443084cbe07",
+    "probes/nsh-validation/appkit-hostcheck/build-package-runner.sh": "1aac4c6c08a3f2a7439827101f8364fa6375d351df59d2fcb484148eee793b4c",
+    "probes/nsh-validation/DesktopPipe.swift": "d03e31a6c0465dfd04708ba609e1abe7ba9ec50d306843c050d55f5773f8deac",
+    "probes/nsh-validation/desktop-appkit-size.mjs": "dc6523e5aa6979b2a6140dbd6437b82b481668f2f572df2f31bc18e54d3c0f45",
+    "probes/nsh-validation/desktop-appkit-size.test.mjs": "98c2f99dce1b3c4a101ad3b006a81c163e9972794d78c217b421d689324d48a2",
+    "probes/nsh-validation/desktop-package.mjs": "1a241213222ceb70cdf3e60870847462e1903c95b81bb7edef4425298b592174",
+    "probes/nsh-validation/verify-desktop-appkit-package.mjs": "37a0dc32f9d89bc217a49fba853a79b1a1bea8c762f418b49613798080d721bf",
+    "probes/nsh-validation/desktop-live-models.test.mjs": "57b1cadc399659b16f5894e6b7c20c965aa241ff0cfbaa96b0059ff9b572024b",
+    "probes/nsh-validation/desktop-live-models.mjs": "f988663b2114328c4e2eb1551ff785d980145d48098d936faf052912261b051a"
+  },
+  "artifacts": {
+    "artifacts/nsh-validation/appkit-package.HomMhA/native.log": "ff20f308c8ee2c7bd1d35a8e347ffa6bb34643c898ba239a6bdfd06c41a1a63c",
+    "artifacts/nsh-validation/appkit-package.HomMhA/native.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-package.HomMhA/package.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-package.HomMhA/result.json": "8e09a01c9d028236ec3881e39eabb23f6731da95b13686b7b4c46221fca2c6f6",
+    "artifacts/nsh-validation/appkit-package.HomMhA/tsx-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/nsh-validation/appkit-package.HomMhA/offline-dependencies.log": "724f24cf75425245c71155664f328e075e4a02142cdf69394a5c2b9a60bbc199",
+    "artifacts/nsh-validation/appkit-package.HomMhA/first.log": "b56b6059bc32fc57a63e09e40d253926d938986211747fce70b448a702151308",
+    "artifacts/nsh-validation/appkit-package.HomMhA/reopened.log": "31792b7a8b645b88de32fd4b459c939814357f3c8196f0762cf3d24bfc3cdeec",
+    "artifacts/nsh-validation/appkit-package.HomMhA/dual-protocol.log": "8fc02ff9e753c84802c8936394577f16ef653cb6480fe558f843f41f826404f4",
+    "artifacts/nsh-validation/appkit-package.77ftSB/native.log": "ff20f308c8ee2c7bd1d35a8e347ffa6bb34643c898ba239a6bdfd06c41a1a63c",
+    "artifacts/nsh-validation/appkit-package.77ftSB/native.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-package.77ftSB/package.status": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "artifacts/nsh-validation/appkit-package.77ftSB/result.json": "67c8704d9a73fe7de3d36bd0f690fe10856081a524e3c8df0d1160f35520556d",
+    "artifacts/nsh-validation/appkit-package.77ftSB/tsx-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/nsh-validation/appkit-package.77ftSB/offline-dependencies.log": "8e3ea097724ebf3adf46782552c2e8af01de227a4527c0205c042dd8db8f53ff",
+    "artifacts/nsh-validation/appkit-package.77ftSB/first.log": "57eb9c2357d271763bf259711f6cb636bfc0007d953a7a382c91182c6ab3054c",
+    "artifacts/nsh-validation/appkit-package.77ftSB/reopened.log": "58a1e7152d6db37837a37b72d9fb7a665876b484edc5496f4e18733bc066b744",
+    "artifacts/nsh-validation/appkit-package.77ftSB/dual-protocol.log": "74c35fe485bf02f56024cc15185d597fcf40c982133e0e475e2bb5399d808dd6",
+    "artifacts/nsh-validation/appkit-package.77ftSB/trimmed-maps.json": "53306277a9225df3bfe7a14a242fb09f0abbf560e549d11fb4074cfab706ed2c",
+    "artifacts/nsh-validation/appkit-package.mBZKPX/package.status": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "artifacts/nsh-validation/appkit-package.mBZKPX/first.log": "885e2b14c6dc803845b24f2bf6227583c62fc94d1c27727abb074c386fb54c71",
+    "artifacts/nsh-validation/appkit-package.mBZKPX/reopened.log": "cf64c601595d55463400f9bb6f6cd4f891a648d82635e02a33ad8cd5f90e14ff",
+    "artifacts/nsh-validation/appkit-package.mBZKPX/dual-protocol.log": "b124673e1f745e068f835f8172037dd937ab564acb01101f86aa1e161243a140"
+  }
+}
