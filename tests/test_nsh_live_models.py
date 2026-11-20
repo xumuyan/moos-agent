@@ -84,6 +84,37 @@ class DesktopLiveModelsTests(unittest.TestCase):
             self.assertTrue(route['workspace']['fileContentCorrect'])
         self.assertIn('- [ ] N01-D2', (ROOT / 'PLAN.md').read_text())
 
+    def test_local_art_preview_distinguishes_picker_from_send_and_stop(self):
+        evidence = json.loads((PROBE / 'desktop-live-art-preview-evidence.json').read_text())
+        self.assertEqual(evidence['initialBuild'], dict(artwork=False, modelMode='external'))
+        self.assertEqual(evidence['bundleIdentifier'], 'dev.muma.probe.nsh.piui.live')
+        skin = evidence['skin']
+        self.assertEqual((skin['id'], skin['version'], skin['author'], skin['license']),
+                         ('maid-atelier', '0.3.2', 'Small-tailqwq', 'CC BY-NC-SA 4.0'))
+        self.assertTrue(skin['localOnly'])
+        self.assertEqual(skin['verifiedAssets'], 17)
+        inputs = self.optional_artifact(evidence['buildInputs'])
+        if inputs is not None:
+            inputs = json.loads(inputs)
+            self.assertEqual(inputs['head'], evidence['base'])
+            self.assertTrue(inputs['artwork'])
+            self.assertEqual(inputs['modelMode'], 'external')
+            self.assertFalse(inputs['acceptance'])
+        result = self.optional_artifact(evidence['buildResult'])
+        if result is not None:
+            self.assertEqual(json.loads(result),
+                             dict(built=True, launched=False, installed=False, acceptance=False))
+        checks = evidence['checks']
+        self.assertTrue(checks['strictLocalSignature'] and checks['oldCandidateLeftOpen'])
+        self.assertEqual(checks['visibleArtwork'], ['background', 'characters', 'trim'])
+        self.assertEqual(checks['modelOptions'], ['glm-coding', 'openai-relay'])
+        self.assertEqual(checks['modelSelectedByClick'], 'openai-relay')
+        self.assertEqual(checks['inputBlocks'], ['focus-not-editable', 'focus-unavailable'])
+        self.assertEqual(checks['testRequestsSent'], 0)
+        for not_accepted in ('installed', 'guiSendStopResendAccepted', 'performanceMeasured', 'migration'):
+            self.assertIs(checks[not_accepted], False)
+        self.assertIn('- [ ] N01-D3', (ROOT / 'PLAN.md').read_text())
+
     def test_live_build_and_fixture_window_are_separate(self):
         e = live_models_evidence()
         self.assertEqual(e['missingConfig']['status'], 1)

@@ -1,0 +1,31 @@
+{
+  "tasks": ["N01-D2", "N01-D3"],
+  "base": "4b89d01f176290e99ce1da672ae847b96a06e5d1",
+  "observedAt": "2026-11-20T13:26:38+08:00",
+  "initialBuild": { "artwork": false, "modelMode": "external" },
+  "bundleIdentifier": "dev.muma.probe.nsh.piui.live",
+  "skin": { "id": "maid-atelier", "version": "0.3.2", "author": "Small-tailqwq", "license": "CC BY-NC-SA 4.0", "verifiedAssets": 17, "localOnly": true },
+  "buildInputs": {
+    "path": "artifacts/nsh-validation/pi-ui/run-9B66Kn/inputs.json",
+    "bytes": 14470,
+    "sha256": "951488e69b51ca8fc8f1989785f0606d865d42bce1994871c373e0ea7ad31f7c"
+  },
+  "buildResult": {
+    "path": "artifacts/nsh-validation/pi-ui/run-9B66Kn/build-result.json",
+    "bytes": 86,
+    "sha256": "e421caa3d9e7659a5505b3e5a0b6a3fd53146d4ba0de41c28366fd2f7efabbd3"
+  },
+  "checks": {
+    "strictLocalSignature": true,
+    "installed": false,
+    "oldCandidateLeftOpen": true,
+    "visibleArtwork": ["background", "characters", "trim"],
+    "modelOptions": ["glm-coding", "openai-relay"],
+    "modelSelectedByClick": "openai-relay",
+    "inputBlocks": ["focus-not-editable", "focus-unavailable"],
+    "testRequestsSent": 0,
+    "guiSendStopResendAccepted": false,
+    "performanceMeasured": false,
+    "migration": false
+  }
+}

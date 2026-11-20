@@ -38,3 +38,9 @@ node probes/nsh-validation/verify-desktop-pi.mjs --build-only --live-models
 2026-11-20 用户授权的[真实上游后端验收](desktop-real-models-evidence.json)直接启动固定 `desktop-live-stdio.mjs`。在两个隔离项目和会话里，GLM 用默认选择，中转显式选择；两家均取得预期文本、观察到成功的 `read` / `edit` / `bash` 公开事件且核对最终文件内容，在收到活动流文本后取消并排空，随后同会话再发成功。Host EOF 正常退出并清理临时状态。只保留脱敏指标，不记录回复正文、服务地址或密钥。
 
 这是后端验收，不是候选窗口的模型菜单或停止按钮实测。没有验证真实服务间同会话切换、上游侧是否停算、跨重启恢复、正式历史/项目迁移或性能对比。没有正式数据访问或变更、安装、部署和手机工作。
+
+### 本机带主题预览
+
+无 `--art-root` 的包只有配色，不会从正式版运行时加载壁纸、人物或装饰。要在本机试用带主题的候选版，显式传入 `--art-root "$ART_ROOT"`（`ART_ROOT` 应指向已获授权的 Maid Atelier 0.3.2 本机目录）；构建时核验 17 项素材后只复制进 Git 忽略的预览目录。素材作者 Small-tailqwq，CC BY-NC-SA 4.0，完整来源声明见 [SKIN-SOURCE.md](SKIN-SOURCE.md)。不读皮肤 hooks，不附带发布素材。
+
+[本机桌面操作记录](desktop-live-art-preview-evidence.json)：从现有无图包另建一个带图候选并打开，保持旧候选的临时会话，不退出旧窗；实见壁纸、人物和装饰，点开双模型菜单并由 GLM 切到中转。输入焦点验证未通过，按桌面工具规则停止，没有发送测试请求，窗口 Send/Stop/再发仍待验；旧会话不会同步到新窗。
