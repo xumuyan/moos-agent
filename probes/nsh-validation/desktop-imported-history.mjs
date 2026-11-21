@@ -31,6 +31,10 @@ export async function openImportedHistory(profile) {
       }));
       return { session, items, before: rows.length > 12 ? items[0].id : null };
     },
+    messageAssets(sessionId, messageId) {
+      return db.prepare(`SELECT a.id,a.name,a.mime,a.bytes FROM archive_assets a JOIN archive_messages m ON a.messageId=m.id
+        WHERE a.messageId=? AND m.sessionId=? ORDER BY a.id`).all(messageId, sessionId);
+    },
     asset(sessionId, assetId, offset, reveal) {
       const row = db.prepare(`SELECT a.digest,a.mime,a.bytes FROM archive_assets a JOIN archive_messages m ON a.messageId=m.id
         WHERE a.id=? AND m.sessionId=?`).get(assetId, sessionId);

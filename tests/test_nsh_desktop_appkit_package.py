@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import desktop_archive_evidence, desktop_import_evidence, desktop_workspace_layout_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
+from nsh_composer_provenance import desktop_archive_evidence, desktop_import_evidence, desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +59,7 @@ class AppKitPackageEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_archive_evidence(), name, current)
             current = successor_input(self, desktop_import_evidence(), name, current)
             current = successor_input(self, desktop_workspace_layout_evidence(), name, current)
+            current = successor_input(self, desktop_workspace_migration_evidence(), name, current)
             self.assertEqual(current, hashlib.sha256(data).hexdigest(), name)
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name

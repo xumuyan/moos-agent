@@ -3376,7 +3376,7 @@
 - 遗留问题：这是当前快照的聊天正文与附件。原会话续聊、任务／工具过程重放、项目目录与配置迁移属于后续能力。本地候选和数据在独立应用支持目录，正式版保持原路径。两项历史文档证据继续阻塞推送，保留原正式应用和旧候选。七份原未跟踪开发文件保留。
 - 对应 Git 提交：唯一说明 `feat(N01-D2): import production chat history into the NSH candidate`，查询 `git log --oneline --grep="import production chat history into the NSH candidate"`。
 
-## 2026-11-21 14:02:56 +0800｜N01-D2 / N01-D3 候选版设置分栏与工作区聊天
+## 2026-11-21 14:02:56 +08:00｜N01-D2 / N01-D3 候选版设置分栏与工作区聊天
 
 - 修改或新增内容：候选版设置改为左侧导航及按服务分组的模型列表，右侧先展示详情，再进入添加或编辑，保留推理强度、协议和图像设置。旧聊天加入当前 Desktop B 的会话树，归档仍从工作区「更多」查看。
 - 遇到的难题：原生夹具的调用日志信号意外被历史读取 effect 追踪，首轮打开会话重复触发读取；将 Host 调用移出依赖追踪后重跑通过。全新离线 NSH 打包在依赖阶段失败，改用原有的已签名候选壳，仅替换重新编译的 NSH bundle 和宿主文件并重新签名。
@@ -3385,3 +3385,13 @@
 - 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 380 通过、7 失败、8 取消和 1 跳过，涉及 PI、桌面工具时序、原生管道及队伍目标；Node 24.15.0 的 `npm run test:electron` 带打包 DSH 为 135 通过、6 失败、1 取消和 1 跳过，涉及打包 Host/DSH 超时。两轮运行期间本机负载很高。Rust 1.100.0 离线 `cargo test --release --offline --locked` 为 11/11。文档 `python3 -m unittest discover -s tests -v` 为 263/265，剩余 E124 正式重启报告缺失及旧 AppKit `open.err` 哈希不匹配。
 - 遗留问题：导入聊天仍为只读历史，续聊及任务过程恢复待后续；现有候选没有自定义模型服务，列表和详情编辑使用合成服务验收。因全仓和全新离线构建未全绿，未推送，N01-D2/D3 保持未勾。通过门禁需在低负载时重跑回归、修复离线构建依赖并恢复两项历史证据。旧候选二进制保留用于回滚，原七份未跟踪输入保持原状。
 - 对应 Git 提交：唯一说明 `feat(N01-D2/D3): organize model settings and workspace history`，查询 `git log --oneline --grep="organize model settings and workspace history"`。
+
+## 2026-11-21 14:32:22 +08:00｜N01-D2 正式项目及会话原位迁移
+
+- 修改或新增内容：候选版使用正式工作区表的 6 个项目、项目原目录和项目顺序。项目下的登记会话使用原 ID、标题、顺序和归档状态，在普通聊天视图显示，并保留普通输入栏、重命名、归档及分叉入口。候选原来的 2 个测试项目、2 个空测试会话和单独的历史分组已从在用资料移除。
+- 遇到的难题：正式盘上另有 2 个空白会话未登记在项目树，其中 1 个已归档；前者保留在底层快照，后者进入首个项目的已归档列表。PI 的物理目录以自己的会话 ID 命名，恢复后使用对应的 DSH 会话目录。前一条操作日志的北京时间偏移少冒号，本轮按原时间修正格式。
+- 处理方式：以独立私有目录生成候选资料，源目录只读。检测源 SQLite、WAL、会话日志、工作区配置及 PI 文件的并发变动；附带文件先比哈希。新档案通过检查后，退出空闲候选并原位交换代码与资料。进程原位重启一次，旧候选暂可回滚。正式应用、项目文件、正式模型密钥均未修改或迁移。
+- 验证结果：候选严格验签，macOS 27.0.1 arm64 窗口显示与正式登记顺序一致的 6 项，实测进入「沐码」项目并打开已有的普通会话。包内 Host 核对 14 个普通会话、1 个归档，逐页核对 1,631 条正文（1,700 个片段）和 88 个 DSH 附件引用；共保留 87 个独立附件文件。包内 PI SDK 的 `SessionManager.continueRecent` 打开 10 份旧上下文，无真实模型请求。合成回归 6/6，NSH 原生 `verify-desktop-theme.mjs --management` 6/6，记录见 `probes/nsh-validation/desktop-workspace-migration-evidence.json`。
+- 全量回归：Node 22.22.0 串行核心 396 通过、1 跳过；正式源码未改，Node 24.15.0 的 `npm run test:electron` 以打包 DSH 验证 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩 E124 报告缺失及旧 AppKit `open.err` 哈希不一致。
+- 遗留问题：旧任务耗时、执行过程及改动卡未迁移，尚未对正式内容运行模型续聊；候选需独立配置服务。N01-D2/D3 保持未勾，推送受历史验收文件门禁阻塞，解除条件是恢复或重验两项原始证据。七份未跟踪开发文件保持原样。
+- 对应 Git 提交：唯一说明 `feat(N01-D2): restore formal workspaces as native conversations`，查询 `git log --oneline --grep="restore formal workspaces as native conversations"`。

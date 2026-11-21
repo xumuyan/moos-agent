@@ -1,0 +1,105 @@
+{
+  "base": "dab706cb6ce6f93f2b7428c2d64d586d57a295de",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopImportedHistory.tsx": "db3f0ea87ecadb6a384934380b5dd64af149c2866335eb9148288b3c2720e519",
+    "probes/nsh-validation/DesktopView.tsx": "ed4b19327aaeb3e99e7cf2b423a8136e6a0c9517b8ad558d212013639093073d",
+    "probes/nsh-validation/desktop-contract.ts": "48f4af20236772b458fdc467792a5087c035934d04dfffca6590098c13aa9b37",
+    "probes/nsh-validation/desktop-host.mjs": "bf427b9d715d652b507c55bc8ecf17c5ac7c6a992b8932957d9283f764dc5ea2",
+    "probes/nsh-validation/desktop-import.mjs": "15fd5a8845aa152c412c0cccd0b42084279bd2c31575984851203ab262b7b3df",
+    "probes/nsh-validation/desktop-imported-history.mjs": "85c3be00654d49f4ba78c0323e0767425704b2d65d3537b8f96b05a1fbc12e76",
+    "probes/nsh-validation/desktop-model-services.mjs": "4129fd226143826f17746c80b5439575fe3365cc7044d6fc0ea04707a7fd98bc",
+    "tests/nsh_composer_provenance.py": "f25baf620218a46b9f039c1140bdae2c5f6f77c6e83235b6f5524df7e28aa2b5",
+    "tests/test_nsh_desktop_appkit_chat.py": "7beb3999586b00074517f105703a49c851211bbf8a35ffefccc8a49238fb14d9",
+    "tests/test_nsh_desktop_appkit_package.py": "6685aef99ed6592726dfa85155d4e2a18cf339ae144ecbfc65d28a27e3941395"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopImportedHistory.tsx": {
+      "bytes": 6455,
+      "sha256": "3d90075351b78bc2cf6035c5c2544633bdefb2e3d84b99d2c7d6f76c114b5761"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 78025,
+      "sha256": "70c7aec14b2348728eef1dfb1319c0442be68ff5d2e6253638e55121412b6fed"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 8773,
+      "sha256": "f408d825828213799b481d12a2c0e9cbc534935f1f2566c195ad84ed25099243"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 27039,
+      "sha256": "37c121058629a696ec30be1425742989b673c8604434b9d95dd00902d1e0891b"
+    },
+    "probes/nsh-validation/desktop-import.mjs": {
+      "bytes": 13244,
+      "sha256": "343f00db47bf168ccafcd33a14c2acba79d7901a1f3f49d08fb87110ce138d55"
+    },
+    "probes/nsh-validation/desktop-imported-history.mjs": {
+      "bytes": 3438,
+      "sha256": "a443225171c129a873d3d0866ae5f36596c0fbe84698b38f5109225eabcb7a15"
+    },
+    "probes/nsh-validation/desktop-model-services.mjs": {
+      "bytes": 6739,
+      "sha256": "81db3987824f16d3171a23b21bc8ebbb5ba89f665713309c40b1acf8a508a4a6"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3914,
+      "sha256": "805fe898e7e92df5fe625b1f4f84f031be811cc5cbaff40b965e281d43d97be5"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 26432,
+      "sha256": "5e9c8efc3888395bbbd59abaa48597aafa65c3510d3c00cf4e329a858764e2f8"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4082,
+      "sha256": "3700eaa7a5ef93fbdf60cfe0d6e298015f51c18cfcb8ce7d3023c769db387272"
+    },
+    "probes/nsh-validation/desktop-workspace-migration.mjs": {
+      "bytes": 8988,
+      "sha256": "4c0ed49998ddb88294f0349fb717bdf91545bde096effe2d85336cfef8c5f004"
+    },
+    "probes/nsh-validation/desktop-workspace-migration.test.mjs": {
+      "bytes": 5528,
+      "sha256": "9331d17892fc15561d66f72102afe264cdaf19bc5d8a7a57d36704335c670960"
+    }
+  },
+  "snapshot": {
+    "dshSessions": 16,
+    "piSessions": 10,
+    "dshMessages": 1631,
+    "piMessages": 1550,
+    "attachments": 178,
+    "missingAttachments": 0,
+    "attachmentFiles": 87,
+    "linkedSessions": 10,
+    "projects": 6,
+    "active": 14,
+    "archived": 1,
+    "piFiles": 10,
+    "messageChunks": 1700,
+    "unattachedEmptySeeds": 1
+  },
+  "candidate": {
+    "projects": 6,
+    "active": 14,
+    "archived": 1,
+    "messages": 1631,
+    "chunks": 1700,
+    "attachmentReferences": 88,
+    "exactFormalOrder": true,
+    "noFixtureProjects": true,
+    "allTranscriptPagesRead": true,
+    "signedBundle": true,
+    "piContextsOpened": 10,
+    "guiVerified": true
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "fixturePath": "artifacts/nsh-validation/desktop-theme/run-H256uV/test.log",
+    "passed": 6
+  },
+  "scope": {
+    "writesToFormalProfile": false,
+    "restoredOldTaskExecution": false,
+    "sentRequestToRealModel": false
+  }
+}

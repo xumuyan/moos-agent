@@ -1,5 +1,6 @@
 /** N01 trusted desktop launch layer. No listener, UI paths or renderer credentials. */
 import { mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { statSync, realpathSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -82,8 +83,16 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     }
     store = new Store({ dbPath });
     const saved = store.listProjects();
-    if (!fresh && saved.length !== projectNames.length) throw new Error('Invalid isolated desktop project registry');
-    for (const [index, name] of projectNames.entries()) {
+    const migrated = !!lease && !fresh && store.getSetting('desktop.workspaceMigration') === '1';
+    if (migrated) {
+      if (!saved.length || saved.length > 8) throw new Error('Invalid migrated project registry');
+      for (const p of saved) {
+        title(p.name);
+        if (!token(p.id) || !p.path.startsWith('/') || p.path.includes('\0')) throw new Error('Invalid migrated project registry');
+        trustedProjects.push({ ...p, workspaceLabel: p.name });
+      }
+    } else if (!fresh && saved.length !== projectNames.length) throw new Error('Invalid isolated desktop project registry');
+    for (const [index, name] of (migrated ? [] : projectNames).entries()) {
       const workspaceLabel = `workspace-${index}`;
       const path = join(root, workspaceLabel);
       if (fresh) await mkdir(path, { mode: 0o700 });
@@ -100,14 +109,14 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       history = openDesktopHistory(dbPath);
       imported = await openImportedHistory(root);
     }
-    const importedProject = imported && (trustedProjects.find(p => p.id === store.getSetting('desktop.imported.project')) ?? trustedProjects[0]);
-    const importedSessions = imported?.list() ?? [];
+    const importedProject = !migrated && imported && (trustedProjects.find(p => p.id === store.getSetting('desktop.imported.project')) ?? trustedProjects[0]);
+    const importedSessions = importedProject ? imported.list() : [];
     function historicalSessions(projectId, archived) {
       return projectId === importedProject?.id ? { imported: importedSessions.filter(s => Boolean(s.archived) === archived) } : {};
     }
-    if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
+    if (!liveModels && !migrated) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
-    const modelServices = history && desktopModelServices(root, desktopFixtureModels);
+    const modelServices = history && desktopModelServices(root, migrated ? [] : desktopFixtureModels);
     const directory = () => modelServices ? modelServices.catalog() : catalog;
     const metadata = id => JSON.parse(store.getSetting(`desktop.session.${id}`) ?? '{}');
     const saveMetadata = (id, value) => store.setSetting(`desktop.session.${id}`, JSON.stringify(value));
@@ -191,7 +200,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         case 'projects.list': exact(p, []); return {
           projects: (importedProject ? [importedProject, ...trustedProjects.filter(p => p !== importedProject)] : trustedProjects)
             .map(({ id, name }) => ({ id, name })),
-          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}),
+          models: directory(), ...(migrated && { workspaceMigration: true }), ...(history ? { teamGoals: true, desktopManagement: true } : {}),
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
@@ -207,17 +216,18 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           if (p?.action === 'importedPage') {
             exact(p, ['action', 'projectId', 'sessionId', 'before']);
             if (!imported) reject('unsupported_method');
-            if (p.projectId !== importedProject.id) reject('not_found');
+            if (p.projectId !== importedProject?.id) reject('not_found');
             if (!token(p.sessionId) || (p.before !== null && (!Number.isSafeInteger(p.before) || p.before < 1))) reject('invalid_request');
             return { sessions: [], importedPage: imported.page(p.sessionId, p.before) ?? reject('not_found') };
           }
           if (p?.action === 'importedAsset') {
             exact(p, ['action', 'projectId', 'sessionId', 'assetId', 'offset', 'reveal']);
             if (!imported) reject('unsupported_method');
-            if (p.projectId !== importedProject.id) reject('not_found');
+            const archiveId = migrated ? metadata(session(p.projectId, p.sessionId).id).archiveId : p.sessionId;
+            if (!archiveId || (!migrated && p.projectId !== importedProject?.id)) reject('not_found');
             if (!token(p.sessionId) || !Number.isSafeInteger(p.assetId) || p.assetId < 1 ||
                 !Number.isSafeInteger(p.offset) || p.offset < 0 || typeof p.reveal !== 'boolean') reject('invalid_request');
-            return { sessions: [], asset: imported.asset(p.sessionId, p.assetId, p.offset, p.reveal) ?? reject('not_found') };
+            return { sessions: [], asset: imported.asset(archiveId, p.assetId, p.offset, p.reveal) ?? reject('not_found') };
           }
           if (p?.action === 'listArchived') {
             exact(p, ['projectId', 'action']);
@@ -288,7 +298,16 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           if (!token(p.projectId) || !token(p.sessionId)) reject('invalid_request');
           session(p.projectId, p.sessionId);
           if (p.before !== null && !token(p.before)) reject('invalid_cursor');
-          const page = history.read(p, metadata(p.sessionId).fork === true) ?? reject('invalid_cursor');
+          const state = metadata(p.sessionId);
+          const page = history.read(p, state.fork === true) ?? reject('invalid_cursor');
+          if (migrated && state.archiveId && imported) {
+            for (const message of page.messages) {
+              const id = /^source-(\d+)$/.exec(message.id);
+              if (!id) continue;
+              const assets = imported.messageAssets(state.archiveId, Number(id[1]));
+              if (assets.length) message.assets = assets;
+            }
+          }
           const teamGoal = desktopGoalView(store, readDesktopGoal(store, p.sessionId));
           return teamGoal ? { ...page, teamGoal } : page;
         }
@@ -335,6 +354,13 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
               sum + (j.images?.reduce((total, i) => total + i.data.length, 0) ?? 0), 0) +
               images.reduce((sum, i) => sum + i.data.length, 0) > 64 * 1024 * 1024) reject('limit');
           const configured = modelServices && modelServices.route(modelId);
+          if (migrated) {
+            if (!configured) reject('invalid_request');
+            const bound = project(p.projectId);
+            try {
+              if (realpathSync(bound.path) !== bound.path || !statSync(bound.path).isDirectory()) reject('not_found');
+            } catch { reject('not_found'); }
+          }
           const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: goal ? 7200000 : 600000,
             onCreate: t => {
               if (goal) saveDesktopGoal(store, p.sessionId, Object.assign(goal, { taskId: t.id }));

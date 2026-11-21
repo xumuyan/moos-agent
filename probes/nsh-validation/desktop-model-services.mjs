@@ -78,12 +78,15 @@ export function desktopModelServices(root, fixtureOptions) {
   }
 
   function catalog() {
-    return { defaultId: fixtureOptions[0].id, options: [...fixtureOptions.map(m => m.id === 'fixture-alternate' ? { ...m, imageInput: true } : m), ...groups.flatMap(g => g.models.map(m => ({
+    const configured = groups.flatMap(g => g.models.map(m => ({
       id: m.id, label: m.label, group: { id: g.id, label: g.name },
       ...(m.imageInput && { imageInput: true }),
       ...(m.efforts.some(e => e !== 'off') && { reasoning: { defaultId: m.defaultEffort,
         levels: m.efforts.map(id => ({ id, label: effortNames[desktopEfforts.indexOf(id)] })) } }),
-    }))) ] };
+    })));
+    const options = [...fixtureOptions.map(m => m.id === 'fixture-alternate' ? { ...m, imageInput: true } : m), ...configured];
+    if (!options.length) return { defaultId: 'configure-model', options: [{ id: 'configure-model', label: '请先添加模型' }] };
+    return { defaultId: options[0].id, options };
   }
 
   function list() {

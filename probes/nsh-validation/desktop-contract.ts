@@ -46,7 +46,7 @@ export type ImportedRequest = { projectId: string } & (
   { action: 'importedPage'; sessionId: string; before: number | null } |
   { action: 'importedAsset'; sessionId: string; assetId: number; offset: number; reveal: boolean });
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true; workspaceMigration?: true } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[]; imported?: ImportedSession[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
   'sessions.manage': { params: { projectId: string; action: 'listArchived' } |
@@ -58,7 +58,7 @@ export type Calls = {
     result: Record<string, never> };
   // Only the trusted persistent fixture enables this historical (not live) view.
   'sessions.history': { params: Scope & { before: string | null }; result: Scope & {
-    messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean }[]; before: string | null; teamGoal?: TeamGoal;
+    messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean; assets?: ImportedAsset[] }[]; before: string | null; teamGoal?: TeamGoal;
   } };
   'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string; teamGoal?: TeamGoalAction; imageBatch?: string }; result: { task: Task; replayed: boolean; teamGoal?: TeamGoal } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };

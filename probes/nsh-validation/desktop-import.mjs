@@ -30,9 +30,10 @@ const iso = value => {
   return Number.isNaN(date.valueOf()) ? new Date(0).toISOString() : date.toISOString();
 };
 const asText = value => typeof value === 'string' ? value : '';
-const timestampState = path => {
+const timestampState = (path, directory = false) => {
   try {
-    const info = regular(path);
+    const info = directory ? lstatSync(path) : regular(path);
+    if (directory && !info.isDirectory()) throw Error('Unexpected source directory type');
     return [info.ino, info.size, info.mtimeMs, info.ctimeMs].join(':');
   } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
 };
@@ -41,7 +42,7 @@ function decode(path) {
     { encoding: 'utf8', maxBuffer: 80 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }) : readFileSync(path, 'utf8');
 }
 
-export function importDesktopChat({ source, profile }) {
+export function importDesktopChat({ source, profile, materialize }) {
   profile = realpathSync(profile);
   source = realpathSync(source);
   if (profile === source || profile.startsWith(source + '/') || source.startsWith(profile + '/')) throw Error('Import requires isolated destination');
@@ -59,10 +60,13 @@ export function importDesktopChat({ source, profile }) {
     const pi = join(source, 'pi', 'moos.sqlite');
     const archives = [...files(join(dsh, 'sessions'), '.jsonl.zstd'), ...files(join(dsh, 'sessions'), '.jsonl')].sort();
     const metadataFiles = files(join(dsh, 'storages'), '.json').sort();
-    const watched = [...archives, ...metadataFiles, pi, pi + '-wal'];
-    const initial = watched.map(timestampState);
+    const watched = new Map();
+    const watch = (path, directory = false) => {
+      if (!watched.has(path)) watched.set(path, { directory, state: timestampState(path, directory) });
+    };
+    for (const path of [...archives, ...metadataFiles, pi, pi + '-wal']) watch(path);
     copyFileSync(pi, join(stage, 'pi-snapshot.sqlite'));
-    if (initial.at(-1) !== null) copyFileSync(pi + '-wal', join(stage, 'pi-snapshot.sqlite-wal'));
+    if (watched.get(pi + '-wal').state !== null) copyFileSync(pi + '-wal', join(stage, 'pi-snapshot.sqlite-wal'));
     backup = new DatabaseSync(join(stage, 'pi-snapshot.sqlite'), { readOnly: true });
     if (backup.prepare('PRAGMA quick_check').get().quick_check !== 'ok') throw Error('PI snapshot check failed');
     db = new DatabaseSync(join(stage, 'history.sqlite'));
@@ -129,13 +133,14 @@ export function importDesktopChat({ source, profile }) {
         }
       }
     }
-    const sessionIds = new Set(), dshTitles = new Map();
+    const sessionIds = new Set(), dshTitles = new Map(), sourceSessions = [];
     for (const path of archives) {
       const [header, ...events] = decode(path).trimEnd().split('\n').filter(Boolean).map(line => JSON.parse(line));
       if (header?.type !== 'session' || !uuid(header.id) || sessionIds.has(header.id)) throw Error('Invalid or duplicate DSH session');
       sessionIds.add(header.id);
       const title = events.findLast(row => row.type === 'session/title' && typeof row.data?.title === 'string')?.data.title || '新会话';
       dshTitles.set(header.id, title);
+      if (materialize) sourceSessions.push({ ...header, title });
       const linked = piLinks.get(header.id);
       if (linked) count.linkedSessions++;
       const updated = iso(events.at(-1)?.time ?? header.createdAt);
@@ -169,8 +174,13 @@ export function importDesktopChat({ source, profile }) {
         count.piMessages++;
       }
     }
+    materialize?.({ source, profile, stage, history: db, backup, workspaceData, sourceSessions, watch });
     const latest = [...files(join(dsh, 'sessions'), '.jsonl.zstd'), ...files(join(dsh, 'sessions'), '.jsonl')].sort();
-    if (archives.join('\u0000') !== latest.join('\u0000') || watched.some((path, i) => timestampState(path) !== initial[i])) throw Error('Source changed while preparing snapshot; retry');
+    const latestMetadata = files(join(dsh, 'storages'), '.json').sort();
+    if (archives.join('\u0000') !== latest.join('\u0000') || metadataFiles.join('\u0000') !== latestMetadata.join('\u0000') ||
+        [...watched].some(([path, { directory, state }]) => timestampState(path, directory) !== state)) {
+      throw Error('Source changed while preparing snapshot; retry');
+    }
     db.exec('COMMIT');
     if (db.prepare('PRAGMA quick_check').get().quick_check !== 'ok' || db.prepare('PRAGMA foreign_key_check').get()) throw Error('Imported database check failed');
     db.close(); db = null;

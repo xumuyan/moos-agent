@@ -2,12 +2,12 @@ import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, L
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { Calls, DesktopModelCatalog, ImportedSession, Scope, Session, SessionAction, TaskRef, TeamGoal, TeamGoalAction, WorkspaceChanges } from './desktop-contract';
+import type { Calls, DesktopModelCatalog, ImportedAsset, ImportedSession, Scope, Session, SessionAction, TaskRef, TeamGoal, TeamGoalAction, WorkspaceChanges } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
 import { composerStatistics } from './desktop-composer-statistics';
-import { DesktopImportedHistory } from './DesktopImportedHistory';
+import { DesktopImportedHistory, openHistoryAsset } from './DesktopImportedHistory';
 import { DesktopSettings, type DesktopAppearance } from './DesktopSettings';
 import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
@@ -77,6 +77,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const visibleImported = signal<ImportedSession[]>([]), selectedImported = signal<ImportedSession | null>(null);
+  const migrated = signal(false);
   const managed = signal(false), sessionDetails = signal<Session[]>([]);
   const sessionError = signal(''), sessionPending = signal(false);
   const rename = signal<string | null>(null), renameTitle = signal('');
@@ -136,8 +137,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }),
         ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }) } : params);
     if (method === 'projects.list' && !disposed) {
-      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown } | null;
+      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown; workspaceMigration?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
+      migrated.set(data?.workspaceMigration === true);
       managed.set(props.persistentHistory === true && data?.desktopManagement === true);
       goalAvailable.set(props.persistentHistory === true && data?.teamGoals === true);
     }
@@ -194,7 +196,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const page = historyPage();
     return page && page.projectId === selectedProject() && page.sessionId === selectedSession() ? page : null;
   };
-  const historyCapped = () => (selectedHistory()?.messages.length ?? 0) >= 120;
+  const historyCapped = () => !migrated() && (selectedHistory()?.messages.length ?? 0) >= 120;
   async function loadHistory(older = false) {
     const scope = controller.current?.scope;
     if (!props.persistentHistory || disposed || !scope) return;
@@ -238,8 +240,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const c = snapshot().current;
     const key = c ? scopeKey(c.scope) : '';
     if (!props.persistentHistory) return cachedRows(key, c?.rows ?? []);
-    const saved = selectedHistory()?.messages.map(m => ({ role: m.role === 'user' ? '你' : 'PI 公开文本',
-      body: m.text + (m.truncated ? ' [历史预览已截断]' : '') })) ?? [];
+    const saved = selectedHistory()?.messages.flatMap(m => [
+      ...((m.text || !m.assets?.length) ? [{ role: m.role === 'user' ? '你' : 'PI 公开文本',
+        body: m.text + (m.truncated ? ' [历史预览已截断]' : '') }] : []),
+      ...(m.assets?.length ? [{ role: '会话附件', body: JSON.stringify(m.assets) }] : []),
+    ]) ?? [];
     const live = c?.rows ?? [];
     if (!managed()) return cachedRows(key, [...saved, ...live]);
     const grouped: { role: string; body: string }[] = [];
@@ -364,7 +369,27 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const title = () => selectedImported()?.title ?? snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
-  const dispose = () => { disposed = true; removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
+  const savedImage = signal<string | null>(null);
+  let assetRequest = 0;
+  function closeSavedImage() {
+    assetRequest++;
+    const url = savedImage();
+    if (url) URL.revokeObjectURL(url);
+    savedImage.set(null);
+  }
+  async function showSavedAsset(asset: ImportedAsset) {
+    const scope = controller.current?.scope;
+    if (!scope) return;
+    closeSavedImage();
+    const request = assetRequest;
+    const current = () => !disposed && request === assetRequest;
+    try {
+      const url = await openHistoryAsset(value => transport('sessions.manage', value), scope, asset, current);
+      if (url && current()) savedImage.set(url);
+      else if (url) URL.revokeObjectURL(url);
+    } catch { if (current()) sessionError.set('无法读取该会话附件'); }
+  }
+  const dispose = () => { disposed = true; closeSavedImage(); removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
@@ -380,7 +405,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
   const hasQueuedRows = computed(() => queuedRows().length > 0);
   const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !goalInFlight() && !files().length && !queue.full(pickerScope()) && validTurnText(draft()); };
-  const disabled = () => blocked() || historyPending() || busy() || uploading() || !!queuedRows().length ||
+  const disabled = () => catalog()?.defaultId === 'configure-model' || blocked() || historyPending() || busy() || uploading() || !!queuedRows().length ||
     !(validTurnText(draft()) || (files().length > 0 && !draft().trim())) || (files().length > 0 && !modelCanSee());
   const canStop = () => {
     const { current, sessionId } = snapshot();
@@ -459,7 +484,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     editTurn.set(edit); if (!edit) refresh();
   };
   const resetEditor = () => {
-    editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
+    closeSavedImage(); editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
     rename.set(null); sessionError.set(''); selectedImported.set(null);
   };
   const project = async (id: string) => {
@@ -724,7 +749,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 backgroundImage: tool()?.gradient,
                 boxShadow: tool() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
               }}>
-                {disclosure() ? <>
+                {r().role === '会话附件' ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {(JSON.parse(r().body) as ImportedAsset[]).map(asset =>
+                    <Button testID={`history-asset-${asset.id}`} accessibilityLabel={asset.name} style={menuItem}
+                      hoverStyle={controlHover} disabled={!asset.bytes} onPress={() => void showSavedAsset(asset)}>
+                      <Text style={menuLabel()}>{asset.bytes ? asset.name : asset.name + '（文件缺失）'}</Text>
+                    </Button>)}
+                </View> : disclosure() ? <>
                   <Button testID={filesChanged() ? 'workspace-changes' : 'turn-process'} onPress={toggleGroup}
                     style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 22 }} hoverStyle={controlHover}>
                     <DesktopIcon name={expanded() ? 'chevronDown' : 'chevronRight'} size={12} color={muted()} />
@@ -893,6 +924,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <Text style={menuLabel()}>保存</Text>
           </Button>
         </View>
+      </Dialog>}
+      {savedImage() && <Dialog testID="history-asset-preview" accessibilityLabel="会话图片" animation="none"
+        onOpenChange={event => { if (!event.open) closeSavedImage(); }}
+        style={{ ...popup(), position: 'absolute', left: '12%', top: '10%', width: '76%', height: '80%', gap: 8, padding: 12 }}>
+        <Button testID="history-asset-close" style={menuItem} hoverStyle={controlHover} onPress={closeSavedImage}>
+          <Text style={menuLabel()}>关闭图片</Text>
+        </Button>
+        <Image src={savedImage()!} style={{ width: '100%', flex: 1, objectFit: 'contain' }} />
       </Dialog>}
       {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
         appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}

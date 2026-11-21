@@ -4,6 +4,24 @@ import type { Calls, ImportedAsset, ImportedPage, ImportedRequest } from './desk
 import { controlSurface, controlHover, controlFocus } from './desktop-control-style';
 import { desktopTheme as t } from './desktop-theme';
 
+export async function openHistoryAsset(load: (request: ImportedRequest) => Promise<Calls['sessions.manage']['result']>,
+  scope: { projectId: string; sessionId: string }, asset: ImportedAsset, current: () => boolean) {
+  const request = { ...scope, action: 'importedAsset' as const, assetId: asset.id };
+  const isImage = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(asset.mime) && asset.bytes < 16 * 1024 * 1024;
+  if (!isImage) { await load({ ...request, offset: 0, reveal: true }); return null; }
+  const parts: ArrayBuffer[] = [];
+  for (let offset = 0; offset < asset.bytes;) {
+    const { asset: chunk } = await load({ ...request, offset, reveal: false });
+    if (!current()) return null;
+    const bytes = Uint8Array.from(atob(chunk?.data ?? ''), char => char.charCodeAt(0));
+    if (!bytes.length || offset + bytes.length > asset.bytes) throw Error('invalid');
+    parts.push(bytes.buffer);
+    offset += bytes.length;
+    if (Boolean(chunk?.end) !== (offset === asset.bytes)) throw Error('invalid');
+  }
+  return URL.createObjectURL(new Blob(parts, { type: asset.mime }));
+}
+
 export function DesktopImportedHistory(props: { dark: boolean; projectId: string; sessionId: string;
   load: (request: ImportedRequest) => Promise<Calls['sessions.manage']['result']> }) {
   const page = signal<ImportedPage | null>(null);
@@ -37,22 +55,12 @@ export function DesktopImportedHistory(props: { dark: boolean; projectId: string
   async function viewAsset(sessionId: string, asset: ImportedAsset) {
     closeImage(); error.set('');
     const version = imageEdition;
-    const isImage = ['image/png','image/jpeg','image/jpg','image/gif','image/webp'].includes(asset.mime) && asset.bytes < 16 * 1024 * 1024;
+    const current = () => !disposed && version === imageEdition;
     try {
-      if (!isImage) { await props.load({ action: 'importedAsset', projectId: props.projectId, sessionId, assetId: asset.id, offset: 0, reveal: true }); return; }
-      const parts: ArrayBuffer[] = [];
-      for (let offset = 0; offset < asset.bytes;) {
-        const { asset: chunk } = await props.load({ action: 'importedAsset', projectId: props.projectId, sessionId, assetId: asset.id, offset, reveal: false });
-        if (disposed || version !== imageEdition) return;
-        const bytes = Uint8Array.from(atob(chunk?.data ?? ''), char => char.charCodeAt(0));
-        if (!bytes.length || offset + bytes.length > asset.bytes) throw Error('invalid');
-        parts.push(bytes.buffer);
-        offset += bytes.length;
-        if (Boolean(chunk?.end) !== (offset === asset.bytes)) throw Error('invalid');
-      }
-      imageURL = URL.createObjectURL(new Blob(parts, { type: asset.mime }));
-      image.set(imageURL);
-    } catch { if (!disposed && version === imageEdition) error.set('无法读取该附件'); }
+      const url = await openHistoryAsset(props.load, { projectId: props.projectId, sessionId }, asset, current);
+      if (url && current()) { imageURL = url; image.set(url); }
+      else if (url) URL.revokeObjectURL(url);
+    } catch { if (current()) error.set('无法读取该附件'); }
   }
   effect(() => {
     const { sessionId } = props;

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import desktop_archive_evidence, desktop_import_evidence, desktop_workspace_layout_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
+from nsh_composer_provenance import desktop_archive_evidence, desktop_import_evidence, desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,13 +79,15 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_archive_evidence(), name, current)
             current = successor_input(self, desktop_import_evidence(), name, current)
             current = successor_input(self, desktop_workspace_layout_evidence(), name, current)
+            current = successor_input(self, desktop_workspace_migration_evidence(), name, current)
             self.assertEqual(current, sha(ROOT / name), name)
         entry = 'probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx'
         entry_hash = successor_input(self, team_goal, entry, self.evidence['check']['entry'])
         entry_hash = successor_input(self, desktop_management_evidence(), entry, entry_hash)
         entry_hash = successor_input(self, desktop_archive_evidence(), entry, entry_hash)
         entry_hash = successor_input(self, desktop_import_evidence(), entry, entry_hash)
-        self.assertEqual(successor_input(self, desktop_workspace_layout_evidence(), entry, entry_hash), sha(ROOT / entry))
+        entry_hash = successor_input(self, desktop_workspace_layout_evidence(), entry, entry_hash)
+        self.assertEqual(successor_input(self, desktop_workspace_migration_evidence(), entry, entry_hash), sha(ROOT / entry))
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name
             if path.is_file():
@@ -265,6 +267,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_archive_evidence(), name, current)
             current = successor_input(self, desktop_import_evidence(), name, current)
             current = successor_input(self, desktop_workspace_layout_evidence(), name, current)
+            current = successor_input(self, desktop_workspace_migration_evidence(), name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         for name, expected in {**data['localReceipts'], **data['archives']}.items():
             path = ROOT / name
@@ -336,6 +339,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_archive_evidence(), name, current)
             current = successor_input(self, desktop_import_evidence(), name, current)
             current = successor_input(self, desktop_workspace_layout_evidence(), name, current)
+            current = successor_input(self, desktop_workspace_migration_evidence(), name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         self.assertTrue(data['localReceipts'])
         for name, expected in data['localReceipts'].items():
@@ -391,6 +395,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             expected = successor_input(self, desktop_archive_evidence(), name, expected)
             expected = successor_input(self, desktop_import_evidence(), name, expected)
             expected = successor_input(self, desktop_workspace_layout_evidence(), name, expected)
+            expected = successor_input(self, desktop_workspace_migration_evidence(), name, expected)
             self.assertEqual(expected['sha256'], sha(ROOT / name), name)
         self.assertEqual(sum(p.endswith('/pruned-runtime.json') for p in data['localReceipts']), 2)
         for name, expected in data['localReceipts'].items():
