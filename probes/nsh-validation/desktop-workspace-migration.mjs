@@ -7,12 +7,13 @@ import { DatabaseSync } from 'node:sqlite';
 import { pathToFileURL } from 'node:url';
 import { Store } from '../../services/agent/store.mjs';
 import { importDesktopChat } from './desktop-import.mjs';
-import { leaseDesktopProfile } from './desktop-profile.mjs';
+import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
 
 const validId = id => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(id);
 const clean = (value, limit) => typeof value === 'string' && value.trim() && value.length <= limit && !/[\x00-\x1f\x7f]/.test(value);
 const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
 const migrationKey = 'desktop.workspaceMigration';
+const untitled = title => /^新会话(?: [0-9]+)?$/.test(title);
 
 function originalPath(path) {
   if (typeof path !== 'string' || !isAbsolute(path) || Buffer.byteLength(path) > 4096) throw Error('Invalid workspace path');
@@ -69,6 +70,7 @@ export async function migrateDesktopWorkspaces({ source, profile }) {
     const sourceById = new Map(sourceSessions.map(session => [session.id, session]));
     const assigned = new Set(), projects = new Map();
     const archive = new Set(archivedSessionIds), pinned = new Set(pinnedSessionIds);
+    const archiveLink = history.prepare('SELECT linked FROM archive_sessions WHERE id=?');
     const record = history.prepare('SELECT id,role,date,body FROM archive_messages WHERE sessionId=? ORDER BY id');
     const db = new DatabaseSync(dbPath);
     db.exec('PRAGMA foreign_keys=ON; BEGIN');
@@ -77,19 +79,23 @@ export async function migrateDesktopWorkspaces({ source, profile }) {
     const messageRow = db.prepare('INSERT INTO messages VALUES (?, ?, NULL, ?, ?, ?)');
     const setting = db.prepare('INSERT INTO settings VALUES (?, ?)');
     const iso = date => new Date(date ?? 0).toISOString();
-    let active = 0, archived = 0, piFiles = 0, unattachedEmptySeeds = 0, messageChunks = 0;
+    let active = 0, archived = 0, piFiles = 0, unattachedEmptySeeds = 0, messageChunks = 0, emptyDrafts = 0;
     function addSession(session, project) {
       if (!validId(session.id) || !clean(session.title, 100) || assigned.has(session.id)) throw Error('Invalid or repeated conversation in workspace');
       const archivedSession = archive.has(session.id);
       assigned.add(session.id);
-      sessionRow.run(session.id, project.id, session.title, iso(session.createdAt));
       const state = { archiveId: 'dsh-' + session.id, archived: archivedSession, pinned: pinned.has(session.id) };
       const rows = record.all(state.archiveId);
+      const versions = snapshotPi(snapshot, session.id, join(data, session.id), project.path);
+      if (untitled(session.title) && !rows.length && !state.pinned && !versions && !archiveLink.get(state.archiveId)?.linked) {
+        emptyDrafts++;
+        return;
+      }
+      sessionRow.run(session.id, project.id, session.title, iso(session.createdAt));
       for (const row of rows) {
         messageRow.run('source-' + row.id, session.id, row.role, row.body, row.date);
       }
       messageChunks += rows.length;
-      const versions = snapshotPi(snapshot, session.id, join(data, session.id), project.path);
       piFiles += versions;
       if (!versions && rows.length) state.fork = true;
       setting.run('desktop.session.' + session.id, JSON.stringify(state));
@@ -127,19 +133,72 @@ export async function migrateDesktopWorkspaces({ source, profile }) {
       setting.run(migrationKey, '1');
       if (db.prepare('PRAGMA foreign_key_check').get()) throw Error('Native workspace integrity check failed');
       db.exec('COMMIT');
-      summary = { projects: projects.size, active, archived, piFiles, messageChunks, unattachedEmptySeeds };
+      summary = { projects: projects.size, active, archived, piFiles, messageChunks, unattachedEmptySeeds, emptyDrafts };
     } finally { db.close(); }
   } });
   return { ...copied, ...summary };
 }
 
+// Clean already migrated candidates under the same lease as the desktop host.
+export async function pruneEmptyDesktopConversations(profile) {
+  const lease = await leaseDesktopProfile(profile);
+  let db, archive;
+  try {
+    if (lease.fresh) throw Error('Expected a migrated candidate profile');
+    const data = join(profile, 'data'), path = join(data, 'desktop.sqlite');
+    const archivePath = join(profile, 'imported-chat', 'history.sqlite');
+    await verifyProfileEntry(data, true);
+    await verifyProfileEntry(path, false);
+    await verifyProfileEntry(join(profile, 'imported-chat'), true);
+    await verifyProfileEntry(archivePath, false);
+    db = new DatabaseSync(path);
+    archive = new DatabaseSync(archivePath, { readOnly: true });
+    db.exec('PRAGMA foreign_keys=ON; BEGIN IMMEDIATE');
+    if (db.prepare('SELECT value FROM settings WHERE key=?').get(migrationKey)?.value !== '1') throw Error('Expected a migrated candidate profile');
+    if (db.prepare("SELECT 1 FROM tasks WHERE status IN ('queued','running') LIMIT 1").get()) throw Error('Candidate has unfinished tasks');
+    const records = db.prepare(`SELECT c.id,c.title,s.value FROM conversations c
+      LEFT JOIN settings s ON s.key='desktop.session.'||c.id
+      WHERE NOT EXISTS(SELECT 1 FROM messages m WHERE m.conversationId=c.id)
+      AND NOT EXISTS(SELECT 1 FROM tasks t WHERE t.conversationId=c.id)`).all();
+    const prior = archive.prepare(`SELECT linked, EXISTS(SELECT 1 FROM archive_messages m WHERE m.sessionId=s.id) AS hasMessages
+      FROM archive_sessions s WHERE s.id=?`);
+    const remove = db.prepare('DELETE FROM conversations WHERE id=?');
+    const forget = db.prepare('DELETE FROM settings WHERE key=?');
+    const receipt = { active: 0, archived: 0 };
+    for (const row of records) {
+      if (!untitled(row.title) || !validId(row.id)) continue;
+      const state = JSON.parse(row.value ?? '{}');
+      if (state.pinned || state.fork) continue;
+      if (state.archiveId) {
+        const original = prior.get(state.archiveId);
+        if (!original || original.linked || original.hasMessages) continue;
+      }
+      try { lstatSync(join(data, row.id)); continue; }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
+      remove.run(row.id);
+      forget.run('desktop.session.' + row.id);
+      receipt[state.archived ? 'archived' : 'active']++;
+    }
+    if (db.prepare('PRAGMA foreign_key_check').get()) throw Error('Native workspace integrity check failed');
+    db.exec('COMMIT');
+    return receipt;
+  } finally {
+    archive?.close();
+    db?.close();
+    await lease.close();
+  }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  if (process.argv.length !== 3) throw Error('Pass an empty private candidate directory');
+  const [option, dir] = process.argv.slice(2);
+  const prune = option === '--prune-empty';
+  if (process.argv.length !== (prune ? 4 : 3)) throw Error('Pass a private candidate directory, optionally using --prune-empty');
   process.umask(0o077);
   try {
-    console.log(JSON.stringify(await migrateDesktopWorkspaces({
-      source: join(homedir(), 'Library/Application Support/dev.moos.agent.electron'), profile: process.argv[2],
-    })));
+    const receipt = prune ? await pruneEmptyDesktopConversations(dir) : await migrateDesktopWorkspaces({
+      source: join(homedir(), 'Library/Application Support/dev.moos.agent.electron'), profile: option,
+    });
+    console.log(JSON.stringify(receipt));
   } catch (error) {
     // Database and parser errors may contain private paths or chat text.
     const reasons = ['Use an empty isolated destination','Invalid workspace path','Invalid linked conversation',
@@ -147,7 +206,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       'Invalid workspace registry','Incomplete workspace order','Invalid or repeated conversation in workspace',
       'Invalid workspace record','Project references missing conversation','Unassigned conversation requires a workspace',
       'Full migration requires a source session for each PI conversation','Native workspace integrity check failed',
-      'Source changed while preparing snapshot; retry'];
+      'Source changed while preparing snapshot; retry','Expected a migrated candidate profile','Candidate has unfinished tasks'];
     console.error(reasons.includes(error.message) ? error.message : 'Unable to prepare candidate workspace migration');
     process.exitCode = 1;
   }

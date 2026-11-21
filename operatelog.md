@@ -3405,3 +3405,13 @@
 - 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 398 通过、1 跳过；Node 24.15.0 `npm run test:electron` 以打包 DSH 验证 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩旧 AppKit `open.err` 哈希不一致和 E124 重开报告缺失。
 - 遗留问题：新版过程卡在本次执行进程中可见，历史轮次或重开后的过程尚未从 SQLite 重建。原生验收使用合成任务，候选资料未向真实模型发送请求。正式版未调整。两项历史证据阻塞 GitHub 推送，恢复或重验该证据后解除，N01-D3 保持未勾。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): group chat activity and file changes by turn`，查询 `git log --oneline --grep="group chat activity and file changes by turn"`。
+
+## 2026-11-21 15:33:49 +08:00｜N01-D2 清理候选空白会话
+
+- 修改或新增内容：迁移时跳过只有默认标题且无消息、附件、关联 PI 状态或置顶标记的占位会话。补充候选档案的定向清理入口，已有消息、任务、重命名、置顶或 PI 状态的会话保留。
+- 遇到的难题：正式快照在多个工作区登记了空白「新会话」，此前原样复制，候选开项目时它们排在已有会话前。归档中也有一条同类空白占位。
+- 处理方式：正常关闭候选，在候选档案独占租约内用 SQLite 事务删空会话及对应的会话设置。保留原始只读快照，实窗核对通过后清理本次临时回滚副本。正式版、项目目录和模型配置未改。
+- 验证结果：Node 24.15.0 `node --test --test-concurrency=1 probes/nsh-validation/desktop-workspace-migration.test.mjs probes/nsh-validation/desktop-import.test.mjs` 2/2，覆盖在迁移和已迁移档案清理、重复运行、附件内容和任务／PI 状态保护。候选实机清理普通 4 条、归档 1 条；6 个项目和 10 个有内容的会话保留。比较清理前后 1,700 条消息片段、任务、项目及历史库哈希。macOS 27.0.1 arm64 重开候选后，「沐码」项目只显示原有会话，手动新会话入口仍可用。证据见 `probes/nsh-validation/desktop-empty-prune-evidence.json`。
+- 全量回归：Node 22.22.0 串行核心 395 通过、2 失败、1 取消、1 跳过，集中在 PI 退出、系统采样和关闭时序。Node 24.15.0 `npm run test:electron` 带打包 DSH 139 通过、3 失败、1 跳过，失败在打包 Host 和团队夹具超时。两轮期间本机负载较高。Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩 E124 报告缺失和旧 AppKit `open.err` 哈希不匹配。
+- 遗留问题：N01-D2 保持未勾；因全量回归和历史证据门禁未全绿，暂未推送。解除条件为低负载复跑并恢复或重验两项历史证据。七份既有未跟踪文件原样保留。
+- 对应 Git 提交：唯一说明 `fix(N01-D2): drop empty workspace chat placeholders`，查询 `git log --oneline --grep="drop empty workspace chat placeholders"`。
