@@ -3477,7 +3477,18 @@
 
 ## 2026-11-21 18:43:19 +08:00｜N01-D2 导入旧版模型配置
 
-- 用户授权把 Electron 0.1.52 的模型配置导入本机 NSH 1.0.0。旧版按服务组、模型和对应的地址绑定读取，导入 2 个服务、8 个模型及对应本机密钥，保留协议、上下文和输出上限、图片输入及默认推理档位。
-- 先用实际安装包的模型存储校验临时格式和路由映射。确认目标已有有效档案且无模型配置后，取得同一档案租约，在私有目录原子创建配置，文件权限 0600。重新读回并验证全部 8 个模型。仅启动一个 NSH 实例，核对实际安装路径与档案租约，未发送真实模型请求。
-- 专项 `node --test --test-concurrency=1 probes/nsh-validation/desktop-management.test.mjs apps/electron/pi-models.test.mjs` 14/14。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit 证据哈希及缺失 E124 回执仍阻塞推送。证据见 `desktop-local-install-evidence.json` 的 `modelImport`。
-- 真实模型连通性和续聊待验。提交用唯一说明 `docs(N01-D2): record installed model configuration import` 关联，查询 `git log --oneline --grep="record installed model configuration import"`。
+- 修改或新增内容：用户授权把 Electron 0.1.52 的模型配置导入本机 NSH 1.0.0。旧版按服务组、模型和对应的地址绑定读取，导入 2 个服务、8 个模型及对应本机密钥，保留协议、上下文和输出上限、图片输入及默认推理档位。
+- 遇到的难题：两版模型配置格式不同，需核对模型服务与密钥的地址绑定。
+- 处理方式：先用实际安装包的模型存储校验临时格式和路由映射。确认目标已有有效档案且无模型配置后，取得同一档案租约，在私有目录原子创建配置，文件权限 0600。重新读回并验证全部 8 个模型。仅启动一个 NSH 实例，核对实际安装路径与档案租约，未发送真实模型请求。
+- 验证结果：专项 `node --test --test-concurrency=1 probes/nsh-validation/desktop-management.test.mjs apps/electron/pi-models.test.mjs` 14/14。追加本条前的文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit 证据哈希及缺失 E124 回执仍阻塞推送。证据见 `desktop-local-install-evidence.json` 的 `modelImport`。
+- 遗留问题：真实模型连通性和续聊待验。
+- 对应 Git 提交：唯一说明 `docs(N01-D2): record installed model configuration import` 关联，查询 `git log --oneline --grep="record installed model configuration import"`。
+
+## 2026-11-22 03:47:16 +08:00｜N01-D2 为导入模型启用推理档位
+
+- 修改或新增内容：为本机 NSH 档案的 8 个导入模型补齐可选推理档位。OpenAI 兼容服务提供关闭、Low、Medium、High、Extra High。GLM Coding Plan 提供关闭、Low、High、最高。
+- 遇到的难题：旧版记录只存默认档，第一次导入后每个模型只有关闭一档，因此输入框的模型菜单没有推理等级入口。
+- 处理方式：按已安装端支持的协议更新本机配置。通过档案租约和同卷原子替换写入，保留原默认档、服务地址及密钥绑定。
+- 验证结果：用实际安装包的模型存储核对 8 个模型的档位、默认项和路由。实际应用单实例启动并打开档案。原生合成 `verify-desktop-theme.mjs --composer` 2/2，覆盖菜单切换推理档及不同会话选择。模型配置和路由专项 14/14。修正上一条操作日志遗漏的审计字段。
+- 遗留问题：本次使用本地校验及合成模型。中转站实际响应、续聊及两项既有历史文档证据待验证。
+- 对应 Git 提交：唯一说明 `docs(N01-D2): record selectable model reasoning levels`，查询 `git log --oneline --grep="record selectable model reasoning levels"`。

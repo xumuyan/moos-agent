@@ -104,5 +104,29 @@
     "destinationPreviouslyConfigured": false,
     "runningDestinationHostVerified": true,
     "realModelRequestsSent": 0
+  },
+  "modelEffortOptions": {
+    "configuredModels": 8,
+    "openaiCompatible": [
+      "off",
+      "low",
+      "medium",
+      "high",
+      "xhigh"
+    ],
+    "glmCodingPlan": [
+      "off",
+      "low",
+      "high",
+      "max"
+    ],
+    "defaultEffortsPreserved": true,
+    "credentialBindingsVerified": 8,
+    "verifiedUsingInstalledModelStore": true,
+    "destinationProfileLeaseHeldDuringWrite": true,
+    "runningDestinationHostVerified": true,
+    "realModelRequestsSent": 0,
+    "nativeComposerFixtureTestsPassed": 2,
+    "modelManagementAndRoutingTestsPassed": 14
   }
 }
