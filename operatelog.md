@@ -3455,3 +3455,13 @@
 - 全量回归：Node 22.22.0 的核心 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 403 通过、1 失败、1 跳过。采样项 `actual owned Node sample` 单独重跑 1/1。Node 24.15.0 用打包 DSH 跑 `npm run test:electron` 137 通过、4 失败、1 取消、1 跳过；将 `host.test.mjs packaging.test.mjs pi-tool-policy.test.mjs` 串行重跑 19/19。Rust 离线 11/11。 `python3 -m unittest discover -s tests -v` 263/265。
 - 遗留问题：推送仍受旧 AppKit `open.err` 哈希不一致及 E124 缺少重开报告阻塞，需恢复或重验历史证据后解除。N01-D3 总项保持未勾。
 - 对应 Git 提交：唯一说明 `fix(N01-D3): fade in the native startup splash`，查询 `git log --oneline --grep="fade in the native startup splash"`。
+
+## 2026-11-21 17:15:00 +08:00｜N01-D2/D3 独立本机安装 NSH 沐码
+
+- 修改或新增内容：用提交 `6768a20` 的 NSH 源码离线重建无素材包与本机素材包；后者带当前主题与三段开屏演示，ZIP 81,142,233 字节，应用包 240,828 KiB，内置 Node 和 PI，首次启动无需下载运行时。解包验签后独立安装至 `~/Applications/沐码 NSH/沐码.app`，同目录保留本机验证包。
+- 遇到的难题：旧 Electron 与 NSH 使用不同档案格式。正式版有 8 条模型配置、824 条任务记录，候选尚无配置模型或旧任务记录，不能按同内核 E84 方式覆盖。首轮本机安装前置哈希检查遇到系统 Python 缺少便捷 API，尚未复制档案或移包。改为分块计算 SHA-256，从同一已验签的暂存包重试。
+- 处理方式：正常退出闲置 NSH 候选，独立进程运行安装；以私有暂存复制候选档案，逐文件校验字节和权限，核对 SQLite 完整性及迁移标记，再原子移至用户应用目录。正式 Electron 与其原始资料继续作为回退来源，未进行格式迁移或清理。
+- 验证结果：`verify-desktop-appkit-chat.mjs --interactive` 的普通及本机素材发布构建通过类型检查、离线依赖安装、剪裁和解包严格验签；`--check --trim-maps --strip-node --prune-runtime` 首次及重开检查通过，实际 PI 隔离续聊、两种协议回环和自有进程清退通过。Node 24.15.0 的 `node --test --test-concurrency=1 probes/nsh-validation/desktop-workspace-migration.test.mjs probes/nsh-validation/desktop-package.test.mjs probes/nsh-validation/desktop-startup-clips.test.mjs` 7/7。macOS 27.0.1 arm64 实装核对 6 个工作区、10 条会话、1,700 条消息片段，实窗打开历史正文；只有一个沐码 AppKit 实例，宿主无 TCP 监听。证据见 `probes/nsh-validation/desktop-local-install-evidence.json`。
+- 全量回归：复用同源码 `6768a20` 上一轮的核心、Electron 和 Rust 记录，以及本次重新构建、包内和装机验证。重新执行 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希和 E124 重开报告仍未恢复，阻塞推送。
+- 遗留问题：真实模型续聊、旧任务和原 DSH 插件接管尚未验收。此次为本机签名的独立安装，范围为本机 Apple 芯片，未公证或对外发布。完成模型配置与真实续聊核对，并确认需保留的旧任务及插件后，才能考虑退役旧版；N01-D2/D3 保持未勾。
+- 对应 Git 提交：唯一说明 `docs(N01-D2): record independent NSH Mac installation`，查询 `git log --oneline --grep="record independent NSH Mac installation"`。

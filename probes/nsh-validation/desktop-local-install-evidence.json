@@ -1,0 +1,74 @@
+{
+  "base": "6768a20da8a2839faa2b53e9e201ecb99b9388fc",
+  "platform": "macOS 27.0.1 arm64",
+  "localBundle": {
+    "identity": {
+      "displayName": "沐码",
+      "bundleName": "MuMa",
+      "artifactName": "moos.icns",
+      "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat"
+    },
+    "version": "1.0.0",
+    "signed": "ad-hoc deep strict",
+    "artifact": {
+      "bytes": 81142233,
+      "sha256": "fd7a47ed3e41352fca5eccd2f34965d07c6cc6170fca90f5d08427060cea3beb"
+    },
+    "localOnlyArtworkAndSplash": true,
+    "buildSizes": {
+      "bundleKiB": 240828,
+      "nodeKiB": 92988,
+      "dependencyKiB": 106616,
+      "zipBytes": 81142233
+    },
+    "runtimeDownloads": 0,
+    "storageOutsideBundleKiB": 293600
+  },
+  "plainBuild": {
+    "artifactBytes": 72047057,
+    "buildSizes": {
+      "bundleKiB": 231884,
+      "nodeKiB": 92988,
+      "dependencyKiB": 106616,
+      "zipBytes": 72047057
+    },
+    "artwork": false,
+    "splashMp4": 0
+  },
+  "isolatedPackageCheck": {
+    "freshAndReopened": true,
+    "piContinuedFromPriorContext": true,
+    "dualProtocolLoopback": true,
+    "cleanOwnedProcessExit": true,
+    "externalModelCalls": 0
+  },
+  "install": {
+    "state": "installed",
+    "sha256ProfileCopyVerified": true,
+    "workspaceMigration": true,
+    "counts": {
+      "projects": 6,
+      "conversations": 10,
+      "messages": 1700,
+      "tasks": 0
+    },
+    "candidateClosed": true,
+    "independentProcess": true,
+    "fixtureActive": false,
+    "formalBundleChanged": false,
+    "historyVerifiedInWindow": true,
+    "splashVisibleInWindow": true,
+    "mainAppInstances": 1,
+    "hostTcpListeners": 0,
+    "configuredModels": 0,
+    "realModelContinuation": false
+  },
+  "legacy": {
+    "version": "0.1.52",
+    "providerConfigurations": 8,
+    "taskRecords": 824,
+    "productionIdentity": "dev.moos.agent.electron",
+    "productionCutover": false,
+    "deleted": false
+  }
+}
