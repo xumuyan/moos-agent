@@ -3474,3 +3474,10 @@
 - 验证结果：两份程序重新执行 `codesign --verify --deep --strict` 通过，标识和版本分别匹配。旧 SQLite 核对 10 条会话、1,550 条消息、824 条任务，8 条模型配置可读，凭据文件仍在；NSH 核对 10 条会话、1,700 条消息片段。macOS 27.0.1 arm64 实际打开 NSH 历史正文，只有这一个沐码实例运行。见 `desktop-local-install-evidence.json` 的 `placementRecovery`。文档检查 `python3 -m unittest discover -s tests -v` 263/265。
 - 遗留问题：旧 Electron 程序只核对签名与数据，未启动；正常双路径并存的验收不改变 NSH 正式接管状态。两项既有历史证据仍阻塞推送。
 - 对应 Git 提交：唯一说明 `docs(N01-D2): record recovery of both Mac app locations`，查询 `git log --oneline --grep="record recovery of both Mac app locations"`。
+
+## 2026-11-21 18:43:19 +08:00｜N01-D2 导入旧版模型配置
+
+- 用户授权把 Electron 0.1.52 的模型配置导入本机 NSH 1.0.0。旧版按服务组、模型和对应的地址绑定读取，导入 2 个服务、8 个模型及对应本机密钥，保留协议、上下文和输出上限、图片输入及默认推理档位。
+- 先用实际安装包的模型存储校验临时格式和路由映射。确认目标已有有效档案且无模型配置后，取得同一档案租约，在私有目录原子创建配置，文件权限 0600。重新读回并验证全部 8 个模型。仅启动一个 NSH 实例，核对实际安装路径与档案租约，未发送真实模型请求。
+- 专项 `node --test --test-concurrency=1 probes/nsh-validation/desktop-management.test.mjs apps/electron/pi-models.test.mjs` 14/14。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit 证据哈希及缺失 E124 回执仍阻塞推送。证据见 `desktop-local-install-evidence.json` 的 `modelImport`。
+- 真实模型连通性和续聊待验。提交用唯一说明 `docs(N01-D2): record installed model configuration import` 关联，查询 `git log --oneline --grep="record installed model configuration import"`。

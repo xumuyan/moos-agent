@@ -92,5 +92,17 @@
     "nativeHistoryOpened": true,
     "legacyAppStarted": false,
     "mainInstancesAfterRecovery": 1
+  },
+  "modelImport": {
+    "sourceVersion": "Electron 0.1.52",
+    "destinationVersion": "NSH 1.0.0",
+    "servicesImported": 2,
+    "modelsImported": 8,
+    "credentialBindingsVerified": 8,
+    "verifiedUsingInstalledModelStore": true,
+    "destinationProfileLeaseHeldDuringWrite": true,
+    "destinationPreviouslyConfigured": false,
+    "runningDestinationHostVerified": true,
+    "realModelRequestsSent": 0
   }
 }
