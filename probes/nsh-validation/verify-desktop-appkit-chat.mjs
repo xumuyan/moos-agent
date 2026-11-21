@@ -11,6 +11,7 @@ import { hostFiles, packageRuntime, verifyInternalLinks, verifyPackageIdentity }
 import { trimDependencyMaps } from './desktop-appkit-size.mjs';
 import { pruneArm64DependencyPayload } from './desktop-appkit-prune.mjs';
 
+import { interactiveDesktopEntry, prepareStartupClips, startupClipArguments } from './desktop-startup-clips.mjs';
 import { parseArtRoot, prepareArtwork } from './desktop-theme-assets.mjs';
 
 const probe = dirname(fileURLToPath(import.meta.url));
@@ -21,10 +22,10 @@ assert.equal(process.arch, 'arm64');
 assert.equal(process.version, 'v24.15.0');
 const [mode, buildPath, ...args] = process.argv.slice(2);
 const artRoot = parseArtRoot(args);
-const extra = args.filter((arg, index) => arg !== '--art-root' && args[index - 1] !== '--art-root');
+const { root: splashRoot, remaining: extra } = startupClipArguments(args.filter((arg, index) => arg !== '--art-root' && args[index - 1] !== '--art-root'));
 assert.ok(buildPath && new Set(extra).size === extra.length && extra.every(arg => ['--trim-maps', '--strip-node', '--prune-runtime'].includes(arg)) &&
-  ['--check', '--interactive'].includes(mode),
-  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node / --prune-runtime');
+  ['--check', '--interactive'].includes(mode) && (!splashRoot || mode === '--interactive'),
+  'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node / --prune-runtime and interactive --splash-root');
 const trimMaps = extra.includes('--trim-maps');
 const stripNode = extra.includes('--strip-node');
 const pruneRuntime = extra.includes('--prune-runtime');
@@ -45,7 +46,7 @@ const version = run(nsh, ['--version']).trim();
 assert.equal(version, 'nsh 0.5.0 (f4d68f7)');
 const methods = ['projects.list', 'sessions.list', 'sessions.create', 'sessions.history', 'tasks.submit', 'tasks.cancel', 'tasks.events', 'sessions.manage', 'models.manage', 'images.stage'];
 // The two controller/transport owner inputs are used read-only in local copies.
-const view = ['DesktopView.tsx', 'DesktopImportedHistory.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
+const view = ['DesktopView.tsx', ...(scripted ? [] : ['DesktopStartupSplash.tsx']), 'DesktopImportedHistory.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
   'DesktopTurnQueue.tsx', 'desktop-turn-queue.ts', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts',
   'DesktopIcon.tsx', 'desktop-icon-paths.ts', 'desktop-control-style.ts', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts',
   'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-ui-controller.ts',
@@ -61,7 +62,10 @@ for (const file of view) {
 if (artRoot) await prepareArtwork(artRoot, ui, JSON.parse(await readFile(join(probe, 'skin-source.json'), 'utf8')));
 const entry = join(ui, 'App.tsx');
 if (scripted) await copyFile(join(probe, 'appkit-hostcheck/ChatCheck.tsx'), entry);
-else await writeFile(entry, "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(() => <DesktopView persistentHistory />);\n");
+else {
+  await prepareStartupClips(ui, splashRoot);
+  await writeFile(entry, interactiveDesktopEntry);
+}
 const config = { name: '沐码', id, version: '1.0.0', build: 1,
   capabilities: { host: [...methods, ...(scripted ? ['n01.complete'] : [])], statusBar: true } };
 await writeFile(join(ui, 'nsh.json'), JSON.stringify(config));

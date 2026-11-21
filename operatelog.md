@@ -3435,3 +3435,13 @@
 - 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 400 通过、1 跳过；Node 24.15.0 以打包 DSH 跑 `npm run test:electron` 141 通过、1 跳过、1 启动超时，单独重跑对应 Host 夹具 1/1。Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩两项既有的历史证据问题。
 - 遗留问题：未启动正式安装作 GUI 对照；实际候选验证了正常速度，慢速和连续切换由原生合成测试覆盖。暂未推送，恢复或重验旧 AppKit `open.err` 和 E124 重开报告后解除历史门禁。N01-D3 保持未勾，七份既有未跟踪文件原样保留。
 - 对应 Git 提交：唯一说明 `fix(N01-D3): keep session switches visually stable`，查询 `git log --oneline --grep="keep session switches visually stable"`。
+
+## 2026-11-21 16:42:54 +08:00｜N01-D3 接入原生开屏
+
+- 修改或新增内容：以 `dsh-custom-splash` 的开屏交互为参考，在 NSH 候选版加入沐码片头、随机静音短片、结束淡出和点击或 Esc 跳过。减少动态效果直接进入工作台，播放或淡出超时也会释放开屏。
+- 遇到的难题：原插件用网页注入和本地视频路由。候选窗口是 AppKit，并且原仓库演示视频只供本地预览。Esc 绑定必须在开屏淡出开始时解绑，交回工作台。
+- 处理方式：用 NSH 的原生 Video 和动效组件实现。普通构建只有沐码片头，候选 `--splash-root` 可带入有授权的 1–8 段 MP4。本机候选装入参考仓库固定版本的三段演示，视频不入 Git。只替换候选界面产物和本地素材，保留原签名包作应用回滚。
+- 验证结果：`node --test probes/nsh-validation/desktop-startup-clips.test.mjs` 4/4。 `node probes/nsh-validation/verify-desktop-startup-splash.mjs` 在 macOS 27.0.1 arm64 原生 4/4，含点击、Esc 及解绑、视频自动结束和减少动态效果。两种构建均通过 NSH 类型检查和发布构建，普通包零 MP4。候选严格验签，三段视频与构建输入一致，只启动一次，实窗核对跳过入口、按 Esc 后的工作台和已有会话，候选 SQLite 哈希一致。证据见 `probes/nsh-validation/desktop-startup-splash-evidence.json`。
+- 全量回归：Node 22.22.0 的 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 399 通过、5 失败、1 跳过。独立重跑 `desktop-native.test.mjs`、`desktop-profile.test.mjs`、`desktop-team-goal.test.mjs` 共 5/7，团队目标恢复通过，Swift 进程和 PI 回环仍超时。重跑 `scripts/team-qa-native-calibration.test.mjs`、`scripts/team-qa-shutdown.test.mjs` 15/17，两项采样仍报告 unavailable。Node 24.15.0 使用打包 DSH 运行 `npm run test:electron` 142 通过、1 跳过。 `cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 11/11。 `python3 -m unittest discover -s tests -v` 263/265，仍为旧 AppKit `open.err` 哈希差异及 E124 缺失的重开报告。
+- 遗留问题：真实候选只核实开屏跳过和工作台恢复，视频解码、播完和减少动态效果由原生夹具覆盖，候选实窗未逐帧核对演示。正式版留在原安装。推送门禁待旧证据恢复或重验，以及 Swift、PI 和采样回归通过后解除。N01-D3 保持未勾，七份既有未跟踪文件原样保留。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): add native startup splash to the desktop candidate`，查询 `git log --oneline --grep="add native startup splash to the desktop candidate"`。

@@ -1,0 +1,88 @@
+{
+  "base": "8c23ff8812cbfae3f39a69984349375cfce000cf",
+  "previousInputs": {
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "32e66978809b3e2ef37a8193825524f5665f4d7dd7c95455e89f0d8b5ae980c3",
+    "tests/nsh_composer_provenance.py": "7bf4c493199ffa0d206016777bb6419dab67a3222e34105dd4d2b1c88fd9f4fd",
+    "tests/test_nsh_desktop_appkit_chat.py": "46e94861130f981f8ec7486c8c30e1dae91d16dcec5f27211b50171549103360",
+    "tests/test_nsh_desktop_appkit_package.py": "e880fbd97bae442d86dd4bc32dbba68146581bc324856fef04b72b3c4f130304"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopStartupSplash.tsx": {
+      "bytes": 3650,
+      "sha256": "bdb1d7dbdb3ab76e4ceef29155485077bc7661242e68cf0190a4547bad551c3c"
+    },
+    "probes/nsh-validation/desktop-startup-clips.mjs": {
+      "bytes": 2175,
+      "sha256": "d8313e2bde314ad1ae54bbd4c17d58761ba19fceb159f3f980d5f35eb11b111a"
+    },
+    "probes/nsh-validation/desktop-startup-clips.test.mjs": {
+      "bytes": 2740,
+      "sha256": "e9165955c1e5e463ee5c00c138453abae09c72740240921ef89b359eb14ba550"
+    },
+    "probes/nsh-validation/desktop-startup-splash.test.tsx": {
+      "bytes": 1462,
+      "sha256": "da27f6464a3734aaad98689f5c30b1792cde25191852fb348da48a49c2b84879"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 16718,
+      "sha256": "054c59406190ba1eeb557729ca4158a57eed7df895d5917a29dc54572d68c1d3"
+    },
+    "probes/nsh-validation/verify-desktop-startup-splash.mjs": {
+      "bytes": 2487,
+      "sha256": "d3d2588a2225590215db14e78cd65518422da13919b6cfa2b2e39d6c2df70542"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4550,
+      "sha256": "f215e887699fc41061d12266d0aabc135b6e31c7c69e451f94efcc2d77a95888"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 28428,
+      "sha256": "92f8fbb1f3bcf9036d561eeaf7a8211631ded3084597c1e66ad3e71054d5cdc3"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4578,
+      "sha256": "31516763182e3ec3b8af1acb206edd842ddb70be399077198ee523746d1b96f9"
+    }
+  },
+  "reference": {
+    "repository": "https://github.com/muning0214/dsh-custom-splash",
+    "revision": "9454512d363c03d0f92a75023d2719605a2378a8",
+    "demoAssetsLocalOnly": true
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "nsh": "0.5.0 (f4d68f7)",
+    "typeCheckPassed": true,
+    "syntheticClip": true,
+    "passed": 4,
+    "checks": [
+      "click skip",
+      "Escape skip and workspace shortcut restoration",
+      "decoding and automatic completion",
+      "reduced motion"
+    ],
+    "artifacts": {
+      "artifacts/nsh-validation/startup-splash-test.9nxS5d/native.log": {
+        "bytes": 608,
+        "sha256": "559c93764ac0e505fac2389af0997a9e4acf3b3963337bfa8022e07d19f9ef56"
+      }
+    }
+  },
+  "candidate": {
+    "uiBundle": {
+      "bytes": 131312,
+      "sha256": "315d4416c736dc738773182fd48e1370bd3f22ad3ae4673e002cddbd8604a1a3"
+    },
+    "signedUiOnlyUpdate": true,
+    "deepStrictSignatureVerified": true,
+    "localMp4Count": 3,
+    "localMp4IdenticalToBuildInputs": true,
+    "profileDatabaseUnchanged": true,
+    "openedOnce": true,
+    "startupOverlaySeen": true,
+    "escapeAndExistingHistoryVerified": true,
+    "demoFrameVisuallyVerified": false,
+    "formalInstallChanged": false,
+    "ordinaryReleaseMp4Count": 0
+  }
+}
