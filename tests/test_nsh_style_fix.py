@@ -35,7 +35,7 @@ class NativeStyleFixTests(unittest.TestCase):
         view = (NSH / 'DesktopView.tsx').read_text()
         self.assertNotIn('Application Support', view)
         self.assertIn('onGeometry?', view)
-        self.assertIn("width: 'fit-content'", view)
+        self.assertIn("width: disclosure() || filesChanged() ? messageWidth() : 'fit-content'", view)
         self.assertIn('会话统计', (NSH / 'DesktopComposerStatistics.tsx').read_text())
         layers = (NSH / 'desktop-theme-layers.tsx').read_text()
         self.assertIn('pointerEvents: \'none\'', layers)

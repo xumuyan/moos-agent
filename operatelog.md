@@ -3395,3 +3395,13 @@
 - 全量回归：Node 22.22.0 串行核心 396 通过、1 跳过；正式源码未改，Node 24.15.0 的 `npm run test:electron` 以打包 DSH 验证 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩 E124 报告缺失及旧 AppKit `open.err` 哈希不一致。
 - 遗留问题：旧任务耗时、执行过程及改动卡未迁移，尚未对正式内容运行模型续聊；候选需独立配置服务。N01-D2/D3 保持未勾，推送受历史验收文件门禁阻塞，解除条件是恢复或重验两项原始证据。七份未跟踪开发文件保持原样。
 - 对应 Git 提交：唯一说明 `feat(N01-D2): restore formal workspaces as native conversations`，查询 `git log --oneline --grep="restore formal workspaces as native conversations"`。
+
+## 2026-11-21 14:50:42 +08:00｜N01-D3 会话执行过程与改动文件
+
+- 修改或新增内容：根据用户此前的 Codex 参考图，候选版将每轮状态、工具类型、操作数和错误收进一个可展开入口。过程明细显示按事件排序的短进度和工具动作，不读取工具代码或命令参数。最终回复底部附改动文件，默认前三项，展开其余，显示新增、修改或删除。
+- 遇到的难题：旧视图以列表索引定位展开状态，前插历史消息会改变索引；改为会话和轮次稳定键。首轮 NSH 类型检查显示 Button 不支持直接的展开状态属性，改用能表达展开与收起的无障碍标签后重新验收。
+- 处理方式：从现有公开事件整理每轮视图，角色和值检查沿用既有控制器。不新增内核或后台服务。复用沐码主题，在已签名的候选壳中只替换重新编译的界面产物，保留原候选资料。
+- 验证结果：固定 Node 24.15.0 `node --test probes/nsh-validation/desktop-message-rows.test.mjs` 5/5；`verify-desktop-theme.mjs --management` 的 AppKit 默认皮肤原生测试 6/6。实际截图核对折叠、展开及回复内文件清单。macOS 27.0.1 arm64 严格验签，候选重开单实例，进应用前后核对 6 个正式项目及已有会话，更新时 SQLite 哈希一致。验收见 `probes/nsh-validation/desktop-turn-layout-evidence.json`。
+- 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 398 通过、1 跳过；Node 24.15.0 `npm run test:electron` 以打包 DSH 验证 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩旧 AppKit `open.err` 哈希不一致和 E124 重开报告缺失。
+- 遗留问题：新版过程卡在本次执行进程中可见，历史轮次或重开后的过程尚未从 SQLite 重建。原生验收使用合成任务，候选资料未向真实模型发送请求。正式版未调整。两项历史证据阻塞 GitHub 推送，恢复或重验该证据后解除，N01-D3 保持未勾。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): group chat activity and file changes by turn`，查询 `git log --oneline --grep="group chat activity and file changes by turn"`。

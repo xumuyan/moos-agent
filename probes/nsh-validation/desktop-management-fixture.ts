@@ -47,12 +47,16 @@ export function managementFixture() {
     },
     'images.stage': () => ok({}),
     'tasks.submit': () => ok({ task, replayed: false }),
-    'tasks.events': () => ok({ task, terminal: true, hasMore: false, cursor: 'task:4',
+    'tasks.events': () => ok({ task, terminal: true, hasMore: false, cursor: 'task:5',
       events: [
-        { sequence: 1, type: 'tool_start', payload: { toolCallId: 'edit', toolName: 'edit' } },
-        { sequence: 2, type: 'tool_end', payload: { toolCallId: 'edit', toolName: 'edit', isError: false } },
-        { sequence: 3, type: 'text_delta', payload: { delta: '已完成合成验收', truncated: false } },
-        { sequence: 4, type: 'task_state', payload: { status: 'succeeded', errorCode: null } },
-      ], workspaceChanges: { files: [{ path: 'test-file.txt', summary: '修改' }], limited: false } }),
+        { sequence: 1, type: 'text_delta', payload: { delta: '先读取再修改', truncated: false } },
+        { sequence: 2, type: 'tool_start', payload: { toolCallId: 'edit', toolName: 'edit' } },
+        { sequence: 3, type: 'tool_end', payload: { toolCallId: 'edit', toolName: 'edit', isError: false } },
+        { sequence: 4, type: 'text_delta', payload: { delta: '已完成合成验收', truncated: false } },
+        { sequence: 5, type: 'task_state', payload: { status: 'succeeded', errorCode: null } },
+      ], workspaceChanges: { files: [
+        { path: 'test-file.txt', summary: '修改' }, { path: 'added.txt', summary: '新增' },
+        { path: 'removed.txt', summary: '删除' }, { path: 'last.txt', summary: '修改' },
+      ], limited: false } }),
   } };
 }

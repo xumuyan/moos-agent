@@ -1,0 +1,80 @@
+{
+  "base": "615b8af3c0d4a8c1c3b502c1f02be36771c8e062",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "70c7aec14b2348728eef1dfb1319c0442be68ff5d2e6253638e55121412b6fed",
+    "probes/nsh-validation/desktop-management-check.tsx": "7da9bbc953d884ed0a778ec0aba4995fcbc8e1c29c73c0835d594f56d72c5731",
+    "probes/nsh-validation/desktop-management-fixture.ts": "d75d9b3d510ff883873b3f701acbc04333a719da0bdac30364a33e9f093dcf08",
+    "probes/nsh-validation/desktop-message-rows.test.mjs": "320f7cfb85a46c2308aa465f1b36415c74e7fdc54c886fe6f5818b6af47c8eeb",
+    "probes/nsh-validation/desktop-theme.ts": "18c2c513c6abdf10ebc6ce923c1ba24100cb8e3559db27c45bd1735e02264b74",
+    "tests/nsh_composer_provenance.py": "805fe898e7e92df5fe625b1f4f84f031be811cc5cbaff40b965e281d43d97be5",
+    "tests/test_nsh_desktop_appkit_chat.py": "5e9c8efc3888395bbbd59abaa48597aafa65c3510d3c00cf4e329a858764e2f8",
+    "tests/test_nsh_desktop_appkit_package.py": "3700eaa7a5ef93fbdf60cfe0d6e298015f51c18cfcb8ce7d3023c769db387272",
+    "tests/test_nsh_style_fix.py": "4c63b4e5e171fc860dc3bdfa24571943c8234a4288591eb74c2334208fc29cb5"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 79017,
+      "sha256": "1bd9d41175d9da8a6511de7ac7ef1b858a5635e4eb30ed23cc18662266e149bc"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 7565,
+      "sha256": "6e9ebfab5a3113f9822b7868a28281d8cae743fe7024bb08f7d42d2d2a7da3a5"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 4261,
+      "sha256": "76690de3ac6fab68a9ae56f8ed977438932a62b948ad8e798b3c196a23be68a7"
+    },
+    "probes/nsh-validation/desktop-message-rows.test.mjs": {
+      "bytes": 4867,
+      "sha256": "1218db699295d0526fcda070ca58097ea601151a72c2f003b2c8c6a3f55681ef"
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "bytes": 11601,
+      "sha256": "ba225180a713bcd64a99c67cc84c0f795e141a2be07591aa63dc7a008550a6b2"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4063,
+      "sha256": "0cc5d0d11e8df67cd7374689be65d9d02056ceb82b622798f67d02aea486a8a2"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 26922,
+      "sha256": "558f08094ebca522608b4022c5f1101fa794b7c614d05e7acd40bb3e182cbe15"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4203,
+      "sha256": "21b6543c345d9a04c1bb44048be78aff83a00d30e5fc837e10bbd656c38e61e2"
+    },
+    "tests/test_nsh_style_fix.py": {
+      "bytes": 3382,
+      "sha256": "af470aa50adf104593f503bf31f2e5778ed05b530a8d432af6f6deefa857a2c2"
+    }
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "passed": 6,
+    "fixture": true,
+    "artifacts": {
+      "artifacts/nsh-validation/desktop-theme/run-uBUbrC/test.log": {
+        "bytes": 704,
+        "sha256": "528050b8457605023c25bdf4d630f05beb33cdeb1bf4b3a46b1e35d2a9f9c048"
+      },
+      "artifacts/nsh-validation/desktop-theme/run-uBUbrC/chat-folded.png": {
+        "bytes": 1503445,
+        "sha256": "d2649d160a29f1327b0fb49ad43c9802eb162123876066ec823122da6a29fd8b"
+      },
+      "artifacts/nsh-validation/desktop-theme/run-uBUbrC/chat-disclosures.png": {
+        "bytes": 1463617,
+        "sha256": "5d188b75b8edb2e6e7f8563d0589f78eb86e69681198e722a397f80bf6e510cb"
+      }
+    }
+  },
+  "candidate": {
+    "signed": true,
+    "onlyUiBundleReplaced": true,
+    "profileHashUnchangedDuringSwap": true,
+    "existingProjects": 6,
+    "existingChatVerified": true,
+    "formalInstallChanged": false,
+    "realModelRequestSent": false
+  }
+}

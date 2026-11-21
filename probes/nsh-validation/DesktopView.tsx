@@ -13,7 +13,7 @@ import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, toolCard } from './desktop-theme';
+import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
@@ -242,31 +242,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (!props.persistentHistory) return cachedRows(key, c?.rows ?? []);
     const saved = selectedHistory()?.messages.flatMap(m => [
       ...((m.text || !m.assets?.length) ? [{ role: m.role === 'user' ? '你' : 'PI 公开文本',
-        body: m.text + (m.truncated ? ' [历史预览已截断]' : '') }] : []),
-      ...(m.assets?.length ? [{ role: '会话附件', body: JSON.stringify(m.assets) }] : []),
+        body: m.text + (m.truncated ? ' [历史预览已截断]' : ''), key: `saved-${m.id}` }] : []),
+      ...(m.assets?.length ? [{ role: '会话附件', body: JSON.stringify(m.assets), key: `asset-${m.id}` }] : []),
     ]) ?? [];
     const live = c?.rows ?? [];
     if (!managed()) return cachedRows(key, [...saved, ...live]);
-    const grouped: { role: string; body: string }[] = [];
-    let tools: string[] = [];
-    const flush = () => {
-      if (tools.length) { grouped.push({ role: '执行过程', body: JSON.stringify(tools) }); tools = []; }
-    };
     const byTurn = new Map([...changes()].filter(([id]) => id.startsWith(key + ':')).map(([, value]) => [value.row, value.summary]));
-    let turn = -1;
-    const appendChanges = () => {
-      const summary = byTurn.get(turn);
-      if (summary && (summary.files.length || summary.limited)) grouped.push({ role: '工作区变化', body: JSON.stringify(summary) });
-    };
-    for (const [index, row] of live.entries()) {
-      if (row.role === '你') { flush(); appendChanges(); turn = index; }
-      if (row.role === '工具' && toolCard(row.role, row.body, false)) tools.push(row.body);
-      else if (row.role !== '状态') { flush(); grouped.push(row); }
-    }
-    flush();
-    if (c?.error || c?.task?.errorCode) grouped.push({ role: '任务状态', body: error() });
-    else if (c?.busy) grouped.push({ role: '处理中', body: c.stopping ? '正在停止，等待工具退出' : c.task?.status === 'queued' ? '等待执行' : '正在处理' });
-    appendChanges();
+    const grouped = presentTurns(live, { live: !!c?.busy, stopping: !!c?.stopping, state: c?.task?.status,
+      error: c?.error || (!c?.busy && c?.task?.errorCode) ? error() : '' }, byTurn);
     return cachedRows(key, [...saved, ...grouped]);
   };
   const modelCanSee = () => catalog()?.options.some(m => m.id === modelChoice(pickerScope())?.modelId && m.imageInput);
@@ -716,20 +699,22 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>加载更早消息</Text>
             </Button>)}
           {!active() && (!props.persistentHistory || historyState() === 'ready') && !managed() && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
-          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} scrollbar={managed() ? { mode: 'hover', motion: { idle: 0, enter: 90, exit: 120 }, vertical: { thumbStyle: { backgroundColor: '#768eb67f' } } } : undefined} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
+          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} keyExtractor={(row, index) => row.key ?? String(index)} scrollbar={managed() ? { mode: 'hover', motion: { idle: 0, enter: 90, exit: 120 }, vertical: { thumbStyle: { backgroundColor: '#768eb67f' } } } : undefined} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
             {(r, index) => {
-              const groupKey = () => pickerScope() + ':' + index();
+              const groupKey = () => pickerScope() + ':' + (r().key ?? index());
               const expanded = () => openGroups().has(groupKey());
               const toggleGroup = () => {
                 const key = groupKey(), next = new Set(openGroups());
                 if (next.has(key)) next.delete(key); else next.add(key);
                 openGroups.set(next);
               };
-              const tools = () => r().role === '执行过程' ? JSON.parse(r().body) as string[] : [];
-              const filesChanged = () => r().role === '工作区变化' ? JSON.parse(r().body) as WorkspaceChanges : null;
-              const disclosure = () => r().role === '执行过程' || r().role === '工作区变化';
-              const failure = () => r().role === '任务状态';
-              const progress = () => r().role === '处理中';
+              const activity = computed(() => r().role === '执行过程' ? JSON.parse(r().body) as TurnActivity : null);
+              const activityTitle = () => {
+                const turn = activity();
+                return turn && [turn.state, turn.categories.join('、'), turn.count ? `${turn.count} 项操作` : ''].filter(Boolean).join(' · ');
+              };
+              const filesChanged = () => r().changes;
+              const disclosure = () => !!activity() || r().role === '工作区变化';
               const tool = computed(() => toolCard(r().role, r().body, dark()));
               const user = () => r().role === '你';
               const messageWidth = () => Math.max(0, Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96));
@@ -741,13 +726,15 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               // List can reuse this view for another row; both style and subtree
               // must follow its accessor, not the role at first mount.
               return <View testID="message" onLayout={rowLayout} style={{
-                width: 'fit-content', maxWidth: disclosure() ? '100%' : messageWidth(), alignSelf: user() ? 'flex-end' : 'flex-start',
-                marginBottom: tool() || disclosure() ? 6 : 12, paddingVertical: tool() || disclosure() || progress() || failure() ? 6 : 14, paddingHorizontal: tool() || disclosure() || progress() || failure() ? 10 : 18, gap: 6,
-                borderRadius: tool() ? 8 : 18, borderBottomLeftRadius: tool() ? 8 : user() ? 18 : 7, borderBottomRightRadius: tool() ? 8 : user() ? 7 : 18,
-                borderWidth: 1, borderColor: failure() ? '#ab324868' : tool()?.edge ?? (user() ? '#c5a4687a' : dark() ? '#d3b47766' : t.line),
-                backgroundColor: tool()?.surface ?? (user() ? (dark() ? t.dark.user : '#e8edf9f2') : (dark() ? t.dark.assistant : t.paper)),
+                width: disclosure() || filesChanged() ? messageWidth() : 'fit-content', maxWidth: messageWidth(), alignSelf: user() ? 'flex-end' : 'flex-start',
+                marginBottom: tool() || disclosure() ? 8 : 12, paddingVertical: tool() || disclosure() ? 7 : 14, paddingHorizontal: tool() || disclosure() ? 11 : 18, gap: 6,
+                borderRadius: disclosure() ? 10 : tool() ? 8 : 18, borderBottomLeftRadius: disclosure() ? 10 : tool() ? 8 : user() ? 18 : 7,
+                borderBottomRightRadius: disclosure() ? 10 : tool() ? 8 : user() ? 7 : 18,
+                borderWidth: 1, borderColor: activity()?.error ? '#ab324868' : tool()?.edge ?? (user() ? '#c5a4687a' : dark() ? '#d3b47766' : t.line),
+                backgroundColor: disclosure() ? (dark() ? t.dark.glass : t.glass) :
+                  tool()?.surface ?? (user() ? (dark() ? t.dark.user : '#e8edf9f2') : (dark() ? t.dark.assistant : t.paper)),
                 backgroundImage: tool()?.gradient,
-                boxShadow: tool() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
+                boxShadow: tool() || disclosure() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
               }}>
                 {r().role === '会话附件' ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                   {(JSON.parse(r().body) as ImportedAsset[]).map(asset =>
@@ -755,29 +742,42 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                       hoverStyle={controlHover} disabled={!asset.bytes} onPress={() => void showSavedAsset(asset)}>
                       <Text style={menuLabel()}>{asset.bytes ? asset.name : asset.name + '（文件缺失）'}</Text>
                     </Button>)}
-                </View> : disclosure() ? <>
-                  <Button testID={filesChanged() ? 'workspace-changes' : 'turn-process'} onPress={toggleGroup}
-                    style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 22 }} hoverStyle={controlHover}>
+                </View> : activity() ? <>
+                  <Button testID="turn-process" onPress={toggleGroup} accessibilityLabel={`${expanded() ? '收起' : '展开'}执行过程，${activityTitle()}`}
+                    style={{ minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: 7 }} hoverStyle={controlHover}>
                     <DesktopIcon name={expanded() ? 'chevronDown' : 'chevronRight'} size={12} color={muted()} />
-                    <Text style={{ ...menuLabel(), color: muted() }}>{filesChanged()
-                      ? `工作区变化 · ${filesChanged()!.files.length} 个文件`
-                      : `执行过程 · ${tools().length} 项事件`}</Text>
+                    <Text class="line-clamp-1" style={{ ...menuLabel(), flex: 1, minWidth: 0, color: activity()?.error ? (dark() ? '#ffc1cb' : t.danger) : muted() }}>{activityTitle()}</Text>
                   </Button>
-                  {expanded() && <View style={{ gap: 4, paddingTop: 3 }}>
-                    {tools().map(body => <Text style={{ ...menuLabel(), color: toolCard('工具', body, dark())?.color }}>
-                      {toolCard('工具', body, dark())?.label}</Text>)}
-                    {filesChanged()?.files.map(file => <Text style={{ ...menuLabel(), numberOfLines: 2 }}>{`${file.summary} · ${file.path}`}</Text>)}
-                    {filesChanged()?.limited && <Text style={{ ...menuLabel(), color: muted() }}>部分文件超出记录范围</Text>}
+                  {expanded() && <View testID="turn-activity-details" style={{ gap: 6, paddingLeft: 18, paddingVertical: 3 }}>
+                    {activity()!.operations.map(step => <Text style={{ ...menuLabel(), color: step.kind === 'tool' ?
+                      toolCard('工具', step.body, dark())?.color : ink() }}>
+                      {step.kind === 'tool' ? toolCard('工具', step.body, dark())?.label : step.body}
+                    </Text>)}
+                    {!!activity()!.error && <Text testID="turn-error" style={{ ...menuLabel(), color: dark() ? '#ffc1cb' : t.danger }}>{activity()!.error}</Text>}
                   </View>}
-                </> : failure() || progress() ? <Text testID={failure() ? 'turn-error' : 'turn-progress'}
-                  style={{ ...menuLabel(), color: failure() ? (dark() ? '#ffc1cb' : t.danger) : muted() }}>{r().body}</Text>
-                  : tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                </> : r().role === '工作区变化' ? null : tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                   <DesktopIcon name={tool()?.phase === 'error' ? 'toolError' : tool()?.phase === 'end' ? 'toolDone' : 'toolStart'} size={12} color={tool()?.color ?? muted()} testID="icon-tool" />
                   <Text style={{ flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 18, fontFamily: t.fontFamily, color: tool()?.color }}>{tool()?.label ?? ''}</Text>
                 </View> : <>
                   {r().role !== '你' && r().role !== 'PI 公开文本' && <Text style={{ fontSize: 12, fontFamily: t.fontFamily, color: muted() }}>{r().role}</Text>}
                   <TextView styles={{ root: { color: ink(), fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight }, code: { fontFamily: t.monoFont }, codeBlockCode: { fontFamily: t.monoFont } }} markdown={r().body} selectable />
                 </>}
+                {filesChanged() && <View testID="workspace-changes" style={{ gap: 6, ...(r().role !== '工作区变化' && {
+                    borderTopWidth: 1, borderColor: t.line, paddingTop: 9, marginTop: 6,
+                  }) }}>
+                  <Text style={{ ...menuLabel(), fontWeight: '600' }}>{filesChanged()!.files.length ? `已改动 ${filesChanged()!.files.length} 个文件` : '改动文件'}</Text>
+                  {filesChanged()!.files.slice(0, expanded() ? undefined : 3).map(file =>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={{ ...menuLabel(), color: muted(), minWidth: 28, fontSize: 12 }}>{file.summary}</Text>
+                      <Text class="line-clamp-2" style={{ ...menuLabel(), flex: 1, minWidth: 0 }}>{file.path}</Text>
+                    </View>)}
+                  {filesChanged()!.files.length > 3 && <Button testID="workspace-changes-more" onPress={toggleGroup} accessibilityLabel={expanded() ? '收起改动文件' : '显示更多改动文件'}
+                    style={{ alignSelf: 'flex-start', minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: 5 }} hoverStyle={controlHover}>
+                    <DesktopIcon name={expanded() ? 'chevronDown' : 'chevronRight'} size={12} color={muted()} />
+                    <Text style={{ ...menuLabel(), color: muted() }}>{expanded() ? '收起文件' : `再显示 ${filesChanged()!.files.length - 3} 个文件`}</Text>
+                  </Button>}
+                  {filesChanged()?.limited && <Text style={{ ...menuLabel(), color: muted() }}>部分改动超出显示范围</Text>}
+                </View>}
               </View>;
             }}
           </List>

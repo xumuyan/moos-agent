@@ -1,3 +1,5 @@
+import type { WorkspaceChanges } from './desktop-contract';
+
 // N01-D3: maid-atelier 0.3.2 source facts, not the old Tauri/E139 palette.
 // Sources: skin-source.json / SKIN-SOURCE.md. Art remains local and excluded from Git.
 export const desktopTheme = {
@@ -98,12 +100,92 @@ export function toolCard(role: string, body: string, dark: boolean) {
 // Stable immutable presentation snapshots. The controller may mutate its streaming
 // row in place; status-only polling must not discard native height measurements.
 export function createMessageRows() {
-  type Row = { role: string; body: string };
-  let scope = '', cached: Row[] = [];
-  return (nextScope: string, rows: readonly Row[]): Row[] => {
+  let scope = '', cached: TurnRow[] = [];
+  const equal = (row: TurnRow, old?: TurnRow) => !!old && row.key === old.key && row.role === old.role && row.body === old.body && row.changes === old.changes;
+  return (nextScope: string, rows: readonly TurnRow[]): TurnRow[] => {
     if (scope !== nextScope) { scope = nextScope; cached = []; }
-    if (rows.length !== cached.length || rows.some((r, i) => r.role !== cached[i]?.role || r.body !== cached[i]?.body))
-      cached = rows.map((r, i) => r.role === cached[i]?.role && r.body === cached[i]?.body ? cached[i] : { ...r });
+    if (rows.length !== cached.length || rows.some((row, index) => !equal(row, cached[index]))) {
+      const byKey = new Map(cached.filter(row => row.key).map(row => [row.key, row]));
+      cached = rows.map((row, index) => {
+        const old = row.key ? byKey.get(row.key) : cached[index];
+        return old && equal(row, old) ? old : { ...row };
+      });
+    }
     return cached;
   };
+}
+
+type TurnRow = { role: string; body: string; key?: string; changes?: WorkspaceChanges };
+type Operation = { kind: 'tool'; body: string } | { kind: 'update'; body: string };
+export type TurnActivity = {
+  state: string;
+  error: string;
+  operations: Operation[];
+  count: number;
+  categories: string[];
+};
+const operationCategories = {
+  read: '读取', ls: '查阅目录', grep: '搜索', find: '查找', edit: '编辑', write: '写入', bash: '运行命令', other: '工具操作',
+} as const;
+const turnStatuses: Record<string, string> = {
+  queued: '等待执行', running: '正在处理', succeeded: '已完成',
+  failed: '执行失败', cancelled: '已停止', interrupted: '已中断',
+};
+
+function shortUpdate(value: string) {
+  // The process shows short, public updates. Full Markdown stays in the reply.
+  const text = value.replace(/(^|\n)[ \t]*(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?(?:\n[ \t]*\2[^\n]*|$)|$)/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.length > 240 ? text.slice(0, 239) + '…' : text;
+}
+
+export function presentTurns(rows: readonly TurnRow[], finish: { live: boolean; stopping: boolean; error: string; state?: string },
+  changes: ReadonlyMap<number, WorkspaceChanges>): TurnRow[] {
+  const output: TurnRow[] = [];
+  let start = -1, parts: TurnRow[] = [];
+  function flush(last: boolean) {
+    if (start < 0) { output.push(...parts); return; }
+    const stateRow = parts.findLast(row => row.role === '状态');
+    const error = last ? finish.error : '';
+    const state = error ? '执行失败' : last && finish.live
+      ? finish.stopping ? '正在停止' : stateRow?.body === 'queued' || finish.state === 'queued' ? '等待执行' : '正在处理'
+      : turnStatuses[stateRow?.body ?? (last ? finish.state ?? '' : '')] ?? '';
+    const final = parts.findLastIndex(row => row.role !== '状态');
+    const answer = parts[final]?.role === 'PI 公开文本' ? parts[final] : undefined;
+    const operations: Operation[] = [];
+    const counts = new Map<keyof typeof operationCategories, [number, number]>();
+    for (const [index, row] of parts.entries()) {
+      if (row.role === '状态' || (index === final && answer)) continue;
+      const tool = toolCard(row.role, row.body, false);
+      if (tool) {
+        const pair = counts.get(tool.name) ?? [0, 0];
+        pair[tool.phase === 'start' ? 0 : 1]++;
+        counts.set(tool.name, pair);
+        operations.push({ kind: 'tool', body: row.body });
+      } else {
+        const text = shortUpdate(row.body);
+        if (text) operations.push({ kind: 'update', body: text });
+      }
+    }
+    if (state || operations.length) {
+      const activity: TurnActivity = {
+        state, error, operations,
+        categories: [...counts.keys()].map(tool => operationCategories[tool]),
+        count: [...counts.values()].reduce((sum, pair) => sum + Math.max(...pair), 0),
+      };
+      output.push({ role: '执行过程', key: `turn-${start}-activity`, body: JSON.stringify(activity) });
+    }
+    const summary = changes.get(start);
+    const changed = summary && (summary.files.length || summary.limited) ? summary : undefined;
+    if (answer) output.push({ ...answer, key: `turn-${start}-answer`, changes: changed });
+    else if (changed) output.push({ role: '工作区变化', key: `turn-${start}-files`, body: '', changes: changed });
+  }
+  for (const [index, row] of rows.entries()) {
+    if (row.role !== '你') { parts.push(row); continue; }
+    flush(false);
+    output.push({ ...row, key: `turn-${index}-user` });
+    start = index;
+    parts = [];
+  }
+  flush(true);
+  return output;
 }
