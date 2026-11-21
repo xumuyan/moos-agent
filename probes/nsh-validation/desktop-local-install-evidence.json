@@ -70,5 +70,27 @@
     "productionIdentity": "dev.moos.agent.electron",
     "productionCutover": false,
     "deleted": false
+  },
+  "placementRecovery": {
+    "platform": "macOS 27.0.1 arm64",
+    "detectedNativeBundleAtLegacyPath": true,
+    "nativeBundleMovedBackToItsProfileFolder": true,
+    "legacyBundleRestoredFromVerifiedBuild": "0.1.52 build-guiGYH",
+    "bothStrictSignaturesVerifiedAfterMove": true,
+    "legacyDataReadOnlyRecheck": {
+      "projects": 6,
+      "conversations": 10,
+      "messages": 1550,
+      "tasks": 824,
+      "providerConfigurations": 8
+    },
+    "nativeDataReadOnlyRecheck": {
+      "projects": 6,
+      "conversations": 10,
+      "messages": 1700
+    },
+    "nativeHistoryOpened": true,
+    "legacyAppStarted": false,
+    "mainInstancesAfterRecovery": 1
   }
 }

@@ -3465,3 +3465,12 @@
 - 全量回归：复用同源码 `6768a20` 上一轮的核心、Electron 和 Rust 记录，以及本次重新构建、包内和装机验证。重新执行 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希和 E124 重开报告仍未恢复，阻塞推送。
 - 遗留问题：真实模型续聊、旧任务和原 DSH 插件接管尚未验收。此次为本机签名的独立安装，范围为本机 Apple 芯片，未公证或对外发布。完成模型配置与真实续聊核对，并确认需保留的旧任务及插件后，才能考虑退役旧版；N01-D2/D3 保持未勾。
 - 对应 Git 提交：唯一说明 `docs(N01-D2): record independent NSH Mac installation`，查询 `git log --oneline --grep="record independent NSH Mac installation"`。
+
+## 2026-11-21 17:39:44 +08:00｜N01-D2 恢复两版沐码的安装位置
+
+- 修改或新增内容：用户在 Finder 替换同名程序后，把 NSH 程序包移回 `~/Applications/沐码 NSH/沐码.app`；从此前正式安装使用的 `build-guiGYH` 恢复 Electron 0.1.52 至 `/Applications/沐码.app`。
+- 遇到的难题：NSH 的启动器按程序包所在私有目录查找档案，单独拖到系统应用目录后无法读取原有档案。独立恢复进程完成两次重命名后未生成结果文件，随后直接核对最终路径、身份和签名，没有重复移包。
+- 处理方式：先确认两个应用均未运行，校验新旧包签名。两次重命名在同卷完成，只操作程序包。两份 SQLite 和其他配置只读核对。
+- 验证结果：两份程序重新执行 `codesign --verify --deep --strict` 通过，标识和版本分别匹配。旧 SQLite 核对 10 条会话、1,550 条消息、824 条任务，8 条模型配置可读，凭据文件仍在；NSH 核对 10 条会话、1,700 条消息片段。macOS 27.0.1 arm64 实际打开 NSH 历史正文，只有这一个沐码实例运行。见 `desktop-local-install-evidence.json` 的 `placementRecovery`。文档检查 `python3 -m unittest discover -s tests -v` 263/265。
+- 遗留问题：旧 Electron 程序只核对签名与数据，未启动；正常双路径并存的验收不改变 NSH 正式接管状态。两项既有历史证据仍阻塞推送。
+- 对应 Git 提交：唯一说明 `docs(N01-D2): record recovery of both Mac app locations`，查询 `git log --oneline --grep="record recovery of both Mac app locations"`。
