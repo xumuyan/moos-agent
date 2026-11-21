@@ -184,7 +184,8 @@ if (scripted) {
     assert.deepEqual(report.checks, ['fixture catalog', 'no replay before Send', ...(restart
       ? ['exact pre-Send history', 'old rows laid out', 'other project stays empty', 'scope round trip', 'PI continued from prior context']
       : ['empty profile', 'first public reply']), 'live rows not duplicated by history', ...(restart
-      ? ['controller observes terminal backlog', 'terminal backlog blocks Send until drained', 'resend write/read on original scope'] : []), 'no polling after drain']);
+      ? ['controller observes terminal backlog', 'terminal backlog blocks Send until drained', 'resend write/read on original scope'] : []), 'no polling after drain',
+      ...(restart ? ['team goal repairs then independently completes', 'team goal pauses after owned tool drains', 'team goal resumes the same objective'] : [])]);
     assert.match(report.scope.projectId, /^[a-f0-9-]{36}$/);
     assert.match(report.scope.sessionId, /^[a-f0-9-]{36}$/);
     await assert.rejects(lstat(join(destination, 'profile/.n01-active')), { code: 'ENOENT' });
@@ -192,6 +193,7 @@ if (scripted) {
   }
   assert.deepEqual(receipt.launches[0].scope, receipt.launches[1].scope);
   assert.equal(await readFile(join(destination, 'profile/workspace-0/result.txt'), 'utf8'), 'APPKIT_CHAT\n');
+  assert.equal(await readFile(join(destination, 'profile/workspace-0/team-goal-result.txt'), 'utf8'), 'goal-complete\n');
   const pid = Number(await readFile(join(destination, 'profile/workspace-0/fixture-hold.pid'), 'utf8'));
   assert.ok(Number.isInteger(pid) && pid > 1);
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }); // read-only liveness check

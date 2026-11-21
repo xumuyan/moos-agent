@@ -3334,3 +3334,13 @@
 - 回归结果：Node 24 Host/profile/双协议专项 22/22；Node 22.22.0 独立 TMPDIR 串行核心 387 通过、1 非本机架构测试跳过、0 失败；Node 24 带隔离打包 DSH 的 Electron 串行 142 通过、1 缺审核皮肤环境跳过。npm run test:docs 262/264；原有 AppKit 的旧 open.err 哈希漂移与 E124 原始 report.json 缺失仍是两项历史失败。独立 M01 Rust cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 返回 101，离线缓存缺 defmt。各轮日志留在本地测量目录。
 - 遗留问题：还需同负载多次冷热测试、长时间运行、NSH 原生团队界面及人工 GUI/IME。完整门禁未齐，本轮本地提交，待恢复真实历史证据与离线依赖后再走 GitHub 推送。未安装、部署、操作正式客户端或访问正式聊天和模型配置。
 - 对应 Git 提交：唯一说明 `perf(N01-D3): reduce idle desktop host work`，查询 `git log --oneline --grep="reduce idle desktop host work"`。
+
+## 2026-11-21 09:18:27 +08:00｜N01-D3 NSH 单一团队目标模式
+
+- 修改或新增内容：按用户确认，只提供一个「团队目标」入口。当前会话保存原目标、模型、轮次、验证差距与最新任务，NSH 通过现有私有 Swift 管道提交，不新增外部接口。每次执行复用 PI 团队的队长、执行成员、独立验证成员，同一项目锁内推进。团队累计 Token 和请求次数均为 null。普通聊天、项目选择及停止控制保留。
+- 处理方式：独立工具提供新验收差距后自动复查已有产物并补齐。重复差距、缺证据、异常或本次两小时执行超时后停止。停止请求等待工具和事件排空，目标留存并可继续。正常重开恢复目标记录，继续必须由用户明确发起。视图按会话展示状态和轮次，超量工具预览保留终态和最终回复，SQLite 仍记录真实工具事件。团队成员沿用 NSH 工作区工具范围。
+- 遇到的难题：初次打包用全局 Node 24.22.3，被包工具的 24.15.0 版本保护正确拒绝，重跑用审核版本。首个专项运行误把对象当 listEvents 的任务 ID，修正取证后 3/3。首次核心有独立 live entry 漏复制新依赖、npm 不在 PATH 及 Scheduler 时间路径失败。补齐隔离模块、固定 Node 22.22.0 工具 PATH 后完整重跑通过。Electron 首轮两项也在固定 Node 24.15.0 的 PATH 后通过。历史证据的源码哈希通过已录制的前后继承链验证，不改写历史原件。
+- 验证结果：Node 24 Host＋Goal 18/18，最终专项目标 3/3。回环模型报告单次输入 2,100,000 Token，目标仍在第二轮成功，数字是模拟账单而非真实长上下文。另验相同差距阻止反复执行、暂停取消所属实际 sleep、另一个项目继续完成、重开保留暂停态和手动继续。签名 AppKit 解包脚本首启 6 项及重开 15 项，覆盖普通任务和团队自动修复、暂停、继续。两个 Host 正常退出，双协议包内回环通过。交互包实际点击「团队目标」和发送，窗口显示「已完成 · 第 2 轮」，核对 SQLite 成功状态和隔离结果文件，Cmd+Q 后进程与资料租约均消失。回执 probes/nsh-validation/desktop-team-goal-evidence.json。
+- 回归结果：Node 22.22.0 串行核心 390 通过、1 非本机架构跳过、0 失败。打包 DSH 的 Electron 串行 142 通过、1 审核皮肤试验跳过。文档 263/265，旧 AppKit open.err 哈希漂移与 E124 原报告缺失仍未修复。独立 M01 Rust cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 返回 101，原离线缓存缺 defmt。打包使用 node probes/nsh-validation/verify-desktop-appkit-chat.mjs --check / --interactive <隔离 AppKit runner> --trim-maps --strip-node --prune-runtime。实际日志目录由回执和 artifacts/nsh-validation/team-goal-current.txt 指向。未改另外七份未跟踪的本地业务文件。
+- 遗留问题：真实 GLM/中转、中文 IME、崩溃后资料租约恢复和同负载长时间资源对照仍待实测，N01-D1/D2/D3 不勾。历史证据和 M01 离线缓存使全量门禁未齐，按现有规则仅本地提交，不推送。隔离交互包保留供后续验证，正式沐码未更新、重启或读取资料。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): add one persistent team goal mode to NSH`，查询 `git log --oneline --grep="add one persistent team goal mode to NSH"`。

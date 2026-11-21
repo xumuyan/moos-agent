@@ -1,0 +1,172 @@
+{
+  "task": "N01-D3",
+  "base": "8add0304486d8c199d4f99ed0383d8fec92a4ed0",
+  "recordedAt": "2026-11-21T09:13:13.063423+08:00",
+  "publicMode": "团队目标",
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "nsh": "nsh 0.5.0 (f4d68f7)",
+  "node": "v24.15.0",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "6ff5feb19a9deef1537de32bd1f29b42c975acea020e6ce5d7d8be8fb599ffcc",
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": "7132c1258a3a7e27b94988cb6b6f1d72f534b1bb12ee23e4c915d010e21250e4",
+    "probes/nsh-validation/desktop-contract.ts": "e134599d1b36b07c87af3a236aed4c14ab3ac3057f2b43b7cd38a1e7a66a024a",
+    "probes/nsh-validation/desktop-host.mjs": "8f8284c36e32404a0c6cede6d099281067684261bf7a5166f2731067239dc0fe",
+    "probes/nsh-validation/desktop-live-models.test.mjs": "57b1cadc399659b16f5894e6b7c20c965aa241ff0cfbaa96b0059ff9b572024b",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "dc990cee3e0587c7685bb5259a4cca84c1773894c22777d32aa708382af4005e",
+    "probes/nsh-validation/desktop-package.mjs": "1a241213222ceb70cdf3e60870847462e1903c95b81bb7edef4425298b592174",
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "a02c0790845ba3cfb3f86304dfcaca45e932a2529e52e70feb74e4b8c1a8eb58",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "942169396c60e7709dc5f093f29dc9c6e998c9d947c4c895b1a98c2b81428c58",
+    "tests/nsh_composer_provenance.py": "91c51fd9b8a4edba3fed36c8d869edef1b667547b3b378c54f9abb36398dc262",
+    "tests/test_nsh_desktop_appkit_chat.py": "9d92a8ce9781031ad810d545a85553621f2bb3ccfd60ae0fe275116c618be9e6",
+    "tests/test_nsh_desktop_appkit_package.py": "c2415dd32bff864690ad5697b0034f27ff908f5124655e415b7ae8500fd961e7"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 47645,
+      "sha256": "5f9d997751f17a3ae05905c93fa8e2b91f70e5bbeae05e7323b464e41dec735d"
+    },
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": {
+      "bytes": 8827,
+      "sha256": "cff42756b68f4faaf3e55819d478d4756e0f02d4bf66f403256905646beae343"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 6468,
+      "sha256": "117b879b102f927021c106721378a6024c1696a923aba744c96b50897eabde12"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 16772,
+      "sha256": "8e9e9db18f1ac5fb7585611081a30dbdc9ef594c843b1df7bd78a6e24e50c175"
+    },
+    "probes/nsh-validation/desktop-live-models.test.mjs": {
+      "bytes": 13104,
+      "sha256": "e61b80b25503d8b2f001292034b3b961db33f2838699998a899e89c6bf68dcdb"
+    },
+    "probes/nsh-validation/desktop-model-fixture.mjs": {
+      "bytes": 7700,
+      "sha256": "18cf320d2f59220eb34fb22c34c301ac87789e52d8df014a8c196c0d13a630e6"
+    },
+    "probes/nsh-validation/desktop-package.mjs": {
+      "bytes": 5712,
+      "sha256": "3fcf54bd297b82affb60a0fa058d00bb28ab115df51892e23008f6632efd15ae"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 15843,
+      "sha256": "47d1294c442d09780fce55bebd838a885f7395dbcff98dc21d73df9ad71eb7be"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 16560,
+      "sha256": "f51275370d29c7422d1e71cada763d512a98c4e4327f306a7399125ff63fdcae"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3138,
+      "sha256": "edc94f2f7b639e1c81971891141b5e72087909adbc0d7704cefabe22cf8578c1"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 23964,
+      "sha256": "72c86ec500d1fc3b3129cc368f652a89c7106ac1e5bde6f134a1d1731acb1e35"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 3441,
+      "sha256": "61e49c508b3eda75b1e1d5fa071d1cecadb700208b5788340fe910210b5ddad2"
+    }
+  },
+  "addedInputs": {
+    "probes/nsh-validation/desktop-team-goal.mjs": {
+      "bytes": 4959,
+      "sha256": "d1b8ea0a00b25e35cb3630e824856551a7e401af28782c906dfd9d1a22c2a8ed"
+    },
+    "probes/nsh-validation/desktop-team-goal.test.mjs": {
+      "bytes": 5892,
+      "sha256": "57fae6ffdfaa67284fd0d78243673115c6c842e2091147237c9123d8bf24f8fc"
+    }
+  },
+  "cumulativeModelLimits": {
+    "tokens": null,
+    "requests": null
+  },
+  "perActivationTimeoutMs": 7200000,
+  "localModelUsageTest": {
+    "reportedInputTokens": 2100000,
+    "successful": true,
+    "repairsAfterEvidence": true,
+    "verifiedRound": 2,
+    "pauseAndResumeAfterCleanReopen": true,
+    "otherProjectContinued": true,
+    "repeatedVerificationGapBlocked": true,
+    "usageIsSynthetic": true
+  },
+  "packageAcceptance": {
+    "report": "artifacts/nsh-validation/appkit-chat-check.n6ldsn/result.json",
+    "sha256": "c7ec04ff7e68deb8ef4046ffb3da3fc7b7cee61b12f080cd38789d1f250a8cb4",
+    "checks": [
+      6,
+      15
+    ],
+    "shutdownExitCodes": [
+      0,
+      0
+    ],
+    "packagedDualProtocolLoopback": true,
+    "sameViewActions": true,
+    "scriptedAppKit": true,
+    "realKeyboardMouse": false
+  },
+  "interactiveCandidate": {
+    "report": "artifacts/nsh-validation/appkit-chat-interactive.09SEV3/result.json",
+    "sha256": "580993aa4288fc2773e4e2a37f22d47a61e190bcbac070651321c2bd6c530938",
+    "signed": "ad-hoc deep strict",
+    "appLaunched": true,
+    "zip": "artifacts/nsh-validation/appkit-chat-interactive.09SEV3/MuMa-AppKit-Chat.zip",
+    "bundleKiB": 231804,
+    "zipBytes": 72021760,
+    "nativeInput": {
+      "through": "native accessibility and click/type actions",
+      "toggleObserved": true,
+      "primarySendClicked": true,
+      "viewDisplayedStatus": "团队目标 · 已完成 · 第 2 轮",
+      "actualToolArtifactVerified": true,
+      "objectiveAndSucceededStored": true,
+      "normalQuitAndNoProfileLease": true,
+      "teamPauseResumeTestedByScriptsOnly": true,
+      "chineseIME": false
+    }
+  },
+  "protectedOtherOwnerInputsUnchanged": true,
+  "productionChanged": false,
+  "externalModel": false,
+  "longHaulMeasured": false,
+  "abnormalProfileLeaseRecovered": false,
+  "overallN01D3Complete": false,
+  "automatedTests": {
+    "hostAndGoal": {
+      "passed": 18
+    },
+    "goalFinal": {
+      "passed": 3
+    },
+    "isolatedPackagingAndModelFixes": {
+      "passed": 6
+    },
+    "node22CoreFinal": {
+      "passed": 390,
+      "skipped": 1,
+      "failed": 0
+    },
+    "electronPackagedFinal": {
+      "passed": 142,
+      "skipped": 1,
+      "failed": 0
+    },
+    "docs": {
+      "passed": 263,
+      "failed": 2,
+      "total": 265
+    },
+    "m01RustOffline": {
+      "exitCode": 101,
+      "missingDependency": "defmt"
+    }
+  },
+  "commitSubject": "feat(N01-D3): add one persistent team goal mode to NSH"
+}

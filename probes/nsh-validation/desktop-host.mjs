@@ -1,5 +1,6 @@
 /** N01 trusted desktop launch layer. No listener, UI paths or renderer credentials. */
 import { mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Store } from '../../services/agent/store.mjs';
@@ -10,6 +11,7 @@ import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
 import { openDesktopHistory } from './desktop-history.mjs';
 import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
+import { readDesktopGoal, saveDesktopGoal, desktopGoalView, runDesktopTeamGoal } from './desktop-team-goal.mjs';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -91,18 +93,24 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
-      const { modelId, reasoningEffort } = journals.get(options.task.id);
+      const { modelId, reasoningEffort, goal } = journals.get(options.task.id);
       const entry = liveModels ? liveModels.routes.get(modelId) : { apiKey: fixture.apiKey,
         provider: { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
           model: modelId, api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 } };
-      try { return await run({ ...options, task: { ...options.task, text: options.task.message },
+      const execution = { ...options, task: { ...options.task, text: options.task.message },
         provider: { ...entry.provider, thinkingLevel: reasoningEffort ?? 'off' }, apiKey: entry.apiKey, dataDir, imageGen: null,
         permissions: { getMode: () => 'workspace-write' },
-        sessionPolicy: { allowedTools: liveModels ? ['read', 'write', 'edit', 'ls', 'bash'] : ['read', 'write', 'bash'] } }); }
-      catch (error) {
+        sessionPolicy: { allowedTools: liveModels ? ['read', 'write', 'edit', 'ls', 'bash'] : ['read', 'write', 'bash'] } };
+      try {
+        if (!goal) return await run(execution);
+        return await runDesktopTeamGoal(execution, goal, patch => {
+          Object.assign(goal, patch);
+          saveDesktopGoal(store, options.conversation.id, goal);
+        });
+      } catch (error) {
         if (options.signal.aborted) throw new TaskFailure('cancelled');
         // Preserve only known, sanitized PI failure codes; never forward an upstream error body.
-        if (liveModels && error instanceof TaskFailure) throw new TaskFailure(error.code);
+        if ((liveModels || goal) && error instanceof TaskFailure) throw new TaskFailure(error.code);
         throw new TaskFailure('internal');
       }
     }, onEvent: event => {
@@ -110,6 +118,13 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       journal.statistics.observe(event);
       const payload = publicPayload(event.type, event.payload);
       if (!payload) return;
+      if (journal.goal && event.type.startsWith('tool_') && (journal.last >= 2800 || journal.bytes >= 768 * 1024)) {
+        if (!journal.goal.toolPreviewLimited) {
+          journal.goal.toolPreviewLimited = true;
+          saveDesktopGoal(store, event.conversationId, journal.goal);
+        }
+        return; // Keep terminal delivery in the private UI page; SQLite retains the full event.
+      }
       const item = { sequence: ++journal.last, type: event.type, payload };
       const bytes = Buffer.byteLength(JSON.stringify(item));
       journal.events.push({ item, bytes }); journal.bytes += bytes;
@@ -138,7 +153,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       switch (method) {
         case 'projects.list': exact(p, []); return {
           projects: trustedProjects.map(({ id, name }) => ({ id, name })),
-          models: catalog,
+          models: catalog, ...(history ? { teamGoals: true } : {}),
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
@@ -155,30 +170,51 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           if (!token(p.projectId) || !token(p.sessionId)) reject('invalid_request');
           session(p.projectId, p.sessionId);
           if (p.before !== null && !token(p.before)) reject('invalid_cursor');
-          return history.read(p) ?? reject('invalid_cursor');
+          const page = history.read(p) ?? reject('invalid_cursor');
+          const teamGoal = desktopGoalView(store, readDesktopGoal(store, p.sessionId));
+          return teamGoal ? { ...page, teamGoal } : page;
         }
         case 'tasks.submit': {
           const explicit = p && Object.hasOwn(p, 'modelId');
           const explicitEffort = p && Object.hasOwn(p, 'reasoningEffort');
-          exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : []), ...(explicitEffort ? ['reasoningEffort'] : [])]);
+          const goalRequest = p && Object.hasOwn(p, 'teamGoal');
+          exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : []),
+            ...(explicitEffort ? ['reasoningEffort'] : []), ...(goalRequest ? ['teamGoal'] : [])]);
           session(p.projectId, p.sessionId);
-          const modelId = explicit ? p.modelId : catalog.defaultId;
+          if (!token(p.requestId) || typeof p.text !== 'string' || !p.text.trim() || Buffer.byteLength(p.text) > 4096 || p.text.includes('\x00')) reject('invalid_request');
+          if (goalRequest && (!history || !['start', 'resume'].includes(p.teamGoal))) reject('invalid_request');
+          const existing = readDesktopGoal(store, p.sessionId);
+          const resume = p.teamGoal === 'resume';
+          const modelId = resume ? existing?.modelId : explicit ? p.modelId : catalog.defaultId;
           const model = catalog.options.find(m => m.id === modelId);
           if (!model) reject('invalid_request');
           if (explicitEffort && !model.reasoning?.levels.some(e => e.id === p.reasoningEffort)) reject('invalid_request');
-          const reasoningEffort = explicitEffort ? p.reasoningEffort : model.reasoning?.defaultId;
-          if (!token(p.requestId) || typeof p.text !== 'string' || !p.text.trim() || Buffer.byteLength(p.text) > 4096 || p.text.includes('\x00')) reject('invalid_request');
+          const reasoningEffort = resume ? existing.reasoningEffort : explicitEffort ? p.reasoningEffort : model.reasoning?.defaultId;
+          if (resume && (explicit || explicitEffort)) reject('invalid_request');
           const key = `${p.sessionId}:${p.requestId}`, prior = requests.get(key);
           if (prior) {
             const admitted = journals.get(prior.id);
-            if (prior.text !== p.text || admitted.modelId !== modelId || admitted.reasoningEffort !== reasoningEffort) reject('conflict');
-            return { task: taskView(store.getTask(prior.id)), replayed: true };
+            if (prior.teamGoal !== p.teamGoal || prior.text !== p.text ||
+                admitted.modelId !== modelId || admitted.reasoningEffort !== reasoningEffort) reject('conflict');
+            const teamGoal = desktopGoalView(store, admitted.goal);
+            return { task: taskView(store.getTask(prior.id)), replayed: true, ...(teamGoal && { teamGoal }) };
           }
+          const status = desktopGoalView(store, existing)?.status;
+          if (existing?.requestId === p.requestId || status === 'queued' || status === 'running') reject('conflict');
+          if (resume && (!['paused', 'blocked'].includes(status) || existing.objective !== p.text)) reject('conflict');
+          if (p.teamGoal === 'start' && existing && status !== 'completed') reject('conflict');
+          const goal = goalRequest ? {
+            ...(resume ? existing : { id: randomUUID(), objective: p.text, round: 0 }),
+            modelId, reasoningEffort, requestId: p.requestId, phase: 'planning', verifiedMembers: 0, toolPreviewLimited: false,
+          } : undefined;
           if (requests.size >= 32) reject('limit');
-          const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: 600000,
-            onCreate: t => journals.set(t.id, { modelId, reasoningEffort, events: [], last: 0, floor: 0, bytes: 0, statistics: desktopTaskStatistics() }) });
-          requests.set(key, { id: created.id, text: p.text });
-          return { task: taskView(created), replayed: false };
+          const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: goal ? 7200000 : 600000,
+            onCreate: t => {
+              if (goal) saveDesktopGoal(store, p.sessionId, Object.assign(goal, { taskId: t.id }));
+              journals.set(t.id, { modelId, reasoningEffort, goal, events: [], last: 0, floor: 0, bytes: 0, statistics: desktopTaskStatistics() });
+            } });
+          requests.set(key, { id: created.id, text: p.text, teamGoal: p.teamGoal });
+          return { task: taskView(created), replayed: false, ...(goal && { teamGoal: desktopGoalView(store, goal) }) };
         }
         case 'tasks.cancel': exact(p, ['projectId', 'sessionId', 'taskId']); task(p);
           return { task: taskView(scheduler.cancel(p.taskId)) };
@@ -202,8 +238,10 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           }
           const next = events.at(-1)?.sequence ?? after;
           const hasMore = next < journal.last, ended = terminal.has(found.status);
+          const teamGoal = desktopGoalView(store, journal.goal);
           return { task: taskView(found), terminal: ended, events,
             cursor: `${found.id}:${next}`, hasMore,
+            ...(teamGoal && { teamGoal }),
             ...(ended && !hasMore ? { statistics: journal.statistics.snapshot() } : {}) };
         }
         default: reject('unsupported_method');

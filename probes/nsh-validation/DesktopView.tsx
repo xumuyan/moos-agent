@@ -2,7 +2,7 @@ import { cleanup, colorScheme, computed, createMotion, host, Image, List, platfo
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Input, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { Calls, DesktopModelCatalog, TaskRef } from './desktop-contract';
+import type { Calls, DesktopModelCatalog, Scope, TaskRef, TeamGoal, TeamGoalAction } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
@@ -48,8 +48,25 @@ function SessionActivity(props: { id: string; onLayout?: (e: { bounds: Bounds })
   </View>;
 }
 
-export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void>; history: () => HistoryPage | null };
+export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void>; history: () => HistoryPage | null;
+  toggleGoal: () => void; resumeGoal: () => void; goal: () => TeamGoal | undefined };
 type HistoryPage = Calls['sessions.history']['result'];
+const teamGoalStatuses = { queued: '排队中', running: '进行中', paused: '已暂停', blocked: '待处理', completed: '已完成' };
+const teamGoalPhases = { planning: '队长拆分', working: '成员执行', checking: '独立验收', continuing: '补齐验收差距', verified: '验收通过' };
+function goalSnapshot(value: unknown, scope: Scope, taskId?: string): TeamGoal | undefined {
+  if (!value || typeof value !== 'object') return;
+  const goal = value as TeamGoal;
+  const id = (v: unknown) => typeof v === 'string' && /^[\w-]{1,64}$/.test(v);
+  if (!id(goal.id) || !id(goal.taskId) || (taskId && goal.taskId !== taskId) ||
+      goal.projectId !== scope.projectId || goal.sessionId !== scope.sessionId ||
+      typeof goal.objective !== 'string' || !goal.objective.trim() || goal.objective.length > 4096 ||
+      !Number.isSafeInteger(goal.round) || goal.round < 0 ||
+      !Number.isSafeInteger(goal.verifiedMembers) || goal.verifiedMembers < 0 || goal.verifiedMembers > 6 ||
+      typeof goal.toolPreviewLimited !== 'boolean' ||
+      !Object.hasOwn(teamGoalStatuses, goal.status) || !Object.hasOwn(teamGoalPhases, goal.phase)) return;
+  return goal;
+}
+
 export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; persistentHistory?: boolean; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
   const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
   // Preserve the native window frame and controls, but extend artwork under them.
@@ -80,7 +97,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const queueRevision = signal(0);
   const queueChanged = () => queueRevision.set(queueRevision() + 1);
   const editTurn = signal<{ id: number; text: string } | null>(null);
-  const outboundChoices = new Map<string, { choice?: ModelChoice }>();
+  const outboundChoices = new Map<string, { choice?: ModelChoice; teamGoal?: TeamGoalAction }>();
+  const goalAvailable = signal(false), goalSelected = signal(false);
+  const teamGoals = signal(new Map<string, TeamGoal>());
+  function rememberGoal(scope: Scope, value: unknown, taskId?: string) {
+    const goal = goalSnapshot(value, scope, taskId);
+    if (!goal) return;
+    const key = scopeKey(scope), before = teamGoals().get(key);
+    if (before?.taskId === goal.taskId && before.round === goal.round && before.phase === goal.phase &&
+        before.status === goal.status && before.verifiedMembers === goal.verifiedMembers &&
+        before.toolPreviewLimited === goal.toolPreviewLimited && before.errorCode === goal.errorCode) return;
+    teamGoals.set(new Map(teamGoals()).set(key, goal));
+  }
   let disposed = false, pumpScheduled = false;
   const transport = props.call ?? desktopCall;
   const previews = sessionPreviews();
@@ -89,10 +117,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const key = method === 'tasks.submit' ? scopeKey(params as { projectId: string; sessionId: string }) : '';
     const outbound = outboundChoices.get(key);
     const choice = key ? (outbound ? outbound.choice : modelChoice(key)) : undefined;
-    const result = await transport(method, choice ? { ...params, ...choice } : params);
+    const result = await transport(method, choice || outbound?.teamGoal
+      ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }) } : params);
     if (method === 'projects.list' && !disposed) {
-      const data = result as { models?: unknown } | null;
+      const data = result as { models?: unknown; teamGoals?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
+      goalAvailable.set(props.persistentHistory === true && data?.teamGoals === true);
     }
     if (!disposed && (method === 'sessions.list' || method === 'sessions.create')) {
       const { projectId } = params as { projectId: string };
@@ -100,6 +130,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       previews.remember(projectId, method === 'sessions.list' ? data?.sessions : [data?.session]);
     }
     if (method === 'tasks.events' && !disposed) statistics.stage(params as TaskRef, result);
+    if (goalAvailable() && !disposed && (method === 'tasks.submit' || method === 'tasks.events')) {
+      const taskId = method === 'tasks.events' ? (params as TaskRef).taskId : (result as Calls['tasks.submit']['result']).task?.id;
+      rememberGoal(params as Scope, (result as { teamGoal?: unknown }).teamGoal, taskId);
+    }
     return result;
   };
   const refresh = () => {
@@ -113,7 +147,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       void Promise.resolve().then(() => { pumpScheduled = false; pumpQueue(false); });
     }
   };
-  const controller = new DesktopController(call, refresh);
+  // Persistent team attempts can run for two hours; the UI stays attached through terminal drain.
+  const controller = new DesktopController(call, refresh, 250, props.persistentHistory ? 36000 : undefined);
   function snapshot() { revision(); return controller; }
   const sessions = computed(() => snapshot().sessions);
   // Keep the native row/tooltip anchors stable across the per-task polling ticks.
@@ -150,6 +185,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             ids.add(m.id); return false;
           })) throw Error('invalid history page');
       historyPage.set({ ...scope, before: page.before, messages: [...page.messages, ...existing] });
+      if (goalAvailable()) rememberGoal(scope, page.teamGoal);
       historyState.set('ready');
       // Selection may have returned to a session whose queued turn drained while loading history.
       refresh();
@@ -185,9 +221,15 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const blocked = computed(() => disposed || !snapshot().current || snapshot().loading || !!snapshot().current?.error || !!snapshot().error);
   const historyPending = () => !!props.persistentHistory && !selectedHistory();
   const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
+  const teamGoal = () => teamGoals().get(pickerScope());
+  const goalInFlight = () => ['queued', 'running'].includes(teamGoal()?.status ?? '') || !!outboundChoices.get(pickerScope())?.teamGoal;
+  const canSelectGoal = () => goalAvailable() && !blocked() && !historyPending() && !busy() &&
+    !queuedRows().length && (!teamGoal() || teamGoal()?.status === 'completed');
+  const canResumeGoal = () => !blocked() && !historyPending() && !busy() &&
+    !queuedRows().length && ['paused', 'blocked'].includes(teamGoal()?.status ?? '');
   const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
   const hasQueuedRows = computed(() => queuedRows().length > 0);
-  const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !queue.full(pickerScope()) && validTurnText(draft()); };
+  const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !goalInFlight() && !queue.full(pickerScope()) && validTurnText(draft()); };
   const disabled = () => blocked() || historyPending() || busy() || !!queuedRows().length || !validTurnText(draft());
   const canStop = () => {
     const { current, sessionId } = snapshot();
@@ -203,10 +245,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (editTurn()) return '编辑完成后继续';
     return '';
   });
-  function submitTurn(text: string, choice?: ModelChoice) {
+  function submitTurn(text: string, choice?: ModelChoice, teamGoal?: TeamGoalAction) {
     const sessionId = controller.sessionId, key = pickerScope();
     submitting.add(sessionId);
-    outboundChoices.set(key, { choice });
+    outboundChoices.set(key, { choice, teamGoal });
     void controller.submit(text).finally(() => {
       outboundChoices.delete(key);
       submitting.delete(sessionId);
@@ -229,9 +271,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   }
   function send() {
     if (settingsOpen() || disposed || disabled()) return;
+    if (goalSelected() && !canSelectGoal()) return;
     const text = draft();
+    const startGoal = goalSelected();
     draft.set('');
-    submitTurn(text, modelChoice(pickerScope()));
+    goalSelected.set(false);
+    submitTurn(text, modelChoice(pickerScope()), startGoal ? 'start' : undefined);
+  }
+  function resumeGoal() {
+    const goal = teamGoal();
+    if (goal && !settingsOpen() && canResumeGoal()) submitTurn(goal.objective, undefined, 'resume');
+  }
+  function toggleGoal() {
+    if (canSelectGoal()) goalSelected.set(!goalSelected());
   }
   function stop() {
     if (disposed || !canStop()) return;
@@ -244,11 +296,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (edit && !queue.rows(pickerScope()).some(row => row.id === edit.id)) return;
     editTurn.set(edit); if (!edit) refresh();
   };
-  const resetEditor = () => { draft.set(''); editTurn.set(null); };
+  const resetEditor = () => { draft.set(''); editTurn.set(null); goalSelected.set(false); };
   const project = async (id: string) => { resetEditor(); await controller.selectProject(id); };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
   const create = async () => { resetEditor(); await controller.createSession(); };
-  props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create, history: selectedHistory });
+  props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create, history: selectedHistory,
+    toggleGoal, resumeGoal, goal: teamGoal });
   void controller.start();
   const dark = () => colorScheme() === 'dark';
   const ink = () => dark() ? t.dark.ink : t.ink;
@@ -410,11 +463,35 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               queue.remove(pickerScope(), id); queueChanged(); refresh();
             }} onResume={() => pumpQueue(true)} />}
           <View testID="composer-safe-area" onLayout={measured('composer-safe-area')} style={{ paddingTop: safe().composerTop, paddingBottom: safe().composerBottom, flexShrink: 0 }}>
+            {teamGoal() && <View testID="team-goal-status" onLayout={measured('team-goal-status')} style={{ flexShrink: 0, padding: 8, marginBottom: 10, gap: 4,
+              borderRadius: 8, backgroundColor: dark() ? t.dark.glass : t.glass }}>
+              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>
+                {`团队目标 · ${teamGoalStatuses[teamGoal()!.status]}${teamGoal()!.round ? ` · 第 ${teamGoal()!.round} 轮` : ''}${teamGoal()!.status === 'running' ? ` · ${teamGoalPhases[teamGoal()!.phase]}` : ''}`}
+              </Text>
+              <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12, numberOfLines: 2 }}>{teamGoal()!.objective}</Text>
+              {teamGoal()!.toolPreviewLimited && <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>聊天仅显示部分工具事件，完整事件已存入任务记录。</Text>}
+              {teamGoal()!.status === 'blocked' && <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>
+                {teamGoal()!.errorCode === 'timeout' ? '已达到本次执行时限，可继续目标。' : '完整目标尚未通过独立验收，可根据现有成果继续。'}
+              </Text>}
+            </View>}
             <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight, flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
               {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
               <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
               <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 2, height: safe().composerActionHeight, flexShrink: 0 }}>
                 <View style={{ flex: 1, minWidth: 0 }} />
+                {canSelectGoal() && <Button testID="team-goal-toggle" accessibilityLabel={goalSelected() ? '取消团队目标模式' : '启用团队目标模式'}
+                  onLayout={measured('team-goal-toggle')}
+                  onPress={toggleGoal} hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
+                  style={{ ...controlSurface, flexShrink: 0, paddingHorizontal: 8, height: 32, alignItems: 'center', justifyContent: 'center',
+                    backgroundColor: goalSelected() ? t.accent : controlSurface.backgroundColor }}>
+                  <Text style={{ fontFamily: t.fontFamily, color: goalSelected() ? '#fffaf0' : t.composerInk, fontSize: 12 }}>团队目标</Text>
+                </Button>}
+                {canResumeGoal() && <Button testID="team-goal-resume" accessibilityLabel="继续团队目标" onPress={resumeGoal}
+                  onLayout={measured('team-goal-resume')}
+                  hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
+                  style={{ ...controlSurface, flexShrink: 0, paddingHorizontal: 8, height: 32, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: t.fontFamily, color: t.composerInk, fontSize: 12 }}>继续目标</Text>
+                </Button>}
                 {busy() && <Button testID="queue-submit" accessibilityLabel="排队发送" onPress={enqueue} disabled={!canEnqueue()}
                   hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus} disabledStyle={{ opacity: .48 }}
                   style={{ ...controlSurface, flexShrink: 0, height: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' }}>
@@ -423,7 +500,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 <DesktopModelPicker scope={pickerScope()} models={catalog()?.options ?? []} choice={modelChoice(pickerScope())}
                   disabled={pickerDisabled()} dark={dark()} art={artAvailable} onLayout={measured('model-picker')} onPopupLayout={measured('model-popup')}
                   onChange={choice => { if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice)); }} />
-                <Button testID="primary-action" onLayout={measured('primary-action')} accessibilityLabel={busy() ? '停止生成' : '发送'} style={{ width: safe().composerActionHeight, height: safe().composerActionHeight, borderRadius: safe().composerActionHeight / 2, backgroundColor: t.accent, backgroundImage: t.sendGradient, borderWidth: 1, borderColor: '#e1cfaad1', boxShadow: '0 4px 12px #1a326c47', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }} disabled={busy() ? !canStop() : disabled()} disabledStyle={{ opacity: .48 }} onPress={() => busy() ? stop() : send()}><DesktopIcon name={busy() ? 'stop' : 'send'} color="#fffaf0" size={16} testID={busy() ? 'icon-stop' : 'icon-send'} /></Button>
+                <Button testID="primary-action" onLayout={measured('primary-action')} accessibilityLabel={busy() ? goalInFlight() ? '暂停团队目标' : '停止生成' : '发送'} style={{ width: safe().composerActionHeight, height: safe().composerActionHeight, borderRadius: safe().composerActionHeight / 2, backgroundColor: t.accent, backgroundImage: t.sendGradient, borderWidth: 1, borderColor: '#e1cfaad1', boxShadow: '0 4px 12px #1a326c47', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }} disabled={busy() ? !canStop() : disabled()} disabledStyle={{ opacity: .48 }} onPress={() => busy() ? stop() : send()}><DesktopIcon name={busy() ? 'stop' : 'send'} color="#fffaf0" size={16} testID={busy() ? 'icon-stop' : 'icon-send'} /></Button>
               </View>
             </View>
           </View>

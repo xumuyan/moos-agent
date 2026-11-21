@@ -5,6 +5,13 @@ export type Scope = { projectId: string; sessionId: string };
 export type TaskRef = Scope & { taskId: string };
 export type TaskStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted';
 export type Task = Scope & { id: string; status: TaskStatus; errorCode: string | null };
+export type TeamGoal = Scope & {
+  id: string; taskId: string; objective: string; round: number;
+  status: 'queued' | 'running' | 'paused' | 'blocked' | 'completed';
+  phase: 'planning' | 'working' | 'checking' | 'continuing' | 'verified';
+  verifiedMembers: number; toolPreviewLimited: boolean; errorCode: string | null;
+};
+export type TeamGoalAction = 'start' | 'resume';
 export type Project = { id: string; name: string };
 type LabeledId = { id: string; label: string };
 export type DesktopModel = LabeledId & { group?: LabeledId; reasoning?: { defaultId: string; levels: LabeledId[] } };
@@ -24,17 +31,17 @@ export type DesktopTaskStatistics = {
   cacheHitRate: number | null; context: { tokens: number; window: number } | null;
 };
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
   // Only the trusted persistent fixture enables this historical (not live) view.
   'sessions.history': { params: Scope & { before: string | null }; result: Scope & {
-    messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean }[]; before: string | null;
+    messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean }[]; before: string | null; teamGoal?: TeamGoal;
   } };
-  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string }; result: { task: Task; replayed: boolean } };
+  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string; teamGoal?: TeamGoalAction }; result: { task: Task; replayed: boolean; teamGoal?: TeamGoal } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
-    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean; statistics?: DesktopTaskStatistics;
+    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean; statistics?: DesktopTaskStatistics; teamGoal?: TeamGoal;
   } };
 };
 export type Method = keyof Calls;

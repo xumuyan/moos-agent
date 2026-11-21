@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import idle_host_evidence, successor_input
+from nsh_composer_provenance import desktop_team_goal_evidence, idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,17 +68,33 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
         prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
         idle_host = idle_host_evidence()
+        team_goal = desktop_team_goal_evidence()
         for name, expected in self.evidence['inputs'].items():
             current = successor_input(self, compression, name, expected)
             current = successor_input(self, strip, name, current)
             current = successor_input(self, prune, name, current)
             current = successor_input(self, idle_host, name, current)
+            current = successor_input(self, team_goal, name, current)
             self.assertEqual(current, sha(ROOT / name), name)
-        self.assertEqual(self.evidence['check']['entry'], sha(PROBE / 'appkit-hostcheck/ChatCheck.tsx'))
+        entry = 'probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx'
+        self.assertEqual(successor_input(self, team_goal, entry, self.evidence['check']['entry']), sha(ROOT / entry))
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name
             if path.is_file():
                 self.assertEqual(expected, sha(path), name)
+
+    def test_team_goal_acceptance_keeps_single_mode_unlimited_and_scope_truthful(self):
+        evidence = desktop_team_goal_evidence()
+        self.assertEqual(evidence['publicMode'], '团队目标')
+        self.assertEqual(evidence['cumulativeModelLimits'], {'tokens': None, 'requests': None})
+        self.assertGreater(evidence['localModelUsageTest']['reportedInputTokens'], 2000000)
+        self.assertEqual(evidence['packageAcceptance']['checks'], [6, 15])
+        self.assertEqual(evidence['packageAcceptance']['shutdownExitCodes'], [0, 0])
+        self.assertTrue(evidence['localModelUsageTest']['successful'])
+        self.assertFalse(evidence['productionChanged'])
+        self.assertFalse(evidence['externalModel'])
+        self.assertFalse(evidence['longHaulMeasured'])
+        self.assertIn('desktop-team-goal-evidence.json', (ROOT / 'PLAN.md').read_text())
 
     def test_window_retry_and_inverse_mode_guard_do_not_imply_gui_acceptance(self):
         retry = json.loads((PROBE / 'desktop-appkit-interaction-evidence.json').read_text())
@@ -232,9 +248,11 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertEqual(len(data['archives']), 3)
         strip = json.loads((PROBE / 'desktop-appkit-chat-node-strip-evidence.json').read_text())
         prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
+        goal_team = desktop_team_goal_evidence()
         for name, expected in data['inputs'].items():
             current = successor_input(self, strip, name, expected)
             current = successor_input(self, prune, name, current)
+            current = successor_input(self, goal_team, name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         for name, expected in {**data['localReceipts'], **data['archives']}.items():
             path = ROOT / name
@@ -298,8 +316,10 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertEqual([run['checks'] for run in check['launches']],
                          [run['checks'] for run in self.evidence['check']['launches']])
         prune = json.loads((PROBE / 'desktop-appkit-chat-prune-evidence.json').read_text())
+        goal_team = desktop_team_goal_evidence()
         for name, expected in data['inputs'].items():
             current = successor_input(self, prune, name, expected)
+            current = successor_input(self, goal_team, name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         self.assertTrue(data['localReceipts'])
         for name, expected in data['localReceipts'].items():
@@ -348,7 +368,9 @@ class AppKitChatEvidenceTests(unittest.TestCase):
         self.assertEqual([run['checks'] for run in check['launches']],
                          [run['checks'] for run in self.evidence['check']['launches']])
         self.assertFalse(any(data['boundaries'].values()))
+        goal_team = desktop_team_goal_evidence()
         for name, expected in data['inputs'].items():
+            expected = successor_input(self, goal_team, name, expected)
             self.assertEqual(expected['sha256'], sha(ROOT / name), name)
         self.assertEqual(sum(p.endswith('/pruned-runtime.json') for p in data['localReceipts']), 2)
         for name, expected in data['localReceipts'].items():

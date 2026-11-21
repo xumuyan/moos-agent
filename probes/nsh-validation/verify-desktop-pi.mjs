@@ -66,7 +66,7 @@ try {
     'desktop-host-stdio.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs'];
   for (const file of [...new Set([...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
     'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
-    'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs',
+    'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs',
     ...(persistent ? [...persistentHost, 'desktop-persistent-check.tsx'] : [])])]) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }

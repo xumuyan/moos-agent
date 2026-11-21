@@ -120,6 +120,25 @@ async function run() {
   const lastPoll = polls;
   await sleep(550);
   check(lastPoll === polls && c.diagnostics.pending === 0 && c.diagnostics.timers === 0, 'no polling after drain');
+  if (restart) {
+    await until('team goal toggle laid out', () => geometry.has('team-goal-toggle'));
+    actions.toggleGoal(); send('N01_GOAL_REPAIR');
+    await until('team goal independent repair and completion', () => actions.goal()?.status === 'completed' && current.drained);
+    check(actions.goal()?.round === 2 && actions.goal()?.verifiedMembers === 1 && geometry.has('team-goal-status'), 'team goal repairs then independently completes');
+    const priorGoal = actions.goal()!.id;
+    const starts = () => current.rows.filter(r => r.role === '工具' && r.body === 'tool_start · bash').length;
+    const priorStarts = starts();
+    actions.toggleGoal(); send('N01_GOAL_PAUSE');
+    await until('new goal owns live tool', () => actions.goal()?.id !== priorGoal && actions.goal()?.status === 'running' && starts() > priorStarts);
+    await sleep(400);
+    const pausedId = actions.goal()!.id;
+    actions.stop();
+    await until('team goal native pause drains', () => actions.goal()?.status === 'paused' && current.drained && geometry.has('team-goal-resume'));
+    check(actions.goal()?.id === pausedId, 'team goal pauses after owned tool drains');
+    actions.resumeGoal();
+    await until('team goal resume completes', () => actions.goal()?.status === 'completed' && current.drained);
+    check(actions.goal()?.id === pausedId && actions.goal()?.round === 2, 'team goal resumes the same objective');
+  }
   await host.call('n01.complete', true);
   console.log(`N01_APPKIT_CHAT ${JSON.stringify({ restart, scope, checks })}`);
 }
