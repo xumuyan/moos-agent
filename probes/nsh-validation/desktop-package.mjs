@@ -9,10 +9,11 @@ export const packageCheckId = `${packageId}.check`;
 export const brandRoot = 'apps/electron/assets';
 export const hostFiles = [
   ...['desktop-package-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs', 'desktop-host-stdio.mjs',
-    'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-team-goal.mjs'].map(file => `probes/nsh-validation/${file}`),
+    'desktop-model-services.mjs', 'desktop-images.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-team-goal.mjs'].map(file => `probes/nsh-validation/${file}`),
   ...['store', 'scheduler', 'errors', 'task-policy', 'usage', 'timeline-view'].map(file => `services/agent/${file}.mjs`),
   ...['sdk-runtime', 'image-tool', 'tool-policy', 'toolchain', 'image-policy', 'repair-routing', 'session-fork', 'desktop-queue',
     'desktop-tools', 'desktop-transaction', 'desktop-focus-settle', 'team-runtime'].map(file => `packages/pi-runtime/${file}.mjs`),
+  'apps/electron/plugin/pi-workspace-changes.js', 'apps/electron/package.json',
   'packages/pi-adapter/index.mjs', 'package.json', 'package-lock.json',
 ];
 

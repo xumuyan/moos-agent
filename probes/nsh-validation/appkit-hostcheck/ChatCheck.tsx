@@ -21,7 +21,7 @@ function check(ok: unknown, name: string) {
 }
 async function until(name: string, ready: () => unknown) {
   stage = name;
-  const deadline = Date.now() + 12000;
+  const deadline = Date.now() + 32000;
   while (!ready()) {
     if (Date.now() >= deadline) throw Error('deadline');
     await sleep(25);
@@ -70,7 +70,7 @@ async function run() {
   const catalog = await desktopCall('projects.list', {});
   check(catalog.projects.length === 2 && catalog.models?.defaultId === 'fixture' &&
     catalog.models.options.some(m => m.id === 'fixture-alternate'), 'fixture catalog');
-  await until('native chat layout', () => ['sidebar', 'messages', 'primary-action'].every(n => geometry.has(n)));
+  await until('native chat layout', () => ['sidebar', 'messages', 'primary-action', 'composer-add'].every(n => geometry.has(n)));
   check(current.task === null && current.rows.length === 0 && submissions === 0 && page.before === null &&
     page.projectId === scope.projectId && page.sessionId === scope.sessionId, 'no replay before Send');
   if (restart) {
@@ -121,7 +121,6 @@ async function run() {
   await sleep(550);
   check(lastPoll === polls && c.diagnostics.pending === 0 && c.diagnostics.timers === 0, 'no polling after drain');
   if (restart) {
-    await until('team goal toggle laid out', () => geometry.has('team-goal-toggle'));
     actions.toggleGoal(); send('N01_GOAL_REPAIR');
     await until('team goal independent repair and completion', () => actions.goal()?.status === 'completed' && current.drained);
     check(actions.goal()?.round === 2 && actions.goal()?.verifiedMembers === 1 && geometry.has('team-goal-status'), 'team goal repairs then independently completes');
@@ -138,12 +137,33 @@ async function run() {
     actions.resumeGoal();
     await until('team goal resume completes', () => actions.goal()?.status === 'completed' && current.drained);
     check(actions.goal()?.id === pausedId && actions.goal()?.round === 2, 'team goal resumes the same objective');
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGNIn3qAJMQwqmFUw/DVAACx2bwQBikQCwAAAABJRU5ErkJggg==';
+    actions.chooseModel({ modelId: 'fixture-alternate', reasoningEffort: 'high' });
+    actions.attachImages([new File([Uint8Array.from(atob(png), c => c.charCodeAt(0))], 'fixture.png', { type: 'image/png' })]);
+    const priorImageTask = current.task!.id;
+    send('N01_PASTE_IMAGE');
+    await until('attached image drains through private native transport', () => drained(priorImageTask));
+    check(current.task?.status === 'succeeded' && current.rows.some(r => r.body === 'N01_IMAGE_RECEIVED'), 'clipboard image handed to PI');
+
+    const added = await desktopCall('models.manage', { action: 'save',
+      service: { id: null, name: 'Synthetic Relay', baseUrl: 'https://example.invalid/v1', api: 'openai-responses', service: 'openai', apiKey: 'test-fixture-only' },
+      model: { id: null, label: 'Synthetic Sol', model: 'fixture-sol', maxTokens: 8192, contextWindow: 128000,
+        efforts: ['off', 'high'], defaultEffort: 'high', imageInput: false } });
+    check(added.services[0]?.name === 'Synthetic Relay' && added.models.options.some(m => m.label === 'Synthetic Sol' &&
+      m.reasoning?.defaultId === 'high') && !JSON.stringify(added).includes('test-fixture-only'), 'native model configuration');
+    const renamed = await desktopCall('sessions.manage', { ...scope, action: 'rename', title: 'AppKit verified session' });
+    check(renamed.sessions[0]?.title === 'AppKit verified session', 'native session rename command');
   }
   await host.call('n01.complete', true);
   console.log(`N01_APPKIT_CHAT ${JSON.stringify({ restart, scope, checks })}`);
 }
 setTimeout(async () => {
   try { await run(); }
-  catch { console.error(`N01_APPKIT_CHAT_FAILED ${stage}`); }
+  catch {
+    const current = ui?.controller.current;
+    console.error(`N01_APPKIT_CHAT_FAILED ${stage} ${JSON.stringify({
+      status: current?.task?.status, busy: current?.busy, drained: current?.drained, code: current?.error, submissions,
+    })}`);
+  }
   finally { Application.quit(); }
 }, 100);

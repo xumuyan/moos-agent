@@ -11,7 +11,7 @@ export function modelCatalog(value: unknown): DesktopModelCatalog {
   if (!v || !Array.isArray(v.options) || !v.options.length || v.options.length > 64) return invalid();
   const options = Array.from(v.options, (m): DesktopModel => {
     if (!m || !token(m.id) || !label(m.label)) return invalid();
-    const model: DesktopModel = { id: m.id, label: m.label };
+    const model: DesktopModel = { id: m.id, label: m.label, ...(m.imageInput === true && { imageInput: true }) };
     if (m.group !== undefined) {
       if (!m.group || !token(m.group.id) || !label(m.group.label)) return invalid();
       model.group = { id: m.group.id, label: m.group.label };

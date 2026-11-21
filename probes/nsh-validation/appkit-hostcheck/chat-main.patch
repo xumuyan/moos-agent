@@ -10,7 +10,8 @@
  use serde_json::Value;
  use std::{ffi::{CStr, CString, c_char, c_void}, path::PathBuf, slice, sync::atomic::{AtomicBool, AtomicUsize, Ordering::SeqCst}, process::ExitCode};
 
- const METHODS: [&str; 7] = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events", "sessions.history"];
+-const METHODS: [&str; 7] = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events", "sessions.history"];
++const METHODS: [&str; 10] = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events", "sessions.history", "sessions.manage", "models.manage", "images.stage"];
 -const ID: &str = "dev.muma.probe.nsh.appkit.package.check";
 +const ID: &str = "dev.muma.probe.nsh.appkit.chat";
  static PENDING: AtomicUsize = AtomicUsize::new(0);

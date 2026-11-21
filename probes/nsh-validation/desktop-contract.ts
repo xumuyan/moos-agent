@@ -14,11 +14,11 @@ export type TeamGoal = Scope & {
 export type TeamGoalAction = 'start' | 'resume';
 export type Project = { id: string; name: string };
 type LabeledId = { id: string; label: string };
-export type DesktopModel = LabeledId & { group?: LabeledId; reasoning?: { defaultId: string; levels: LabeledId[] } };
+export type DesktopModel = LabeledId & { imageInput?: true; group?: LabeledId; reasoning?: { defaultId: string; levels: LabeledId[] } };
 export type DesktopModelCatalog = { options: DesktopModel[]; defaultId: string };
 // Optional read-only hover metadata. workspaceLabel is relative to the isolated
 // Host root, not a full filesystem path or a value accepted by any request.
-export type Session = { id: string; projectId: string; title: string; preview?: { workspaceLabel: string; createdAt: string } };
+export type Session = { id: string; projectId: string; title: string; pinned?: true; preview?: { workspaceLabel: string; workspacePath?: string; createdAt: string } };
 export type PublicEvent = { sequence: number } & (
   { type: 'text_delta'; payload: { delta: string; truncated: boolean } } |
   { type: 'task_state'; payload: { status: TaskStatus; errorCode: string | null } } |
@@ -30,18 +30,31 @@ export type DesktopTaskStatistics = {
   toolSteps: number | null; elapsedMs: number | null; toolMs: number | null;
   cacheHitRate: number | null; context: { tokens: number; window: number } | null;
 };
+export type SessionAction = 'pin' | 'archive' | 'fork' | 'reveal' | 'rename';
+export type ModelConfig = { id: string | null; label: string; model: string; contextWindow: number;
+  maxTokens: number; imageInput: boolean; efforts: string[]; defaultEffort: string };
+export type ServiceConfig = { id: string | null; name: string; baseUrl: string; api: 'openai-completions' | 'openai-responses';
+  service: 'openai' | 'glm' };
+export type SavedService = Omit<ServiceConfig, 'id'> & { id: string; hasKey: boolean; models: ModelConfig[] };
+export type WorkspaceChanges = { files: { path: string; summary: '新增' | '删除' | '修改' }[]; limited: boolean };
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
+  'sessions.manage': { params: Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string });
+    result: { sessions: Session[]; selectedId?: string } };
+  'models.manage': { params: { action: 'list' } | { action: 'save'; service: ServiceConfig & { apiKey: string }; model: ModelConfig };
+    result: { services: SavedService[]; models: DesktopModelCatalog } };
+  'images.stage': { params: Scope & { batchId: string; index: number; offset: number; data: string; mime: string };
+    result: Record<string, never> };
   // Only the trusted persistent fixture enables this historical (not live) view.
   'sessions.history': { params: Scope & { before: string | null }; result: Scope & {
     messages: { id: string; role: 'user' | 'assistant'; text: string; truncated: boolean }[]; before: string | null; teamGoal?: TeamGoal;
   } };
-  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string; teamGoal?: TeamGoalAction }; result: { task: Task; replayed: boolean; teamGoal?: TeamGoal } };
+  'tasks.submit': { params: Scope & { requestId: string; text: string; modelId?: string; reasoningEffort?: string; teamGoal?: TeamGoalAction; imageBatch?: string }; result: { task: Task; replayed: boolean; teamGoal?: TeamGoal } };
   'tasks.cancel': { params: TaskRef; result: { task: Task } };
   'tasks.events': { params: TaskRef & { cursor: string | null; limit: number }; result: {
-    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean; statistics?: DesktopTaskStatistics; teamGoal?: TeamGoal;
+    task: Task; terminal: boolean; events: PublicEvent[]; cursor: string; hasMore: boolean; statistics?: DesktopTaskStatistics; teamGoal?: TeamGoal; workspaceChanges?: WorkspaceChanges;
   } };
 };
 export type Method = keyof Calls;

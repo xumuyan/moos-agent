@@ -70,9 +70,9 @@ test('fixed live entry loads isolated files and advertises only public options; 
   const repo = fileURLToPath(new URL('../../', import.meta.url));
   const probe = join(root, 'probes', 'nsh-validation'), config = join(root, ...configParts);
   await mkdir(probe, { recursive: true }); await mkdir(config, { recursive: true, mode: 0o700 });
-  for (const part of ['packages', 'services']) await symlink(join(repo, part), join(root, part));
+  for (const part of ['packages', 'services', 'apps']) await symlink(join(repo, part), join(root, part));
   for (const name of ['desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-host-stdio.mjs',
-    'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs']) {
+    'desktop-host.mjs', 'desktop-model-services.mjs', 'desktop-images.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs']) {
     await copyFile(join(source, name), join(probe, name));
   }
   await writeFile(join(config, 'providers.json'), JSON.stringify(settings()), { mode: 0o600 });

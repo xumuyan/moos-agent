@@ -5,7 +5,7 @@ import re
 import unittest
 from pathlib import Path
 
-from nsh_composer_provenance import ROOT, idle_host_evidence, successor_input
+from nsh_composer_provenance import ROOT, current_composer_input, idle_host_evidence, successor_input
 
 PROBE = ROOT / 'probes/nsh-validation'
 
@@ -67,6 +67,7 @@ class DesktopAppKitSourceEvidenceTests(unittest.TestCase):
             data = (PROBE / name).read_bytes()
             path = (PROBE / name).relative_to(ROOT).as_posix()
             expected = successor_input(self, successor, path, source)
+            expected = current_composer_input(self, path, expected, after=idle_host_evidence)
             self.assertEqual({'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}, expected, name)
         for name, marker in (
             ('link-first/build-custom.log', b'Undefined symbols for architecture arm64'),

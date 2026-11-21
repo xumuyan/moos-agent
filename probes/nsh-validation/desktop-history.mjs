@@ -7,16 +7,16 @@ export function openDesktopHistory(dbPath) {
   try {
     const upper = db.prepare('SELECT COALESCE(max(rowid), 0) AS upper FROM messages').get().upper;
     const cursor = db.prepare(`SELECT rowid AS position FROM messages WHERE id = ? AND conversationId = ?
-      AND rowid <= ? AND role IN ('user', 'assistant')`);
+      AND (rowid <= ? OR (? = 1 AND taskId IS NULL)) AND role IN ('user', 'assistant')`);
     const page = db.prepare(`SELECT id, role, substr(content, 1, 4097) AS text FROM messages
-      WHERE conversationId = ? AND rowid <= ? AND rowid < ? AND role IN ('user', 'assistant')
+      WHERE conversationId = ? AND (rowid <= ? OR (? = 1 AND taskId IS NULL)) AND rowid < ? AND role IN ('user', 'assistant')
       ORDER BY rowid DESC LIMIT 13`);
     return {
       close: () => db.close(),
-      read({ projectId, sessionId, before }) {
-        const position = before === null ? upper + 1 : cursor.get(before, sessionId, upper)?.position;
+      read({ projectId, sessionId, before }, fork = false) {
+        const position = before === null ? (fork ? Number.MAX_SAFE_INTEGER : upper + 1) : cursor.get(before, sessionId, upper, Number(fork))?.position;
         if (position === undefined) return null;
-        const rows = page.all(sessionId, upper, position);
+        const rows = page.all(sessionId, upper, Number(fork), position);
         const messages = rows.slice(0, 12).reverse().map(({ id, role, text }) => {
           const characters = [...text];
           return { id, role, text: characters.slice(0, 4096).join(''), truncated: characters.length > 4096 };

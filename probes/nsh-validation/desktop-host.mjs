@@ -1,5 +1,6 @@
 /** N01 trusted desktop launch layer. No listener, UI paths or renderer credentials. */
 import { mkdtemp, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,6 +13,10 @@ import { desktopTaskStatistics } from './desktop-statistics.mjs';
 import { openDesktopHistory } from './desktop-history.mjs';
 import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
 import { readDesktopGoal, saveDesktopGoal, desktopGoalView, runDesktopTeamGoal } from './desktop-team-goal.mjs';
+
+import { desktopModelServices } from './desktop-model-services.mjs';
+import { desktopImages } from './desktop-images.mjs';
+import { withWorkspaceChanges } from '../../apps/electron/plugin/pi-workspace-changes.js';
 
 const terminal = new Set(['succeeded', 'failed', 'cancelled', 'interrupted']);
 const token = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -59,6 +64,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
   const release = () => lease ? lease.close() : rm(root, { recursive: true, force: true });
   let store, history, fixture, scheduler, closing, closed = false;
   const journals = new Map(), requests = new Map(), trustedProjects = [];
+  const attachments = desktopImages(reject);
   try {
     const dataDir = join(root, 'data');
     const dbPath = join(dataDir, 'desktop.sqlite');
@@ -92,29 +98,50 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     if (lease && !liveModels) history = openDesktopHistory(dbPath);
     if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
+    const modelServices = history && desktopModelServices(root, desktopFixtureModels);
+    const directory = () => modelServices ? modelServices.catalog() : catalog;
+    const metadata = id => JSON.parse(store.getSetting(`desktop.session.${id}`) ?? '{}');
+    const saveMetadata = (id, value) => store.setSetting(`desktop.session.${id}`, JSON.stringify(value));
+    function sessionList(projectId, trusted) {
+      return store.listConversations(projectId).filter(s => !metadata(s.id).archived)
+        .sort((a, b) => Number(!!metadata(b.id).pinned) - Number(!!metadata(a.id).pinned))
+        .map(s => sessionView(s, trusted));
+    }
     scheduler = new Scheduler({ store, concurrency: 2, run: async options => {
-      const { modelId, reasoningEffort, goal } = journals.get(options.task.id);
-      const entry = liveModels ? liveModels.routes.get(modelId) : { apiKey: fixture.apiKey,
+      const journal = journals.get(options.task.id);
+      const { modelId, reasoningEffort, goal, images, configured } = journal;
+      const entry = configured ?? (liveModels ? liveModels.routes.get(modelId) : { apiKey: fixture.apiKey,
         provider: { id: 'n01-desktop-fixture', name: 'Desktop local fixture', baseUrl: fixture.baseUrl,
-          model: modelId, api: 'openai-completions', contextWindow: 64000, maxTokens: 2048 } };
+          model: modelId, api: 'openai-completions', contextWindow: 64000, maxTokens: 2048, imageInput: modelId === 'fixture-alternate' } });
       const execution = { ...options, task: { ...options.task, text: options.task.message },
-        provider: { ...entry.provider, thinkingLevel: reasoningEffort ?? 'off' }, apiKey: entry.apiKey, dataDir, imageGen: null,
+        provider: { ...entry.provider, thinkingLevel: reasoningEffort ?? 'off' }, apiKey: entry.apiKey, dataDir, imageGen: null, images,
+        fork: metadata(options.conversation.id).fork ? { history: store.listMessages(options.conversation.id)
+          .filter(m => m.taskId === null && ['user', 'assistant'].includes(m.role))
+          .map(m => ({ role: m.role, text: m.content, timestamp: Date.parse(m.createdAt) })) } : undefined,
         permissions: { getMode: () => 'workspace-write' },
         sessionPolicy: { allowedTools: liveModels ? ['read', 'write', 'edit', 'ls', 'bash'] : ['read', 'write', 'bash'] } };
       try {
-        if (!goal) return await run(execution);
-        return await runDesktopTeamGoal(execution, goal, patch => {
+        const execute = () => !goal ? run(execution) : runDesktopTeamGoal(execution, goal, patch => {
           Object.assign(goal, patch);
           saveDesktopGoal(store, options.conversation.id, goal);
+        });
+        if (!history) return await execute();
+        return await withWorkspaceChanges(options.project.path, options.signal, execute, changes => {
+          journal.changes = { files: changes.files.slice(0, 100).filter(f => f.path.length <= 400),
+            limited: changes.limited || changes.files.length > 100 || changes.files.some(f => f.path.length > 400) };
         });
       } catch (error) {
         if (options.signal.aborted) throw new TaskFailure('cancelled');
         // Preserve only known, sanitized PI failure codes; never forward an upstream error body.
-        if ((liveModels || goal) && error instanceof TaskFailure) throw new TaskFailure(error.code);
+        if ((liveModels || configured || goal || images) && error instanceof TaskFailure) throw new TaskFailure(error.code);
         throw new TaskFailure('internal');
-      }
+      } finally { journal.images = undefined; journal.configured = undefined; }
     }, onEvent: event => {
       const journal = journals.get(event.taskId);
+      if (event.type === 'task_state' && terminal.has(event.payload.status)) {
+        journal.images = undefined;
+        journal.configured = undefined;
+      }
       journal.statistics.observe(event);
       const payload = publicPayload(event.type, event.payload);
       if (!payload) return;
@@ -147,22 +174,77 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     }
     function sessionView(s, trusted) {
       return { id: s.id, projectId: s.projectId, title: s.title,
-        preview: { workspaceLabel: trusted.workspaceLabel, createdAt: s.createdAt } };
+        preview: { workspaceLabel: trusted.workspaceLabel, ...(history && { workspacePath: trusted.path }), createdAt: s.createdAt },
+        ...(metadata(s.id).pinned && { pinned: true }) };
     }
     function dispatch(method, p) {
       switch (method) {
         case 'projects.list': exact(p, []); return {
           projects: trustedProjects.map(({ id, name }) => ({ id, name })),
-          models: catalog, ...(history ? { teamGoals: true } : {}),
+          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}),
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
-          return { sessions: store.listConversations(p.projectId).map(s => sessionView(s, trusted)) };
+          return { sessions: sessionList(p.projectId, trusted) };
         }
         case 'sessions.create': {
           exact(p, ['projectId', 'title']); const trusted = project(p.projectId); title(p.title);
-          if (store.listConversations(p.projectId).length >= 16) reject('limit');
+          if (sessionList(p.projectId, trusted).length >= 16) reject('limit');
           return { session: sessionView(store.createConversation(p.projectId, p.title), trusted) };
+        }
+        case 'sessions.manage': {
+          if (!history) reject('unsupported_method');
+          const fields = ['projectId', 'sessionId', 'action'];
+          exact(p, p?.action === 'rename' ? [...fields, 'title'] : fields);
+          const source = session(p.projectId, p.sessionId), trusted = project(p.projectId);
+          const state = metadata(source.id);
+          if (state.archived) reject('not_found');
+          if (p.action === 'reveal') {
+            const child = spawn('/usr/bin/open', ['-R', trusted.path], { stdio: 'ignore' });
+            child.on('error', () => {});
+            child.unref();
+            return { sessions: sessionList(p.projectId, trusted) };
+          }
+          if (p.action === 'rename') {
+            store.renameConversation({ projectId: p.projectId, conversationId: source.id, title: title(p.title).trim() });
+          } else if (p.action === 'pin') {
+            saveMetadata(source.id, { ...state, pinned: !state.pinned });
+          } else if (p.action === 'archive' || p.action === 'fork') {
+            if (['queued', 'running'].includes(store.latestTask(source.id)?.status)) reject('conflict');
+            if (p.action === 'archive') {
+              saveMetadata(source.id, { ...state, archived: true });
+            } else {
+              if (sessionList(p.projectId, trusted).length >= 16) reject('limit');
+              const messages = store.listMessages(source.id).filter(m => ['user', 'assistant'].includes(m.role));
+              const fork = store.transaction(() => {
+                const created = store.createConversation(p.projectId, source.title.slice(0, 95) + '（分支）');
+                for (const m of messages) store.addMessage({ conversationId: created.id, role: m.role, content: m.content });
+                saveMetadata(created.id, { fork: true });
+                return created;
+              });
+              return { sessions: sessionList(p.projectId, trusted), selectedId: fork.id };
+            }
+          } else reject('invalid_request');
+          return { sessions: sessionList(p.projectId, trusted) };
+        }
+        case 'models.manage': {
+          if (!modelServices) reject('unsupported_method');
+          if (p?.action === 'list') {
+            exact(p, ['action']);
+            return { services: modelServices.list(), models: directory() };
+          }
+          if (p?.action !== 'save') reject('invalid_request');
+          exact(p, ['action', 'service', 'model']);
+          try { return modelServices.save(p); }
+          catch (error) { reject(['limit', 'not_found'].includes(error.message) ? error.message : 'invalid_request'); }
+          break;
+        }
+        case 'images.stage': {
+          if (!history) reject('unsupported_method');
+          exact(p, ['projectId', 'sessionId', 'batchId', 'index', 'offset', 'data', 'mime']);
+          session(p.projectId, p.sessionId);
+          if (!token(p.batchId) || metadata(p.sessionId).archived) reject('invalid_request');
+          return attachments.stage(p);
         }
         case 'sessions.history': {
           if (!history) reject('unsupported_method');
@@ -170,7 +252,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           if (!token(p.projectId) || !token(p.sessionId)) reject('invalid_request');
           session(p.projectId, p.sessionId);
           if (p.before !== null && !token(p.before)) reject('invalid_cursor');
-          const page = history.read(p) ?? reject('invalid_cursor');
+          const page = history.read(p, metadata(p.sessionId).fork === true) ?? reject('invalid_cursor');
           const teamGoal = desktopGoalView(store, readDesktopGoal(store, p.sessionId));
           return teamGoal ? { ...page, teamGoal } : page;
         }
@@ -178,15 +260,18 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           const explicit = p && Object.hasOwn(p, 'modelId');
           const explicitEffort = p && Object.hasOwn(p, 'reasoningEffort');
           const goalRequest = p && Object.hasOwn(p, 'teamGoal');
+          const withImages = p && Object.hasOwn(p, 'imageBatch');
           exact(p, ['projectId', 'sessionId', 'requestId', 'text', ...(explicit ? ['modelId'] : []),
-            ...(explicitEffort ? ['reasoningEffort'] : []), ...(goalRequest ? ['teamGoal'] : [])]);
+            ...(explicitEffort ? ['reasoningEffort'] : []), ...(goalRequest ? ['teamGoal'] : []), ...(withImages ? ['imageBatch'] : [])]);
           session(p.projectId, p.sessionId);
           if (!token(p.requestId) || typeof p.text !== 'string' || !p.text.trim() || Buffer.byteLength(p.text) > 4096 || p.text.includes('\x00')) reject('invalid_request');
           if (goalRequest && (!history || !['start', 'resume'].includes(p.teamGoal))) reject('invalid_request');
+          if (metadata(p.sessionId).archived) reject('not_found');
+          if (withImages && (!history || goalRequest || !token(p.imageBatch))) reject('invalid_request');
           const existing = readDesktopGoal(store, p.sessionId);
           const resume = p.teamGoal === 'resume';
-          const modelId = resume ? existing?.modelId : explicit ? p.modelId : catalog.defaultId;
-          const model = catalog.options.find(m => m.id === modelId);
+          const modelId = resume ? existing?.modelId : explicit ? p.modelId : directory().defaultId;
+          const model = directory().options.find(m => m.id === modelId);
           if (!model) reject('invalid_request');
           if (explicitEffort && !model.reasoning?.levels.some(e => e.id === p.reasoningEffort)) reject('invalid_request');
           const reasoningEffort = resume ? existing.reasoningEffort : explicitEffort ? p.reasoningEffort : model.reasoning?.defaultId;
@@ -194,7 +279,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           const key = `${p.sessionId}:${p.requestId}`, prior = requests.get(key);
           if (prior) {
             const admitted = journals.get(prior.id);
-            if (prior.teamGoal !== p.teamGoal || prior.text !== p.text ||
+            if (prior.teamGoal !== p.teamGoal || prior.text !== p.text || prior.imageBatch !== p.imageBatch ||
                 admitted.modelId !== modelId || admitted.reasoningEffort !== reasoningEffort) reject('conflict');
             const teamGoal = desktopGoalView(store, admitted.goal);
             return { task: taskView(store.getTask(prior.id)), replayed: true, ...(teamGoal && { teamGoal }) };
@@ -208,12 +293,19 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
             modelId, reasoningEffort, requestId: p.requestId, phase: 'planning', verifiedMembers: 0, toolPreviewLimited: false,
           } : undefined;
           if (requests.size >= 32) reject('limit');
+          if (withImages && !model.imageInput) reject('invalid_request');
+          const images = withImages ? attachments.peek(p.sessionId, p.imageBatch) : undefined;
+          if (images && [...journals.values()].reduce((sum, j) =>
+              sum + (j.images?.reduce((total, i) => total + i.data.length, 0) ?? 0), 0) +
+              images.reduce((sum, i) => sum + i.data.length, 0) > 64 * 1024 * 1024) reject('limit');
+          const configured = modelServices && modelServices.route(modelId);
           const created = scheduler.submit({ conversationId: p.sessionId, message: p.text, timeoutMs: goal ? 7200000 : 600000,
             onCreate: t => {
               if (goal) saveDesktopGoal(store, p.sessionId, Object.assign(goal, { taskId: t.id }));
-              journals.set(t.id, { modelId, reasoningEffort, goal, events: [], last: 0, floor: 0, bytes: 0, statistics: desktopTaskStatistics() });
+              journals.set(t.id, { modelId, reasoningEffort, goal, images, configured, events: [], last: 0, floor: 0, bytes: 0, statistics: desktopTaskStatistics() });
             } });
-          requests.set(key, { id: created.id, text: p.text, teamGoal: p.teamGoal });
+          if (withImages) attachments.consume(p.sessionId, p.imageBatch);
+          requests.set(key, { id: created.id, text: p.text, teamGoal: p.teamGoal, imageBatch: p.imageBatch });
           return { task: taskView(created), replayed: false, ...(goal && { teamGoal: desktopGoalView(store, goal) }) };
         }
         case 'tasks.cancel': exact(p, ['projectId', 'sessionId', 'taskId']); task(p);
@@ -242,7 +334,8 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
           return { task: taskView(found), terminal: ended, events,
             cursor: `${found.id}:${next}`, hasMore,
             ...(teamGoal && { teamGoal }),
-            ...(ended && !hasMore ? { statistics: journal.statistics.snapshot() } : {}) };
+            ...(ended && !hasMore ? { statistics: journal.statistics.snapshot(),
+              ...(journal.changes && { workspaceChanges: journal.changes }) } : {}) };
         }
         default: reject('unsupported_method');
       }
@@ -261,6 +354,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     }
     async function close() {
       closed = true;
+      attachments.clear();
       if (!closing) closing = (async () => {
         const drained = await scheduler.shutdown({ timeoutMs: 15000 });
         if (!drained.drained) throw new Error('Desktop drain incomplete; state retained');

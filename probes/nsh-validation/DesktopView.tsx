@@ -1,8 +1,8 @@
-import { cleanup, colorScheme, computed, createMotion, host, Image, List, platform, setColorScheme, signal, Text, View, windowSize, type Bounds, type ScrollEvent } from 'nsh';
+import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
-import { Button, Input, TextView, Tooltip } from 'nsh/base';
+import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { Calls, DesktopModelCatalog, Scope, TaskRef, TeamGoal, TeamGoalAction } from './desktop-contract';
+import type { Calls, DesktopModelCatalog, Scope, Session, SessionAction, TaskRef, TeamGoal, TeamGoalAction, WorkspaceChanges } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
@@ -49,7 +49,8 @@ function SessionActivity(props: { id: string; onLayout?: (e: { bounds: Bounds })
 }
 
 export type DesktopActions = { controller: DesktopController; type: (text: string) => void; send: () => void; stop: () => void; project: (id: string) => Promise<void>; session: (id: string) => void; create: () => Promise<void>; history: () => HistoryPage | null;
-  toggleGoal: () => void; resumeGoal: () => void; goal: () => TeamGoal | undefined };
+  attachImages: (files: File[]) => void; chooseModel: (choice: ModelChoice) => void; toggleGoal: () => void; resumeGoal: () => void; goal: () => TeamGoal | undefined };
+type Attachment = { file: File; url: string };
 type HistoryPage = Calls['sessions.history']['result'];
 const teamGoalStatuses = { queued: '排队中', running: '进行中', paused: '已暂停', blocked: '待处理', completed: '已完成' };
 const teamGoalPhases = { planning: '队长拆分', working: '成员执行', checking: '独立验收', continuing: '补齐验收差距', verified: '验收通过' };
@@ -74,6 +75,15 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
+  const managed = signal(false), sessionDetails = signal<Session[]>([]);
+  const sessionError = signal(''), sessionPending = signal(false);
+  const rename = signal<string | null>(null), renameTitle = signal('');
+  const sessionHover = signal(''), sessionMenu = signal('');
+  const files = signal<Attachment[]>([]), attachmentError = signal(''), uploading = signal(false);
+  const changes = signal(new Map<string, { row: number; summary: WorkspaceChanges }>());
+  const openGroups = signal(new Set<string>());
+  let editorVersion = 0, nextImageBatch = 0;
+  let renameInput: InputRef | undefined;
   const settingsOpen = signal(false), appearance = signal<DesktopAppearance>('system');
   const showCharacters = signal(true), showStatistics = signal(true);
   const changeAppearance = (next: DesktopAppearance) => {
@@ -97,7 +107,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const queueRevision = signal(0);
   const queueChanged = () => queueRevision.set(queueRevision() + 1);
   const editTurn = signal<{ id: number; text: string } | null>(null);
-  const outboundChoices = new Map<string, { choice?: ModelChoice; teamGoal?: TeamGoalAction }>();
+  const outboundChoices = new Map<string, { choice?: ModelChoice; teamGoal?: TeamGoalAction; imageBatch?: string }>();
   const goalAvailable = signal(false), goalSelected = signal(false);
   const teamGoals = signal(new Map<string, TeamGoal>());
   function rememberGoal(scope: Scope, value: unknown, taskId?: string) {
@@ -117,19 +127,33 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const key = method === 'tasks.submit' ? scopeKey(params as { projectId: string; sessionId: string }) : '';
     const outbound = outboundChoices.get(key);
     const choice = key ? (outbound ? outbound.choice : modelChoice(key)) : undefined;
-    const result = await transport(method, choice || outbound?.teamGoal
-      ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }) } : params);
+    const result = await transport(method, key && (choice || outbound)
+      ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }),
+        ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }) } : params);
     if (method === 'projects.list' && !disposed) {
-      const data = result as { models?: unknown; teamGoals?: unknown } | null;
+      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
+      managed.set(props.persistentHistory === true && data?.desktopManagement === true);
       goalAvailable.set(props.persistentHistory === true && data?.teamGoals === true);
     }
     if (!disposed && (method === 'sessions.list' || method === 'sessions.create')) {
       const { projectId } = params as { projectId: string };
       const data = result as { sessions?: unknown; session?: unknown } | null;
       previews.remember(projectId, method === 'sessions.list' ? data?.sessions : [data?.session]);
+      if (managed() && projectId === controller.projectId) {
+        if (Array.isArray(data?.sessions)) sessionDetails.set(data.sessions);
+        else if (data?.session) sessionDetails.set([...sessionDetails(), data.session as Session]);
+      }
     }
-    if (method === 'tasks.events' && !disposed) statistics.stage(params as TaskRef, result);
+    if (method === 'tasks.events' && !disposed) {
+      statistics.stage(params as TaskRef, result);
+      const page = result as Calls['tasks.events']['result'];
+      const id = scopeKey(params as Scope) + ':' + page.task?.id;
+      if (page.terminal && !page.hasMore && page.workspaceChanges && !changes().has(id)) {
+        const row = controller.conversations.get((params as Scope).sessionId)?.rows.findLastIndex(r => r.role === '你');
+        if (row !== undefined && row >= 0) changes.set(new Map(changes()).set(id, { row, summary: page.workspaceChanges }));
+      }
+    }
     if (goalAvailable() && !disposed && (method === 'tasks.submit' || method === 'tasks.events')) {
       const taskId = method === 'tasks.events' ? (params as TaskRef).taskId : (result as Calls['tasks.submit']['result']).task?.id;
       rememberGoal(params as Scope, (result as { teamGoal?: unknown }).teamGoal, taskId);
@@ -208,13 +232,109 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (!props.persistentHistory) return cachedRows(key, c?.rows ?? []);
     const saved = selectedHistory()?.messages.map(m => ({ role: m.role === 'user' ? '你' : 'PI 公开文本',
       body: m.text + (m.truncated ? ' [历史预览已截断]' : '') })) ?? [];
-    return cachedRows(key, [...saved, ...(c?.rows ?? [])]);
+    const live = c?.rows ?? [];
+    if (!managed()) return cachedRows(key, [...saved, ...live]);
+    const grouped: { role: string; body: string }[] = [];
+    let tools: string[] = [];
+    const flush = () => {
+      if (tools.length) { grouped.push({ role: '执行过程', body: JSON.stringify(tools) }); tools = []; }
+    };
+    const byTurn = new Map([...changes()].filter(([id]) => id.startsWith(key + ':')).map(([, value]) => [value.row, value.summary]));
+    let turn = -1;
+    const appendChanges = () => {
+      const summary = byTurn.get(turn);
+      if (summary && (summary.files.length || summary.limited)) grouped.push({ role: '工作区变化', body: JSON.stringify(summary) });
+    };
+    for (const [index, row] of live.entries()) {
+      if (row.role === '你') { flush(); appendChanges(); turn = index; }
+      if (row.role === '工具' && toolCard(row.role, row.body, false)) tools.push(row.body);
+      else if (row.role !== '状态') { flush(); grouped.push(row); }
+    }
+    flush();
+    if (c?.error || c?.task?.errorCode) grouped.push({ role: '任务状态', body: error() });
+    else if (c?.busy) grouped.push({ role: '处理中', body: c.stopping ? '正在停止，等待工具退出' : c.task?.status === 'queued' ? '等待执行' : '正在处理' });
+    appendChanges();
+    return cachedRows(key, [...saved, ...grouped]);
   };
+  const modelCanSee = () => catalog()?.options.some(m => m.id === modelChoice(pickerScope())?.modelId && m.imageInput);
+  function removeImages(index?: number) {
+    files.set(files().filter((asset, i) => {
+      if (index !== undefined && i !== index) return true;
+      URL.revokeObjectURL(asset.url);
+      return false;
+    }));
+  }
+  function attachImages(incoming: File[]) {
+    if (!managed() || !controller.current || !incoming.length) return;
+    if (goalSelected()) { attachmentError.set('请取消团队目标，再附加图片。'); return; }
+    const next = incoming.filter(file => ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)
+      && file.size > 0 && file.size <= 5 * 1024 * 1024);
+    const room = Math.max(0, 8 - files().length);
+    files.set([...files(), ...next.slice(0, room).map(file => ({ file, url: URL.createObjectURL(file) }))]);
+    attachmentError.set(next.length !== incoming.length || next.length > room ? '最多附加 8 张 PNG、JPEG、GIF 或 WebP 图片，单张不超过 5 MB。' : '');
+  }
+  async function stageImages(scope: Scope, batchId: string, images: File[], version: number) {
+    try {
+      for (const [index, image] of images.entries()) {
+        const bytes = new Uint8Array(await image.arrayBuffer());
+        for (let offset = 0; offset < bytes.length; offset += 9216) {
+          if (disposed || editorVersion !== version) throw Error('stale');
+          const data = btoa(String.fromCharCode(...bytes.subarray(offset, offset + 9216)));
+          await transport('images.stage', { ...scope, batchId, index, offset, data, mime: image.type });
+        }
+      }
+    } catch (error) {
+      if (!disposed) void transport('images.stage', { ...scope, batchId, index: 0, offset: 0, data: '', mime: 'image/png' }).catch(() => {});
+      throw error;
+    }
+  }
+  async function modelSettings(params: Calls['models.manage']['params']) {
+    const result = await transport('models.manage', params);
+    if (!disposed) {
+      const next = modelCatalog(result.models);
+      catalog.set(next);
+      const valid = new Map([...choices()].flatMap(([key, choice]) => {
+        const model = next.options.find(m => m.id === choice.modelId);
+        if (!model) return [];
+        return [[key, model.reasoning?.levels.some(e => e.id === choice.reasoningEffort) ? choice : defaultChoice(model)] as const];
+      }));
+      choices.set(valid);
+    }
+    return result;
+  }
+  async function sessionAction(action: SessionAction | 'copy', id: string, name = '') {
+    if (sessionPending() || controller.loading || disposed) return;
+    const projectId = controller.projectId;
+    sessionError.set(''); sessionPending.set(true);
+    try {
+      if (action === 'copy') { await Clipboard.writeText(id); return; }
+      const target = { projectId, sessionId: id };
+      const result = await transport('sessions.manage', action === 'rename' ? { ...target, action, title: name } : { ...target, action });
+      if (disposed || projectId !== controller.projectId || action === 'reveal') return;
+      const selected = result.selectedId || controller.sessionId;
+      if (!result.sessions.some(s => s.id === controller.sessionId) || result.selectedId) resetEditor();
+      if (action === 'fork') {
+        await controller.selectProject(projectId);
+        if (projectId === controller.projectId) controller.selectSession(selected);
+      } else {
+        controller.sessions = result.sessions;
+        sessionDetails.set(result.sessions);
+        if (result.sessions.some(s => s.id === selected)) controller.selectSession(selected);
+        else if (result.sessions[0]) controller.selectSession(result.sessions[0].id);
+        else { controller.sessionId = ''; refresh(); }
+      }
+      if (action === 'rename') rename.set(null);
+    } catch (error) {
+      if (!disposed && projectId === controller.projectId) {
+        sessionError.set(error instanceof Error && error.message === 'conflict' ? '任务结束后才能归档或分叉。' : '未能完成会话操作，请重试。');
+      }
+    } finally { sessionPending.set(false); }
+  }
   const layout = () => desktopLayout(windowSize().width, right());
   const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
-  const dispose = () => { disposed = true; queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
+  const dispose = () => { disposed = true; removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
@@ -223,20 +343,21 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
   const teamGoal = () => teamGoals().get(pickerScope());
   const goalInFlight = () => ['queued', 'running'].includes(teamGoal()?.status ?? '') || !!outboundChoices.get(pickerScope())?.teamGoal;
-  const canSelectGoal = () => goalAvailable() && !blocked() && !historyPending() && !busy() &&
+  const canSelectGoal = () => goalAvailable() && !blocked() && !historyPending() && !busy() && !uploading() && !files().length &&
     !queuedRows().length && (!teamGoal() || teamGoal()?.status === 'completed');
   const canResumeGoal = () => !blocked() && !historyPending() && !busy() &&
     !queuedRows().length && ['paused', 'blocked'].includes(teamGoal()?.status ?? '');
   const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
   const hasQueuedRows = computed(() => queuedRows().length > 0);
-  const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !goalInFlight() && !queue.full(pickerScope()) && validTurnText(draft()); };
-  const disabled = () => blocked() || historyPending() || busy() || !!queuedRows().length || !validTurnText(draft());
+  const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !goalInFlight() && !files().length && !queue.full(pickerScope()) && validTurnText(draft()); };
+  const disabled = () => blocked() || historyPending() || busy() || uploading() || !!queuedRows().length ||
+    !(validTurnText(draft()) || (files().length > 0 && !draft().trim())) || (files().length > 0 && !modelCanSee());
   const canStop = () => {
     const { current, sessionId } = snapshot();
     return !blocked() && !!current?.busy && !!current.task && !isTerminal(current.task.status) &&
       !current.stopping && !submitting.has(sessionId) && !cancelling.has(sessionId);
   };
-  const pickerDisabled = () => blocked() || busy() || !catalog();
+  const pickerDisabled = () => blocked() || busy() || uploading() || !catalog();
   const queueHeld = () => queue.paused(pickerScope()) || !nextTurnReady(snapshot().current);
   const canResume = () => !blocked() && !historyPending() && !busy() && !editTurn() && queuedRows().length > 0 && queueHeld() && nextTurnReady(snapshot().current, true);
   const queueStatus = computed(() => {
@@ -245,10 +366,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (editTurn()) return '编辑完成后继续';
     return '';
   });
-  function submitTurn(text: string, choice?: ModelChoice, teamGoal?: TeamGoalAction) {
+  function submitTurn(text: string, choice?: ModelChoice, teamGoal?: TeamGoalAction, imageBatch?: string) {
     const sessionId = controller.sessionId, key = pickerScope();
     submitting.add(sessionId);
-    outboundChoices.set(key, { choice, teamGoal });
+    outboundChoices.set(key, { choice, teamGoal, imageBatch });
     void controller.submit(text).finally(() => {
       outboundChoices.delete(key);
       submitting.delete(sessionId);
@@ -269,14 +390,25 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     queueChanged();
     refresh();
   }
-  function send() {
+  async function send() {
     if (settingsOpen() || disposed || disabled()) return;
     if (goalSelected() && !canSelectGoal()) return;
-    const text = draft();
+    const images = files().map(asset => asset.file), scope = controller.current!.scope, version = editorVersion;
+    const text = draft().trim() ? draft() : '请查看附带的图片。';
+    const choice = modelChoice(pickerScope());
     const startGoal = goalSelected();
-    draft.set('');
+    let imageBatch: string | undefined;
+    if (images.length) {
+      imageBatch = `image-${Date.now().toString(36)}-${++nextImageBatch}`;
+      uploading.set(true);
+      try { await stageImages(scope, imageBatch, images, version); }
+      catch { if (version === editorVersion && !disposed) attachmentError.set('图片准备失败，请重新发送。'); return; }
+      finally { uploading.set(false); }
+      if (disposed || version !== editorVersion || pickerScope() !== scopeKey(scope)) return;
+    }
+    draft.set(''); removeImages(); attachmentError.set('');
     goalSelected.set(false);
-    submitTurn(text, modelChoice(pickerScope()), startGoal ? 'start' : undefined);
+    submitTurn(text, choice, startGoal ? 'start' : undefined, imageBatch);
   }
   function resumeGoal() {
     const goal = teamGoal();
@@ -296,12 +428,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (edit && !queue.rows(pickerScope()).some(row => row.id === edit.id)) return;
     editTurn.set(edit); if (!edit) refresh();
   };
-  const resetEditor = () => { draft.set(''); editTurn.set(null); goalSelected.set(false); };
+  const resetEditor = () => {
+    editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
+    rename.set(null); sessionError.set('');
+  };
   const project = async (id: string) => { resetEditor(); await controller.selectProject(id); };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
   const create = async () => { resetEditor(); await controller.createSession(); };
+  const chooseModel = (choice: ModelChoice) => {
+    if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice));
+  };
   props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create, history: selectedHistory,
-    toggleGoal, resumeGoal, goal: teamGoal });
+    attachImages, chooseModel, toggleGoal, resumeGoal, goal: teamGoal });
   void controller.start();
   const dark = () => colorScheme() === 'dark';
   const ink = () => dark() ? t.dark.ink : t.ink;
@@ -309,10 +447,21 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
   const active = () => !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
   const safe = () => styleLayout(active(), artAvailable, titleBarHeight());
-  const headingShadow = () => dark() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
+  const headingShadow = () => dark() || showHeaderInTrim() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
   const sidebarStyle = () => liveSidebar(artAvailable, dark());
   const footer = () => sidebarFooter(layout().sidebar, true); // this view always renders a project tree
+  const popup = () => ({ padding: 5, borderRadius: 11, borderWidth: 1, borderColor: '#9baad0',
+    backgroundColor: dark() ? '#18294f' : '#e7edf9', boxShadow: '0 5px 18px #0812344d' });
+  const menuLabel = () => ({ fontFamily: t.fontFamily, color: ink(), fontSize: 13 });
+  const menuItem = { paddingHorizontal: 8, minHeight: 32, justifyContent: 'center', borderRadius: 6 } as const;
+  const showHeaderInTrim = () => managed() && artAvailable && active();
+  const headerInk = () => showHeaderInTrim() ? t.sidebarInk : ink();
+  const laneInset = () => {
+    if (!managed()) return layout().inset;
+    const available = windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0);
+    return Math.max(layout().compact ? 12 : 24, (available - 964) / 2);
+  };
   const sidebarWidth = () => navigation() ? layout().sidebar : 0;
   // Keep the glyph clear of both the traffic lights and the gold corner art.
   const navigationLeft = () => Math.max((titleBar()?.left ?? 0) + 8, sidebarWidth() - 54);
@@ -360,24 +509,68 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 const working = computed(() => row().working);
                 const preview = previews.read(item.projectId, item.id);
                 const shownAt = signal(Date.now());
-                const taskStatus = computed(() => sessionPreviewStatus(activity(), submitting.has(item.id)));
+                const taskStatus = computed(() => sessionPreviewStatus(activity(), submitting.has(item.id)) || (managed() ? '空闲' : ''));
+                const metadata = () => sessionDetails().find(s => s.id === item.id);
+                const toolsVisible = () => managed() && (selected() || sessionHover() === item.id || sessionMenu() === item.id);
+                const pinned = () => metadata()?.pinned === true;
+                const archiveLabel = '归档会话';
+                const pinLabel = () => pinned() ? '取消置顶' : '置顶会话';
+                const controls = { width: 24, height: 23, alignItems: 'center', justifyContent: 'center', borderRadius: 5 } as const;
                 const previewInk = { fontFamily: t.fontFamily, color: '#d3d3d7', fontSize: 12, lineHeight: 17 };
                 const last = index === sessions().length - 1;
                 const mid = tree.sessionHeight / 2;
-                return <View style={{ height: tree.sessionHeight }}>
+                return <View onMouseEnter={() => sessionHover.set(item.id)} onMouseLeave={() => sessionHover.set('')}
+                    style={{ height: tree.sessionHeight }}>
                   <View testID={`branch-stem-${item.id}`} style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: 0, height: last ? mid : tree.sessionHeight, borderLeftWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
                   <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid, width: tree.branchWidth, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
-                  <Button testID={`session-${item.title}`} onLayout={measured(`session-row-${item.id}`)} selected={selected()} accessibilityLabel={`${item.title}${working() ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundImage: selected() ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} hoverStyle={controlHover} onPress={() => session(item.id)}
+                  <Button testID={`session-${item.title}`} onLayout={measured(`session-row-${item.id}`)} selected={selected()} accessibilityLabel={`${item.title}${working() ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: toolsVisible() ? 80 : 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundImage: selected() ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} hoverStyle={controlHover} onPress={() => session(item.id)}
                     tooltip={<Tooltip testID={`session-preview-${item.id}`} placement="right" align="start" offset={18} margin={8} delay={500}
                       onOpen={() => shownAt.set(Date.now())}
                       style={{ width: 244, padding: 14, gap: 6, borderRadius: 12, backgroundColor: '#29292b', boxShadow: '0 4px 14px #00000030' }}>
                       <Text style={{ ...previewInk, color: '#fff', fontSize: 14, fontWeight: '500', lineHeight: 20, numberOfLines: 3 }}>{item.title}</Text>
-                      {preview && <Text style={{ ...previewInk, numberOfLines: 2, textOverflow: 'ellipsis-middle' }}>{preview.workspaceLabel}</Text>}
+                      {preview && <Text style={{ ...previewInk, numberOfLines: 2, textOverflow: 'ellipsis-middle' }}>{metadata()?.preview?.workspacePath ?? preview.workspaceLabel}</Text>}
                       {preview && <Text style={previewInk}>{sessionAge(preview.createdAt, shownAt())}</Text>}
-                      {taskStatus() && <Text style={previewInk}>{taskStatus()}</Text>}
+                      {taskStatus() && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                        {managed() && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: working() ? '#e5ca8c' : '#aeb8cd' }} />}
+                        <Text style={previewInk}>{taskStatus()}</Text>
+                      </View>}
                     </Tooltip>}>
                     <Text testID={`session-label-${item.id}`} class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
                   </Button>
+                  {toolsVisible() && <View style={{ position: 'absolute', right: 5, top: 5, flexDirection: 'row', gap: 2 }}>
+                    <Menu placement="right" margin={8} popupStyle={{ ...popup(), minWidth: 172 }}
+                      onOpenChange={e => sessionMenu.set(e.open ? item.id : '')}
+                      trigger={<Button style={controls} hoverStyle={controlHover} focusVisibleStyle={controlFocus}
+                        testID={`session-menu-${item.id}`} accessibilityLabel="会话操作">
+                        <DesktopIcon name="ellipsis" size={14} color={t.sidebarInk} />
+                      </Button>}>
+                      {([
+                        ['pin', pinLabel()], ['rename', '重命名'], ['fork', '分叉会话'],
+                        ['copy', '复制 Session ID'], ['reveal', '在 Finder 中显示'], ['archive', archiveLabel],
+                      ] as const).map(([action, label]) => <>
+                        {(action === 'copy' || action === 'archive') && <MenuSeparator style={{ height: 1, marginVertical: 3, backgroundColor: '#97a5c77f' }} />}
+                        <MenuItem testID={`session-action-${action}`} style={menuItem} hoverStyle={controlHover}
+                          disabled={sessionPending() || ((action === 'archive' || action === 'fork') && working())}
+                          onSelect={() => {
+                            if (action === 'rename') {
+                              renameTitle.set(item.title); rename.set(item.id);
+                              setTimeout(() => { if (rename() === item.id) { renameInput?.focus(); renameInput?.setSelection(0, item.title.length); } }, 0);
+                            } else void sessionAction(action, item.id);
+                          }}>
+                          <Text style={menuLabel()}>{label}</Text>
+                        </MenuItem>
+                      </>)}
+                    </Menu>
+                    {([['archive', archiveLabel, 'archive'], ['pin', pinLabel(), 'pin']] as const).map(([action, label, icon]) =>
+                      <Button testID={`session-quick-${action}-${item.id}`} accessibilityLabel={label} style={controls}
+                        disabled={sessionPending() || (action === 'archive' && working())}
+                        hoverStyle={controlHover} focusVisibleStyle={controlFocus}
+                        tooltip={<Tooltip placement="bottom" offset={5} delay={450} style={{ backgroundColor: '#29292b', borderRadius: 6, padding: 6 }}>
+                          <Text style={{ ...previewInk, color: '#fff' }}>{label}</Text></Tooltip>}
+                        onPress={() => void sessionAction(action, item.id)}>
+                        <DesktopIcon name={icon} size={13} color={action === 'pin' && pinned() ? t.goldSoft : t.sidebarInk} />
+                      </Button>)}
+                  </View>}
                   {working() && <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} />}
                 </View>;
               })}
@@ -385,11 +578,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </View>}
         </List>
         {showCharacters() && footer().mascotVisible && <Art testID="sidebar-mascot" name="chibi" style={{ left: layout().sidebar * .52 - footer().mascotWidth / 2, bottom: footer().mascotBottom, width: footer().mascotWidth, height: Math.min(260, windowSize().height * .38), objectFit: 'contain', objectPosition: 'center bottom', opacity: .22, filter: 'brightness(1.08) contrast(1.04)' }} />}
-        <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16 }}>
+        <View testID="sidebar-footer" onLayout={measured('sidebar-footer')} style={{ height: footer().height, flexShrink: 0, marginHorizontal: -16, marginBottom: -16, zIndex: managed() ? 5 : undefined }}>
           <Art testID="sidebar-swag" name="sidebar-swag" style={{ top: 0, left: 0, right: 0, height: footer().swagHeight, objectFit: 'fill', filter: 'brightness(1.1) saturate(1.04) contrast(1.04)' }} />
           <Button testID="settings-trigger" onLayout={measured('sidebar-settings')} accessibilityLabel="设置" onPress={() => settingsOpen.set(true)}
             hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
-            style={{ ...controlSurface, position: 'absolute', top: footer().settingsTop, left: footer().settingsInset, right: footer().settingsInset,
+            style={{ ...controlSurface, marginTop: footer().settingsTop, marginHorizontal: footer().settingsInset,
               height: footer().settingsHeight, flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 20 }}>
             <DesktopIcon name="settings" color={t.sidebarInk} testID="icon-settings" />
             <Text style={{ color: t.sidebarInk, fontSize: 14, fontFamily: t.fontFamily }}>设置</Text>
@@ -398,20 +591,24 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       </View>}
       <View testID="chat-column" onLayout={measured('chat-column')} style={{ flex: 1, minWidth: 0 }}>
         <TopTrim active={active()} />
-        <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: safe().headerTop, flexShrink: 0 }} />
-        <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: safe().headerBody, flexShrink: 0, paddingHorizontal: layout().inset, paddingTop: 4, gap: 2 }}>
+        <View testID="header-safe-area" onLayout={measured('header-safe-area')} style={{ height: showHeaderInTrim() ? Math.max(titleBarHeight(), 20) : safe().headerTop, flexShrink: 0 }} />
+        <View testID="chat-header" onLayout={measured('chat-header')} style={{ zIndex: 2, height: showHeaderInTrim() ? 77 - Math.max(titleBarHeight(), 20) : safe().headerBody,
+          flexShrink: 0, paddingHorizontal: managed() ? 26 : layout().inset, paddingTop: showHeaderInTrim() ? 0 : 4, gap: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: ink(), textShadow: headingShadow(), fontFamily: t.fontFamily, fontSize: layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
+            <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: headerInk(), textShadow: headingShadow(), fontFamily: t.fontFamily, fontSize: showHeaderInTrim() ? 14 : layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
             <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
-              <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: ink(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
-              <DesktopIcon name="panel" mirror color={ink()} size={14} testID="icon-details" />
+              <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: headerInk(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
+              <DesktopIcon name="panel" mirror color={headerInk()} size={14} testID="icon-details" />
             </Button>
           </View>
-          <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: ink(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>
+          {!showHeaderInTrim() && <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: headerInk(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>}
         </View>
-        <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: layout().inset, paddingTop: 12, paddingBottom: safe().bottom, gap: 8 }}>
-          <Text testID="status" style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>{status()}</Text>
-          {!!error() && <Text testID="error" style={{ fontFamily: t.fontFamily, color: t.danger, fontSize: 13, backgroundColor: dark() ? t.dark.assistant : t.paper, padding: 8, borderRadius: 8 }}>{error()}</Text>}
+        <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: laneInset(), paddingTop: managed() ? 4 : 12, paddingBottom: safe().bottom, gap: 8 }}>
+          {!managed() && <Text testID="status" style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>{status()}</Text>}
+          {!!((!managed() || snapshot().error) && error() || sessionError()) && <View testID="error" style={{ alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 9,
+            paddingHorizontal: 10, paddingVertical: 6, backgroundColor: dark() ? t.dark.assistant : t.paper, borderWidth: 1, borderColor: '#ab324868' }}>
+            <Text style={{ fontFamily: t.fontFamily, color: dark() ? '#ffc1cb' : t.danger, fontSize: 13 }}>{sessionError() || error()}</Text>
+          </View>}
           {props.persistentHistory && !!snapshot().current && historyState() === 'loading' &&
             <Text testID="history-loading" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>正在读取历史…</Text>}
           {props.persistentHistory && historyState() === 'error' && !!snapshot().current &&
@@ -423,9 +620,21 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <Button testID="history-older" onPress={() => void loadHistory(true)} style={{ ...button, alignSelf: 'flex-start' }}>
               <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>加载更早消息</Text>
             </Button>)}
-          {!active() && (!props.persistentHistory || historyState() === 'ready') && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
-          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
-            {r => {
+          {!active() && (!props.persistentHistory || historyState() === 'ready') && !managed() && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
+          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} scrollbar={managed() ? { mode: 'hover', motion: { idle: 0, enter: 90, exit: 120 }, vertical: { thumbStyle: { backgroundColor: '#768eb67f' } } } : undefined} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
+            {(r, index) => {
+              const groupKey = () => pickerScope() + ':' + index();
+              const expanded = () => openGroups().has(groupKey());
+              const toggleGroup = () => {
+                const key = groupKey(), next = new Set(openGroups());
+                if (next.has(key)) next.delete(key); else next.add(key);
+                openGroups.set(next);
+              };
+              const tools = () => r().role === '执行过程' ? JSON.parse(r().body) as string[] : [];
+              const filesChanged = () => r().role === '工作区变化' ? JSON.parse(r().body) as WorkspaceChanges : null;
+              const disclosure = () => r().role === '执行过程' || r().role === '工作区变化';
+              const failure = () => r().role === '任务状态';
+              const progress = () => r().role === '处理中';
               const tool = computed(() => toolCard(r().role, r().body, dark()));
               const user = () => r().role === '你';
               const messageWidth = () => Math.max(0, Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96));
@@ -437,15 +646,31 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               // List can reuse this view for another row; both style and subtree
               // must follow its accessor, not the role at first mount.
               return <View testID="message" onLayout={rowLayout} style={{
-                width: 'fit-content', maxWidth: messageWidth(), alignSelf: user() ? 'flex-end' : 'flex-start',
-                marginBottom: tool() ? 6 : 12, paddingVertical: tool() ? 5 : 14, paddingHorizontal: tool() ? 10 : 18, gap: 6,
+                width: 'fit-content', maxWidth: disclosure() ? '100%' : messageWidth(), alignSelf: user() ? 'flex-end' : 'flex-start',
+                marginBottom: tool() || disclosure() ? 6 : 12, paddingVertical: tool() || disclosure() || progress() || failure() ? 6 : 14, paddingHorizontal: tool() || disclosure() || progress() || failure() ? 10 : 18, gap: 6,
                 borderRadius: tool() ? 8 : 18, borderBottomLeftRadius: tool() ? 8 : user() ? 18 : 7, borderBottomRightRadius: tool() ? 8 : user() ? 7 : 18,
-                borderWidth: 1, borderColor: tool()?.edge ?? (user() ? '#c5a4687a' : dark() ? '#d3b47766' : t.line),
+                borderWidth: 1, borderColor: failure() ? '#ab324868' : tool()?.edge ?? (user() ? '#c5a4687a' : dark() ? '#d3b47766' : t.line),
                 backgroundColor: tool()?.surface ?? (user() ? (dark() ? t.dark.user : '#e8edf9f2') : (dark() ? t.dark.assistant : t.paper)),
                 backgroundImage: tool()?.gradient,
                 boxShadow: tool() ? undefined : (user() ? t.userShadow : dark() ? '0 4px 16px #00000038' : t.assistantShadow),
               }}>
-                {tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                {disclosure() ? <>
+                  <Button testID={filesChanged() ? 'workspace-changes' : 'turn-process'} onPress={toggleGroup}
+                    style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 22 }} hoverStyle={controlHover}>
+                    <DesktopIcon name={expanded() ? 'chevronDown' : 'chevronRight'} size={12} color={muted()} />
+                    <Text style={{ ...menuLabel(), color: muted() }}>{filesChanged()
+                      ? `工作区变化 · ${filesChanged()!.files.length} 个文件`
+                      : `执行过程 · ${tools().length} 项事件`}</Text>
+                  </Button>
+                  {expanded() && <View style={{ gap: 4, paddingTop: 3 }}>
+                    {tools().map(body => <Text style={{ ...menuLabel(), color: toolCard('工具', body, dark())?.color }}>
+                      {toolCard('工具', body, dark())?.label}</Text>)}
+                    {filesChanged()?.files.map(file => <Text style={{ ...menuLabel(), numberOfLines: 2 }}>{`${file.summary} · ${file.path}`}</Text>)}
+                    {filesChanged()?.limited && <Text style={{ ...menuLabel(), color: muted() }}>部分文件超出记录范围</Text>}
+                  </View>}
+                </> : failure() || progress() ? <Text testID={failure() ? 'turn-error' : 'turn-progress'}
+                  style={{ ...menuLabel(), color: failure() ? (dark() ? '#ffc1cb' : t.danger) : muted() }}>{r().body}</Text>
+                  : tool() ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                   <DesktopIcon name={tool()?.phase === 'error' ? 'toolError' : tool()?.phase === 'end' ? 'toolDone' : 'toolStart'} size={12} color={tool()?.color ?? muted()} testID="icon-tool" />
                   <Text style={{ flexShrink: 1, minWidth: 0, fontSize: 12, lineHeight: 18, fontFamily: t.fontFamily, color: tool()?.color }}>{tool()?.label ?? ''}</Text>
                 </View> : <>
@@ -474,18 +699,40 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 {teamGoal()!.errorCode === 'timeout' ? '已达到本次执行时限，可继续目标。' : '完整目标尚未通过独立验收，可根据现有成果继续。'}
               </Text>}
             </View>}
-            <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight, flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
+            <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight + (files().length ? 38 : 0), flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
               {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
-              <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onSubmit={send} />
+              <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onPaste={e => attachImages(e.files)}
+                disabled={uploading()} onSubmit={() => void send()} />
+              {!!files().length && <View testID="composer-attachments" style={{ zIndex: 2, flexDirection: 'row', alignItems: 'center', gap: 3, height: 30 }}>
+                {files().map((asset, index) => <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
+                  disabled={uploading()} onPress={() => removeImages(index)}
+                  style={{ ...controlSurface, paddingHorizontal: 4, height: 30, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Image src={asset.url} style={{ width: 22, height: 22, borderRadius: 3, objectFit: 'cover' }} />
+                  <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12 }}>×</Text>
+                </Button>)}
+                <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12, flexShrink: 1, numberOfLines: 1 }}>
+                  {uploading() ? '正在准备图片…' : modelCanSee() ? `${files().length} 张图片` : '请选择支持图片的模型'}
+                </Text>
+              </View>}
               <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 2, height: safe().composerActionHeight, flexShrink: 0 }}>
+                {managed() && <Menu testID="composer-add-menu" placement="top" offset={9} margin={12} popupStyle={{ ...popup(), minWidth: 172 }}
+                  trigger={<Button testID="composer-add" onLayout={measured('composer-add')} accessibilityLabel="添加或切换模式"
+                    style={{ ...controlSurface, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
+                      borderWidth: 1, borderColor: '#ddc083', backgroundColor: goalSelected() ? t.accent : '#dde5f5dc' }}
+                    hoverStyle={{ backgroundColor: goalSelected() ? '#7491cb' : '#eff4ff' }}
+                    activeStyle={{ backgroundColor: '#aabbdf' }} focusVisibleStyle={{ borderColor: '#f3ddb2' }}>
+                    <DesktopIcon name="plus" size={16} color={goalSelected() ? '#fffaf0' : '#25395e'} />
+                  </Button>}>
+                  <MenuItem testID="team-goal-toggle" onLayout={measured('team-goal-toggle')} checked={goalSelected()} disabled={!canSelectGoal()}
+                    onSelect={toggleGoal} style={menuItem} hoverStyle={controlHover}>
+                    <Text style={menuLabel()}>团队目标</Text>
+                  </MenuItem>
+                  {canResumeGoal() && <MenuItem testID="team-goal-resume-menu" onSelect={resumeGoal} style={menuItem} hoverStyle={controlHover}>
+                    <Text style={menuLabel()}>继续团队目标</Text>
+                  </MenuItem>}
+                </Menu>}
+                {goalSelected() && <Text testID="team-goal-selected" style={{ fontFamily: t.fontFamily, color: t.goldSoft, fontSize: 12 }}>团队目标</Text>}
                 <View style={{ flex: 1, minWidth: 0 }} />
-                {canSelectGoal() && <Button testID="team-goal-toggle" accessibilityLabel={goalSelected() ? '取消团队目标模式' : '启用团队目标模式'}
-                  onLayout={measured('team-goal-toggle')}
-                  onPress={toggleGoal} hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
-                  style={{ ...controlSurface, flexShrink: 0, paddingHorizontal: 8, height: 32, alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: goalSelected() ? t.accent : controlSurface.backgroundColor }}>
-                  <Text style={{ fontFamily: t.fontFamily, color: goalSelected() ? '#fffaf0' : t.composerInk, fontSize: 12 }}>团队目标</Text>
-                </Button>}
                 {canResumeGoal() && <Button testID="team-goal-resume" accessibilityLabel="继续团队目标" onPress={resumeGoal}
                   onLayout={measured('team-goal-resume')}
                   hoverStyle={controlHover} activeStyle={controlPressed} focusVisibleStyle={controlFocus}
@@ -499,11 +746,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 </Button>}
                 <DesktopModelPicker scope={pickerScope()} models={catalog()?.options ?? []} choice={modelChoice(pickerScope())}
                   disabled={pickerDisabled()} dark={dark()} art={artAvailable} onLayout={measured('model-picker')} onPopupLayout={measured('model-popup')}
-                  onChange={choice => { if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice)); }} />
+                  onChange={chooseModel} />
                 <Button testID="primary-action" onLayout={measured('primary-action')} accessibilityLabel={busy() ? goalInFlight() ? '暂停团队目标' : '停止生成' : '发送'} style={{ width: safe().composerActionHeight, height: safe().composerActionHeight, borderRadius: safe().composerActionHeight / 2, backgroundColor: t.accent, backgroundImage: t.sendGradient, borderWidth: 1, borderColor: '#e1cfaad1', boxShadow: '0 4px 12px #1a326c47', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }} disabled={busy() ? !canStop() : disabled()} disabledStyle={{ opacity: .48 }} onPress={() => busy() ? stop() : send()}><DesktopIcon name={busy() ? 'stop' : 'send'} color="#fffaf0" size={16} testID={busy() ? 'icon-stop' : 'icon-send'} /></Button>
               </View>
             </View>
           </View>
+          {!!attachmentError() && <Text testID="attachment-error" style={{ alignSelf: 'center', backgroundColor: dark() ? t.dark.glass : t.paper,
+            borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4, fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>{attachmentError()}</Text>}
           {showStatistics() && <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
             height={safe().previewHeight} onLayout={measured('composer-statistics')} onTriggerLayout={measured('round-statistics')}
             onMetricsLayout={measured('statistics-metrics')} onPopupLayout={measured('statistics-popup')} />}
@@ -519,9 +768,26 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         style={{ ...controlSurface, position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
         <DesktopIcon name="panel" color={navigation() ? t.sidebarInk : artAvailable ? t.brand : ink()} testID="icon-navigation" />
       </Button>
+      {rename() && <Dialog testID="rename-session-dialog" accessibilityLabel="重命名会话" animation="none"
+        onOpenChange={e => { if (!e.open) rename.set(null); }}
+        style={{ ...popup(), position: 'absolute', left: Math.max(8, (windowSize().width - 360) / 2),
+          width: Math.min(windowSize().width - 16, 360), top: Math.max(8, (windowSize().height - 140) / 2), padding: 14, gap: 10 }}>
+        <Text style={menuLabel()}>重命名会话</Text>
+        <Input ref={value => { renameInput = value; }} autoFocus testID="rename-session-input"  accessibilityLabel="会话名称" value={renameTitle()} maxLength={100}
+          style={{ ...controlSurface, ...menuLabel(), height: 34, paddingHorizontal: 8 }}
+          onChange={e => renameTitle.set(e.value)}
+          onSubmit={() => { const active = rename(); if (active && renameTitle().trim()) void sessionAction('rename', active, renameTitle()); }} />
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+          <Button style={menuItem} onPress={() => rename.set(null)}><Text style={menuLabel()}>取消</Text></Button>
+          <Button testID="rename-session-save" style={{ ...controlSurface, ...menuItem }}
+            disabled={sessionPending() || !renameTitle().trim()} onPress={() => void sessionAction('rename', rename()!, renameTitle())}>
+            <Text style={menuLabel()}>保存</Text>
+          </Button>
+        </View>
+      </Dialog>}
       {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
         appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}
-        statistics={showStatistics()} onStatistics={showStatistics.set} defaultModel={defaultModelLabel()} onLayout={measured('settings-content')} />}
+        statistics={showStatistics()} onStatistics={showStatistics.set} defaultModel={defaultModelLabel()} onModels={managed() ? modelSettings : undefined} onLayout={measured('settings-content')} />}
     </View>
   );
 }

@@ -63,14 +63,15 @@ try {
   await mkdir(join(source, 'assets/desktop'), { recursive: true });
   const inputs = {};
   const persistentHost = ['desktop-persistent-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs',
-    'desktop-host-stdio.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs'];
+    'desktop-host-stdio.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-team-goal.mjs',
+    'desktop-images.mjs', 'desktop-model-services.mjs'];
   for (const file of [...new Set([...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
     'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
-    'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs',
+    'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs', 'desktop-images.mjs', 'desktop-model-services.mjs',
     ...(persistent ? [...persistentHost, 'desktop-persistent-check.tsx'] : [])])]) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));
   }
-  for (const file of ['package-lock.json', ...run('git', ['ls-files', 'services/agent', 'packages/pi-runtime', 'packages/pi-adapter']).trim().split('\n')]) inputs[file] = await record(resolve(file));
+  for (const file of ['package-lock.json', 'apps/electron/plugin/pi-workspace-changes.js', ...run('git', ['ls-files', 'services/agent', 'packages/pi-runtime', 'packages/pi-adapter']).trim().split('\n')]) inputs[file] = await record(resolve(file));
   if (packaged) for (const file of [...hostFiles, `${brandRoot}/moos.icns`, `${brandRoot}/brand-assets.json`,
     'probes/nsh-validation/desktop-package.mjs', 'probes/nsh-validation/DesktopPackagePaths.swift']) inputs[file] = await record(resolve(file));
   for (const file of view) await cp(join(probe, file), join(source, file));
@@ -78,7 +79,7 @@ try {
   if (acceptance) await cp(join(probe, persistent ? 'desktop-persistent-check.tsx' : 'desktop-pi-check.tsx'), join(source, 'App.tsx'));
   else await writeFile(join(source, 'App.tsx'), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(${persistent ? '() => <DesktopView persistentHistory />' : 'DesktopView'});\n`);
   await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: packaged ? '沐码' : persistent ? 'NSH 候选 · 持久化合成试验' : live ? 'NSH 候选 · 独立双模型' : 'NSH 候选 · PI 本地夹具', id: bundleIdentifier,
-    capabilities: { statusBar: true, host: [...methods, ...(persistent ? ['sessions.history'] : []), ...(acceptance ? ['piui.disconnect', 'piui.report', ...(persistent ? ['piui.capture'] : [])] : [])] } }));
+    capabilities: { statusBar: true, host: [...methods, ...(persistent ? ['sessions.history', 'sessions.manage', 'models.manage', 'images.stage'] : []), ...(acceptance ? ['piui.disconnect', 'piui.report', ...(persistent ? ['piui.capture'] : [])] : [])] } }));
   const node = await realpath(process.execPath);
   const fixed = join(dir, 'DesktopFixedLaunch.swift');
   let hostScript = join(probe, script), profile;
@@ -88,7 +89,7 @@ try {
     await mkdir(stagedProbe, { recursive: true, mode: 0o700 });
     profile = join(stagedProbe, 'profile');
     await mkdir(profile, { mode: 0o700 });
-    for (const part of ['packages', 'services']) await symlink(resolve(part), join(runtime, part));
+    for (const part of ['packages', 'services', 'apps']) await symlink(resolve(part), join(runtime, part));
     for (const file of persistentHost) {
       const copy = join(stagedProbe, file);
       await cp(join(probe, file), copy);

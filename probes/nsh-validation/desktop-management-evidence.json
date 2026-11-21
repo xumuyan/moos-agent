@@ -1,0 +1,207 @@
+{
+  "base": "faa2a7473dd49bfa36e860a73eec54785581f347",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopPipe.swift": "cf3740303d8c07885e569e8e0d38c0cd68b8005b612c1233e97a002275ae3595",
+    "probes/nsh-validation/DesktopSettings.tsx": "740877d58eed55f670915fdfb3c927b325bbdf13f5c79f93f5921a4a61186c49",
+    "probes/nsh-validation/DesktopView.tsx": "5f9d997751f17a3ae05905c93fa8e2b91f70e5bbeae05e7323b464e41dec735d",
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": "cff42756b68f4faaf3e55819d478d4756e0f02d4bf66f403256905646beae343",
+    "probes/nsh-validation/appkit-hostcheck/chat-main.patch": "ea96660dca8be5d4b7887b29d1a5d95350e71352b7f1aa2d63ea73fc9ef4977c",
+    "probes/nsh-validation/desktop-baseline.test.mjs": "bf572ea0ada3de057fef7e2153362782c1b26d2278708f6c2cffb50240a17e72",
+    "probes/nsh-validation/desktop-contract.ts": "117b879b102f927021c106721378a6024c1696a923aba744c96b50897eabde12",
+    "probes/nsh-validation/desktop-history.mjs": "68afb7761a3d94c198c301ce5351d97375b3eba7b235a4d3518bc75d51aa981e",
+    "probes/nsh-validation/desktop-host.mjs": "8e9e9db18f1ac5fb7585611081a30dbdc9ef594c843b1df7bd78a6e24e50c175",
+    "probes/nsh-validation/desktop-icon-paths.ts": "1453591e7a67d43ba36e2adb75baa877ace9f400de5a88e7db1ca9bbd379260d",
+    "probes/nsh-validation/desktop-live-models.test.mjs": "e61b80b25503d8b2f001292034b3b961db33f2838699998a899e89c6bf68dcdb",
+    "probes/nsh-validation/desktop-model-fixture.mjs": "18cf320d2f59220eb34fb22c34c301ac87789e52d8df014a8c196c0d13a630e6",
+    "probes/nsh-validation/desktop-model-picker.ts": "97f34a11d3e7675da1c3549b36c2dc263381139eb30adfe2073b788649d4035c",
+    "probes/nsh-validation/desktop-package.mjs": "3fcf54bd297b82affb60a0fa058d00bb28ab115df51892e23008f6632efd15ae",
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "47d1294c442d09780fce55bebd838a885f7395dbcff98dc21d73df9ad71eb7be",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "f51275370d29c7422d1e71cada763d512a98c4e4327f306a7399125ff63fdcae",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "6e535c745755cbb571a67fc7cbfb102fe9547221575960c131b54ec2926aeeb4",
+    "tests/nsh_composer_provenance.py": "edc94f2f7b639e1c81971891141b5e72087909adbc0d7704cefabe22cf8578c1",
+    "tests/test_nsh_desktop_appkit_chat.py": "72c86ec500d1fc3b3129cc368f652a89c7106ac1e5bde6f134a1d1731acb1e35",
+    "tests/test_nsh_desktop_appkit_package.py": "61e49c508b3eda75b1e1d5fa071d1cecadb700208b5788340fe910210b5ddad2",
+    "tests/test_nsh_desktop_appkit_source.py": "22ce3abe4ff56fab9233a1ff6eb516ecdff51843a491daf8833ac1beef03f156",
+    "tests/test_nsh_style_audit.py": "9e34f5f1bda9ec91ad00119f43bfe587a3d6b078bc77bb616fc580beacf97af6"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopPipe.swift": {
+      "bytes": 14651,
+      "sha256": "e761af63fc6fe7bb4a7c620c79689ac6d6d7941b7406b3308202cd3f05985198"
+    },
+    "probes/nsh-validation/DesktopSettings.tsx": {
+      "bytes": 16841,
+      "sha256": "68a876961d73b844e6914963b63aaa692ba511eaf7a2cd968c59d26256d59492"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 67756,
+      "sha256": "4907bfdb5ac8563bfe7196f7f2c8a5e634a457e7e7735b01eb3efa46a36609ba"
+    },
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": {
+      "bytes": 10520,
+      "sha256": "e97b9f638c9c6b9c00beb2e0e8e0c20f227b2424fea47c38a737c91f6d45fd13"
+    },
+    "probes/nsh-validation/appkit-hostcheck/chat-main.patch": {
+      "bytes": 4494,
+      "sha256": "ebcf21cfb22148b200ac40c80c09b428d2de62b2bcc2edfd685a8deb5ccdb4cb"
+    },
+    "probes/nsh-validation/desktop-baseline.test.mjs": {
+      "bytes": 7888,
+      "sha256": "c0c4a7d1b2c231e5505deea66e23f9a73fc832da693ba3e46781c6c5ac305327"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 7811,
+      "sha256": "1f9b9078de1ea15810886bd635d3b88a2f41ebb50bff280a04c4e13743c56c71"
+    },
+    "probes/nsh-validation/desktop-history.mjs": {
+      "bytes": 1660,
+      "sha256": "883cf6699320dee5c7533cd808b26f3c184764333fa7a2c9d7dc8a955a616b1b"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 22971,
+      "sha256": "dd9f31a990f7b148d712d082e6ee693e03c8328962fdb0895e1c865656590d4e"
+    },
+    "probes/nsh-validation/desktop-icon-paths.ts": {
+      "bytes": 11875,
+      "sha256": "34fd2e995a186c7483c3f76695ebff4f3854ebc7baff7136ee298efe586479d7"
+    },
+    "probes/nsh-validation/desktop-images.mjs": {
+      "bytes": 2642,
+      "sha256": "b17cf1c81b1df07fa9e4538aabf4b79ebc030804e120280f39f68ef783cd87c9"
+    },
+    "probes/nsh-validation/desktop-live-models.test.mjs": {
+      "bytes": 13164,
+      "sha256": "86474b484c530f14ed13ff358d1d55f213f97068fb692295bf93ee414b0b4c3c"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 4353,
+      "sha256": "4c21dfb0b98dfc249e999eabc39180f3bd2f8b9493deb65126208bd9323a9016"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 2363,
+      "sha256": "bddfc16f5b622804bfa2f8e6cfb58dbdf5297fd2406b0b9a69d0c79c70f997c8"
+    },
+    "probes/nsh-validation/desktop-management.test.mjs": {
+      "bytes": 8298,
+      "sha256": "c0a4aa00f36fb8689c26d4be946a9a3541581746b6809b5e8bf14ef91f41d8d2"
+    },
+    "probes/nsh-validation/desktop-model-fixture.mjs": {
+      "bytes": 8052,
+      "sha256": "faaf6ddffb9ae592527ff8f8ec90a96b0bc328ca5418f6d34d4d34522871008e"
+    },
+    "probes/nsh-validation/desktop-model-picker.ts": {
+      "bytes": 3470,
+      "sha256": "451470fd9ceb912701e0105a323be81e0ac068d0dbbafdd8932003d7afbddf1b"
+    },
+    "probes/nsh-validation/desktop-model-services.mjs": {
+      "bytes": 6559,
+      "sha256": "4129fd226143826f17746c80b5439575fe3365cc7044d6fc0ea04707a7fd98bc"
+    },
+    "probes/nsh-validation/desktop-package.mjs": {
+      "bytes": 5844,
+      "sha256": "5e106c106608e6705856f7d8cb883c939b299fe7ecfc979c822d781aa6c9224e"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 16402,
+      "sha256": "7052f51d657da4601f9e45bcb3223d0c5b4c4cd388607832068b76209deb3909"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 16801,
+      "sha256": "e7fa4811e726cb96d94248064cfab5b83cf1e582ecdb9afb4f71f7bfcae57ea6"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 17786,
+      "sha256": "7e1f682ecb23a2a03576347fb1f40e022c50e7611ff83e54b852dc693a21401f"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3284,
+      "sha256": "ef225c670d17a895cf977bb446b7aa48e12f735c71185aad21482128cdd05141"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 24448,
+      "sha256": "8610820a11b6dc3eb604496a419e80c4208fc6e4a9f6459701402201175aff3d"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 3590,
+      "sha256": "83ec5444aa481871602e1e9f8a698521760d9b861146290d8e25f8c4781d5556"
+    },
+    "tests/test_nsh_desktop_appkit_source.py": {
+      "bytes": 5442,
+      "sha256": "f0dace38e0db23167eba4b616cafa5431f9dcb456b9b5c69aa231bc8ee3c2dde"
+    },
+    "tests/test_nsh_style_audit.py": {
+      "bytes": 6571,
+      "sha256": "075cc6f44e1e623ce8c31cae898dc40a6a8ab3dfa3b0b569c806137b9a26a916"
+    }
+  },
+  "task": "N01-D3 desktop management",
+  "system": "27.0.1",
+  "architecture": "arm64",
+  "nsh": "nsh 0.5.0 (f4d68f7)",
+  "nativeUI": {
+    "result": "4/4",
+    "evidence": "artifacts/nsh-validation/desktop-theme/run-IkrUqI",
+    "checks": [
+      "session menu rename and pin",
+      "single team goal in the add menu",
+      "image paste callback",
+      "model form saves complete field values and effort levels"
+    ],
+    "syntheticResponses": true
+  },
+  "localAppKit": {
+    "programmaticReceipt": "artifacts/nsh-validation/appkit-chat-check.wJdx2F/result.json",
+    "interactiveReceipt": "artifacts/nsh-validation/appkit-chat-interactive.AxkfBf/result.json",
+    "checks": [
+      6,
+      18
+    ],
+    "dualProtocolLoopback": true,
+    "upstreamRequests": 0,
+    "artwork": true,
+    "signed": "ad-hoc deep strict",
+    "sizes": {
+      "bundleKiB": 233816,
+      "nodeKiB": 92988,
+      "dependencyKiB": 106616,
+      "zipBytes": 74003159
+    }
+  },
+  "observedAppKit": {
+    "receipt": "artifacts/nsh-validation/appkit-chat-interactive.AZgfMP/result.json",
+    "checks": [
+      "settings open in the main window",
+      "live native service type picker",
+      "High available after enabling it",
+      "single team goal under the add button",
+      "second-round goal verification completed",
+      "same-turn process expands",
+      "Cmd+Q releases the profile lease"
+    ],
+    "credentialEntered": false
+  },
+  "regression": {
+    "core": {
+      "pass": 394,
+      "skip": 1,
+      "fail": 0
+    },
+    "docs": {
+      "pass": 263,
+      "fail": 2
+    },
+    "rust": "offline defmt unavailable",
+    "electron": {
+      "pass": 142,
+      "skip": 1,
+      "fail": 0
+    }
+  },
+  "boundaries": {
+    "productionData": false,
+    "realProvider": false,
+    "archiveRecoveryUI": false,
+    "measuredPerformance": false,
+    "installed": false
+  }
+}

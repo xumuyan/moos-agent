@@ -21,15 +21,16 @@ const chrome = process.argv.includes('--window-chrome');
 const cards = process.argv.includes('--chat-cards');
 const icons = process.argv.includes('--icons');
 const sessionPreview = process.argv.includes('--session-preview');
+const management = process.argv.includes('--management');
 const settings = process.argv.includes('--settings');
 const statistics = process.argv.includes('--statistics');
 const turnQueue = process.argv.includes('--turn-queue');
 const controlHover = process.argv.includes('--control-hover');
 const composer = process.argv.includes('--composer');
-const capture = process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover || sessionPreview || turnQueue || statistics || settings, native = process.argv.includes('--native') || capture || rich || live;
+const capture = management || process.argv.includes('--capture') || evidence || typography || chrome || activity || cards || icons || composer || controlHover || sessionPreview || turnQueue || statistics || settings, native = process.argv.includes('--native') || capture || rich || live;
 const nativeCheck = settings ? 'desktop-settings-check.tsx' : statistics ? 'desktop-composer-statistics-check.tsx' : turnQueue ? 'desktop-turn-queue-check.tsx' : sessionPreview ? 'desktop-session-preview-check.tsx' : controlHover ? 'desktop-control-hover-check.tsx' : composer ? 'desktop-composer-check.tsx' : icons ? 'desktop-icons-check.tsx' : cards ? 'desktop-chat-cards-check.tsx' : activity ? 'desktop-sidebar-activity-check.tsx' : chrome ? 'desktop-window-chrome-check.tsx' : typography ? 'desktop-typography-check.tsx' : live ? 'desktop-live-sidebar-check.tsx' : rich ? 'desktop-theme-rich-check.tsx' : evidence ? 'desktop-style-capture.tsx' : capture ? 'desktop-theme-capture.tsx' : 'desktop-theme-native-check.tsx';
 const files = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts', 'desktop-turn-queue.ts', 'DesktopTurnQueue.tsx', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts', 'DesktopIcon.tsx', 'desktop-control-style.ts', 'desktop-icon-paths.ts', 'DSH-ICONS-LICENSE.txt', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts', 'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-theme-fixture.ts', 'desktop-style-assert.ts', 'desktop-ui-controller.ts', 'desktop-ui-transport.ts', 'desktop-contract.ts',
-  ...(!native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : []), ...(turnQueue ? ['ThemeTurnQueue.tsx'] : []), ...(statistics || settings ? ['ThemeStatistics.tsx'] : [])];
+  ...(management ? ['desktop-management-check.tsx', 'desktop-management-fixture.ts'] : !native ? ['desktop-theme.test.tsx', 'DesktopApp.test.tsx'] : []), ...(turnQueue ? ['ThemeTurnQueue.tsx'] : []), ...(statistics || settings ? ['ThemeStatistics.tsx'] : [])];
 for (const file of files) await cp(resolve('probes/nsh-validation', file), join(source, file));
 await cp(resolve('probes/nsh-validation/assets/desktop'), join(source, 'assets/desktop'), { recursive: true });
 // Explicit local-only artwork opt-in. No default production HOME or downloads.
@@ -38,10 +39,49 @@ const artwork = artRoot !== null;
 if (artwork) await prepareArtwork(artRoot, source, JSON.parse(await readFile(resolve('probes/nsh-validation/skin-source.json'), 'utf8')));
 // Self-contained mount entry: do not adopt pre-existing untracked DesktopApp/Host/UI integration.
 await writeFile(join(source, 'DesktopApp.tsx'), "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(DesktopView);\n");
-if (native) await cp(resolve('probes/nsh-validation', nativeCheck), join(source, 'native.test.tsx'));
-await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel'] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
-await writeFile(join(source, 'App.tsx'), "import './DesktopApp';\n");
+if (management) {
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGNIn3qAJMQwqmFUw/DVAACx2bwQBikQCwAAAABJRU5ErkJggg==', 'base64');
+  await writeFile(join(source, 'fixture-paste.png'), png);
+  await cp(join(source, 'desktop-management-check.tsx'), join(source, 'management.test.tsx'));
+}
+if (native && !management) await cp(resolve('probes/nsh-validation', nativeCheck), join(source, 'native.test.tsx'));
+await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { statusBar: true, host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel', ...(management ? ['sessions.history', 'sessions.manage', 'models.manage', 'images.stage'] : [])] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
+await writeFile(join(source, 'App.tsx'), management ? `import { mount, signal, Text, View } from 'nsh';
+import { DesktopView } from './DesktopView';
+import { managementFixture } from './desktop-management-fixture';
+const { handlers } = managementFixture();
+const calls = signal<{ name: string; data: unknown }[]>([]);
+mount(() => <View style={{ flex: 1 }}>
+  <DesktopView persistentHistory call={async (name, data) => {
+    const handle = (handlers as Record<string, (data: unknown) => { result: any }>)[name];
+    if (['sessions.manage', 'models.manage', 'images.stage', 'tasks.submit'].includes(name)) {
+      const { service, ...rest } = data as { service?: { api: string } };
+      const observed = name === 'images.stage' ? { ...rest, data: undefined } : { ...rest, ...(service && { service: { api: service.api } }) };
+      calls.set([...calls(), { name, data: observed }]);
+    }
+    return handle(data).result;
+  }} />
+  <Text style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', fontSize: 1 }}>{'N01_MANAGEMENT_TEST ' + JSON.stringify(calls())}</Text>
+</View>);
+` : "import './DesktopApp';\n");
 await cp(resolve('probes/nsh-validation/tsconfig.json'), join(source, 'tsconfig.json'));
+if (management) await writeFile(join(source, 'ManagementSettings.tsx'), `import { mount, signal, Text, View } from 'nsh';
+import { DesktopSettings } from './DesktopSettings';
+import { managementFixture } from './desktop-management-fixture';
+import type { Calls } from './desktop-contract';
+const { handlers } = managementFixture();
+const calls = signal<object[]>([]);
+async function manage(data: Calls['models.manage']['params']) {
+  if (data.action === 'save') calls.set([...calls(), { name: 'models.manage', data: { model: data.model, service: { api: data.service.api, name: data.service.name, baseUrl: data.service.baseUrl } } }]);
+  return handlers['models.manage'](data).result as Calls['models.manage']['result'];
+}
+mount(() => <View style={{ flex: 1, backgroundColor: '#dce6f5' }}>
+  <DesktopSettings onClose={() => {}} dark={false} art appearance="system" onAppearance={() => {}} characters
+    onCharacters={() => {}} statistics onStatistics={() => {}} defaultModel="测试配置" onModels={manage} />
+  <Text style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', fontSize: 1 }}>{'N01_MANAGEMENT_TEST ' + JSON.stringify(calls())}</Text>
+</View>);
+`);
+
 for (const [entry, options] of [['ThemeNative', {}], ['ThemeError', { error: true }], ['ThemeLong', { long: true }], ['ThemeNames', { longNames: true }], ['ThemeDense', { dense: true }]]) {
   await writeFile(join(source, `${entry}.tsx`), `import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nimport { fixture } from './desktop-theme-fixture';\nconst h = fixture(${JSON.stringify(options)});\nmount(() => <DesktopView call={async (method, params) => (h as any)[method](params).result} />);\n`);
 }
@@ -138,7 +178,7 @@ async function hashTree(root, prefix = '') {
   }
   return records;
 }
-const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native ? [nativeCheck] : [])];
+const workspaceInputs = [...files, 'verify-desktop-theme.mjs', 'desktop-theme-assets.mjs', 'skin-source.json', 'tsconfig.json', ...(native && !management ? [nativeCheck] : [])];
 const workspaceHashes = {};
 for (const name of workspaceInputs) {
   const bytes = await readFile(resolve('probes/nsh-validation', name));

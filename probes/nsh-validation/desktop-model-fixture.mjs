@@ -59,6 +59,10 @@ export async function startDesktopModelFixture({ restartCheck = false } = {}) {
       const index = input.messages.findLastIndex(m => m.role === 'user');
       if (index < 0) return error(400);
       const text = textOf(input.messages[index].content);
+      const imageCheck = text.startsWith('N01_PASTE_IMAGE');
+      if (imageCheck && (!Array.isArray(input.messages[index].content) ||
+          !input.messages[index].content.some(part => part.type === 'image_url' &&
+            /^data:image\/png;base64,iVBORw0KGgo/.test(part.image_url?.url)))) return error(422);
       const marker = /^MOOS_FIXTURE_WRITE ([A-Za-z0-9_]{1,64})$/.exec(text)?.[1];
       const hold = text === 'MOOS_FIXTURE_HOLD';
       const calls = input.messages.slice(index + 1).filter(m => m.role === 'assistant').flatMap(m => m.tool_calls ?? []);
@@ -99,7 +103,7 @@ export async function startDesktopModelFixture({ restartCheck = false } = {}) {
             prior.some(m => m.role === 'assistant' && textOf(m.content) === '本地夹具响应：N01_RESTART_FIRST');
           output = preserved ? 'N01_CONTEXT_PRESERVED' : 'N01_CONTEXT_MISSING';
         } else {
-          output = marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}${model.reasoning ? ` [${input.reasoning_effort}]` : ''}：${text.slice(0, 4096)}`;
+          output = imageCheck ? 'N01_IMAGE_RECEIVED' : marker ? `完成 ${marker}` : hold ? '完成 HOLD' : `${prefix}${model.reasoning ? ` [${input.reasoning_effort}]` : ''}：${text.slice(0, 4096)}`;
         }
         // Separate public deltas also exercise real PI streaming without a synthetic runner.
         for (const part of output.match(/.{1,16}/gs) ?? []) chunk({ content: part });

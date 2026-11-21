@@ -9,7 +9,7 @@ final class DesktopPipe {
     static let methods: [String] = {
         let base = ["projects.list", "sessions.list", "sessions.create", "tasks.submit", "tasks.cancel", "tasks.events"]
 #if PI_PERSISTENT
-        return base + ["sessions.history"]
+        return base + ["sessions.history", "sessions.manage", "models.manage", "images.stage"]
 #else
         return base
 #endif

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import desktop_team_goal_evidence, idle_host_evidence, successor_input
+from nsh_composer_provenance import desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,7 +54,9 @@ class AppKitPackageEvidenceTests(unittest.TestCase):
         for name, expected in self.evidence['inputs'].items():
             data = (ROOT / name).read_bytes()
             current = successor_input(self, successor, name, expected)
-            self.assertEqual(successor_input(self, goal_team, name, current), hashlib.sha256(data).hexdigest(), name)
+            current = successor_input(self, goal_team, name, current)
+            current = successor_input(self, desktop_management_evidence(), name, current)
+            self.assertEqual(current, hashlib.sha256(data).hexdigest(), name)
         for name, expected in self.evidence['artifacts'].items():
             path = ROOT / name
             if path.is_file():

@@ -11,13 +11,17 @@ import { hostFiles, packageRuntime, verifyInternalLinks, verifyPackageIdentity }
 import { trimDependencyMaps } from './desktop-appkit-size.mjs';
 import { pruneArm64DependencyPayload } from './desktop-appkit-prune.mjs';
 
+import { parseArtRoot, prepareArtwork } from './desktop-theme-assets.mjs';
+
 const probe = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(probe, '../..'));
 process.umask(0o077);
 assert.equal(process.platform, 'darwin');
 assert.equal(process.arch, 'arm64');
 assert.equal(process.version, 'v24.15.0');
-const [mode, buildPath, ...extra] = process.argv.slice(2);
+const [mode, buildPath, ...args] = process.argv.slice(2);
+const artRoot = parseArtRoot(args);
+const extra = args.filter((arg, index) => arg !== '--art-root' && args[index - 1] !== '--art-root');
 assert.ok(buildPath && new Set(extra).size === extra.length && extra.every(arg => ['--trim-maps', '--strip-node', '--prune-runtime'].includes(arg)) &&
   ['--check', '--interactive'].includes(mode),
   'Pass --check or --interactive, an ignored appkit-chat native build directory, and optional --trim-maps / --strip-node / --prune-runtime');
@@ -39,7 +43,7 @@ const id = 'dev.muma.probe.nsh.appkit.chat';
 const nsh = join(base, 'toolchain/nsh/bin/nsh');
 const version = run(nsh, ['--version']).trim();
 assert.equal(version, 'nsh 0.5.0 (f4d68f7)');
-const methods = ['projects.list', 'sessions.list', 'sessions.create', 'sessions.history', 'tasks.submit', 'tasks.cancel', 'tasks.events'];
+const methods = ['projects.list', 'sessions.list', 'sessions.create', 'sessions.history', 'tasks.submit', 'tasks.cancel', 'tasks.events', 'sessions.manage', 'models.manage', 'images.stage'];
 // The two controller/transport owner inputs are used read-only in local copies.
 const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
   'DesktopTurnQueue.tsx', 'desktop-turn-queue.ts', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts',
@@ -54,6 +58,7 @@ for (const file of view) {
   await copyFile(join(probe, file), dst);
   viewInputs[file] = await record(dst);
 }
+if (artRoot) await prepareArtwork(artRoot, ui, JSON.parse(await readFile(join(probe, 'skin-source.json'), 'utf8')));
 const entry = join(ui, 'App.tsx');
 if (scripted) await copyFile(join(probe, 'appkit-hostcheck/ChatCheck.tsx'), entry);
 else await writeFile(entry, "import { mount } from 'nsh';\nimport { DesktopView } from './DesktopView';\nmount(() => <DesktopView persistentHistory />);\n");
@@ -159,8 +164,8 @@ if (nodeStrip) {
 const kib = path => Number(run('/usr/bin/du', ['-sk', path]).trim().split(/\s+/)[0]);
 const receipt = { builtAt: new Date().toISOString(), head: run('/usr/bin/git', ['rev-parse', 'HEAD']).trim(),
   platform: run('/usr/bin/sw_vers', ['-productVersion']).trim(), arch: process.arch, nsh: version, node: process.version,
-  identity, mode, fixtureOnly: true, installed: false, signed: 'ad-hoc deep strict', foreground: false, launches: [],
-  upstreamRequests: 0, nativeBuild: relative(process.cwd(), build), viewInputs, hostInputs: inputs, entry: await record(entry),
+  identity, mode, fixtureOnly: scripted, configuredModelsSupported: true, installed: false, signed: 'ad-hoc deep strict', foreground: false, artwork: !!artRoot, launches: [],
+  upstreamRequests: scripted ? 0 : null, nativeBuild: relative(process.cwd(), build), viewInputs, hostInputs: inputs, entry: await record(entry),
   runner: await record(binary), resources: config.capabilities, trimMaps, removedMaps, nodeSha256, nodeStrip,
   pruneRuntime, prunedFiles: pruned.length,
   sizes: { bundleKiB: kib(app), nodeKiB: kib(join(app, 'Contents/MacOS/moos-node')), dependencyKiB: kib(join(app, deps)),
@@ -185,7 +190,8 @@ if (scripted) {
       ? ['exact pre-Send history', 'old rows laid out', 'other project stays empty', 'scope round trip', 'PI continued from prior context']
       : ['empty profile', 'first public reply']), 'live rows not duplicated by history', ...(restart
       ? ['controller observes terminal backlog', 'terminal backlog blocks Send until drained', 'resend write/read on original scope'] : []), 'no polling after drain',
-      ...(restart ? ['team goal repairs then independently completes', 'team goal pauses after owned tool drains', 'team goal resumes the same objective'] : [])]);
+      ...(restart ? ['team goal repairs then independently completes', 'team goal pauses after owned tool drains', 'team goal resumes the same objective',
+        'clipboard image handed to PI', 'native model configuration', 'native session rename command'] : [])]);
     assert.match(report.scope.projectId, /^[a-f0-9-]{36}$/);
     assert.match(report.scope.sessionId, /^[a-f0-9-]{36}$/);
     await assert.rejects(lstat(join(destination, 'profile/.n01-active')), { code: 'ENOENT' });
