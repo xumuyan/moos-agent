@@ -12,16 +12,17 @@ function matchesImage(mime, bytes) {
 
 export function desktopImages(reject) {
   const staging = new Map();
+  const keyOf = (projectId, sessionId, batchId) => `${projectId}:${sessionId}:${batchId}`;
   function prune() {
     for (const [key, batch] of staging) if (Date.now() - batch.time > 120000) staging.delete(key);
   }
   return {
-    stage({ sessionId, batchId, index, offset, data, mime }) {
+    stage({ projectId, sessionId, batchId, index, offset, data, mime }) {
       prune();
       if (!Number.isSafeInteger(index) || index < 0 || index >= maxImages ||
           !Number.isSafeInteger(offset) || offset < 0 || !mimeTypes.includes(mime) ||
           typeof data !== 'string' || data.length > 12288 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) reject('invalid_request');
-      const key = sessionId + ':' + batchId;
+      const key = keyOf(projectId, sessionId, batchId);
       if (!data) { staging.delete(key); return {}; }
       let batch = staging.get(key);
       if (!batch) {
@@ -43,13 +44,13 @@ export function desktopImages(reject) {
       batch.time = Date.now();
       return {};
     },
-    peek(sessionId, batchId) {
+    peek(projectId, sessionId, batchId) {
       prune();
-      const batch = staging.get(sessionId + ':' + batchId);
+      const batch = staging.get(keyOf(projectId, sessionId, batchId));
       if (!batch?.images.length) reject('not_found');
       return batch.images.map(i => ({ type: 'image', mimeType: i.mime, data: Buffer.concat(i.chunks, i.bytes).toString('base64') }));
     },
-    consume(sessionId, batchId) { staging.delete(sessionId + ':' + batchId); },
+    consume(projectId, sessionId, batchId) { staging.delete(keyOf(projectId, sessionId, batchId)); },
     clear() { staging.clear(); },
   };
 }

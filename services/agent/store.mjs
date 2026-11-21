@@ -126,11 +126,11 @@ export class Store {
     this.getProject(projectId);
     return this.#all('SELECT * FROM conversations WHERE projectId = ? ORDER BY rowid', projectId);
   }
-  createConversation(projectId, title = '新会话') {
+  createConversation(projectId, title = '新会话', id = randomUUID()) {
     this.getProject(projectId); text(title, 'title');
     if (title.length > 200) throw new Error('Invalid title: maximum 200 characters');
     if (this.#one('SELECT count(*) AS count FROM conversations').count >= 128) throw new Error('Conversation limit reached');
-    const id = randomUUID();
+    if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(id)) throw new Error('Invalid conversation ID');
     this.#checkMetadataBudget('conversations', { id, projectId, title, createdAt: now() });
     this.#db.prepare('INSERT INTO conversations VALUES (?, ?, ?, ?)').run(id, projectId, title, now());
     return this.getConversation(id);

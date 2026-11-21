@@ -45,6 +45,20 @@ test('submit persists immediately; runner receives context and persists ordered 
   assert.deepEqual(store.listEvents(task.id), published);
 });
 
+test('a first-message admission error rolls back its draft conversation, message, and task', async t => {
+  const { store, scheduler, conversations: [existing], published } = await fixture(t, async () => {
+    assert.fail('a rejected first message must never run');
+  });
+  const id = 'draft-atomic-first-message';
+  assert.throws(() => scheduler.submit({ conversationId: id, message: '首条消息',
+    prepare: () => store.createConversation(existing.projectId, '新会话', id),
+    onCreate() { throw new Error('synthetic admission failure'); },
+  }), /synthetic admission failure/);
+  assert.deepEqual(store.listConversations(existing.projectId), [existing]);
+  assert.deepEqual(store.listTasks(), []);
+  assert.deepEqual(published, []);
+});
+
 test('canonical directory serializes conversations while other projects run in parallel (default concurrency four)', async t => {
   const starts = []; const gates = new Map(); let active = 0; let peak = 0;
   const { store, scheduler, conversations: [a, b, c] } = await fixture(t, async ({ task }) => {

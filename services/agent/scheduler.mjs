@@ -33,10 +33,11 @@ export class Scheduler {
     });
     this.#publish(event);
   }
-  submit({ conversationId, message, timeoutMs, onCreate }) {
+  submit({ conversationId, message, timeoutMs, prepare, onCreate }) {
     if (this.#stopped) throw new Error('Scheduler is shut down');
     let event;
     const task = this.#store.transaction(() => {
+      prepare?.();
       const task = this.#store.createTask({ conversationId, message, timeoutMs: taskTimeout(timeoutMs) });
       this.#store.addMessage({ conversationId, taskId: task.id, role: 'user', content: message });
       event = this.#store.appendEvent(task.id, 'task_state', { status: 'queued' });

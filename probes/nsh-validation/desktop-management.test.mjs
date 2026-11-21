@@ -122,6 +122,40 @@ test('NSH sessions preserve history and ownership across archive, restart and re
   assert.deepEqual(archived(scope.projectId).map(s => s.id), [forkScope.sessionId]);
 });
 
+test('first draft message is saved atomically, replayable once, and visible after restart', async t => {
+  const { launch } = await profile(t, { run: async () => ({ text: 'first reply' }) });
+  let host = await launch();
+  const projectId = scopeFor(host).projectId;
+  const other = scopeFor(host, 1).projectId;
+  const scope = { projectId, sessionId: 'draft-first-checked' };
+  const input = { ...scope, draft: true, requestId: 'first', text: '首条消息' };
+  const imageData = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGNIn3qAJMQwqmFUw/DVAACx2bwQBikQCwAAAABJRU5ErkJggg==';
+  const image = { ...scope, draft: true, batchId: 'first-image', index: 0, offset: 0, data: imageData, mime: 'image/png' };
+  result(host, 'images.stage', { ...image, projectId: other });
+  assert.equal(code(host, 'tasks.submit', { ...input, modelId: 'fixture-alternate', imageBatch: image.batchId }), 'not_found');
+  result(host, 'images.stage', image);
+  const sessions = () => result(host, 'sessions.list', { projectId }).sessions;
+  assert.equal(sessions().length, 1);
+  assert.equal(code(host, 'sessions.history', { ...scope, before: null }), 'not_found');
+  assert.equal(code(host, 'tasks.submit', { ...input, text: '   ' }), 'invalid_request');
+  assert.equal(code(host, 'tasks.submit', { ...input, modelId: 'no-model' }), 'invalid_request');
+  assert.equal(code(host, 'tasks.submit', { ...input, draft: false }), 'invalid_request');
+  assert.equal(sessions().length, 1);
+  const commit = { ...input, modelId: 'fixture-alternate', imageBatch: image.batchId };
+  const admitted = result(host, 'tasks.submit', commit);
+  assert.equal(admitted.session.id, scope.sessionId);
+  assert.equal(admitted.session.title, '新会话 2');
+  assert.equal(sessions().length, 2);
+  assert.deepEqual(result(host, 'tasks.submit', commit), { ...admitted, replayed: true });
+  assert.equal(code(host, 'tasks.submit', { ...commit, projectId: other }), 'conflict');
+  assert.equal(code(host, 'tasks.submit', { ...commit, requestId: 'different' }), 'conflict');
+  assert.equal((await drain(host, scope, admitted.task.id)).task.status, 'succeeded');
+  await host.close();
+  host = await launch();
+  assert.equal(sessions().length, 2);
+  assert.deepEqual(result(host, 'sessions.history', { ...scope, before: null }).messages.map(m => m.text), ['首条消息', 'first reply']);
+});
+
 test('NSH images stay in their session, require a vision model and reach the real PI adapter', async t => {
   const host = await (await profile(t)).launch();
   const scope = scopeFor(host);

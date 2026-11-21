@@ -94,9 +94,30 @@ test('the bottom-left plus contains the single goal mode and opens a scoped subm
   await app.screenshot('chat-disclosures.png');
 });
 
+test('new conversation stays a draft until its first message is accepted', async () => {
+  const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
+  await app.waitFor('id:session-设计会话');
+  await app.press('id:create-session');
+  await app.type('id:prompt', '没有发出的草稿');
+  expect(app.shows('id:session-新会话 2')).toBe(false);
+  expect(records(app).some(call => call.name === 'tasks.submit')).toBe(false);
+  await app.press('id:session-设计会话');
+  expect(app.value('id:prompt')).toBe('');
+  await app.press('id:create-session');
+  await app.type('id:prompt', '首条已发送');
+  await app.press('id:primary-action');
+  await app.waitFor('id:session-新会话 2');
+  await app.waitFor('text:已完成合成验收');
+  const posts = records(app).filter(call => call.name === 'tasks.submit');
+  expect(posts).toHaveLength(1);
+  expect((posts[0].data as Calls['tasks.submit']['params']).draft).toBe(true);
+  expect(app.value('id:prompt')).toBe('');
+});
+
 test('pasting an image into the composer sends a scoped attachment batch', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820 });
   await app.waitFor('id:composer-add');
+  await app.press('id:create-session');
   await app.paste('id:prompt', { files: ['source/fixture-paste.png'] });
   await app.waitFor('id:composer-attachments');
   await app.press('id:primary-action');
@@ -104,6 +125,8 @@ test('pasting an image into the composer sends a scoped attachment batch', async
   const staged = records(app).find(call => call.name === 'images.stage')?.data as Calls['images.stage']['params'];
   const task = records(app).find(call => call.name === 'tasks.submit')?.data as Calls['tasks.submit']['params'];
   expect(staged.mime).toBe('image/png');
+  expect(staged.draft).toBe(true);
+  expect(task.draft).toBe(true);
   expect(task.imageBatch).toBe(staged.batchId);
   expect(task.sessionId).toBe(staged.sessionId);
 });

@@ -1,0 +1,94 @@
+{
+  "base": "4b44ddaf690342894e850dfe59f1ab34cab598c0",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "1bd9d41175d9da8a6511de7ac7ef1b858a5635e4eb30ed23cc18662266e149bc",
+    "probes/nsh-validation/desktop-contract.ts": "f408d825828213799b481d12a2c0e9cbc534935f1f2566c195ad84ed25099243",
+    "probes/nsh-validation/desktop-host.mjs": "37c121058629a696ec30be1425742989b673c8604434b9d95dd00902d1e0891b",
+    "probes/nsh-validation/desktop-images.mjs": "b17cf1c81b1df07fa9e4538aabf4b79ebc030804e120280f39f68ef783cd87c9",
+    "probes/nsh-validation/desktop-management-check.tsx": "6e9ebfab5a3113f9822b7868a28281d8cae743fe7024bb08f7d42d2d2a7da3a5",
+    "probes/nsh-validation/desktop-management-fixture.ts": "76690de3ac6fab68a9ae56f8ed977438932a62b948ad8e798b3c196a23be68a7",
+    "probes/nsh-validation/desktop-management.test.mjs": "a8cd80ba59d0384b610d7658f2f423370b225aa74d5a9b4a3e963ac748606694",
+    "services/agent/scheduler.mjs": "eb0748f414510a4dc8a64cb6e549486652def26594b4152ce5cf29ce30a756eb",
+    "services/agent/scheduler.test.mjs": "468a94f0121d109cff9667788f98d61e7a8617e1c5460c6f764bdfc1697cc78c",
+    "services/agent/store.mjs": "b4f0343c39fea138cf7d0266618f947eb1dff6eda9440be35b031bc4e64ac366",
+    "tests/nsh_composer_provenance.py": "0cc5d0d11e8df67cd7374689be65d9d02056ceb82b622798f67d02aea486a8a2",
+    "tests/test_nsh_desktop_appkit_chat.py": "558f08094ebca522608b4022c5f1101fa794b7c614d05e7acd40bb3e182cbe15",
+    "tests/test_nsh_desktop_appkit_package.py": "21b6543c345d9a04c1bb44048be78aff83a00d30e5fc837e10bbd656c38e61e2"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 83094,
+      "sha256": "ef914378b39a8b9499932da4dff2cfa5275924844d2d4d71629df551f346a650"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 8820,
+      "sha256": "9edde8b27a1f2e82e6b108cbb4a397a5a730efcd90471acf9b8fdaea4bd2e6a3"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 28519,
+      "sha256": "c01173be25115de918f1c797013c6d16d7aa2652b092ea813120e6f1099678b8"
+    },
+    "probes/nsh-validation/desktop-images.mjs": {
+      "bytes": 2799,
+      "sha256": "5a0275146e698913b06f84f6cd9ba7109c876644e7a2c529679ef390470b4931"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 8686,
+      "sha256": "3d32e673520680bedd9a18b1b67f79e4a2028e6ec6ec245484d7a96c17a1a024"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 4693,
+      "sha256": "8c46a872d7312bf19d338b611f0176688f571a3ee87424bfd769511631ffba1d"
+    },
+    "probes/nsh-validation/desktop-management.test.mjs": {
+      "bytes": 11810,
+      "sha256": "d68bb91e04cb99ffc6fd86c807438d0df9eb754f716de978099c403efff4c7f8"
+    },
+    "services/agent/scheduler.mjs": {
+      "bytes": 8932,
+      "sha256": "696b4e58fe1f7f099fc5f499e71ec836896cf706dadfba4e507bfdf3a036ebab"
+    },
+    "services/agent/scheduler.test.mjs": {
+      "bytes": 15605,
+      "sha256": "edb6ae078978a30c803c239479b2b6671f4ef9e0dbeb51744e93e5887114287e"
+    },
+    "services/agent/store.mjs": {
+      "bytes": 26060,
+      "sha256": "11497406ca5b39569dec2ae15cc717bb9eb0402f2c1564794922cb42f2f56158"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4212,
+      "sha256": "0018707fb73701a1d28df105897349008755e2e1a6d2271ecb3a796cb1302797"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 27412,
+      "sha256": "0465d04586e3640922084d0ee030295be5d0cb5645d12bceac3ede84a31f8bd6"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4324,
+      "sha256": "ec8e1887f2ce9f361614b037cb01978c0df51cfd9c514857cf2782302516c7fa"
+    }
+  },
+  "candidate": {
+    "signedPackageHost": true,
+    "blankRejectedWithoutSession": true,
+    "firstMessageSaved": true,
+    "restartHistoryVerified": true,
+    "realModel": false,
+    "candidateDraftAbandoned": true,
+    "existingProjects": 6,
+    "existingConversations": 10,
+    "candidateMessageChunks": 1700,
+    "formalChanged": false
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "passed": 7,
+    "fixture": true,
+    "testLog": {
+      "path": "artifacts/nsh-validation/desktop-theme/run-eYrn2v/test.log",
+      "bytes": 813,
+      "sha256": "4c2959c525c6ff0752777bb6a16bebe370f027deb67809f16f83f3854162c2a9"
+    }
+  }
+}

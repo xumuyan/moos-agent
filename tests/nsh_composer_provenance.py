@@ -103,13 +103,17 @@ def desktop_turn_layout_evidence():
     return json.loads((PROBE / 'desktop-turn-layout-evidence.json').read_text())
 
 
+def desktop_first_draft_evidence():
+    return json.loads((PROBE / 'desktop-first-draft-evidence.json').read_text())
+
+
 def current_composer_input(test, path, previous, *, after=None):
     evidence_chain = (controls_evidence, picker_evidence, hover_evidence, session_preview_evidence,
                       turn_queue_evidence, statistics_evidence, statistics_split_evidence, sidebar_jewel_evidence,
                       settings_evidence, wenkai_evidence, live_models_evidence, desktop_profile_evidence,
                       desktop_persistent_evidence, desktop_package_evidence, idle_host_evidence,
                       desktop_team_goal_evidence, desktop_management_evidence, desktop_archive_evidence, desktop_import_evidence,
-                      desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_turn_layout_evidence)
+                      desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_turn_layout_evidence, desktop_first_draft_evidence)
     start = evidence_chain.index(after) + 1 if after is not None else 0
     for evidence in evidence_chain[start:]:
         previous = successor_input(test, evidence(), path, previous)

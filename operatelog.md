@@ -3415,3 +3415,13 @@
 - 全量回归：Node 22.22.0 串行核心 395 通过、2 失败、1 取消、1 跳过，集中在 PI 退出、系统采样和关闭时序。Node 24.15.0 `npm run test:electron` 带打包 DSH 139 通过、3 失败、1 跳过，失败在打包 Host 和团队夹具超时。两轮期间本机负载较高。Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩 E124 报告缺失和旧 AppKit `open.err` 哈希不匹配。
 - 遗留问题：N01-D2 保持未勾；因全量回归和历史证据门禁未全绿，暂未推送。解除条件为低负载复跑并恢复或重验两项历史证据。七份既有未跟踪文件原样保留。
 - 对应 Git 提交：唯一说明 `fix(N01-D2): drop empty workspace chat placeholders`，查询 `git log --oneline --grep="drop empty workspace chat placeholders"`。
+
+## 2026-11-21 15:53:51 +08:00｜N01-D2 首条消息后保存新会话
+
+- 修改或新增内容：管理模式的「新会话」仅在界面内创建临时草稿。首次发送成功时，SQLite 同一事务内保存会话、首条消息和任务；侧栏随后显示该会话。首张图片会按工作区和草稿暂存，丢弃或已知拒绝等路径清理暂存。
+- 遇到的难题：原入口立即创建空会话。直接改为先建会话再发送仍会在拒绝或中断时留下空记录。改用调度器现有事务的一次性准备步骤，提交失败整体回滚；保留重复请求的归属和幂等验证。
+- 处理方式：沿用原任务事件和会话恢复流程。首次请求由宿主验证模型、工作区、容量及图片归属后入队。使用同一候选档案原位更新已验签的宿主和界面代码，留存原应用包用于回滚，不改正式安装或正式资料。
+- 验证结果：Node 24.15.0 的 `node --test --test-concurrency=1 probes/nsh-validation/desktop-management.test.mjs services/agent/scheduler.test.mjs services/agent/store.test.mjs` 33/33；默认皮肤 AppKit `verify-desktop-theme.mjs --management` 7/7，含打开草稿、输入后切走、发文字和首张图。包内宿主隔离验证空白拒绝、首发保存和重开历史。macOS 27.0.1 arm64 实装窗口验证打开和输入草稿均不增侧栏，切回原会话后草稿消失。候选数据库仍为 6 个项目、10 个会话、1,700 个消息片段，未留下草稿行。证据见 `probes/nsh-validation/desktop-first-draft-evidence.json`。
+- 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 399 通过、1 失败、1 跳过，失败为队列等待超时的假时钟时序，按同 Node 版本单独重跑调度器 13/13。Node 24.15.0 `npm run test:electron` 带打包 DSH 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，仍为旧 AppKit `open.err` 哈希差异及 E124 缺失的重开报告。
+- 遗留问题：包内首发和续开用隔离模型模拟验证，真实候选未发请求。历史证据仍阻塞推送，N01-D2 保持未勾。七份既有未跟踪文件原样保留。
+- 对应 Git 提交：唯一说明 `fix(N01-D2): save new conversations with their first message`，查询 `git log --oneline --grep="save new conversations with their first message"`。

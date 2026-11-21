@@ -11,7 +11,7 @@ import { DesktopImportedHistory, openHistoryAsset } from './DesktopImportedHisto
 import { DesktopSettings, type DesktopAppearance } from './DesktopSettings';
 import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
-import { DesktopController, isTerminal, type DesktopCall } from './desktop-ui-controller';
+import { DesktopController, isTerminal, type DesktopCall, type Conversation } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
@@ -75,6 +75,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   macWindow?.set({ titleBar: { style: 'hidden', height: 32 } });
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
+  const pendingDraft = signal<Scope | null>(null);
+  const draftNonce = Math.random().toString(36).slice(2, 10).padEnd(8, '0');
+  let draftNumber = 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
   const visibleImported = signal<ImportedSession[]>([]), selectedImported = signal<ImportedSession | null>(null);
   const migrated = signal(false);
@@ -113,7 +116,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const queueRevision = signal(0);
   const queueChanged = () => queueRevision.set(queueRevision() + 1);
   const editTurn = signal<{ id: number; text: string } | null>(null);
-  const outboundChoices = new Map<string, { choice?: ModelChoice; teamGoal?: TeamGoalAction; imageBatch?: string }>();
+  const outboundChoices = new Map<string, { choice?: ModelChoice; teamGoal?: TeamGoalAction; imageBatch?: string; draft?: true }>();
   const goalAvailable = signal(false), goalSelected = signal(false);
   const teamGoals = signal(new Map<string, TeamGoal>());
   function rememberGoal(scope: Scope, value: unknown, taskId?: string) {
@@ -135,7 +138,20 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const choice = key ? (outbound ? outbound.choice : modelChoice(key)) : undefined;
     const result = await transport(method, key && (choice || outbound)
       ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }),
-        ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }) } : params);
+        ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }), ...(outbound?.draft && { draft: true }) } : params);
+    if (!disposed && method === 'tasks.submit' && outbound?.draft) {
+      const scope = params as Scope;
+      const { session, task } = result as Calls['tasks.submit']['result'];
+      if (!session || session.id !== scope.sessionId || session.projectId !== scope.projectId ||
+          typeof session.title !== 'string' || !session.title || session.title.length > 100 ||
+          task?.sessionId !== scope.sessionId || task.projectId !== scope.projectId) throw Error('invalid_response');
+      if (controller.projectId === scope.projectId && !controller.sessions.some(s => s.id === session.id)) {
+        controller.sessions = [...controller.sessions, session];
+        sessionDetails.set([...sessionDetails(), session]);
+        previews.remember(scope.projectId, [session]);
+      }
+      if (pendingDraft()?.sessionId === scope.sessionId) pendingDraft.set(null);
+    }
     if (method === 'projects.list' && !disposed) {
       const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown; workspaceMigration?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
@@ -199,7 +215,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const historyCapped = () => !migrated() && (selectedHistory()?.messages.length ?? 0) >= 120;
   async function loadHistory(older = false) {
     const scope = controller.current?.scope;
-    if (!props.persistentHistory || disposed || !scope) return;
+    if (!props.persistentHistory || disposed || !scope || pendingDraft()?.sessionId === scope.sessionId) return;
     const prior = selectedHistory();
     const before = older && prior ? prior.before : null;
     if (older && (!before || historyCapped() || historyState() === 'loading')) return;
@@ -227,7 +243,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   }
   function syncHistory() {
     if (!props.persistentHistory) return;
-    const scope = controller.current?.scope;
+    const current = controller.current?.scope;
+    const scope = pendingDraft()?.sessionId === current?.sessionId ? undefined : current;
     const key = scope ? scopeKey(scope) : '';
     if (key === historyScope) return;
     historyScope = key;
@@ -269,18 +286,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     files.set([...files(), ...next.slice(0, room).map(file => ({ file, url: URL.createObjectURL(file) }))]);
     attachmentError.set(next.length !== incoming.length || next.length > room ? '最多附加 8 张 PNG、JPEG、GIF 或 WebP 图片，单张不超过 5 MB。' : '');
   }
-  async function stageImages(scope: Scope, batchId: string, images: File[], version: number) {
+  async function stageImages(scope: Scope, batchId: string, images: File[], version: number, opening: boolean) {
+    const target = { ...scope, ...(opening && { draft: true as const }) };
     try {
       for (const [index, image] of images.entries()) {
         const bytes = new Uint8Array(await image.arrayBuffer());
         for (let offset = 0; offset < bytes.length; offset += 9216) {
           if (disposed || editorVersion !== version) throw Error('stale');
           const data = btoa(String.fromCharCode(...bytes.subarray(offset, offset + 9216)));
-          await transport('images.stage', { ...scope, batchId, index, offset, data, mime: image.type });
+          await transport('images.stage', { ...target, batchId, index, offset, data, mime: image.type });
         }
       }
     } catch (error) {
-      if (!disposed) void transport('images.stage', { ...scope, batchId, index: 0, offset: 0, data: '', mime: 'image/png' }).catch(() => {});
+      if (!disposed) void transport('images.stage', { ...target, batchId, index: 0, offset: 0, data: '', mime: 'image/png' }).catch(() => {});
       throw error;
     }
   }
@@ -377,7 +395,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
   const blocked = computed(() => disposed || !snapshot().current || snapshot().loading || !!snapshot().current?.error || !!snapshot().error);
-  const historyPending = () => !!props.persistentHistory && !selectedHistory();
+  const historyPending = () => !!props.persistentHistory && !pendingDraft() && !selectedHistory();
   const pickerScope = () => { const c = snapshot().current; return c ? scopeKey(c.scope) : ''; };
   const teamGoal = () => teamGoals().get(pickerScope());
   const goalInFlight = () => ['queued', 'running'].includes(teamGoal()?.status ?? '') || !!outboundChoices.get(pickerScope())?.teamGoal;
@@ -404,11 +422,28 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (editTurn()) return '编辑完成后继续';
     return '';
   });
-  function submitTurn(text: string, choice?: ModelChoice, teamGoal?: TeamGoalAction, imageBatch?: string) {
+  function submitTurn(text: string, choice?: ModelChoice, teamGoal?: TeamGoalAction, imageBatch?: string, opening = false) {
     const sessionId = controller.sessionId, key = pickerScope();
+    const conversation = controller.current;
     submitting.add(sessionId);
-    outboundChoices.set(key, { choice, teamGoal, imageBatch });
-    void controller.submit(text).finally(() => {
+    outboundChoices.set(key, { choice, teamGoal, imageBatch, ...(opening && { draft: true }) });
+    return controller.submit(text).then(accepted => {
+      if (!accepted && opening && conversation) {
+        if (imageBatch && !disposed) {
+          void transport('images.stage', { ...conversation.scope, draft: true, batchId: imageBatch, index: 0, offset: 0, data: '', mime: 'image/png' }).catch(() => {});
+        }
+        const visible = pendingDraft()?.sessionId === sessionId;
+        if (!visible) {
+          controller.conversations.delete(sessionId);
+          choices.set(new Map([...choices()].filter(([id]) => id !== key)));
+        } else if (['invalid_request', 'limit', 'not_found'].includes(conversation.error)) {
+          const limited = conversation.error === 'limit';
+          conversation.error = ''; conversation.rows.length = 0; conversation.drained = true;
+          sessionError.set(limited ? '当前工作区会话已满，请先归档一个会话。' : '首条消息未提交，请检查模型和工作区后重试。');
+        }
+      }
+      return accepted;
+    }).finally(() => {
       outboundChoices.delete(key);
       submitting.delete(sessionId);
       refresh();
@@ -432,6 +467,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (settingsOpen() || selectedImported() || archiveProject() || disposed || disabled()) return;
     if (goalSelected() && !canSelectGoal()) return;
     const images = files().map(asset => asset.file), scope = controller.current!.scope, version = editorVersion;
+    const opening = pendingDraft()?.sessionId === scope.sessionId;
     const text = draft().trim() ? draft() : '请查看附带的图片。';
     const choice = modelChoice(pickerScope());
     const startGoal = goalSelected();
@@ -439,14 +475,25 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (images.length) {
       imageBatch = `image-${Date.now().toString(36)}-${++nextImageBatch}`;
       uploading.set(true);
-      try { await stageImages(scope, imageBatch, images, version); }
+      try { await stageImages(scope, imageBatch, images, version, opening); }
       catch { if (version === editorVersion && !disposed) attachmentError.set('图片准备失败，请重新发送。'); return; }
       finally { uploading.set(false); }
-      if (disposed || version !== editorVersion || pickerScope() !== scopeKey(scope)) return;
+      if (disposed) return;
+      if (version !== editorVersion || pickerScope() !== scopeKey(scope)) {
+        void transport('images.stage', { ...scope, ...(opening && { draft: true }), batchId: imageBatch,
+          index: 0, offset: 0, data: '', mime: 'image/png' }).catch(() => {});
+        return;
+      }
+    }
+    if (opening) {
+      sessionError.set('');
+      const accepted = await submitTurn(text, choice, startGoal ? 'start' : undefined, imageBatch, true);
+      if (!accepted || disposed || version !== editorVersion || pickerScope() !== scopeKey(scope)) return;
+    } else {
+      void submitTurn(text, choice, startGoal ? 'start' : undefined, imageBatch);
     }
     draft.set(''); removeImages(); attachmentError.set('');
     goalSelected.set(false);
-    submitTurn(text, choice, startGoal ? 'start' : undefined, imageBatch);
   }
   function resumeGoal() {
     const goal = teamGoal();
@@ -467,6 +514,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     editTurn.set(edit); if (!edit) refresh();
   };
   const resetEditor = () => {
+    const previous = pendingDraft();
+    if (previous) {
+      pendingDraft.set(null);
+      if (!submitting.has(previous.sessionId)) {
+        controller.conversations.delete(previous.sessionId);
+        const key = scopeKey(previous);
+        choices.set(new Map([...choices()].filter(([id]) => id !== key)));
+      }
+      if (controller.sessionId === previous.sessionId) controller.sessionId = controller.sessions[0]?.id ?? '';
+    }
     closeSavedImage(); editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
     rename.set(null); sessionError.set(''); selectedImported.set(null);
   };
@@ -482,7 +539,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     selectedImported.set(item);
   };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
-  const create = async () => { resetEditor(); await controller.createSession(); };
+  const create = async () => {
+    if (disposed || controller.loading || !controller.projectId) return;
+    closeArchive(); resetEditor();
+    if (!managed()) { await controller.createSession(); return; }
+    const scope = { projectId: controller.projectId, sessionId: `draft-${Date.now().toString(36)}-${draftNonce}-${++draftNumber}` };
+    const conversation: Conversation = {
+      scope, rows: [], task: null, busy: false, stopping: false, error: '', sequence: 0, cursor: null, drained: true, polls: 0,
+    };
+    controller.conversations.set(scope.sessionId, conversation);
+    controller.sessionId = scope.sessionId;
+    pendingDraft.set(scope);
+    refresh();
+  };
   const chooseModel = (choice: ModelChoice) => {
     if (!pickerDisabled()) choices.set(new Map(choices()).set(pickerScope(), choice));
   };
@@ -687,7 +756,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             paddingHorizontal: 10, paddingVertical: 6, backgroundColor: dark() ? t.dark.assistant : t.paper, borderWidth: 1, borderColor: '#ab324868' }}>
             <Text style={{ fontFamily: t.fontFamily, color: dark() ? '#ffc1cb' : t.danger, fontSize: 13 }}>{sessionError() || error()}</Text>
           </View>}
-          {props.persistentHistory && !!snapshot().current && historyState() === 'loading' &&
+          {props.persistentHistory && !pendingDraft() && !!snapshot().current && historyState() === 'loading' &&
             <Text testID="history-loading" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>正在读取历史…</Text>}
           {props.persistentHistory && historyState() === 'error' && !!snapshot().current &&
             <Button testID="history-retry" onPress={() => void loadHistory(!!selectedHistory())} style={{ ...button, alignSelf: 'flex-start' }}>
@@ -803,7 +872,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight + (files().length ? 38 : 0), flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
               {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
               <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onPaste={e => attachImages(e.files)}
-                disabled={uploading()} onSubmit={() => void send()} />
+                disabled={uploading() || (!!pendingDraft() && busy())} onSubmit={() => void send()} />
               {!!files().length && <View testID="composer-attachments" style={{ zIndex: 2, flexDirection: 'row', alignItems: 'center', gap: 3, height: 30 }}>
                 {files().map((asset, index) => <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
                   disabled={uploading()} onPress={() => removeImages(index)}

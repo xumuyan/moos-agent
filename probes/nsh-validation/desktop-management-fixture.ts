@@ -46,8 +46,13 @@ export function managementFixture() {
       return ok({ services, models });
     },
     'images.stage': () => ok({}),
-    'tasks.submit': () => ok({ task, replayed: false }),
-    'tasks.events': () => ok({ task, terminal: true, hasMore: false, cursor: 'task:5',
+    'tasks.submit': (p: Calls['tasks.submit']['params']) => {
+      const first = p.draft ? { id: p.sessionId, projectId: p.projectId, title: `新会话 ${sessions.length + 1}` } : undefined;
+      if (first) sessions = [...sessions, first];
+      return ok({ task: { ...task, projectId: p.projectId, sessionId: p.sessionId }, replayed: false, ...(first && { session: first }) });
+    },
+    'tasks.events': (p: Calls['tasks.events']['params']) => ok({
+      task: { ...task, projectId: p.projectId, sessionId: p.sessionId }, terminal: true, hasMore: false, cursor: 'task:5',
       events: [
         { sequence: 1, type: 'text_delta', payload: { delta: '先读取再修改', truncated: false } },
         { sequence: 2, type: 'tool_start', payload: { toolCallId: 'edit', toolName: 'edit' } },
