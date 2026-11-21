@@ -3355,3 +3355,13 @@
 - 全量回归：Node 22.22.0 独立 TMPDIR 串行核心最终 394 通过、1 非本机目标跳过、0 失败。初跑 380 通过、8 失败、6 取消、1 跳过，补齐独立入口依赖和协议断言后完整重跑。固定 Node 24.15.0 + 隔离打包 DSH 的 npm run test:electron 最终 142 通过、1 审核皮肤夹具跳过、0 失败；首轮 137 通过，第二轮 140 通过，两项启动超时用独立测试复查通过，最终完整重跑通过。python3 -m unittest discover -s tests -v 为 263/265，剩旧 AppKit open.err 哈希漂移与 E124 原始 report.json 缺失。cargo +1.100.0 test --release --offline --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 离线缺 defmt，返回 101。工作区与测试记录通过回执哈希绑定旧基线和本次源文件。
 - 遗留问题：归档恢复界面、操作系统 Finder 菜单的人工点击、正式上游模型、中文 IME、长期同负载资源比较与真实资料迁移待验。任务的 Git 文件摘要只覆盖本次运行的 Git 可见路径，旧聊天文本可重开，当前会话的工具折叠与变动摘要未写入历史列表。构建沿用原有未跟踪控制器和传输文件，保留七份其他本地开发输入；仓库的干净检出构建仍需补齐原入口。正式版、正式配置和聊天资料未接触。因历史证据与独立 Rust 门禁仍受阻，保留本地提交，未推送或替换正式版。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): refine the native Moos workbench`，查询 `git log --oneline --grep="refine the native Moos workbench"`。
+
+## 2026-11-21 11:10:31 +08:00｜N01-D3 NSH 归档恢复与真实中转复验
+
+- 修改或新增内容：在侧栏「更多 → 已归档会话」按当前工作区列出原会话，点击「恢复并打开」回到同一 ID 和历史。原会话的工作区归属、置顶标记、目标及 PI 数据保留。恢复受现有 16 个活跃会话的上限约束，同一恢复请求重复执行不产生额外会话。
+- 遇到的难题：此前归档后侧栏隐藏会话，现复用私有 sessions.manage 增加工作区查询与恢复。旧开窗日志哈希与当时记录不符、E124 原始报告与截图不在当前检出或旧 worktree，保留原证据和断言。Rust 先前缺 defmt，cargo +1.100.0 fetch --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 补齐锁定依赖。
+- 处理方式：恢复后由现有控制器刷新工作区会话及历史。读取归档的回执带当前工作区对应的请求代数，晚到响应不能污染新工作区。真实中转仅复用 11 月 20 日已许可的独立候选连接，在新建临时目录经 models.manage 保存、重开、选择并发一条合成请求；退出后删除该测试目录，无正式资料、本机密钥或上游响应原文写入日志。
+- 验证结果：固定 Node 24.15.0 回归管理与基线 12/12，NSH 0.5.0 带默认皮肤原生 5/5，覆盖归档、恢复并打开及空列表。Mac arm64/macOS 27.0.1 AppKit 解包验签、脚本首启 6 项、重开 19 项和双协议回环通过，重开测试验证原历史仍在。独立模型连接以 openai-completions 返回预期合成答复，任务成功且未调用工具，正式应用及资料保持原样。回执 probes/nsh-validation/desktop-archive-evidence.json。
+- 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 394 通过、1 非本机架构跳过。固定 Node 24.15.0 带隔离 DSH 的 npm run test:electron 为 142 通过、1 皮肤夹具跳过。cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 为 11 通过。python3 -m unittest discover -s tests -v 为 263/265，两项遗留历史证据失败见上。候选原生打包沿用已有 NSH/AppKit 构建，不推断相同业务负载下的资源收益。
+- 遗留问题：本轮真实中转验收为一次合成请求，未执行正式资料迁移或替换安装。GitHub 推送门禁只剩历史证据，需恢复可核实的 AppKit 原日志和 E124 正式归档验收原始产物；不以本轮 NSH 证据替代。原七份未跟踪本地开发输入保持原状，N01-D1/D2/D3 不勾。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): restore archived NSH conversations`，查询 `git log --oneline --grep="restore archived NSH conversations"`。

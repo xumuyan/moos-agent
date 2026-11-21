@@ -191,7 +191,7 @@ if (scripted) {
       : ['empty profile', 'first public reply']), 'live rows not duplicated by history', ...(restart
       ? ['controller observes terminal backlog', 'terminal backlog blocks Send until drained', 'resend write/read on original scope'] : []), 'no polling after drain',
       ...(restart ? ['team goal repairs then independently completes', 'team goal pauses after owned tool drains', 'team goal resumes the same objective',
-        'clipboard image handed to PI', 'native model configuration', 'native session rename command'] : [])]);
+        'clipboard image handed to PI', 'native model configuration', 'native session rename command', 'native archive and restore keeps history'] : [])]);
     assert.match(report.scope.projectId, /^[a-f0-9-]{36}$/);
     assert.match(report.scope.sessionId, /^[a-f0-9-]{36}$/);
     await assert.rejects(lstat(join(destination, 'profile/.n01-active')), { code: 'ENOENT' });

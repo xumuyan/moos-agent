@@ -153,6 +153,12 @@ async function run() {
       m.reasoning?.defaultId === 'high') && !JSON.stringify(added).includes('test-fixture-only'), 'native model configuration');
     const renamed = await desktopCall('sessions.manage', { ...scope, action: 'rename', title: 'AppKit verified session' });
     check(renamed.sessions[0]?.title === 'AppKit verified session', 'native session rename command');
+    const archived = await desktopCall('sessions.manage', { ...scope, action: 'archive' });
+    const list = await desktopCall('sessions.manage', { projectId: scope.projectId, action: 'listArchived' });
+    const restored = await desktopCall('sessions.manage', { ...scope, action: 'restore' });
+    const reopened = await desktopCall('sessions.history', { ...scope, before: null });
+    check(!archived.sessions.some(s => s.id === scope.sessionId) && list.sessions.some(s => s.id === scope.sessionId) &&
+      restored.selectedId === scope.sessionId && reopened.messages.some(m => m.text === firstText), 'native archive and restore keeps history');
   }
   await host.call('n01.complete', true);
   console.log(`N01_APPKIT_CHAT ${JSON.stringify({ restart, scope, checks })}`);

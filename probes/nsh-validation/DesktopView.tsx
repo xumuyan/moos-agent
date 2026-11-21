@@ -1,4 +1,4 @@
-import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ScrollEvent } from 'nsh';
+import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, Scroll, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
@@ -78,6 +78,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const managed = signal(false), sessionDetails = signal<Session[]>([]);
   const sessionError = signal(''), sessionPending = signal(false);
   const rename = signal<string | null>(null), renameTitle = signal('');
+  const archiveProject = signal(''), archivedSessions = signal<Session[]>([]);
+  const archiveLoading = signal(false), archiveError = signal('');
+  let archiveRequest = 0;
   const sessionHover = signal(''), sessionMenu = signal('');
   const files = signal<Attachment[]>([]), attachmentError = signal(''), uploading = signal(false);
   const changes = signal(new Map<string, { row: number; summary: WorkspaceChanges }>());
@@ -302,6 +305,22 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     }
     return result;
   }
+  const closeArchive = () => { archiveRequest++; archiveProject.set(''); };
+  async function openArchive() {
+    const projectId = controller.projectId;
+    if (!managed() || !projectId || controller.loading) return;
+    const request = ++archiveRequest;
+    archiveProject.set(projectId);
+    archivedSessions.set([]); archiveError.set(''); archiveLoading.set(true);
+    try {
+      const { sessions } = await transport('sessions.manage', { action: 'listArchived', projectId });
+      if (!disposed && request === archiveRequest && projectId === controller.projectId) archivedSessions.set(sessions);
+    } catch {
+      if (!disposed && request === archiveRequest) archiveError.set('无法读取已归档会话，请重试。');
+    } finally {
+      if (!disposed && request === archiveRequest) archiveLoading.set(false);
+    }
+  }
   async function sessionAction(action: SessionAction | 'copy', id: string, name = '') {
     if (sessionPending() || controller.loading || disposed) return;
     const projectId = controller.projectId;
@@ -313,7 +332,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       if (disposed || projectId !== controller.projectId || action === 'reveal') return;
       const selected = result.selectedId || controller.sessionId;
       if (!result.sessions.some(s => s.id === controller.sessionId) || result.selectedId) resetEditor();
-      if (action === 'fork') {
+      if (action === 'fork' || action === 'restore') {
+        if (action === 'restore') closeArchive();
         await controller.selectProject(projectId);
         if (projectId === controller.projectId) controller.selectSession(selected);
       } else {
@@ -326,7 +346,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       if (action === 'rename') rename.set(null);
     } catch (error) {
       if (!disposed && projectId === controller.projectId) {
-        sessionError.set(error instanceof Error && error.message === 'conflict' ? '任务结束后才能归档或分叉。' : '未能完成会话操作，请重试。');
+        const code = error instanceof Error ? error.message : '';
+        if (action === 'restore') archiveError.set(code === 'limit' ? '当前工作区已有 16 个活跃会话，请先归档一个。' : '恢复会话失败，请重试。');
+        else sessionError.set(code === 'conflict' ? '任务结束后才能归档或分叉。' : '未能完成会话操作，请重试。');
       }
     } finally { sessionPending.set(false); }
   }
@@ -391,7 +413,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     refresh();
   }
   async function send() {
-    if (settingsOpen() || disposed || disabled()) return;
+    if (settingsOpen() || archiveProject() || disposed || disabled()) return;
     if (goalSelected() && !canSelectGoal()) return;
     const images = files().map(asset => asset.file), scope = controller.current!.scope, version = editorVersion;
     const text = draft().trim() ? draft() : '请查看附带的图片。';
@@ -432,7 +454,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
     rename.set(null); sessionError.set('');
   };
-  const project = async (id: string) => { resetEditor(); await controller.selectProject(id); };
+  const project = async (id: string) => { closeArchive(); resetEditor(); await controller.selectProject(id); };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
   const create = async () => { resetEditor(); await controller.createSession(); };
   const chooseModel = (choice: ModelChoice) => {
@@ -481,10 +503,20 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>
         </View>
         <View testID="sidebar-navigation" onLayout={measured('sidebar-navigation')} style={{ flexShrink: 0, marginTop: 4 }}>
-          {navigationRows.map(({ icon, label }) => <Button testID={`nav-${icon}-unavailable`} onLayout={measured(`nav-${icon}`)} accessibilityLabel={label} disabled style={{ height: tree.navigationRowHeight, paddingLeft: 4, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'transparent' }}>
-            <DesktopIcon name={icon} color={t.sidebarInk} testID={`icon-nav-${icon}`} onLayout={measured(`icon-nav-${icon}`)} />
-            <Text onLayout={measured(`nav-label-${icon}`)} style={{ color: t.sidebarInk, fontFamily: t.fontFamily, fontSize: 14, lineHeight: 22 }}>{label}</Text>
-          </Button>)}
+          {navigationRows.map(({ icon, label }) => {
+            const navStyle = { height: tree.navigationRowHeight, paddingLeft: 4, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'transparent' } as const;
+            const content = () => <>
+              <DesktopIcon name={icon} color={t.sidebarInk} testID={`icon-nav-${icon}`} onLayout={measured(`icon-nav-${icon}`)} />
+              <Text onLayout={measured(`nav-label-${icon}`)} style={{ color: t.sidebarInk, fontFamily: t.fontFamily, fontSize: 14, lineHeight: 22 }}>{label}</Text>
+            </>;
+            return managed() && icon === 'more' ? <Menu placement="right" margin={8} popupStyle={{ ...popup(), minWidth: 154 }}
+              trigger={<Button testID="nav-more" onLayout={measured('nav-more')} accessibilityLabel={label} style={navStyle}
+                disabled={snapshot().loading || !snapshot().projectId} hoverStyle={controlHover}>{content()}</Button>}>
+              <MenuItem testID="nav-archived-sessions" style={menuItem} hoverStyle={controlHover} onSelect={() => void openArchive()}>
+                <Text style={menuLabel()}>已归档会话</Text>
+              </MenuItem>
+            </Menu> : <Button testID={`nav-${icon}-unavailable`} onLayout={measured(`nav-${icon}`)} accessibilityLabel={label} disabled style={navStyle}>{content()}</Button>;
+          })}
         </View>
         <View testID="workspace-heading" onLayout={measured('workspace-heading')} style={{ height: tree.workspaceHeight, flexShrink: 0, flexDirection: 'row', alignItems: 'center', marginTop: -2, marginRight: -8, paddingLeft: 4 }}>
           <Text class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: '500', fontFamily: t.fontFamily, color: t.goldSoft }}>工作区</Text>
@@ -768,6 +800,36 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         style={{ ...controlSurface, position: 'absolute', top: 0, left: navigationLeft(), width: 32, height: navigationHeight(), zIndex: 9, alignItems: 'center', justifyContent: 'center' }}>
         <DesktopIcon name="panel" color={navigation() ? t.sidebarInk : artAvailable ? t.brand : ink()} testID="icon-navigation" />
       </Button>
+      {!!archiveProject() && <Dialog testID="archived-sessions" accessibilityLabel="已归档会话" animation="none"
+        onOpenChange={e => { if (!e.open) closeArchive(); }}
+        style={{ ...popup(), position: 'absolute', left: Math.max(8, (windowSize().width - 440) / 2),
+          width: Math.min(windowSize().width - 16, 440), top: Math.max(8, (windowSize().height - 390) / 2),
+          height: Math.min(windowSize().height - 16, 390), padding: 14, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ ...menuLabel(), flex: 1, fontSize: 17, fontWeight: '600' }}>已归档会话</Text>
+          <Button style={menuItem} accessibilityLabel="关闭已归档会话" testID="archived-sessions-close" onPress={closeArchive}>
+            <Text style={menuLabel()}>关闭</Text>
+          </Button>
+        </View>
+        <Text style={menuLabel()}>{snapshot().projects.find(p => p.id === archiveProject())?.name}</Text>
+        {archiveLoading() && <Text style={menuLabel()}>正在加载…</Text>}
+        {!archiveLoading() && !archiveError() && !archivedSessions().length && <Text style={menuLabel()}>这个工作区没有已归档会话</Text>}
+        {!!archiveError() && <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <Text style={{ ...menuLabel(), flex: 1 }}>{archiveError()}</Text>
+          {!archivedSessions().length && <Button style={menuItem} onPress={() => void openArchive()}><Text style={menuLabel()}>重试</Text></Button>}
+        </View>}
+        <Scroll testID="archived-session-list" style={{ flex: 1, minHeight: 0 }} contentStyle={{ gap: 5 }}>
+          {archivedSessions().map(item => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6,
+            borderBottomWidth: 1, borderColor: '#97a5c77f' }}>
+            <Text class="line-clamp-2" style={{ ...menuLabel(), flex: 1, minWidth: 0 }}>{item.title}</Text>
+            <Button testID={`restore-session-${item.id}`} accessibilityLabel={`恢复并打开 ${item.title}`}
+              disabled={sessionPending()} onPress={() => void sessionAction('restore', item.id)}
+              style={{ ...controlSurface, ...menuItem }} hoverStyle={controlHover} focusVisibleStyle={controlFocus}>
+              <Text style={menuLabel()}>恢复并打开</Text>
+            </Button>
+          </View>)}
+        </Scroll>
+      </Dialog>}
       {rename() && <Dialog testID="rename-session-dialog" accessibilityLabel="重命名会话" animation="none"
         onOpenChange={e => { if (!e.open) rename.set(null); }}
         style={{ ...popup(), position: 'absolute', left: Math.max(8, (windowSize().width - 360) / 2),

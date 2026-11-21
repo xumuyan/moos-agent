@@ -102,8 +102,8 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     const directory = () => modelServices ? modelServices.catalog() : catalog;
     const metadata = id => JSON.parse(store.getSetting(`desktop.session.${id}`) ?? '{}');
     const saveMetadata = (id, value) => store.setSetting(`desktop.session.${id}`, JSON.stringify(value));
-    function sessionList(projectId, trusted) {
-      return store.listConversations(projectId).filter(s => !metadata(s.id).archived)
+    function sessionList(projectId, trusted, archived = false) {
+      return store.listConversations(projectId).filter(s => (metadata(s.id).archived === true) === archived)
         .sort((a, b) => Number(!!metadata(b.id).pinned) - Number(!!metadata(a.id).pinned))
         .map(s => sessionView(s, trusted));
     }
@@ -194,10 +194,21 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         }
         case 'sessions.manage': {
           if (!history) reject('unsupported_method');
+          if (p?.action === 'listArchived') {
+            exact(p, ['projectId', 'action']);
+            return { sessions: sessionList(p.projectId, project(p.projectId), true) };
+          }
           const fields = ['projectId', 'sessionId', 'action'];
           exact(p, p?.action === 'rename' ? [...fields, 'title'] : fields);
           const source = session(p.projectId, p.sessionId), trusted = project(p.projectId);
           const state = metadata(source.id);
+          if (p.action === 'restore') {
+            const active = sessionList(p.projectId, trusted);
+            if (!state.archived) return { sessions: active, selectedId: source.id };
+            if (active.length >= 16) reject('limit');
+            saveMetadata(source.id, { ...state, archived: false });
+            return { sessions: sessionList(p.projectId, trusted), selectedId: source.id };
+          }
           if (state.archived) reject('not_found');
           if (p.action === 'reveal') {
             const child = spawn('/usr/bin/open', ['-R', trusted.path], { stdio: 'ignore' });

@@ -21,6 +21,28 @@ test('default theme session menu renames and pins a real sidebar row', async () 
   await app.waitUntil(() => records(app).filter(call => call.name === 'sessions.manage').length === 2);
 });
 
+test('archives can be restored and opened from the workspace menu', async () => {
+  const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
+  await app.waitFor('id:session-quick-archive-one');
+  await app.press('id:session-quick-archive-one');
+  await app.waitUntil(() => !app.shows('id:session-设计会话'));
+  await app.press('id:nav-more');
+  await app.press('id:nav-archived-sessions');
+  await app.waitFor('id:restore-session-one');
+  await app.screenshot('archived-sessions.png');
+  await app.press('id:restore-session-one');
+  await app.waitFor('id:session-设计会话');
+  expect(app.shows('id:archived-sessions')).toBe(false);
+  expect(records(app).filter(call => call.name === 'sessions.manage').map(call => call.data)).toEqual([
+    { projectId: 'demo', sessionId: 'one', action: 'archive' },
+    { projectId: 'demo', action: 'listArchived' },
+    { projectId: 'demo', sessionId: 'one', action: 'restore' },
+  ]);
+  await app.press('id:nav-more');
+  await app.press('id:nav-archived-sessions');
+  await app.waitFor('text:这个工作区没有已归档会话');
+});
+
 test('the bottom-left plus contains the single goal mode and opens a scoped submission', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
   await app.waitFor('id:composer-add');

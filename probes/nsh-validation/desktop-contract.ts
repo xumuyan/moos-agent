@@ -30,7 +30,7 @@ export type DesktopTaskStatistics = {
   toolSteps: number | null; elapsedMs: number | null; toolMs: number | null;
   cacheHitRate: number | null; context: { tokens: number; window: number } | null;
 };
-export type SessionAction = 'pin' | 'archive' | 'fork' | 'reveal' | 'rename';
+export type SessionAction = 'pin' | 'archive' | 'fork' | 'reveal' | 'rename' | 'restore';
 export type ModelConfig = { id: string | null; label: string; model: string; contextWindow: number;
   maxTokens: number; imageInput: boolean; efforts: string[]; defaultEffort: string };
 export type ServiceConfig = { id: string | null; name: string; baseUrl: string; api: 'openai-completions' | 'openai-responses';
@@ -41,7 +41,8 @@ export type Calls = {
   'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
-  'sessions.manage': { params: Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string });
+  'sessions.manage': { params: { projectId: string; action: 'listArchived' } |
+    (Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string }));
     result: { sessions: Session[]; selectedId?: string } };
   'models.manage': { params: { action: 'list' } | { action: 'save'; service: ServiceConfig & { apiKey: string }; model: ModelConfig };
     result: { services: SavedService[]; models: DesktopModelCatalog } };

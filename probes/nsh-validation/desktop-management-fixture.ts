@@ -5,6 +5,7 @@ const session = { id: 'one', projectId: 'demo', title: '设计会话',
   preview: { workspaceLabel: 'test-workspace', workspacePath: '/private/tmp/test-workspace', createdAt: '2026-11-21T02:00:00.000Z' } };
 export function managementFixture() {
   let sessions: Session[] = [session];
+  let archived: Session[] = [];
   let services: SavedService[] = [];
   const ok = (result: unknown) => ({ version: 1, id: 'test', ok: true, result });
   const task = { id: 'task', projectId: 'demo', sessionId: 'one', status: 'succeeded', errorCode: null };
@@ -13,6 +14,16 @@ export function managementFixture() {
     'sessions.list': () => ok({ sessions }),
     'sessions.history': (p: Calls['sessions.history']['params']) => ok({ projectId: p.projectId, sessionId: p.sessionId, messages: [], before: null }),
     'sessions.manage': (p: Calls['sessions.manage']['params']) => {
+      if (p.action === 'listArchived') return ok({ sessions: archived });
+      if (p.action === 'archive') {
+        archived = sessions.filter(item => item.id === p.sessionId);
+        sessions = sessions.filter(item => item.id !== p.sessionId);
+      }
+      if (p.action === 'restore') {
+        sessions = [...sessions, ...archived.filter(item => item.id === p.sessionId)];
+        archived = archived.filter(item => item.id !== p.sessionId);
+        return ok({ sessions, selectedId: p.sessionId });
+      }
       if (p.action === 'rename') sessions = [{ ...sessions[0], title: p.title }];
       if (p.action === 'pin') sessions = [{ ...sessions[0], pinned: true }];
       return ok({ sessions });

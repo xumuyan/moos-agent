@@ -83,7 +83,7 @@ test('NSH model sites persist independently and never return keys; the selected 
   assert.deepEqual(observations, [{ model: model.model, level: 'low', key: service.apiKey }]);
 });
 
-test('NSH sessions rename, pin, fork and archive with project boundaries and restart retention', async t => {
+test('NSH sessions preserve history and ownership across archive, restart and restore', async t => {
   const { launch } = await profile(t, { run: async () => ({ text: 'saved reply' }) });
   let host = await launch();
   const scope = scopeFor(host);
@@ -103,7 +103,23 @@ test('NSH sessions rename, pin, fork and archive with project boundaries and res
   await host.close();
   host = await launch();
   assert.equal(scopeFor(host).sessionId, forkScope.sessionId);
+  const archived = projectId => result(host, 'sessions.manage', { projectId, action: 'listArchived' }).sessions;
+  assert.deepEqual(archived(other.projectId), []);
+  assert.deepEqual(archived(scope.projectId).map(s => s.id), [scope.sessionId]);
+  assert.equal(code(host, 'sessions.manage', { ...scope, action: 'restore', projectId: other.projectId }), 'not_found');
+  assert.equal(code(host, 'sessions.manage', { ...scope, action: 'listArchived' }), 'invalid_request');
+  for (let i = 1; i < 16; i++) result(host, 'sessions.create', { projectId: scope.projectId, title: 'Session ' + i });
+  assert.equal(code(host, 'sessions.manage', { ...scope, action: 'restore' }), 'limit');
+  assert.deepEqual(archived(scope.projectId).map(s => s.id), [scope.sessionId]);
+  result(host, 'sessions.manage', { ...forkScope, action: 'archive' });
+  const restored = manage('restore');
+  assert.equal(restored.selectedId, scope.sessionId);
+  assert.deepEqual(manage('restore'), restored);
   assert.equal(result(host, 'sessions.history', { ...scope, before: null }).messages[0].text, 'saved prompt');
+  await host.close();
+  host = await launch();
+  assert.equal(scopeFor(host).sessionId, scope.sessionId);
+  assert.deepEqual(archived(scope.projectId).map(s => s.id), [forkScope.sessionId]);
 });
 
 test('NSH images stay in their session, require a vision model and reach the real PI adapter', async t => {

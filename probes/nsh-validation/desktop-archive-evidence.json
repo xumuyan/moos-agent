@@ -1,0 +1,118 @@
+{
+  "base": "4316e77fba02769d33f661269baae500ed78887a",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "4907bfdb5ac8563bfe7196f7f2c8a5e634a457e7e7735b01eb3efa46a36609ba",
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": "e97b9f638c9c6b9c00beb2e0e8e0c20f227b2424fea47c38a737c91f6d45fd13",
+    "probes/nsh-validation/desktop-contract.ts": "1f9b9078de1ea15810886bd635d3b88a2f41ebb50bff280a04c4e13743c56c71",
+    "probes/nsh-validation/desktop-host.mjs": "dd9f31a990f7b148d712d082e6ee693e03c8328962fdb0895e1c865656590d4e",
+    "probes/nsh-validation/desktop-management-check.tsx": "4c21dfb0b98dfc249e999eabc39180f3bd2f8b9493deb65126208bd9323a9016",
+    "probes/nsh-validation/desktop-management-fixture.ts": "bddfc16f5b622804bfa2f8e6cfb58dbdf5297fd2406b0b9a69d0c79c70f997c8",
+    "probes/nsh-validation/desktop-management.test.mjs": "c0a4aa00f36fb8689c26d4be946a9a3541581746b6809b5e8bf14ef91f41d8d2",
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "7052f51d657da4601f9e45bcb3223d0c5b4c4cd388607832068b76209deb3909",
+    "tests/nsh_composer_provenance.py": "ef225c670d17a895cf977bb446b7aa48e12f735c71185aad21482128cdd05141",
+    "tests/test_nsh_desktop_appkit_chat.py": "8610820a11b6dc3eb604496a419e80c4208fc6e4a9f6459701402201175aff3d",
+    "tests/test_nsh_desktop_appkit_package.py": "83ec5444aa481871602e1e9f8a698521760d9b861146290d8e25f8c4781d5556"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 72260,
+      "sha256": "7831952fbbf8bc041a748e22a27fd45b2a7814ab2b82fbedc12cb56dfa6f0437"
+    },
+    "probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx": {
+      "bytes": 11169,
+      "sha256": "851a0849ff9cb2dbf258a0e328d58ebf997c93221edefc733530d3a7489d86e4"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 7877,
+      "sha256": "7922d3412b9c0d8e6aa8620ed1ad57d8bc28350f60dff96e51c9813b175b8e08"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 23616,
+      "sha256": "00ee65202a31c3953eee845e8ec069efc4405b95a97ff93c1cb984d8f3f64199"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 5465,
+      "sha256": "228fee0ae0c25bb1da242a97ff266e3e6c34844606fbbfd9752d47d030ce939f"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 2909,
+      "sha256": "c620a888331dfe457dd9b1e6d6502d8d6d49ce1d686922a05d8800629b0942ef"
+    },
+    "probes/nsh-validation/desktop-management.test.mjs": {
+      "bytes": 9452,
+      "sha256": "a8cd80ba59d0384b610d7658f2f423370b225aa74d5a9b4a3e963ac748606694"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 16446,
+      "sha256": "dd442bf64761698e9b29f01721791a4d79db16c82bf4711a8c2a96a1ad7a6c2e"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3421,
+      "sha256": "3af2fd9888f3e7eec8f891cd48a77aebc389ca830151c853d3dcbfe8549892e0"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 24914,
+      "sha256": "1a36ac4f1fd5327d4bc1391162f74ca9acb460f7e4baee1a199ff37c1c30d645"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 3703,
+      "sha256": "a2ef7f80224c28d9e556459b11b7a79166d8369029535339a1680a1ce84e030d"
+    }
+  },
+  "task": "N01-D3 archive recovery and live relay smoke test",
+  "system": "27.0.1",
+  "architecture": "arm64",
+  "nativeUI": {
+    "pass": 5,
+    "evidence": "artifacts/nsh-validation/desktop-theme/run-x5UErf",
+    "archiveScreenshot": "archived-sessions.png"
+  },
+  "appKit": {
+    "scripted": "artifacts/nsh-validation/appkit-chat-check.8oG6MR/result.json",
+    "interactive": "artifacts/nsh-validation/appkit-chat-interactive.VgDnAF/result.json",
+    "checks": [
+      6,
+      19
+    ],
+    "dualProtocolLoopback": true,
+    "signed": "ad-hoc deep strict"
+  },
+  "liveRelay": {
+    "phase": "submit-real-relay",
+    "protocol": "openai-completions",
+    "selectedAfterRestart": true,
+    "taskStatus": "succeeded",
+    "errorCode": null,
+    "receivedPublicText": true,
+    "expectedReply": true,
+    "usedTools": false
+  },
+  "regression": {
+    "focused": {
+      "pass": 12
+    },
+    "core": {
+      "pass": 394,
+      "fail": 0,
+      "skip": 1
+    },
+    "electron": {
+      "pass": 142,
+      "fail": 0,
+      "skip": 1
+    },
+    "m01Rust": {
+      "pass": 11,
+      "fail": 0
+    },
+    "docs": {
+      "pass": 263,
+      "fail": 2
+    }
+  },
+  "boundaries": {
+    "productionDataTouched": false,
+    "installed": false,
+    "pushed": false
+  }
+}
