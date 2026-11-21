@@ -37,13 +37,20 @@ export type ServiceConfig = { id: string | null; name: string; baseUrl: string; 
   service: 'openai' | 'glm' };
 export type SavedService = Omit<ServiceConfig, 'id'> & { id: string; hasKey: boolean; models: ModelConfig[] };
 export type WorkspaceChanges = { files: { path: string; summary: '新增' | '删除' | '修改' }[]; limited: boolean };
+export type ImportedSession = { id: string; origin: 'DSH' | 'PI'; title: string; workspace: string; updated: string;
+  archived: number; linked: string | null; messages?: number };
+export type ImportedAsset = { id: number; name: string; mime: string; bytes: number };
+export type ImportedPage = { session: ImportedSession; before: number | null;
+  items: { id: number; role: string; date: string; body: string; continuation: number; assets: ImportedAsset[] }[] };
+export type ImportedRequest = { action: 'importedList' } | { action: 'importedPage'; sessionId: string; before: number | null } |
+  { action: 'importedAsset'; sessionId: string; assetId: number; offset: number; reveal: boolean };
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true; importedHistory?: true } };
   'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
   'sessions.manage': { params: { projectId: string; action: 'listArchived' } |
-    (Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string }));
-    result: { sessions: Session[]; selectedId?: string } };
+    (Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string })) | ImportedRequest;
+    result: { sessions: Session[]; selectedId?: string; imported?: ImportedSession[]; importedPage?: ImportedPage; asset?: { data?: string; end?: boolean } } };
   'models.manage': { params: { action: 'list' } | { action: 'save'; service: ServiceConfig & { apiKey: string }; model: ModelConfig };
     result: { services: SavedService[]; models: DesktopModelCatalog } };
   'images.stage': { params: Scope & { batchId: string; index: number; offset: number; data: string; mime: string };

@@ -45,7 +45,7 @@ const version = run(nsh, ['--version']).trim();
 assert.equal(version, 'nsh 0.5.0 (f4d68f7)');
 const methods = ['projects.list', 'sessions.list', 'sessions.create', 'sessions.history', 'tasks.submit', 'tasks.cancel', 'tasks.events', 'sessions.manage', 'models.manage', 'images.stage'];
 // The two controller/transport owner inputs are used read-only in local copies.
-const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
+const view = ['DesktopView.tsx', 'DesktopImportedHistory.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
   'DesktopTurnQueue.tsx', 'desktop-turn-queue.ts', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts',
   'DesktopIcon.tsx', 'desktop-icon-paths.ts', 'desktop-control-style.ts', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts',
   'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-ui-controller.ts',

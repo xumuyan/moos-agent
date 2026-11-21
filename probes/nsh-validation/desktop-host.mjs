@@ -15,6 +15,7 @@ import { leaseDesktopProfile, verifyProfileEntry } from './desktop-profile.mjs';
 import { readDesktopGoal, saveDesktopGoal, desktopGoalView, runDesktopTeamGoal } from './desktop-team-goal.mjs';
 
 import { desktopModelServices } from './desktop-model-services.mjs';
+import { openImportedHistory } from './desktop-imported-history.mjs';
 import { desktopImages } from './desktop-images.mjs';
 import { withWorkspaceChanges } from '../../apps/electron/plugin/pi-workspace-changes.js';
 
@@ -62,7 +63,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
   const root = lease ? profileDir : await mkdtemp(join(tmpdir(), 'muma-n01-desktop-'));
   const fresh = lease?.fresh ?? true;
   const release = () => lease ? lease.close() : rm(root, { recursive: true, force: true });
-  let store, history, fixture, scheduler, closing, closed = false;
+  let store, history, imported, fixture, scheduler, closing, closed = false;
   const journals = new Map(), requests = new Map(), trustedProjects = [];
   const attachments = desktopImages(reject);
   try {
@@ -95,7 +96,10 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       if (fresh) store.createConversation(project.id, '新会话');
     }
     if (!fresh) store.interruptUnfinished();
-    if (lease && !liveModels) history = openDesktopHistory(dbPath);
+    if (lease && !liveModels) {
+      history = openDesktopHistory(dbPath);
+      imported = await openImportedHistory(root);
+    }
     if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
     const modelServices = history && desktopModelServices(root, desktopFixtureModels);
@@ -181,7 +185,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       switch (method) {
         case 'projects.list': exact(p, []); return {
           projects: trustedProjects.map(({ id, name }) => ({ id, name })),
-          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}),
+          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}), ...(imported && { importedHistory: true }),
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
@@ -194,6 +198,24 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         }
         case 'sessions.manage': {
           if (!history) reject('unsupported_method');
+          if (p?.action === 'importedList') {
+            exact(p, ['action']);
+            if (!imported) reject('unsupported_method');
+            return { sessions: [], imported: imported.list() };
+          }
+          if (p?.action === 'importedPage') {
+            exact(p, ['action', 'sessionId', 'before']);
+            if (!imported) reject('unsupported_method');
+            if (!token(p.sessionId) || (p.before !== null && (!Number.isSafeInteger(p.before) || p.before < 1))) reject('invalid_request');
+            return { sessions: [], importedPage: imported.page(p.sessionId, p.before) ?? reject('not_found') };
+          }
+          if (p?.action === 'importedAsset') {
+            exact(p, ['action', 'sessionId', 'assetId', 'offset', 'reveal']);
+            if (!imported) reject('unsupported_method');
+            if (!token(p.sessionId) || !Number.isSafeInteger(p.assetId) || p.assetId < 1 ||
+                !Number.isSafeInteger(p.offset) || p.offset < 0 || typeof p.reveal !== 'boolean') reject('invalid_request');
+            return { sessions: [], asset: imported.asset(p.sessionId, p.assetId, p.offset, p.reveal) ?? reject('not_found') };
+          }
           if (p?.action === 'listArchived') {
             exact(p, ['projectId', 'action']);
             return { sessions: sessionList(p.projectId, project(p.projectId), true) };
@@ -369,7 +391,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       if (!closing) closing = (async () => {
         const drained = await scheduler.shutdown({ timeoutMs: 15000 });
         if (!drained.drained) throw new Error('Desktop drain incomplete; state retained');
-        await fixture?.close(); history?.close(); store.close(); await release();
+        await fixture?.close(); imported?.close(); history?.close(); store.close(); await release();
       })();
       return closing;
     }
@@ -377,7 +399,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     return { call, close, trustedProjects };
   } catch (error) {
     const drained = await scheduler?.shutdown({ timeoutMs: 15000 });
-    if (!drained || drained.drained) { await fixture?.close(); history?.close(); store?.close(); await release(); }
+    if (!drained || drained.drained) { await fixture?.close(); imported?.close(); history?.close(); store?.close(); await release(); }
     throw error;
   }
 }

@@ -38,7 +38,7 @@ const executablePath = () => join(app, 'Contents/MacOS/DesktopPI');
 const cases = ['isolated startup', 'native window layout', 'public text once', 'create selects clean session', 'real write/read', 'separate project', 'foreign task denied',
   'session round trip', 'real multi-page drain', 'working task stays scoped', 'working session restored', 'stop active command',
   'send again after stop', 'no polling after drain', 'active EOF drained', 'disconnect not success', 'JS waiters disposed'];
-const view = ['DesktopView.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
+const view = ['DesktopView.tsx', 'DesktopImportedHistory.tsx', 'DesktopSettings.tsx', 'DesktopComposerStatistics.tsx', 'desktop-composer-statistics.ts',
   'DesktopTurnQueue.tsx', 'desktop-turn-queue.ts', 'desktop-session-preview.ts', 'DesktopModelPicker.tsx', 'desktop-model-picker.ts',
   'DesktopIcon.tsx', 'desktop-icon-paths.ts', 'desktop-control-style.ts', 'desktop-sidebar-footer.ts', 'desktop-sidebar-tree.ts',
   'desktop-live-sidebar.ts', 'desktop-theme.ts', 'desktop-theme-layers.tsx', 'desktop-theme-art.ts', 'desktop-ui-controller.ts',
@@ -62,11 +62,11 @@ try {
   assert.equal((await record(join(framework, 'NativeShell'))).sha256, frameworkHash);
   await mkdir(join(source, 'assets/desktop'), { recursive: true });
   const inputs = {};
-  const persistentHost = ['desktop-persistent-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs',
+  const persistentHost = ['desktop-persistent-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs', 'desktop-imported-history.mjs',
     'desktop-host-stdio.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-team-goal.mjs',
     'desktop-images.mjs', 'desktop-model-services.mjs'];
   for (const file of [...new Set([...view, ...native, 'desktop-pi-check.tsx', 'verify-desktop-pi.mjs', 'desktop-theme-assets.mjs', 'skin-source.json',
-    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
+    'desktop-host-stdio.mjs', 'desktop-host.mjs', 'desktop-imported-history.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs',
     'desktop-live-stdio.mjs', 'desktop-live-models.mjs', 'desktop-history.mjs', 'desktop-team-goal.mjs', 'desktop-images.mjs', 'desktop-model-services.mjs',
     ...(persistent ? [...persistentHost, 'desktop-persistent-check.tsx'] : [])])]) {
     inputs[`probes/nsh-validation/${file}`] = await record(join(probe, file));

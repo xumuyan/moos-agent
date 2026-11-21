@@ -8,7 +8,7 @@ export const packageId = 'dev.muma.probe.nsh.package';
 export const packageCheckId = `${packageId}.check`;
 export const brandRoot = 'apps/electron/assets';
 export const hostFiles = [
-  ...['desktop-package-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs', 'desktop-host-stdio.mjs',
+  ...['desktop-package-stdio.mjs', 'desktop-history.mjs', 'desktop-host.mjs', 'desktop-imported-history.mjs', 'desktop-host-stdio.mjs',
     'desktop-model-services.mjs', 'desktop-images.mjs', 'desktop-model-fixture.mjs', 'desktop-statistics.mjs', 'desktop-profile.mjs', 'desktop-team-goal.mjs'].map(file => `probes/nsh-validation/${file}`),
   ...['store', 'scheduler', 'errors', 'task-policy', 'usage', 'timeline-view'].map(file => `services/agent/${file}.mjs`),
   ...['sdk-runtime', 'image-tool', 'tool-policy', 'toolchain', 'image-policy', 'repair-routing', 'session-fork', 'desktop-queue',

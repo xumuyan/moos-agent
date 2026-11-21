@@ -7,6 +7,7 @@ import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-p
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
 import { composerStatistics } from './desktop-composer-statistics';
+import { DesktopImportedHistory } from './DesktopImportedHistory';
 import { DesktopSettings, type DesktopAppearance } from './DesktopSettings';
 import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
@@ -75,6 +76,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
+  const importedHistory = signal(false), showImportedHistory = signal(false);
   const managed = signal(false), sessionDetails = signal<Session[]>([]);
   const sessionError = signal(''), sessionPending = signal(false);
   const rename = signal<string | null>(null), renameTitle = signal('');
@@ -134,8 +136,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }),
         ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }) } : params);
     if (method === 'projects.list' && !disposed) {
-      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown } | null;
+      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown; importedHistory?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
+      importedHistory.set(data?.importedHistory === true);
       managed.set(props.persistentHistory === true && data?.desktopManagement === true);
       goalAvailable.set(props.persistentHistory === true && data?.teamGoals === true);
     }
@@ -413,7 +416,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     refresh();
   }
   async function send() {
-    if (settingsOpen() || archiveProject() || disposed || disabled()) return;
+    if (settingsOpen() || showImportedHistory() || archiveProject() || disposed || disabled()) return;
     if (goalSelected() && !canSelectGoal()) return;
     const images = files().map(asset => asset.file), scope = controller.current!.scope, version = editorVersion;
     const text = draft().trim() ? draft() : '请查看附带的图片。';
@@ -515,6 +518,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               <MenuItem testID="nav-archived-sessions" style={menuItem} hoverStyle={controlHover} onSelect={() => void openArchive()}>
                 <Text style={menuLabel()}>已归档会话</Text>
               </MenuItem>
+              {importedHistory() && <MenuItem testID="nav-imported-history" style={menuItem} hoverStyle={controlHover} onSelect={() => showImportedHistory.set(true)}>
+                <Text style={menuLabel()}>正式聊天记录</Text>
+              </MenuItem>}
             </Menu> : <Button testID={`nav-${icon}-unavailable`} onLayout={measured(`nav-${icon}`)} accessibilityLabel={label} disabled style={navStyle}>{content()}</Button>;
           })}
         </View>
@@ -847,6 +853,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>
         </View>
       </Dialog>}
+      {showImportedHistory() && <DesktopImportedHistory dark={dark()} close={() => showImportedHistory.set(false)}
+        load={request => transport('sessions.manage', request)} />}
       {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
         appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}
         statistics={showStatistics()} onStatistics={showStatistics.set} defaultModel={defaultModelLabel()} onModels={managed() ? modelSettings : undefined} onLayout={measured('settings-content')} />}

@@ -43,6 +43,23 @@ test('archives can be restored and opened from the workspace menu', async () => 
   await app.waitFor('text:这个工作区没有已归档会话');
 });
 
+test('shows imported history and attachments without submitting a task', async () => {
+  const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
+  await app.waitFor('id:session-menu-one');
+  await app.press('id:nav-more');
+  await app.press('id:nav-imported-history');
+  await app.press('id:imported-session-dsh-old');
+  await app.waitFor('text:原始回复');
+  await app.press('id:imported-asset-1');
+  await app.waitFor('id:imported-close-image');
+  await app.press('id:imported-close-image');
+  await app.press('id:imported-older');
+  await app.waitFor('text:原始提问');
+  await app.press('id:imported-newer');
+  await app.waitFor('text:原始回复');
+  expect(records(app).some(call => call.name === 'tasks.submit')).toBe(false);
+});
+
 test('the bottom-left plus contains the single goal mode and opens a scoped submission', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
   await app.waitFor('id:composer-add');

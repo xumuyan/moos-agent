@@ -3365,3 +3365,13 @@
 - 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 394 通过、1 非本机架构跳过。固定 Node 24.15.0 带隔离 DSH 的 npm run test:electron 为 142 通过、1 皮肤夹具跳过。cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 为 11 通过。python3 -m unittest discover -s tests -v 为 263/265，两项遗留历史证据失败见上。候选原生打包沿用已有 NSH/AppKit 构建，不推断相同业务负载下的资源收益。
 - 遗留问题：本轮真实中转验收为一次合成请求，未执行正式资料迁移或替换安装。GitHub 推送门禁只剩历史证据，需恢复可核实的 AppKit 原日志和 E124 正式归档验收原始产物；不以本轮 NSH 证据替代。原七份未跟踪本地开发输入保持原状，N01-D1/D2/D3 不勾。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): restore archived NSH conversations`，查询 `git log --oneline --grep="restore archived NSH conversations"`。
+
+## 2026-11-21 12:22:07 +08:00｜N01-D2 正式聊天记录导入 NSH 候选
+
+- 修改或新增内容：按用户「把正式应用的聊天记录都导过来，正式的先不动」授权，在独立 NSH 候选增加「更多 → 正式聊天记录」。会话列表可按标题或工作区查找，保留已归档、原工作区和关联 PI 的入口，支持原消息分页和附件预览。旧对话使用只读历史。
+- 遇到的难题：DSH 使用多帧 zstd 的追加日志，Node 单帧解包仅能读到会话头，改用本机 zstd 完整解码。旧 PI 附件引用同时存在一个对象和数组，首轮原数据导入在对象处失败，兼容两种格式并补回归。历史证据的两项原始文件问题仍在。
+- 处理方式：只读取正式 DSH 会话、对应元数据和 PI SQLite／WAL。先复制 PI 到隔离工作副本，源文件身份和时间在前后核对，备份快检通过后只导入聊天正文及引用附件。导入在独立候选资料的租约内原子提交，目录 0700、数据库及附件 0600，只读访问且保留原文件。消息按 Unicode 分片连续呈现，避免大消息被截断。验证通过后清理本轮分析用临时 SQLite 副本。数据文件留在本机独立资料夹，不随源码和 ZIP 进入仓库。
+- 验证结果：DSH 16 会话（含 1 个已归档）、1631 条消息，PI 10 个关联会话、1550 条消息。178 次附件引用、87 个独立附件文件，缺失 0。签名候选通过 294 次私有管道请求顺序读完两类历史，按文件重新校验全部附件 SHA-256，退出码 0。确认实际候选窗口「更多 → 正式聊天记录」出现 16 行，可打开原消息页并返回列表；实窗停留在只读列表。没有读取或变更正式凭据、退出/重启正式应用或向外部服务发送聊天。证据 probes/nsh-validation/desktop-import-evidence.json。
+- 全量回归：Node 24.15.0 专项 13/13；带默认皮肤的 NSH 原生 6/6，含附件预览、前后翻页及无任务提交。AppKit 解包严格验签、首启 6 项、重开 19 项及包内双协议回环通过。Node 22.22.0 固定 TMPDIR 串行核心 395 通过、1 架构跳过。npm run test:electron 固定打包 DSH 142 通过、1 皮肤夹具跳过。cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 11/11。python3 -m unittest discover -s tests -v 263/265。
+- 遗留问题：这是当前快照的聊天正文与附件。原会话续聊、任务／工具过程重放、项目目录与配置迁移属于后续能力。本地候选和数据在独立应用支持目录，正式版保持原路径。两项历史文档证据继续阻塞推送，保留原正式应用和旧候选。七份原未跟踪开发文件保留。
+- 对应 Git 提交：唯一说明 `feat(N01-D2): import production chat history into the NSH candidate`，查询 `git log --oneline --grep="import production chat history into the NSH candidate"`。

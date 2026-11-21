@@ -6,14 +6,25 @@ const session = { id: 'one', projectId: 'demo', title: '设计会话',
 export function managementFixture() {
   let sessions: Session[] = [session];
   let archived: Session[] = [];
+  const imported = { id: 'dsh-old', origin: 'DSH', title: '导入的会话', workspace: '旧工作区',
+    updated: '2026-10-01T12:00:00Z', archived: 1, linked: null, messages: 2 };
+  const image = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGNIn3qAJMQwqmFUw/DVAACx2bwQBikQCwAAAABJRU5ErkJggg==';
   let services: SavedService[] = [];
   const ok = (result: unknown) => ({ version: 1, id: 'test', ok: true, result });
   const task = { id: 'task', projectId: 'demo', sessionId: 'one', status: 'succeeded', errorCode: null };
   return { handlers: {
-    'projects.list': () => ok({ projects: [{ id: 'demo', name: '候选验收' }], models, desktopManagement: true, teamGoals: true }),
+    'projects.list': () => ok({ projects: [{ id: 'demo', name: '候选验收' }], models, desktopManagement: true, teamGoals: true, importedHistory: true }),
     'sessions.list': () => ok({ sessions }),
     'sessions.history': (p: Calls['sessions.history']['params']) => ok({ projectId: p.projectId, sessionId: p.sessionId, messages: [], before: null }),
     'sessions.manage': (p: Calls['sessions.manage']['params']) => {
+      if (p.action === 'importedList') return ok({ sessions: [], imported: [imported] });
+      if (p.action === 'importedPage') return ok({ sessions: [], importedPage: {
+        session: imported, before: p.before ? null : 2,
+        items: p.before ? [{ id: 1, role: 'user', date: imported.updated, body: '原始提问', continuation: 0, assets: [] }]
+          : [{ id: 2, role: 'assistant', date: imported.updated, body: '原始回复', continuation: 0,
+            assets: [{ id: 1, name: '附件截图.png', mime: 'image/png', bytes: atob(image).length }] }],
+      } });
+      if (p.action === 'importedAsset') return ok({ sessions: [], asset: { data: image, end: true } });
       if (p.action === 'listArchived') return ok({ sessions: archived });
       if (p.action === 'archive') {
         archived = sessions.filter(item => item.id === p.sessionId);

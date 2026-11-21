@@ -1,0 +1,168 @@
+{
+  "base": "142259ba1d2ece93355a68a73efc03134fdfee2e",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "7831952fbbf8bc041a748e22a27fd45b2a7814ab2b82fbedc12cb56dfa6f0437",
+    "probes/nsh-validation/desktop-contract.ts": "7922d3412b9c0d8e6aa8620ed1ad57d8bc28350f60dff96e51c9813b175b8e08",
+    "probes/nsh-validation/desktop-host.mjs": "00ee65202a31c3953eee845e8ec069efc4405b95a97ff93c1cb984d8f3f64199",
+    "probes/nsh-validation/desktop-live-models.test.mjs": "86474b484c530f14ed13ff358d1d55f213f97068fb692295bf93ee414b0b4c3c",
+    "probes/nsh-validation/desktop-management-check.tsx": "228fee0ae0c25bb1da242a97ff266e3e6c34844606fbbfd9752d47d030ce939f",
+    "probes/nsh-validation/desktop-management-fixture.ts": "c620a888331dfe457dd9b1e6d6502d8d6d49ce1d686922a05d8800629b0942ef",
+    "probes/nsh-validation/desktop-package.mjs": "5e106c106608e6705856f7d8cb883c939b299fe7ecfc979c822d781aa6c9224e",
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "dd442bf64761698e9b29f01721791a4d79db16c82bf4711a8c2a96a1ad7a6c2e",
+    "probes/nsh-validation/verify-desktop-pi.mjs": "e7fa4811e726cb96d94248064cfab5b83cf1e582ecdb9afb4f71f7bfcae57ea6",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "7e1f682ecb23a2a03576347fb1f40e022c50e7611ff83e54b852dc693a21401f",
+    "tests/nsh_composer_provenance.py": "3af2fd9888f3e7eec8f891cd48a77aebc389ca830151c853d3dcbfe8549892e0",
+    "tests/test_nsh_desktop_appkit_chat.py": "1a36ac4f1fd5327d4bc1391162f74ca9acb460f7e4baee1a199ff37c1c30d645",
+    "tests/test_nsh_desktop_appkit_package.py": "a2ef7f80224c28d9e556459b11b7a79166d8369029535339a1680a1ce84e030d"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 72961,
+      "sha256": "8f138d8ca53a44a50f45c7a69b05dbbd71e7accdbe576ce13fd5002cf94b4172"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 8714,
+      "sha256": "075e0681d1ee27449902a1a65e9151eeec19d23f8e17e33fc8d14c0a631bae39"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 25017,
+      "sha256": "a6dd181472d4e7fa6a9fbecc2508b4c1e34fbdbe1329f28a174715def71c9222"
+    },
+    "probes/nsh-validation/desktop-live-models.test.mjs": {
+      "bytes": 13196,
+      "sha256": "d56281654f35d781a170ef478c26550d5eee80ea0db3e083810080e146e19610"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 6242,
+      "sha256": "1c2ad83a569865f95d315b97c218910397f0f16c199ed65cc595a79058dd0ad2"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 3925,
+      "sha256": "12a008c36fb27602d6767d92bae59d0e0b7be8aceed7653570b48203e264f16b"
+    },
+    "probes/nsh-validation/desktop-package.mjs": {
+      "bytes": 5876,
+      "sha256": "ef8f3999a08101eca61bd3e827d73170585abc18e4dd3c6f68def7b60966afd7"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 16476,
+      "sha256": "32e66978809b3e2ef37a8193825524f5665f4d7dd7c95455e89f0d8b5ae980c3"
+    },
+    "probes/nsh-validation/verify-desktop-pi.mjs": {
+      "bytes": 16895,
+      "sha256": "9e7d3966b171944e1ea427c5a5a2bd0db1e96b2ba8c7b616eea06d21e355d64c"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 17816,
+      "sha256": "6c71a5b26a17c25f07ed3708b8e289c705071c1feeafec78e9c5aadcf64b137a"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3555,
+      "sha256": "93cd202a08b6115ff2eb494f410ce1e4fa23ae2f9621b22f20994d5d73429ed6"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 25374,
+      "sha256": "304273d1a3e62474c27859961b029aae42e06c0516f08b992c63a03f9d8c547d"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 3814,
+      "sha256": "824d59cfff1248e1210fd1fdace164bff638bf3a846fe92fa01ccf2e12490bdc"
+    },
+    "probes/nsh-validation/desktop-import.mjs": {
+      "bytes": 12529,
+      "sha256": "15fd5a8845aa152c412c0cccd0b42084279bd2c31575984851203ab262b7b3df"
+    },
+    "probes/nsh-validation/desktop-import.test.mjs": {
+      "bytes": 5169,
+      "sha256": "1b894f2774d430d3ab0ba4528066a07383e7ee9ccef8c86300ed1f2ec6d90e9f"
+    },
+    "probes/nsh-validation/desktop-imported-history.mjs": {
+      "bytes": 3175,
+      "sha256": "85c3be00654d49f4ba78c0323e0767425704b2d65d3537b8f96b05a1fbc12e76"
+    },
+    "probes/nsh-validation/DesktopImportedHistory.tsx": {
+      "bytes": 8092,
+      "sha256": "444042dbf56f7f1ddeb1f09ce618a32b2aa43f3c4fdf50199b0a558f2b7b88a2"
+    }
+  },
+  "task": "N01-D2 local-only production chat snapshot import",
+  "system": "27.0.1",
+  "architecture": "arm64",
+  "source": {
+    "dsh": "sessions and chat metadata",
+    "pi": "verified SQLite snapshot with WAL",
+    "sourceChangedDuringScan": false
+  },
+  "imported": {
+    "dshSessions": 16,
+    "piSessions": 10,
+    "dshMessages": 1631,
+    "piMessages": 1550,
+    "attachments": 178,
+    "missingAttachments": 0,
+    "attachmentFiles": 87,
+    "linkedSessions": 10
+  },
+  "packagedRead": {
+    "dshSessions": 16,
+    "piSessions": 10,
+    "dshMessages": 1631,
+    "piMessages": 1550,
+    "assetReferences": 178,
+    "emptyAssets": 0,
+    "attachments": 87,
+    "archivedSessions": 1,
+    "privatePipeExit": 0,
+    "wireRequests": 294
+  },
+  "nativeUI": {
+    "syntheticPass": 6,
+    "evidence": "artifacts/nsh-validation/desktop-theme/run-VaSG6e",
+    "actualWindow": [
+      "opens imported session list",
+      "16 session buttons",
+      "opens original message page",
+      "returns to list"
+    ]
+  },
+  "packaging": {
+    "checks": [
+      6,
+      19
+    ],
+    "dualProtocolLoopback": true,
+    "checkReceipt": "artifacts/nsh-validation/appkit-chat-check.p6mPaD/result.json",
+    "localBundleReceipt": "artifacts/nsh-validation/appkit-chat-interactive.uO0ocG/result.json"
+  },
+  "regression": {
+    "focused": 13,
+    "core": {
+      "pass": 395,
+      "skip": 1,
+      "fail": 0
+    },
+    "electron": {
+      "pass": 142,
+      "skip": 1,
+      "fail": 0
+    },
+    "rust": {
+      "pass": 11,
+      "fail": 0
+    },
+    "docs": {
+      "pass": 263,
+      "fail": 2
+    }
+  },
+  "boundaries": {
+    "sourceWrites": false,
+    "productionAppChanged": false,
+    "modelSecretsImported": false,
+    "chatContentInGit": false,
+    "externalRequests": false,
+    "readOnlyHistory": true,
+    "originalTaskReplay": false,
+    "workspacesMoved": false
+  }
+}
