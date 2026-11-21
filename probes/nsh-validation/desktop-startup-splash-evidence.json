@@ -84,5 +84,40 @@
     "demoFrameVisuallyVerified": false,
     "formalInstallChanged": false,
     "ordinaryReleaseMp4Count": 0
+  },
+  "startupFade": {
+    "base": "a194bddeb9749ce615162d9d4900be184ac2ba7d",
+    "inputs": {
+      "probes/nsh-validation/DesktopStartupSplash.tsx": {
+        "bytes": 4544,
+        "sha256": "19bae89e98c2dc42def8b5dba92c500579dea17f67fbeef83c2abd22eae87876"
+      },
+      "probes/nsh-validation/desktop-startup-splash.test.tsx": {
+        "bytes": 1820,
+        "sha256": "2c9f662c5a6ccac990fb845d7fcd9bea87783c0a8fbb9713dd291af97f2d27b2"
+      }
+    },
+    "platform": "macOS 27.0.1 arm64",
+    "enterMs": 360,
+    "exitMs": 280,
+    "typeCheckPassed": true,
+    "nativePassed": 5,
+    "nativeLog": {
+      "artifacts/nsh-validation/startup-splash-test.vvqMtG/native.log": {
+        "bytes": 724,
+        "sha256": "5b30a151c21552f0f06416961c417eeba1bb942c3bb6afe738f032ef7923d7e1"
+      }
+    },
+    "candidate": {
+      "uiBundle": {
+        "bytes": 131864,
+        "sha256": "3bb4daf212f9862fa03f458413ff985c37cc58dea791bb60569e310d6c6f32a3"
+      },
+      "signedUiOnlyUpdate": true,
+      "assetsIdenticalToPreviousCandidate": true,
+      "openedOnce": true,
+      "demoFrameVisuallyVerified": true,
+      "existingSessionVisibleAfterAutomaticExit": true
+    }
   }
 }

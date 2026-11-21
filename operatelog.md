@@ -3445,3 +3445,13 @@
 - 全量回归：Node 22.22.0 的 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 399 通过、5 失败、1 跳过。独立重跑 `desktop-native.test.mjs`、`desktop-profile.test.mjs`、`desktop-team-goal.test.mjs` 共 5/7，团队目标恢复通过，Swift 进程和 PI 回环仍超时。重跑 `scripts/team-qa-native-calibration.test.mjs`、`scripts/team-qa-shutdown.test.mjs` 15/17，两项采样仍报告 unavailable。Node 24.15.0 使用打包 DSH 运行 `npm run test:electron` 142 通过、1 跳过。 `cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml` 11/11。 `python3 -m unittest discover -s tests -v` 263/265，仍为旧 AppKit `open.err` 哈希差异及 E124 缺失的重开报告。
 - 遗留问题：真实候选只核实开屏跳过和工作台恢复，视频解码、播完和减少动态效果由原生夹具覆盖，候选实窗未逐帧核对演示。正式版留在原安装。推送门禁待旧证据恢复或重验，以及 Swift、PI 和采样回归通过后解除。N01-D3 保持未勾，七份既有未跟踪文件原样保留。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): add native startup splash to the desktop candidate`，查询 `git log --oneline --grep="add native startup splash to the desktop candidate"`。
+
+## 2026-11-21 16:58:51 +08:00｜N01-D3 开屏渐显过渡
+
+- 修改或新增内容：候选开屏视频就绪后，从深色底用 360 毫秒渐显。默认沐码片头布局完成后使用相同过渡。播放结束或跳过时用现有 280 毫秒淡出。
+- 遇到的难题：视频首帧就绪时间可变，提前过渡会露出空白。跳过发生在过渡中时，需要从当前画面直接淡出。测试初版试图等待短暂的遮罩本身，改测渐显完成后片头仍在的可观察状态。
+- 处理方式：用独立的深色遮罩遮住初帧，动画结束即移除遮罩。跳过时停止进场动画，冻结当时画面后整体淡出。通过严格验签后原位替换本机候选的 UI bundle。
+- 验证结果：素材单测 4/4；`node probes/nsh-validation/verify-desktop-startup-splash.mjs` 在 macOS 27.0.1 arm64 原生 5/5。NSH 类型检查与发布构建通过，包内素材字节一致，候选 SQLite 哈希一致。候选启动一次，实拍视频后核实播完自动返回原有会话。结果记录在 `probes/nsh-validation/desktop-startup-splash-evidence.json` 的 `startupFade`。
+- 全量回归：Node 22.22.0 的核心 `node --test --test-concurrency=1 probes/m01/*.test.mjs probes/nsh-validation/*.test.mjs services/agent/*.test.mjs packages/pi-adapter/*.test.mjs packages/pi-runtime/*.test.mjs scripts/*.test.mjs` 403 通过、1 失败、1 跳过。采样项 `actual owned Node sample` 单独重跑 1/1。Node 24.15.0 用打包 DSH 跑 `npm run test:electron` 137 通过、4 失败、1 取消、1 跳过；将 `host.test.mjs packaging.test.mjs pi-tool-policy.test.mjs` 串行重跑 19/19。Rust 离线 11/11。 `python3 -m unittest discover -s tests -v` 263/265。
+- 遗留问题：推送仍受旧 AppKit `open.err` 哈希不一致及 E124 缺少重开报告阻塞，需恢复或重验历史证据后解除。N01-D3 总项保持未勾。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): fade in the native startup splash`，查询 `git log --oneline --grep="fade in the native startup splash"`。

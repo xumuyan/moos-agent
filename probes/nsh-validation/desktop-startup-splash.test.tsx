@@ -26,6 +26,7 @@ test('a bundled video reaches the end and automatically reveals the workspace', 
   const app = await openSplash('./Video.tsx');
   await app.waitFor('id:startup-splash-skip');
   await app.waitFor('id:startup-video-ready');
+  expect(app.shows('id:startup-curtain')).toBe(false);
   await app.waitUntil(() => !app.shows('id:startup-splash'), { timeout: 6500 });
 });
 
@@ -33,4 +34,11 @@ test('reduced motion opens the workspace immediately', async () => {
   const app = await openSplash('./Video.tsx', true);
   await app.waitFor('id:workspace-action');
   expect(app.shows('id:startup-splash')).toBe(false);
+});
+
+test('the opening curtain clears while the branded splash remains visible', async () => {
+  const app = await openSplash('./App.tsx');
+  await app.waitFor('id:startup-brand-revealed');
+  expect(app.shows('id:startup-curtain')).toBe(false);
+  expect(app.shows('id:startup-splash-skip')).toBe(true);
 });
