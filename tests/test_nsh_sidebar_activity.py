@@ -121,7 +121,11 @@ class SidebarActivityTests(unittest.TestCase):
 
     def test_dashed_tree_and_busy_display_are_candidate_only(self):
         view = (PROBE / 'DesktopView.tsx').read_text()
-        self.assertEqual(view.count("borderStyle: 'dashed'"), 2)
+        active_tree, imported_tree = view.split('visibleImported().map', 1)
+        for branch in (active_tree, imported_tree):
+            self.assertEqual(branch.count("borderStyle: 'dashed'"), 2)
+            self.assertIn('borderLeftWidth: 1', branch)
+            self.assertIn('borderTopWidth: 1', branch)
         self.assertIn('cleanup(() => motion.stop())', view)
         self.assertIn('snapshot().conversations.get(item.id)', view)
         self.assertNotIn('● ', view)

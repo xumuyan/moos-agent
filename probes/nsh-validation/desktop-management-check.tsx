@@ -45,11 +45,10 @@ test('archives can be restored and opened from the workspace menu', async () => 
 
 test('shows imported history and attachments without submitting a task', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
-  await app.waitFor('id:session-menu-one');
-  await app.press('id:nav-more');
-  await app.press('id:nav-imported-history');
+  await app.waitFor('id:imported-session-dsh-old');
   await app.press('id:imported-session-dsh-old');
   await app.waitFor('text:原始回复');
+  expect(app.shows('id:composer')).toBe(false);
   await app.press('id:imported-asset-1');
   await app.waitFor('id:imported-close-image');
   await app.press('id:imported-close-image');
@@ -58,6 +57,13 @@ test('shows imported history and attachments without submitting a task', async (
   await app.press('id:imported-newer');
   await app.waitFor('text:原始回复');
   expect(records(app).some(call => call.name === 'tasks.submit')).toBe(false);
+  expect(records(app).filter(call => call.name === 'sessions.manage').every(call =>
+    (call.data as { projectId: string }).projectId === 'demo')).toBe(true);
+  await app.press('id:project-隔离验收');
+  await app.waitUntil(() => !app.shows('id:imported-session-dsh-old'));
+  expect(app.shows('id:imported-history')).toBe(false);
+  await app.press('id:project-候选验收');
+  await app.waitFor('id:imported-session-dsh-old');
 });
 
 test('the bottom-left plus contains the single goal mode and opens a scoped submission', async () => {
@@ -99,14 +105,18 @@ test('settings adds a model with site-specific protocol and selectable reasoning
   const app = await open('./ManagementSettings.tsx', { width: 1240, height: 820, reducedMotion: true });
   await app.waitFor('id:settings-content');
   await app.waitFor('id:settings-add-model');
-  await app.scroll('id:settings-scroll', 580);
+  await app.waitFor('id:settings-model-list');
+  await app.press('id:settings-section-appearance');
+  await app.waitFor('id:settings-statistics');
+  await app.press('id:settings-section-models');
+  await app.waitFor('id:settings-model-list');
   await app.press('id:settings-add-model');
   await app.waitFor('id:model-form');
   await app.type('id:model-service-name', '隔离中转');
   await app.type('id:model-service-url', 'https://example.invalid/v1');
   await app.type('id:model-api-key', 'n01-synthetic-test');
   await app.type('id:model-id', 'synthetic-sol');
-  await app.scroll('id:settings-scroll', 1100);
+  await app.scroll('id:settings-model-details-scroll', 1100);
   await app.press('id:model-effort-high');
   await app.press('id:settings-save-model');
   await app.waitFor('id:settings-add-model-new-relay');
@@ -117,5 +127,12 @@ test('settings adds a model with site-specific protocol and selectable reasoning
   expect(save.service.baseUrl).toBe('https://example.invalid/v1');
   expect(save.model.efforts).toEqual(['off', 'high']);
   expect(save.service.api).toBe('openai-responses');
+  await app.press('id:settings-model-new-model');
+  await app.waitFor('id:settings-model-detail');
+  expect(app.shows('id:model-form')).toBe(false);
   await app.screenshot('model-services.png');
+  await app.scroll('id:settings-model-details-scroll', 800);
+  await app.press('id:settings-edit-model');
+  await app.waitFor('id:model-form');
+  expect(app.shows('id:settings-model-new-model')).toBe(true);
 });

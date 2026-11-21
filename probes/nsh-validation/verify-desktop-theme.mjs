@@ -193,7 +193,7 @@ await writeFile(join(dir, 'capture-inputs.json'), JSON.stringify(provenance, nul
 console.log(dir);
 try {
   for (const args of [['check', source], ['test', source, ...(native ? ['--target', 'macos', '--display', '1'] : [])]]) {
-    const child = spawnSync(nsh, args, { cwd: dir, timeout: 120000, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+    const child = spawnSync(nsh, args, { cwd: dir, timeout: management ? 240000 : 120000, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
     const out = (child.stdout ?? '') + (child.stderr ?? '');
     await writeFile(join(dir, `${args[0]}.log`), out); console.log(out);
     assert.equal(child.error, undefined); assert.equal(child.status, 0, `${args[0]} failed: see ${dir}/${args[0]}.log`);

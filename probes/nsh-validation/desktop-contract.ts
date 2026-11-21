@@ -42,11 +42,12 @@ export type ImportedSession = { id: string; origin: 'DSH' | 'PI'; title: string;
 export type ImportedAsset = { id: number; name: string; mime: string; bytes: number };
 export type ImportedPage = { session: ImportedSession; before: number | null;
   items: { id: number; role: string; date: string; body: string; continuation: number; assets: ImportedAsset[] }[] };
-export type ImportedRequest = { action: 'importedList' } | { action: 'importedPage'; sessionId: string; before: number | null } |
-  { action: 'importedAsset'; sessionId: string; assetId: number; offset: number; reveal: boolean };
+export type ImportedRequest = { projectId: string } & (
+  { action: 'importedPage'; sessionId: string; before: number | null } |
+  { action: 'importedAsset'; sessionId: string; assetId: number; offset: number; reveal: boolean });
 export type Calls = {
-  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true; importedHistory?: true } };
-  'sessions.list': { params: { projectId: string }; result: { sessions: Session[] } };
+  'projects.list': { params: Record<string, never>; result: { projects: Project[]; models?: DesktopModelCatalog; teamGoals?: true; desktopManagement?: true } };
+  'sessions.list': { params: { projectId: string }; result: { sessions: Session[]; imported?: ImportedSession[] } };
   'sessions.create': { params: { projectId: string; title: string }; result: { session: Session } };
   'sessions.manage': { params: { projectId: string; action: 'listArchived' } |
     (Scope & ({ action: Exclude<SessionAction, 'rename'> } | { action: 'rename'; title: string })) | ImportedRequest;

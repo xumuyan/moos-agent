@@ -55,9 +55,14 @@ const newService = (): ServiceConfig => ({ id: null, name: '', baseUrl: '', serv
 const newModel = (): ModelConfig => ({ id: null, label: '', model: '', contextWindow: 128000,
   maxTokens: 8192, imageInput: false, efforts: ['off'], defaultEffort: 'off' });
 
-function ModelServices(props: { dark: boolean; onModels: NonNullable<SettingsProps['onModels']> }) {
+function ModelServices(props: { dark: boolean; defaultModel?: string; onModels: NonNullable<SettingsProps['onModels']> }) {
   const services = signal<SavedService[]>([]);
-  const editing = signal(false);
+  const selectedId = signal<string | null>(null), loading = signal(true), editing = signal(false);
+  const detail = () => {
+    const group = services().find(service => service.models.some(model => model.id === selectedId()));
+    const model = group?.models.find(item => item.id === selectedId());
+    return group && model ? { service: group, model } : null;
+  };
   const form = signal({ service: newService(), model: newModel() });
   const key = signal(''), saving = signal(false), message = signal('');
   const textColor = () => props.dark ? '#e7edfa' : '#172b50';
@@ -80,8 +85,11 @@ function ModelServices(props: { dark: boolean; onModels: NonNullable<SettingsPro
   };
   const finish = () => { editing.set(false); key.set(''); };
   effect(() => {
-    void props.onModels({ action: 'list' }).then(value => services.set(value.services))
-      .catch(() => message.set('读取模型服务失败'));
+    void props.onModels({ action: 'list' }).then(value => {
+      const models = value.services.flatMap(service => service.models);
+      selectedId.set(models.find(model => model.id === value.models.defaultId)?.id ?? models[0]?.id ?? null);
+      services.set(value.services);
+    }).catch(() => message.set('读取模型服务失败')).finally(() => loading.set(false));
   });
   async function save() {
     const value = form();
@@ -95,15 +103,20 @@ function ModelServices(props: { dark: boolean; onModels: NonNullable<SettingsPro
     try {
       const result = await props.onModels({ action: 'save', service: { ...service, apiKey: key().trim() },
         model: { ...model, model: model.model.trim(), label: model.label.trim() || model.model.trim() } });
+      const savedService = result.services.find(item => service.id ? item.id === service.id :
+        !services().some(previous => previous.id === item.id));
+      const savedModel = savedService?.models.find(item => model.id ? item.id === model.id : item.model === model.model.trim());
       services.set(result.services);
+      selectedId.set(savedModel?.id ?? selectedId());
       finish(); message.set('模型已保存，可以在输入框中选择。');
     } catch { message.set('保存失败。请检查 HTTPS 地址、模型参数和服务支持的推理档位。'); }
     finally { saving.set(false); }
   }
-  const action = (id: string, label: string, onPress: () => void, disabled = false) =>
-    <Button testID={id} onPress={onPress} disabled={disabled} disabledStyle={{ opacity: .48 }}
-      style={{ ...control(), paddingHorizontal: 10, minHeight: 32, justifyContent: 'center' }}
-      hoverStyle={controlHover} focusVisibleStyle={controlFocus}><Text style={text()}>{label}</Text></Button>;
+  const action = (id: string, label: string, onPress: () => void, disabled = false, selected = false) =>
+    <Button testID={id} onPress={onPress} selected={selected} disabled={disabled} disabledStyle={{ opacity: .48 }}
+      style={{ ...control(), ...(selected && { borderColor: '#b89961', backgroundColor: props.dark ? '#354c78' : '#d5e0f5' }),
+        paddingHorizontal: 9, paddingVertical: 5, minHeight: 32, justifyContent: 'center' }}
+      hoverStyle={controlHover} focusVisibleStyle={controlFocus}><Text class="line-clamp-2" style={text()}>{label}</Text></Button>;
   const input = (id: string, label: string | (() => string), value: () => string, change: (text: string) => void, masked = false) => {
     const name = () => typeof label === 'string' ? label : label();
     return <View style={{ gap: 4 }}>
@@ -136,16 +149,49 @@ function ModelServices(props: { dark: boolean; onModels: NonNullable<SettingsPro
     const supported = current.efforts.filter(e => allowed().some(([id]) => id === e));
     changeModel({ efforts: supported.length ? supported : ['off'], defaultEffort: supported.includes(current.defaultEffort) ? current.defaultEffort : supported[0] ?? 'off' });
   }
-  return <View testID="model-services" style={{ gap: 8, padding: 8 }}>
-    {!editing() && <>
-      {services().map(service => <View style={{ ...control(), padding: 10, gap: 7 }}>
-        <Text style={{ ...text(), fontWeight: '600' }}>{service.name}</Text>
-        <Text style={{ ...text(), opacity: .8, fontSize: 11, numberOfLines: 1 }}>{service.baseUrl}</Text>
-        {service.models.map(model => action(`settings-model-${model.id}`, model.label + ' · 编辑', () => edit(service, model)))}
-        {action(`settings-add-model-${service.id}`, '在此服务添加模型', () => edit(service))}
-      </View>)}
-      {action('settings-add-model', '添加模型', () => edit())}
-    </>}
+  const item = (label: string, value: string) => <View style={{ gap: 3 }}>
+    <Text style={{ ...text(), opacity: .75, fontSize: 12 }}>{label}</Text>
+    <View selectable><Text style={text()}>{value}</Text></View>
+  </View>;
+  const effortName = (id: string) => efforts.find(option => option[0] === id)?.[1] ?? id;
+  return <View testID="model-services" style={{ flexDirection: 'row', flex: 1, minHeight: 0 }}>
+    <View style={{ width: Math.min(220, Math.max(148, windowSize().width * .24)), borderRightWidth: 1,
+      borderColor: '#8a9dc75c', paddingHorizontal: 12, paddingTop: 15, paddingBottom: 8, gap: 10 }}>
+      <Text style={{ ...text(), fontWeight: '600', fontSize: 15 }}>模型列表</Text>
+      {action('settings-add-model', '添加模型', () => edit(), loading() || saving())}
+      <Scroll testID="settings-model-list" style={{ flex: 1, minHeight: 0 }} contentStyle={{ gap: 13 }}>
+        {services().map(service => <View style={{ gap: 5 }}>
+          <Text class="line-clamp-2" style={{ ...text(), fontWeight: '600' }}>{service.name}</Text>
+          {service.models.map(model => action(`settings-model-${model.id}`, model.label, () => {
+            finish(); message.set(''); selectedId.set(model.id);
+          }, saving(), !editing() && selectedId() === model.id))}
+          {action(`settings-add-model-${service.id}`, '在此服务添加模型', () => edit(service), saving())}
+        </View>)}
+      </Scroll>
+    </View>
+    <Scroll testID="settings-model-details-scroll" style={{ flex: 1, minWidth: 0, minHeight: 0 }}
+      contentStyle={{ padding: 17, gap: 12 }}>
+    {!editing() && (detail() ? <View testID="settings-model-detail" style={{ gap: 10 }}>
+      <Text style={{ ...text(), fontWeight: '600', fontSize: 18 }}>{detail()!.model.label}</Text>
+      {item('模型 ID', detail()!.model.model)}
+      {item('模型服务', detail()!.service.name)}
+      {item('服务地址', detail()!.service.baseUrl)}
+      {item('服务类型', types.find(([id]) => id === detail()!.service.service)?.[1] ?? detail()!.service.service)}
+      {item('API 协议', apis.find(([id]) => id === detail()!.service.api)?.[1] ?? detail()!.service.api)}
+      {item('上下文窗口', detail()!.model.contextWindow.toLocaleString())}
+      {item('最大输出 Token', detail()!.model.maxTokens.toLocaleString())}
+      {item('图片输入', detail()!.model.imageInput ? '已开启' : '关闭')}
+      {item('可选推理强度', detail()!.model.efforts.map(effortName).join(' · '))}
+      {item('默认推理强度', effortName(detail()!.model.defaultEffort))}
+      {action('settings-edit-model', '编辑模型', () => {
+        const selected = detail();
+        if (selected) edit(selected.service, selected.model);
+      })}
+    </View> : <View style={{ gap: 6 }}>
+      <Text style={{ ...text(), fontWeight: '600', fontSize: 16 }}>{loading() ? '正在读取模型' : '模型详情'}</Text>
+      {!loading() && !message() && <Text style={text()}>添加模型后可在这里查看配置。</Text>}
+    </View>)}
+    {!editing() && <Text testID="settings-default-model" style={{ ...text(), opacity: .75 }}>默认模型 · {props.defaultModel ?? '暂未提供'}</Text>}
     {editing() && <View testID="model-form" style={{ gap: 8 }}>
       <Text style={{ ...text(), fontWeight: '600' }}>{form().model.id ? '编辑模型' : form().service.id ? '为现有服务添加模型' : '添加模型服务'}</Text>
       {input('model-service-name', '服务名称', () => form().service.name, name => changeService({ name }))}
@@ -176,6 +222,7 @@ function ModelServices(props: { dark: boolean; onModels: NonNullable<SettingsPro
       </View>
     </View>}
     {!!message() && <Text testID="model-service-message" style={text()}>{message()}</Text>}
+    </Scroll>
   </View>;
 }
 
@@ -187,8 +234,33 @@ export function DesktopSettings(props: SettingsProps) {
   const card = (): ViewStyle => ({ padding: 5, gap: 3, borderRadius: 12, borderWidth: 1,
     backgroundColor: props.dark ? '#101f3eba' : '#f7faffc7', borderColor: props.dark ? '#7c93c04a' : '#8a9dc75c' });
 
-  const width = () => Math.max(0, Math.min(520, windowSize().width - 32));
-  const height = () => Math.max(0, Math.min(492, windowSize().height - 52));
+  const section = signal<'models' | 'appearance'>('models');
+  const width = () => Math.max(0, Math.min(props.onModels ? 884 : 520, windowSize().width - 32));
+  const height = () => Math.max(0, Math.min(props.onModels ? 660 : 492, windowSize().height - 52));
+  const appearanceSettings = () =>
+        <View style={{ gap: 8 }}>
+          <Text style={{ fontFamily: t.fontFamily, color: gold(), fontSize: 14, fontWeight: '600' }}>外观与显示</Text>
+          <View style={card()}>
+            <View style={{ padding: 10, gap: 7 }}>
+              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>界面颜色</Text>
+              <RadioGroup style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                {appearances.map(option => <Radio testID={`settings-appearance-${option.id}`} checked={props.appearance === option.id}
+                  onChange={() => props.onAppearance(option.id)} hoverStyle={controlHover} focusVisibleStyle={controlFocus}
+                  style={{ ...controlSurface, borderWidth: 1, borderColor: 'transparent', minHeight: 32, justifyContent: 'center', paddingHorizontal: 10 }}
+                  checkedStyle={{ backgroundColor: props.dark ? '#395689' : '#cdddf5', borderColor: '#c2a272' }}>
+                  <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>{option.label}</Text>
+                </Radio>)}
+              </RadioGroup>
+            </View>
+            <Preference id="settings-characters" label="人物装饰" description={props.art ? '显示工作台两侧及侧栏的人物插画' : '当前预览未加载人物素材'}
+              checked={props.art && props.characters} disabled={!props.art} onChange={props.onCharacters} color={ink()} muted={muted()} />
+            <Preference id="settings-statistics" label="输入栏会话统计" description="显示轮数、工具步数、缓存命中和上下文"
+              checked={props.statistics} onChange={props.onStatistics} color={ink()} muted={muted()} />
+          </View>
+        </View>;
+  const appearanceNote = () =>
+    <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 11, lineHeight: 16 }}>显示设置即时生效，仅在本次运行中保留。</Text>;
+
   return <Dialog testID="desktop-settings-dialog" accessibilityLabel="设置" animation="none"
     closeOnEscape={false}
     onOpenChange={event => { if (!event.open) props.onClose(); }}
@@ -210,38 +282,35 @@ export function DesktopSettings(props: SettingsProps) {
           <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: ink() }}>关闭</Text>
         </Button>
       </View>
-      <Scroll testID="settings-scroll" style={{ flex: 1, minHeight: 0 }} contentStyle={{ padding: 20, gap: 13 }}>
-        <View style={{ gap: 8 }}>
-          <Text style={{ fontFamily: t.fontFamily, color: gold(), fontSize: 14, fontWeight: '600' }}>外观与显示</Text>
-          <View style={card()}>
-            <View style={{ padding: 10, gap: 7 }}>
-              <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>界面颜色</Text>
-              <RadioGroup style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                {appearances.map(option => <Radio testID={`settings-appearance-${option.id}`} checked={props.appearance === option.id}
-                  onChange={() => props.onAppearance(option.id)} hoverStyle={controlHover} focusVisibleStyle={controlFocus}
-                  style={{ ...controlSurface, borderWidth: 1, borderColor: 'transparent', minHeight: 32, justifyContent: 'center', paddingHorizontal: 10 }}
-                  checkedStyle={{ backgroundColor: props.dark ? '#395689' : '#cdddf5', borderColor: '#c2a272' }}>
-                  <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>{option.label}</Text>
-                </Radio>)}
-              </RadioGroup>
-            </View>
-            <Preference id="settings-characters" label="人物装饰" description={props.art ? '显示工作台两侧及侧栏的人物插画' : '当前预览未加载人物素材'}
-              checked={props.art && props.characters} disabled={!props.art} onChange={props.onCharacters} color={ink()} muted={muted()} />
-            <Preference id="settings-statistics" label="输入栏会话统计" description="显示轮数、工具步数、缓存命中和上下文"
-              checked={props.statistics} onChange={props.onStatistics} color={ink()} muted={muted()} />
-          </View>
+      {props.onModels ? <View style={{ flex: 1, minHeight: 0, flexDirection: 'row' }}>
+        <View testID="settings-navigation" style={{ width: Math.min(154, Math.max(108, windowSize().width * .16)),
+          padding: 10, gap: 6, borderRightWidth: 1, borderColor: '#8a9dc75c' }}>
+          {([['models', '模型'], ['appearance', '外观与显示']] as const).map(([id, label]) =>
+            <Button testID={`settings-section-${id}`} selected={section() === id} onPress={() => section.set(id)}
+              style={{ ...controlSurface, padding: 9, borderRadius: 8, backgroundColor: section() === id ?
+                props.dark ? '#354c78' : '#d5e0f5' : 'transparent' }} hoverStyle={controlHover} focusVisibleStyle={controlFocus}>
+              <Text style={{ fontFamily: t.fontFamily, fontSize: 13, color: ink() }}>{label}</Text>
+            </Button>)}
         </View>
+        <View style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+          {section() === 'models' ? <ModelServices dark={props.dark} defaultModel={props.defaultModel} onModels={props.onModels} /> :
+            <Scroll testID="settings-scroll" style={{ flex: 1, minHeight: 0 }} contentStyle={{ padding: 20, gap: 13 }}>
+              {appearanceSettings()}
+              {appearanceNote()}
+            </Scroll>}
+        </View>
+      </View> : <Scroll testID="settings-scroll" style={{ flex: 1, minHeight: 0 }} contentStyle={{ padding: 20, gap: 13 }}>
+        {appearanceSettings()}
         <View style={{ gap: 8 }}>
           <Text style={{ fontFamily: t.fontFamily, color: gold(), fontSize: 14, fontWeight: '600' }}>模型</Text>
           <View style={{ ...card(), padding: 13, gap: 5 }}>
             <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 13 }}>默认模型</Text>
             <Text testID="settings-default-model" class="line-clamp-2" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12, lineHeight: 17 }}>{props.defaultModel ?? '暂未提供'}</Text>
             <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12, lineHeight: 17 }}>在聊天输入栏可为当前会话选择模型和推理等级。</Text>
-            {props.onModels && <ModelServices dark={props.dark} onModels={props.onModels} />}
           </View>
         </View>
-        <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 11, lineHeight: 16 }}>显示设置即时生效，仅在本次运行中保留。</Text>
-      </Scroll>
+        {appearanceNote()}
+      </Scroll>}
     </View>
   </Dialog>;
 }

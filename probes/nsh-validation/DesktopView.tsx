@@ -2,7 +2,7 @@ import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, L
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
-import type { Calls, DesktopModelCatalog, Scope, Session, SessionAction, TaskRef, TeamGoal, TeamGoalAction, WorkspaceChanges } from './desktop-contract';
+import type { Calls, DesktopModelCatalog, ImportedSession, Scope, Session, SessionAction, TaskRef, TeamGoal, TeamGoalAction, WorkspaceChanges } from './desktop-contract';
 import { defaultChoice, modelCatalog, type ModelChoice } from './desktop-model-picker';
 import { DesktopModelPicker } from './DesktopModelPicker';
 import { DesktopComposerStatistics } from './DesktopComposerStatistics';
@@ -76,11 +76,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const titleBar = () => macWindow?.titleBar();
   const titleBarHeight = () => titleBar()?.height ?? 0;
   const revision = signal(0), draft = signal(''), right = signal(false), navigation = signal(true);
-  const importedHistory = signal(false), showImportedHistory = signal(false);
+  const visibleImported = signal<ImportedSession[]>([]), selectedImported = signal<ImportedSession | null>(null);
   const managed = signal(false), sessionDetails = signal<Session[]>([]);
   const sessionError = signal(''), sessionPending = signal(false);
   const rename = signal<string | null>(null), renameTitle = signal('');
-  const archiveProject = signal(''), archivedSessions = signal<Session[]>([]);
+  const archiveProject = signal(''), archivedSessions = signal<Session[]>([]), archivedImported = signal<ImportedSession[]>([]);
   const archiveLoading = signal(false), archiveError = signal('');
   let archiveRequest = 0;
   const sessionHover = signal(''), sessionMenu = signal('');
@@ -136,18 +136,20 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       ? { ...params, ...choice, ...(outbound?.teamGoal && { teamGoal: outbound.teamGoal }),
         ...(outbound?.imageBatch && { imageBatch: outbound.imageBatch }) } : params);
     if (method === 'projects.list' && !disposed) {
-      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown; importedHistory?: unknown } | null;
+      const data = result as { models?: unknown; teamGoals?: unknown; desktopManagement?: unknown } | null;
       catalog.set(data?.models === undefined ? undefined : modelCatalog(data.models));
-      importedHistory.set(data?.importedHistory === true);
       managed.set(props.persistentHistory === true && data?.desktopManagement === true);
       goalAvailable.set(props.persistentHistory === true && data?.teamGoals === true);
     }
     if (!disposed && (method === 'sessions.list' || method === 'sessions.create')) {
       const { projectId } = params as { projectId: string };
-      const data = result as { sessions?: unknown; session?: unknown } | null;
+      const data = result as { sessions?: unknown; session?: unknown; imported?: ImportedSession[] } | null;
       previews.remember(projectId, method === 'sessions.list' ? data?.sessions : [data?.session]);
       if (managed() && projectId === controller.projectId) {
-        if (Array.isArray(data?.sessions)) sessionDetails.set(data.sessions);
+        if (Array.isArray(data?.sessions)) {
+          visibleImported.set(data.imported ?? []);
+          sessionDetails.set(data.sessions);
+        }
         else if (data?.session) sessionDetails.set([...sessionDetails(), data.session as Session]);
       }
     }
@@ -314,10 +316,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (!managed() || !projectId || controller.loading) return;
     const request = ++archiveRequest;
     archiveProject.set(projectId);
-    archivedSessions.set([]); archiveError.set(''); archiveLoading.set(true);
+    archivedSessions.set([]); archivedImported.set([]); archiveError.set(''); archiveLoading.set(true);
     try {
-      const { sessions } = await transport('sessions.manage', { action: 'listArchived', projectId });
-      if (!disposed && request === archiveRequest && projectId === controller.projectId) archivedSessions.set(sessions);
+      const { sessions, imported } = await transport('sessions.manage', { action: 'listArchived', projectId });
+      if (!disposed && request === archiveRequest && projectId === controller.projectId) {
+        archivedSessions.set(sessions);
+        archivedImported.set(imported ?? []);
+      }
     } catch {
       if (!disposed && request === archiveRequest) archiveError.set('无法读取已归档会话，请重试。');
     } finally {
@@ -356,7 +361,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     } finally { sessionPending.set(false); }
   }
   const layout = () => desktopLayout(windowSize().width, right());
-  const title = () => snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
+  const title = () => selectedImported()?.title ?? snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
   const dispose = () => { disposed = true; removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
@@ -416,7 +421,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     refresh();
   }
   async function send() {
-    if (settingsOpen() || showImportedHistory() || archiveProject() || disposed || disabled()) return;
+    if (settingsOpen() || selectedImported() || archiveProject() || disposed || disabled()) return;
     if (goalSelected() && !canSelectGoal()) return;
     const images = files().map(asset => asset.file), scope = controller.current!.scope, version = editorVersion;
     const text = draft().trim() ? draft() : '请查看附带的图片。';
@@ -455,9 +460,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   };
   const resetEditor = () => {
     editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
-    rename.set(null); sessionError.set('');
+    rename.set(null); sessionError.set(''); selectedImported.set(null);
   };
-  const project = async (id: string) => { closeArchive(); resetEditor(); await controller.selectProject(id); };
+  const project = async (id: string) => {
+    closeArchive(); resetEditor();
+    if (id !== controller.projectId) visibleImported.set([]);
+    await controller.selectProject(id);
+  };
+  const openImported = (item: ImportedSession) => {
+    resetEditor();
+    closeArchive();
+    right.set(false);
+    selectedImported.set(item);
+  };
   const session = (id: string) => { resetEditor(); controller.selectSession(id); };
   const create = async () => { resetEditor(); await controller.createSession(); };
   const chooseModel = (choice: ModelChoice) => {
@@ -470,7 +485,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const ink = () => dark() ? t.dark.ink : t.ink;
   const muted = () => dark() ? '#b7c3dd' : t.muted;
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
-  const active = () => !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
+  const active = () => !!selectedImported() || !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
   const safe = () => styleLayout(active(), artAvailable, titleBarHeight());
   const headingShadow = () => dark() || showHeaderInTrim() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
@@ -518,9 +533,6 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               <MenuItem testID="nav-archived-sessions" style={menuItem} hoverStyle={controlHover} onSelect={() => void openArchive()}>
                 <Text style={menuLabel()}>已归档会话</Text>
               </MenuItem>
-              {importedHistory() && <MenuItem testID="nav-imported-history" style={menuItem} hoverStyle={controlHover} onSelect={() => showImportedHistory.set(true)}>
-                <Text style={menuLabel()}>正式聊天记录</Text>
-              </MenuItem>}
             </Menu> : <Button testID={`nav-${icon}-unavailable`} onLayout={measured(`nav-${icon}`)} accessibilityLabel={label} disabled style={navStyle}>{content()}</Button>;
           })}
         </View>
@@ -531,7 +543,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>)}
         </View>
         <List testID="projects" each={projects()} estimatedItemSize={126} style={{ flex: 1, minHeight: 0 }}>
-          {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(selectedProject() === p().id, sessions().length) }}>
+          {p => <View testID={`project-group-${p().id}`} onLayout={measured(`project-group-${p().id}`)} style={{ height: projectTreeHeight(selectedProject() === p().id, sessions().length + visibleImported().length) }}>
             <View style={{ height: tree.projectHeight }}>
               {selectedProject() === p().id && <NineSlice name="workspace-ribbon" source={[1185,240]} cuts={[0,145,0,140]} edges={[0,36,0,35]} fill style={{ top: -3, left: -12, right: 0, bottom: -3 }} />}
               <Button testID={`project-${p().name}`} style={{ ...button, height: tree.projectHeight, paddingVertical: 7, paddingLeft: 0, paddingRight: tree.projectTextRightInset, flexDirection: 'row', gap: 4, alignItems: 'center' }} onPress={() => void project(p().id)}>
@@ -539,11 +551,11 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 <Text testID={`project-label-${p().id}`} onLayout={measured(`project-label-${p().id}`)} class="line-clamp-1" style={{ flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', fontFamily: t.fontFamily, color: selectedProject() === p().id ? '#fff8e8' : '#d7c8a8' }}>{p().name}</Text>
               </Button>
             </View>
-            {selectedProject() === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: sessions().length * tree.sessionHeight }}>
+            {selectedProject() === p().id && <View testID="sessions" onLayout={measured('sessions')} style={{ height: (sessions().length + visibleImported().length) * tree.sessionHeight }}>
               {sessions().map((item, index) => {
                 const activity = () => snapshot().conversations.get(item.id);
                 const row = () => sessionTreeState(item, { projectId: selectedProject(), sessionId: selectedSession() }, snapshot().conversations.get(item.id));
-                const selected = computed(() => row().selected);
+                const selected = computed(() => !selectedImported() && row().selected);
                 const working = computed(() => row().working);
                 const preview = previews.read(item.projectId, item.id);
                 const shownAt = signal(Date.now());
@@ -555,7 +567,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 const pinLabel = () => pinned() ? '取消置顶' : '置顶会话';
                 const controls = { width: 24, height: 23, alignItems: 'center', justifyContent: 'center', borderRadius: 5 } as const;
                 const previewInk = { fontFamily: t.fontFamily, color: '#d3d3d7', fontSize: 12, lineHeight: 17 };
-                const last = index === sessions().length - 1;
+                const last = index === sessions().length - 1 && visibleImported().length === 0;
                 const mid = tree.sessionHeight / 2;
                 return <View onMouseEnter={() => sessionHover.set(item.id)} onMouseLeave={() => sessionHover.set('')}
                     style={{ height: tree.sessionHeight }}>
@@ -612,6 +624,24 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                   {working() && <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} />}
                 </View>;
               })}
+              {visibleImported().map((item, index) => {
+                const selected = () => selectedImported()?.id === item.id;
+                const last = index === visibleImported().length - 1;
+                const mid = tree.sessionHeight / 2;
+                return <View style={{ height: tree.sessionHeight }}>
+                  <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: 0,
+                    height: last ? mid : tree.sessionHeight, borderLeftWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
+                  <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid,
+                    width: tree.branchWidth, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
+                  <Button testID={`imported-session-${item.id}`} accessibilityLabel={item.title} selected={selected()}
+                    style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth,
+                      paddingHorizontal: 10, justifyContent: 'center', borderRadius: 6, borderWidth: 1,
+                      borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundColor: selected() ? '#526fb879' : 'transparent' }}
+                    hoverStyle={controlHover} onPress={() => openImported(item)}>
+                    <Text class="line-clamp-1" style={{ fontSize: 13, fontFamily: t.fontFamily, color: selected() ? '#fff8e8' : '#d7c8a8' }}>{item.title}</Text>
+                  </Button>
+                </View>;
+              })}
             </View>}
           </View>}
         </List>
@@ -634,14 +664,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           flexShrink: 0, paddingHorizontal: managed() ? 26 : layout().inset, paddingTop: showHeaderInTrim() ? 0 : 4, gap: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: headerInk(), textShadow: headingShadow(), fontFamily: t.fontFamily, fontSize: showHeaderInTrim() ? 14 : layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
-            <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
+            {!selectedImported() && <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
               <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: headerInk(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
               <DesktopIcon name="panel" mirror color={headerInk()} size={14} testID="icon-details" />
-            </Button>
+            </Button>}
           </View>
           {!showHeaderInTrim() && <Text testID="selection" onLayout={measured('selection')} class="line-clamp-1" style={{ maxWidth: '100%', fontFamily: t.fontFamily, fontSize: 11, lineHeight: 16, color: headerInk(), textShadow: headingShadow(), alignSelf: 'flex-start' }}>{`项目 ${snapshot().projects.find(p => p.id === snapshot().projectId)?.name ?? '—'}`}</Text>}
         </View>
         <View testID="chat-body" onLayout={measured('chat-body')} style={{ flex: 1, minHeight: 0, paddingHorizontal: laneInset(), paddingTop: managed() ? 4 : 12, paddingBottom: safe().bottom, gap: 8 }}>
+          {selectedImported() ? <DesktopImportedHistory dark={dark()} projectId={selectedProject()} sessionId={selectedImported()!.id}
+            load={request => transport('sessions.manage', request)} /> : <>
           {!managed() && <Text testID="status" style={{ fontFamily: t.fontFamily, fontSize: 12, color: muted() }}>{status()}</Text>}
           {!!((!managed() || snapshot().error) && error() || sessionError()) && <View testID="error" style={{ alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 9,
             paddingHorizontal: 10, paddingVertical: 6, backgroundColor: dark() ? t.dark.assistant : t.paper, borderWidth: 1, borderColor: '#ab324868' }}>
@@ -794,6 +826,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           {showStatistics() && <DesktopComposerStatistics scope={pickerScope()} data={statistics.read(snapshot().current?.scope)} dark={dark()} art={artAvailable}
             height={safe().previewHeight} onLayout={measured('composer-statistics')} onTriggerLayout={measured('round-statistics')}
             onMetricsLayout={measured('statistics-metrics')} onPopupLayout={measured('statistics-popup')} />}
+          </>}
         </View>
         {!active() && <BottomTrim width={windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0)} onLayout={measured('bottom-trim')} />}
       </View>
@@ -819,12 +852,20 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         </View>
         <Text style={menuLabel()}>{snapshot().projects.find(p => p.id === archiveProject())?.name}</Text>
         {archiveLoading() && <Text style={menuLabel()}>正在加载…</Text>}
-        {!archiveLoading() && !archiveError() && !archivedSessions().length && <Text style={menuLabel()}>这个工作区没有已归档会话</Text>}
+        {!archiveLoading() && !archiveError() && !archivedSessions().length && !archivedImported().length && <Text style={menuLabel()}>这个工作区没有已归档会话</Text>}
         {!!archiveError() && <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <Text style={{ ...menuLabel(), flex: 1 }}>{archiveError()}</Text>
           {!archivedSessions().length && <Button style={menuItem} onPress={() => void openArchive()}><Text style={menuLabel()}>重试</Text></Button>}
         </View>}
         <Scroll testID="archived-session-list" style={{ flex: 1, minHeight: 0 }} contentStyle={{ gap: 5 }}>
+          {archivedImported().map(item => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6,
+            borderBottomWidth: 1, borderColor: '#97a5c77f' }}>
+            <Text class="line-clamp-2" style={{ ...menuLabel(), flex: 1, minWidth: 0 }}>{item.title}</Text>
+            <Button testID={`view-archived-${item.id}`} accessibilityLabel={`查看 ${item.title}`}
+              style={{ ...controlSurface, ...menuItem }} hoverStyle={controlHover} focusVisibleStyle={controlFocus} onPress={() => openImported(item)}>
+              <Text style={menuLabel()}>查看</Text>
+            </Button>
+          </View>)}
           {archivedSessions().map(item => <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6,
             borderBottomWidth: 1, borderColor: '#97a5c77f' }}>
             <Text class="line-clamp-2" style={{ ...menuLabel(), flex: 1, minWidth: 0 }}>{item.title}</Text>
@@ -853,8 +894,6 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>
         </View>
       </Dialog>}
-      {showImportedHistory() && <DesktopImportedHistory dark={dark()} close={() => showImportedHistory.set(false)}
-        load={request => transport('sessions.manage', request)} />}
       {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
         appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}
         statistics={showStatistics()} onStatistics={showStatistics.set} defaultModel={defaultModelLabel()} onModels={managed() ? modelSettings : undefined} onLayout={measured('settings-content')} />}

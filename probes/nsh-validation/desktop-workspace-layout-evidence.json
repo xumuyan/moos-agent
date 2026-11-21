@@ -1,0 +1,98 @@
+{
+  "base": "d6f1e6f860dc45ee19cfe463781f96244c338ca7",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopImportedHistory.tsx": "444042dbf56f7f1ddeb1f09ce618a32b2aa43f3c4fdf50199b0a558f2b7b88a2",
+    "probes/nsh-validation/DesktopSettings.tsx": "68a876961d73b844e6914963b63aaa692ba511eaf7a2cd968c59d26256d59492",
+    "probes/nsh-validation/DesktopView.tsx": "8f138d8ca53a44a50f45c7a69b05dbbd71e7accdbe576ce13fd5002cf94b4172",
+    "probes/nsh-validation/desktop-contract.ts": "075e0681d1ee27449902a1a65e9151eeec19d23f8e17e33fc8d14c0a631bae39",
+    "probes/nsh-validation/desktop-host.mjs": "a6dd181472d4e7fa6a9fbecc2508b4c1e34fbdbe1329f28a174715def71c9222",
+    "probes/nsh-validation/desktop-import.test.mjs": "1b894f2774d430d3ab0ba4528066a07383e7ee9ccef8c86300ed1f2ec6d90e9f",
+    "probes/nsh-validation/desktop-management-check.tsx": "1c2ad83a569865f95d315b97c218910397f0f16c199ed65cc595a79058dd0ad2",
+    "probes/nsh-validation/desktop-management-fixture.ts": "12a008c36fb27602d6767d92bae59d0e0b7be8aceed7653570b48203e264f16b",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "6c71a5b26a17c25f07ed3708b8e289c705071c1feeafec78e9c5aadcf64b137a",
+    "tests/nsh_composer_provenance.py": "93cd202a08b6115ff2eb494f410ce1e4fa23ae2f9621b22f20994d5d73429ed6",
+    "tests/test_nsh_desktop_appkit_chat.py": "304273d1a3e62474c27859961b029aae42e06c0516f08b992c63a03f9d8c547d",
+    "tests/test_nsh_desktop_appkit_package.py": "824d59cfff1248e1210fd1fdace164bff638bf3a846fe92fa01ccf2e12490bdc",
+    "tests/test_nsh_sidebar_activity.py": "8d81b6df2796108b08d76d27a34e21b9ca826a0b95a2bbf51de8fedb5bfcec6b",
+    "tests/test_nsh_sidebar_tree.py": "501235586995788360f7bfbf8b0b7ad609cbb9300aed3dcb653c917736e2caa8"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopImportedHistory.tsx": {
+      "bytes": 6135,
+      "sha256": "db3f0ea87ecadb6a384934380b5dd64af149c2866335eb9148288b3c2720e519"
+    },
+    "probes/nsh-validation/DesktopSettings.tsx": {
+      "bytes": 21901,
+      "sha256": "4e6de8abadf071aae3e3bc3234ff40e162964597074177f2b42b0d2bdf7689bd"
+    },
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 75654,
+      "sha256": "ed4b19327aaeb3e99e7cf2b423a8136e6a0c9517b8ad558d212013639093073d"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 8720,
+      "sha256": "48f4af20236772b458fdc467792a5087c035934d04dfffca6590098c13aa9b37"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 25517,
+      "sha256": "bf427b9d715d652b507c55bc8ecf17c5ac7c6a992b8932957d9283f764dc5ea2"
+    },
+    "probes/nsh-validation/desktop-import.test.mjs": {
+      "bytes": 6620,
+      "sha256": "ec27d517d7bd979890d71d634ac75d758f792826394608434e4f305309a2f547"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 7216,
+      "sha256": "7da9bbc953d884ed0a778ec0aba4995fcbc8e1c29c73c0835d594f56d72c5731"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 4004,
+      "sha256": "d75d9b3d510ff883873b3f701acbc04333a719da0bdac30364a33e9f093dcf08"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 17838,
+      "sha256": "e9a76f4174ba2463cd915eaf592e519a65f68f766344fc16821eb32346fe6f38"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 3741,
+      "sha256": "f25baf620218a46b9f039c1140bdae2c5f6f77c6e83235b6f5524df7e28aa2b5"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 25894,
+      "sha256": "7beb3999586b00074517f105703a49c851211bbf8a35ffefccc8a49238fb14d9"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 3945,
+      "sha256": "6685aef99ed6592726dfa85155d4e2a18cf339ae144ecbfc65d28a27e3941395"
+    },
+    "tests/test_nsh_sidebar_activity.py": {
+      "bytes": 7892,
+      "sha256": "f39399e92415a0e89249aea9110888c212654c70da6dc1a4a9d3a5ad5d2e7f2f"
+    },
+    "tests/test_nsh_sidebar_tree.py": {
+      "bytes": 5617,
+      "sha256": "af1289f4c15e4fbfc3b6e198e75d9bdbad3ebb33f6660709dcb6248fa8f96a5e"
+    }
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "fixturePath": "artifacts/nsh-validation/desktop-theme/run-jWi0t0/test.log",
+    "passed": 6,
+    "failed": 0
+  },
+  "candidate": {
+    "active": 15,
+    "archived": 1,
+    "originalMessages": 1631,
+    "linkedPi": 10,
+    "assetFiles": 87,
+    "modelOptions": 2,
+    "workspace": "Desktop B",
+    "otherWorkspaceEmpty": true,
+    "dataHashesUnchanged": true,
+    "signed": true,
+    "nativePaneVerified": true,
+    "nativeTranscriptVerified": true,
+    "formalInstallationChanged": false
+  }
+}

@@ -100,6 +100,11 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
       history = openDesktopHistory(dbPath);
       imported = await openImportedHistory(root);
     }
+    const importedProject = imported && (trustedProjects.find(p => p.id === store.getSetting('desktop.imported.project')) ?? trustedProjects[0]);
+    const importedSessions = imported?.list() ?? [];
+    function historicalSessions(projectId, archived) {
+      return projectId === importedProject?.id ? { imported: importedSessions.filter(s => Boolean(s.archived) === archived) } : {};
+    }
     if (!liveModels) fixture = await startDesktopModelFixture({ restartCheck: !!lease });
     const catalog = liveModels?.catalog ?? { options: desktopFixtureModels, defaultId: desktopFixtureModels[0].id };
     const modelServices = history && desktopModelServices(root, desktopFixtureModels);
@@ -184,12 +189,13 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
     function dispatch(method, p) {
       switch (method) {
         case 'projects.list': exact(p, []); return {
-          projects: trustedProjects.map(({ id, name }) => ({ id, name })),
-          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}), ...(imported && { importedHistory: true }),
+          projects: (importedProject ? [importedProject, ...trustedProjects.filter(p => p !== importedProject)] : trustedProjects)
+            .map(({ id, name }) => ({ id, name })),
+          models: directory(), ...(history ? { teamGoals: true, desktopManagement: true } : {}),
         };
         case 'sessions.list': {
           exact(p, ['projectId']); const trusted = project(p.projectId);
-          return { sessions: sessionList(p.projectId, trusted) };
+          return { sessions: sessionList(p.projectId, trusted), ...historicalSessions(p.projectId, false) };
         }
         case 'sessions.create': {
           exact(p, ['projectId', 'title']); const trusted = project(p.projectId); title(p.title);
@@ -198,27 +204,24 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         }
         case 'sessions.manage': {
           if (!history) reject('unsupported_method');
-          if (p?.action === 'importedList') {
-            exact(p, ['action']);
-            if (!imported) reject('unsupported_method');
-            return { sessions: [], imported: imported.list() };
-          }
           if (p?.action === 'importedPage') {
-            exact(p, ['action', 'sessionId', 'before']);
+            exact(p, ['action', 'projectId', 'sessionId', 'before']);
             if (!imported) reject('unsupported_method');
+            if (p.projectId !== importedProject.id) reject('not_found');
             if (!token(p.sessionId) || (p.before !== null && (!Number.isSafeInteger(p.before) || p.before < 1))) reject('invalid_request');
             return { sessions: [], importedPage: imported.page(p.sessionId, p.before) ?? reject('not_found') };
           }
           if (p?.action === 'importedAsset') {
-            exact(p, ['action', 'sessionId', 'assetId', 'offset', 'reveal']);
+            exact(p, ['action', 'projectId', 'sessionId', 'assetId', 'offset', 'reveal']);
             if (!imported) reject('unsupported_method');
+            if (p.projectId !== importedProject.id) reject('not_found');
             if (!token(p.sessionId) || !Number.isSafeInteger(p.assetId) || p.assetId < 1 ||
                 !Number.isSafeInteger(p.offset) || p.offset < 0 || typeof p.reveal !== 'boolean') reject('invalid_request');
             return { sessions: [], asset: imported.asset(p.sessionId, p.assetId, p.offset, p.reveal) ?? reject('not_found') };
           }
           if (p?.action === 'listArchived') {
             exact(p, ['projectId', 'action']);
-            return { sessions: sessionList(p.projectId, project(p.projectId), true) };
+            return { sessions: sessionList(p.projectId, project(p.projectId), true), ...historicalSessions(p.projectId, true) };
           }
           const fields = ['projectId', 'sessionId', 'action'];
           exact(p, p?.action === 'rename' ? [...fields, 'title'] : fields);

@@ -1,42 +1,34 @@
-import { cleanup, Image, Scroll, signal, Text, View, windowSize } from 'nsh';
-import { Button, Dialog, Input } from 'nsh/base';
-import type { Calls, ImportedAsset, ImportedPage, ImportedRequest, ImportedSession } from './desktop-contract';
+import { cleanup, effect, Image, Scroll, signal, Text, View } from 'nsh';
+import { Button } from 'nsh/base';
+import type { Calls, ImportedAsset, ImportedPage, ImportedRequest } from './desktop-contract';
 import { controlSurface, controlHover, controlFocus } from './desktop-control-style';
 import { desktopTheme as t } from './desktop-theme';
 
-export function DesktopImportedHistory(props: { dark: boolean; close: () => void;
+export function DesktopImportedHistory(props: { dark: boolean; projectId: string; sessionId: string;
   load: (request: ImportedRequest) => Promise<Calls['sessions.manage']['result']> }) {
-  const sessions = signal<ImportedSession[]>([]), page = signal<ImportedPage | null>(null), query = signal('');
+  const page = signal<ImportedPage | null>(null);
   const busy = signal(true), error = signal(''), cursors = signal<(number | null)[]>([null]);
   const image = signal<string | null>(null);
-  let edition = 0, imageEdition = 0, disposed = false;
+  let edition = 0, selection = 0, imageEdition = 0, disposed = false;
+  let imageURL: string | null = null;
   const closeImage = () => {
     imageEdition++;
-    if (image()) URL.revokeObjectURL(image()!);
+    if (imageURL) URL.revokeObjectURL(imageURL);
+    imageURL = null;
     image.set(null);
   };
   cleanup(() => { disposed = true; closeImage(); });
   const ink = () => ({ fontFamily: t.fontFamily, color: props.dark ? t.dark.ink : t.ink, fontSize: 13 });
-  const match = (item: ImportedSession) => (item.workspace + ' ' + item.title).toLowerCase().includes(query().trim().toLowerCase());
   const button = (label: string, action: () => void, id?: string, disabled = false) => <Button testID={id}
     accessibilityLabel={label} onPress={action} disabled={disabled} disabledStyle={{ opacity: .4 }}
     style={{ ...controlSurface, paddingHorizontal: 9, paddingVertical: 7, alignSelf: 'flex-start' }} hoverStyle={controlHover} focusVisibleStyle={controlFocus}>
     <Text style={ink()}>{label}</Text></Button>;
   const messageDate = (date: string) => date.slice(0, 10) + ' ' + date.slice(11, 16) + ' UTC';
-  async function list() {
-    edition++; closeImage(); page.set(null); busy.set(true); error.set('');
-    const version = edition;
-    try {
-      const result = await props.load({ action: 'importedList' });
-      if (!disposed && version === edition) sessions.set(result.imported ?? []);
-    } catch { if (!disposed && version === edition) error.set('无法读取导入的会话'); }
-    finally { if (!disposed && version === edition) busy.set(false); }
-  }
   async function fetchPage(sessionId: string, history: (number | null)[]) {
     const version = ++edition;
     closeImage(); busy.set(true); error.set('');
     try {
-      const result = await props.load({ action: 'importedPage', sessionId, before: history.at(-1) ?? null });
+      const result = await props.load({ action: 'importedPage', projectId: props.projectId, sessionId, before: history.at(-1) ?? null });
       if (!result.importedPage) throw Error('missing');
       if (!disposed && version === edition) { cursors.set(history); page.set(result.importedPage); }
     } catch { if (!disposed && version === edition) error.set('无法读取该页聊天记录'); }
@@ -47,10 +39,10 @@ export function DesktopImportedHistory(props: { dark: boolean; close: () => void
     const version = imageEdition;
     const isImage = ['image/png','image/jpeg','image/jpg','image/gif','image/webp'].includes(asset.mime) && asset.bytes < 16 * 1024 * 1024;
     try {
-      if (!isImage) { await props.load({ action: 'importedAsset', sessionId, assetId: asset.id, offset: 0, reveal: true }); return; }
+      if (!isImage) { await props.load({ action: 'importedAsset', projectId: props.projectId, sessionId, assetId: asset.id, offset: 0, reveal: true }); return; }
       const parts: ArrayBuffer[] = [];
       for (let offset = 0; offset < asset.bytes;) {
-        const { asset: chunk } = await props.load({ action: 'importedAsset', sessionId, assetId: asset.id, offset, reveal: false });
+        const { asset: chunk } = await props.load({ action: 'importedAsset', projectId: props.projectId, sessionId, assetId: asset.id, offset, reveal: false });
         if (disposed || version !== imageEdition) return;
         const bytes = Uint8Array.from(atob(chunk?.data ?? ''), char => char.charCodeAt(0));
         if (!bytes.length || offset + bytes.length > asset.bytes) throw Error('invalid');
@@ -58,23 +50,21 @@ export function DesktopImportedHistory(props: { dark: boolean; close: () => void
         offset += bytes.length;
         if (Boolean(chunk?.end) !== (offset === asset.bytes)) throw Error('invalid');
       }
-      image.set(URL.createObjectURL(new Blob(parts, { type: asset.mime })));
+      imageURL = URL.createObjectURL(new Blob(parts, { type: asset.mime }));
+      image.set(imageURL);
     } catch { if (!disposed && version === imageEdition) error.set('无法读取该附件'); }
   }
-  void list();
-  const width = () => Math.max(0, Math.min(900, windowSize().width - 36));
-  const height = () => Math.max(0, windowSize().height - 80);
-  return <Dialog testID="imported-history" accessibilityLabel="正式聊天记录" animation="none"
-    onOpenChange={event => { if (!event.open) props.close(); }}
-    backdropStyle={{ backgroundColor: '#070f2566' }}
-    style={{ position: 'absolute', top: 40, left: (windowSize().width - width()) / 2, width: width(), height: height(),
-      gap: 10, padding: 16, borderRadius: 15, borderWidth: 1, borderColor: '#bd9a5a',
-      backgroundColor: props.dark ? '#182850' : '#ebf0fa' }}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      {page() && button('返回会话列表', () => void list(), 'imported-back')}
-      <Text class="line-clamp-1" style={{ ...ink(), flex: 1, fontSize: 17, fontWeight: '600' }}>{page()?.session.title || '正式聊天记录'}</Text>
-      {button('关闭', props.close, 'imported-close')}
-    </View>
+  effect(() => {
+    const { sessionId } = props;
+    const version = ++selection;
+    // Host dispatch can read other signals. Track only the selected session here.
+    void Promise.resolve().then(() => {
+      if (disposed || version !== selection) return;
+      page.set(null);
+      return fetchPage(sessionId, [null]);
+    });
+  });
+  return <View testID="imported-history" style={{ flex: 1, minHeight: 0, gap: 10, paddingVertical: 8 }}>
     {busy() && <Text style={ink()}>正在读取…</Text>}
     {!!error() && <Text style={ink()}>{error()}</Text>}
     {image() ? <>
@@ -82,7 +72,7 @@ export function DesktopImportedHistory(props: { dark: boolean; close: () => void
       <Image src={image()!} style={{ flex: 1, width: '100%', objectFit: 'contain' }} />
     </> : page() ? <>
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 7 }}>
-        <Text style={{ ...ink(), fontSize: 12 }}>{page()!.session.workspace} · {page()!.session.origin}{page()!.session.archived ? ' · 已归档' : ''}</Text>
+        <Text style={{ ...ink(), fontSize: 12 }}>原工作区 {page()!.session.workspace} · 历史记录{page()!.session.archived ? ' · 已归档' : ''}</Text>
         {!!page()!.session.linked && button(page()!.session.origin === 'DSH' ? '关联的 PI 记录' : '原会话', () => void fetchPage(page()!.session.linked!, [null]))}
         {button('更早', () => void fetchPage(page()!.session.id, [...cursors(), page()!.before]), 'imported-older', busy() || !page()!.before)}
         {button('更晚', () => void fetchPage(page()!.session.id, cursors().slice(0, -1)), 'imported-newer', busy() || cursors().length < 2)}
@@ -100,18 +90,6 @@ export function DesktopImportedHistory(props: { dark: boolean; close: () => void
           </View>
         </View>)}
       </Scroll>
-    </> : <>
-      <Input testID="imported-search" accessibilityLabel="搜索会话或工作区" placeholder="搜索会话或工作区"
-        value={query()} onChange={event => query.set(event.value)} style={{ ...controlSurface, ...ink(), height: 34, paddingHorizontal: 8 }} />
-      <Scroll testID="imported-sessions" style={{ flex: 1, minHeight: 0 }} contentStyle={{ gap: 4 }}>
-        {sessions().filter(match).map(item => <Button testID={`imported-session-${item.id}`}
-          style={{ ...controlSurface, padding: 8, gap: 4 }} hoverStyle={controlHover} onPress={() => void fetchPage(item.id, [null])}>
-          <Text style={ink()}>{item.title}</Text>
-          <Text style={{ ...ink(), fontSize: 11, opacity: .74 }}>
-            {item.workspace} · {item.messages} 条消息{item.archived ? ' · 已归档' : ''} · {item.updated.slice(0, 10)}
-          </Text>
-        </Button>)}
-      </Scroll>
-    </>}
-  </Dialog>;
+    </> : null}
+  </View>;
 }

@@ -3375,3 +3375,13 @@
 - 全量回归：Node 24.15.0 专项 13/13；带默认皮肤的 NSH 原生 6/6，含附件预览、前后翻页及无任务提交。AppKit 解包严格验签、首启 6 项、重开 19 项及包内双协议回环通过。Node 22.22.0 固定 TMPDIR 串行核心 395 通过、1 架构跳过。npm run test:electron 固定打包 DSH 142 通过、1 皮肤夹具跳过。cargo +1.100.0 test --release --offline --locked --manifest-path probes/m01/desktop/src-tauri/Cargo.toml 11/11。python3 -m unittest discover -s tests -v 263/265。
 - 遗留问题：这是当前快照的聊天正文与附件。原会话续聊、任务／工具过程重放、项目目录与配置迁移属于后续能力。本地候选和数据在独立应用支持目录，正式版保持原路径。两项历史文档证据继续阻塞推送，保留原正式应用和旧候选。七份原未跟踪开发文件保留。
 - 对应 Git 提交：唯一说明 `feat(N01-D2): import production chat history into the NSH candidate`，查询 `git log --oneline --grep="import production chat history into the NSH candidate"`。
+
+## 2026-11-21 14:02:56 +0800｜N01-D2 / N01-D3 候选版设置分栏与工作区聊天
+
+- 修改或新增内容：候选版设置改为左侧导航及按服务分组的模型列表，右侧先展示详情，再进入添加或编辑，保留推理强度、协议和图像设置。旧聊天加入当前 Desktop B 的会话树，归档仍从工作区「更多」查看。
+- 遇到的难题：原生夹具的调用日志信号意外被历史读取 effect 追踪，首轮打开会话重复触发读取；将 Host 调用移出依赖追踪后重跑通过。全新离线 NSH 打包在依赖阶段失败，改用原有的已签名候选壳，仅替换重新编译的 NSH bundle 和宿主文件并重新签名。
+- 处理方式：限定导入会话的列表、分页和附件访问归属。退出空闲候选，在原候选档案的租约内绑定 Desktop B，验证两工作区及归档后原位更新，只重启此候选一次。原正式应用及数据未写入，未打包聊天或读取模型密钥。
+- 验证结果：固定 Node 24.15.0 的 `node --test --test-concurrency=1 probes/nsh-validation/desktop-import.test.mjs probes/nsh-validation/desktop-management.test.mjs` 为 5/5；`verify-desktop-theme.mjs --management` 带默认皮肤原生 6/6，覆盖模型添加与详情、归档恢复、历史分页和附件。Mac arm64/macOS 27.0.1 的原位候选 `codesign --verify --deep --strict` 通过，实际窗口核对左右设置栏、15 行历史及正文；包内 Host 核对 1 个归档、1,631 条 DSH 消息、10 个关联 PI 记录、87 个独立附件，切换至另一工作区时历史隔离，档案/附件哈希不变。证据见 `probes/nsh-validation/desktop-workspace-layout-evidence.json`。
+- 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 380 通过、7 失败、8 取消和 1 跳过，涉及 PI、桌面工具时序、原生管道及队伍目标；Node 24.15.0 的 `npm run test:electron` 带打包 DSH 为 135 通过、6 失败、1 取消和 1 跳过，涉及打包 Host/DSH 超时。两轮运行期间本机负载很高。Rust 1.100.0 离线 `cargo test --release --offline --locked` 为 11/11。文档 `python3 -m unittest discover -s tests -v` 为 263/265，剩余 E124 正式重启报告缺失及旧 AppKit `open.err` 哈希不匹配。
+- 遗留问题：导入聊天仍为只读历史，续聊及任务过程恢复待后续；现有候选没有自定义模型服务，列表和详情编辑使用合成服务验收。因全仓和全新离线构建未全绿，未推送，N01-D2/D3 保持未勾。通过门禁需在低负载时重跑回归、修复离线构建依赖并恢复两项历史证据。旧候选二进制保留用于回滚，原七份未跟踪输入保持原状。
+- 对应 Git 提交：唯一说明 `feat(N01-D2/D3): organize model settings and workspace history`，查询 `git log --oneline --grep="organize model settings and workspace history"`。
