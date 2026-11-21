@@ -94,6 +94,29 @@ test('the bottom-left plus contains the single goal mode and opens a scoped subm
   await app.screenshot('chat-disclosures.png');
 });
 
+test('slow session switching keeps the current conversation visible and ignores superseded loads', async () => {
+  const app = await open('./SessionSwitch.tsx', { width: 1240, height: 820, reducedMotion: true });
+  await app.waitFor('text:首个会话的内容');
+  await app.press('id:session-慢会话');
+  await app.waitFor('id:session-switch-pending');
+  expect(app.shows('text:首个会话的内容')).toBe(true);
+  expect(app.shows('id:history-loading')).toBe(false);
+  expect(app.shows('id:bottom-trim')).toBe(false);
+  await app.screenshot('session-switch-pending.png');
+  await app.press('id:session-快会话');
+  await app.waitFor('text:快会话的内容');
+  await app.wait(1000);
+  expect(app.shows('text:快会话的内容')).toBe(true);
+  expect(app.shows('text:慢会话的内容')).toBe(false);
+  const historyCalls = () => records(app).filter(call => call.name === 'sessions.history').length;
+  const count = historyCalls();
+  await app.press('id:session-设计会话');
+  await app.waitFor('text:首个会话的内容');
+  expect(historyCalls()).toBe(count);
+  expect(app.shows('id:session-switch-pending')).toBe(false);
+  await app.screenshot('session-switch-ready.png');
+});
+
 test('new conversation stays a draft until its first message is accepted', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820, reducedMotion: true });
   await app.waitFor('id:session-设计会话');

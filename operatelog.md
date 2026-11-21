@@ -3425,3 +3425,13 @@
 - 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 399 通过、1 失败、1 跳过，失败为队列等待超时的假时钟时序，按同 Node 版本单独重跑调度器 13/13。Node 24.15.0 `npm run test:electron` 带打包 DSH 142 通过、1 跳过；Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，仍为旧 AppKit `open.err` 哈希差异及 E124 缺失的重开报告。
 - 遗留问题：包内首发和续开用隔离模型模拟验证，真实候选未发请求。历史证据仍阻塞推送，N01-D2 保持未勾。七份既有未跟踪文件原样保留。
 - 对应 Git 提交：唯一说明 `fix(N01-D2): save new conversations with their first message`，查询 `git log --oneline --grep="save new conversations with their first message"`。
+
+## 2026-11-21 16:17:32 +08:00｜N01-D3 修复会话切换闪动
+
+- 修改或新增内容：候选版同一工作区的会话切换先准备目标历史，再批量提交选中状态、标题和消息列表。弱网式慢载只在标题旁显示轻提示，近期会话直接复用进程内缓存。切换后定位最新消息。
+- 遇到的难题：旧实现切换前清空历史，导致已有会话短暂触发空白页，人物、顶饰和输入区同时改变尺寸。快速连点还需要丢弃上一条历史响应。只读检查正式包随附 DSH 前端的虚拟消息列表与滚动处理。
+- 处理方式：保留现有视图直至换入数据就绪；缓存最多 6 个会话、每个保留最近 120 条已读消息，按项目及会话隔离。已有会话的页面框架与历史加载状态解耦，慢载期间暂缓组件发送入口，保持原背景与主题。原位替换候选的界面产物，核对候选 SQLite 哈希，正式安装及资料不改。
+- 验证结果：macOS 27.0.1 arm64 的 `verify-desktop-theme.mjs --management` 8/8，900 毫秒延迟下旧正文保留，快会话压过较晚的慢响应，返回历史无需重复请求。比对两帧 1240×820 合成截图，顶饰、人物和输入框边饰选定区域像素一致。包签名严格验证，候选重启一次并实测在「沐码」项目的两条真实历史间来回切换。证据 `probes/nsh-validation/desktop-session-switch-evidence.json`。
+- 全量回归：Node 22.22.0 固定 TMPDIR 串行核心 400 通过、1 跳过；Node 24.15.0 以打包 DSH 跑 `npm run test:electron` 141 通过、1 跳过、1 启动超时，单独重跑对应 Host 夹具 1/1。Rust 离线 11/11。文档 `python3 -m unittest discover -s tests -v` 263/265，剩两项既有的历史证据问题。
+- 遗留问题：未启动正式安装作 GUI 对照；实际候选验证了正常速度，慢速和连续切换由原生合成测试覆盖。暂未推送，恢复或重验旧 AppKit `open.err` 和 E124 重开报告后解除历史门禁。N01-D3 保持未勾，七份既有未跟踪文件原样保留。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): keep session switches visually stable`，查询 `git log --oneline --grep="keep session switches visually stable"`。

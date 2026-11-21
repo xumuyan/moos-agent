@@ -46,24 +46,26 @@ if (management) {
 }
 if (native && !management) await cp(resolve('probes/nsh-validation', nativeCheck), join(source, 'native.test.tsx'));
 await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { statusBar: true, host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel', ...(management ? ['sessions.history', 'sessions.manage', 'models.manage', 'images.stage'] : [])] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
-await writeFile(join(source, 'App.tsx'), management ? `import { mount, signal, Text, View } from 'nsh';
+const managementEntry = (switching = false) => `import { mount, signal, Text, View } from 'nsh';
 import { DesktopView } from './DesktopView';
 import { managementFixture } from './desktop-management-fixture';
-const { handlers } = managementFixture();
+const { handlers } = managementFixture(${switching});
 const calls = signal<{ name: string; data: unknown }[]>([]);
 mount(() => <View style={{ flex: 1 }}>
   <DesktopView persistentHistory call={async (name, data) => {
-    const handle = (handlers as Record<string, (data: unknown) => { result: any }>)[name];
-    if (['sessions.manage', 'models.manage', 'images.stage', 'tasks.submit'].includes(name)) {
+    const handle = (handlers as Record<string, (data: unknown) => { result: any } | Promise<{ result: any }>>)[name];
+    if (['sessions.history', 'sessions.manage', 'models.manage', 'images.stage', 'tasks.submit'].includes(name)) {
       const { service, ...rest } = data as { service?: { api: string } };
       const observed = name === 'images.stage' ? { ...rest, data: undefined } : { ...rest, ...(service && { service: { api: service.api } }) };
       calls.set([...calls(), { name, data: observed }]);
     }
-    return handle(data).result;
+    return (await handle(data)).result;
   }} />
   <Text style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', fontSize: 1 }}>{'N01_MANAGEMENT_TEST ' + JSON.stringify(calls())}</Text>
 </View>);
-` : "import './DesktopApp';\n");
+`;
+await writeFile(join(source, 'App.tsx'), management ? managementEntry() : "import './DesktopApp';\n");
+if (management) await writeFile(join(source, 'SessionSwitch.tsx'), managementEntry(true));
 await cp(resolve('probes/nsh-validation/tsconfig.json'), join(source, 'tsconfig.json'));
 if (management) await writeFile(join(source, 'ManagementSettings.tsx'), `import { mount, signal, Text, View } from 'nsh';
 import { DesktopSettings } from './DesktopSettings';

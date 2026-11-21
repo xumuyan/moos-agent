@@ -1,4 +1,4 @@
-import { cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, Scroll, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ScrollEvent } from 'nsh';
+import { batch, cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, Scroll, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ListRef, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
@@ -189,8 +189,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const refresh = () => {
     if (disposed) return;
     statistics.confirm(controller.conversations.values());
-    revision.set(revision() + 1);
-    syncHistory();
+    batch(() => {
+      revision.set(revision() + 1);
+      syncHistory();
+    });
     if (!pumpScheduled) {
       pumpScheduled = true;
       // Run outside controller emissions, then recheck selection, errors and drain.
@@ -207,12 +209,42 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const projects = computed(() => snapshot().projects);
   const historyPage = signal<HistoryPage | null>(null);
   const historyState = signal<'loading' | 'ready' | 'error'>('loading');
-  let historyScope = '', historyRequest = 0;
+  const switchingSession = signal<'idle' | 'waiting' | 'slow'>('idle');
+  const historyCache = new Map<string, HistoryPage>();
+  let historyScope = '', historyRequest = 0, selectionRequest = 0;
+  let selectionTimer: ReturnType<typeof setTimeout> | undefined;
+  let messageList: ListRef | undefined;
+  function cancelSessionSwitch() {
+    selectionRequest++;
+    if (selectionTimer !== undefined) clearTimeout(selectionTimer);
+    selectionTimer = undefined;
+    switchingSession.set('idle');
+  }
   const selectedHistory = () => {
     const page = historyPage();
     return page && page.projectId === selectedProject() && page.sessionId === selectedSession() ? page : null;
   };
   const historyCapped = () => !migrated() && (selectedHistory()?.messages.length ?? 0) >= 120;
+  function cacheHistory(page: HistoryPage) {
+    if (!managed()) return;
+    const key = scopeKey(page), messages = page.messages.slice(-120);
+    historyCache.delete(key);
+    historyCache.set(key, { ...page, messages, before: messages.length < page.messages.length ? messages[0].id : page.before });
+    if (historyCache.size > 6) historyCache.delete(historyCache.keys().next().value!);
+  }
+  async function readHistory(scope: Scope, before: string | null, existing: HistoryPage['messages'] = []) {
+    const page = await transport('sessions.history', { ...scope, before });
+    const ids = new Set(existing.map(m => m.id));
+    if (page.projectId !== scope.projectId || page.sessionId !== scope.sessionId ||
+        !Array.isArray(page.messages) || page.messages.length > 12 || (page.before !== null &&
+          (page.messages.length !== 12 || page.before !== page.messages[0]?.id)) || page.messages.some(m => {
+          if (!m || typeof m.id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(m.id) || ids.has(m.id) ||
+              !['user', 'assistant'].includes(m.role) || typeof m.text !== 'string' || m.text.length > 8192 ||
+              typeof m.truncated !== 'boolean') return true;
+          ids.add(m.id); return false;
+        })) throw Error('invalid history page');
+    return { ...scope, before: page.before, messages: [...page.messages, ...existing], teamGoal: page.teamGoal };
+  }
   async function loadHistory(older = false) {
     const scope = controller.current?.scope;
     if (!props.persistentHistory || disposed || !scope || pendingDraft()?.sessionId === scope.sessionId) return;
@@ -222,23 +254,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     const request = ++historyRequest;
     historyState.set('loading');
     try {
-      const page = await transport('sessions.history', { ...scope, before });
+      const page = await readHistory(scope, before, older ? prior?.messages : undefined);
       if (disposed || request !== historyRequest) return;
-      const existing = older && prior ? prior.messages : [];
-      const ids = new Set(existing.map(m => m.id));
-      if (page.projectId !== scope.projectId || page.sessionId !== scope.sessionId ||
-          !Array.isArray(page.messages) || page.messages.length > 12 || (page.before !== null &&
-            (page.messages.length !== 12 || page.before !== page.messages[0]?.id)) || page.messages.some(m => {
-            if (!m || typeof m.id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(m.id) || ids.has(m.id) ||
-                !['user', 'assistant'].includes(m.role) || typeof m.text !== 'string' || m.text.length > 8192 ||
-                typeof m.truncated !== 'boolean') return true;
-            ids.add(m.id); return false;
-          })) throw Error('invalid history page');
-      historyPage.set({ ...scope, before: page.before, messages: [...page.messages, ...existing] });
-      if (goalAvailable()) rememberGoal(scope, page.teamGoal);
-      historyState.set('ready');
-      // Selection may have returned to a session whose queued turn drained while loading history.
-      refresh();
+      cacheHistory(page);
+      batch(() => {
+        historyPage.set(page);
+        if (goalAvailable()) rememberGoal(scope, page.teamGoal);
+        historyState.set('ready');
+        // Quiesce the queue until the selected history is available.
+        refresh();
+      });
     } catch { if (!disposed && request === historyRequest) historyState.set('error'); }
   }
   function syncHistory() {
@@ -249,8 +274,10 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     if (key === historyScope) return;
     historyScope = key;
     historyRequest++;
-    historyPage.set(null);
-    if (scope) void loadHistory();
+    const saved = historyCache.get(key);
+    historyPage.set(saved ?? null);
+    if (saved) historyState.set('ready');
+    else if (scope) void loadHistory();
   }
   const cachedRows = createMessageRows();
   const messageRows = () => {
@@ -337,6 +364,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   }
   async function sessionAction(action: SessionAction | 'copy', id: string, name = '') {
     if (sessionPending() || controller.loading || disposed) return;
+    cancelSessionSwitch();
     const projectId = controller.projectId;
     sessionError.set(''); sessionPending.set(true);
     try {
@@ -390,7 +418,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       else if (url) URL.revokeObjectURL(url);
     } catch { if (current()) sessionError.set('无法读取该会话附件'); }
   }
-  const dispose = () => { disposed = true; closeSavedImage(); removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
+  const dispose = () => { disposed = true; cancelSessionSwitch(); historyCache.clear(); closeSavedImage(); removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
@@ -406,14 +434,14 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const queuedRows = computed(() => { queueRevision(); return queue.rows(pickerScope()); });
   const hasQueuedRows = computed(() => queuedRows().length > 0);
   const canEnqueue = () => { queueRevision(); return !blocked() && !historyPending() && busy() && !goalInFlight() && !files().length && !queue.full(pickerScope()) && validTurnText(draft()); };
-  const disabled = () => catalog()?.defaultId === 'configure-model' || blocked() || historyPending() || busy() || uploading() || !!queuedRows().length ||
+  const disabled = () => switchingSession() !== 'idle' || catalog()?.defaultId === 'configure-model' || blocked() || historyPending() || busy() || uploading() || !!queuedRows().length ||
     !(validTurnText(draft()) || (files().length > 0 && !draft().trim())) || (files().length > 0 && !modelCanSee());
   const canStop = () => {
     const { current, sessionId } = snapshot();
     return !blocked() && !!current?.busy && !!current.task && !isTerminal(current.task.status) &&
       !current.stopping && !submitting.has(sessionId) && !cancelling.has(sessionId);
   };
-  const pickerDisabled = () => blocked() || busy() || uploading() || !catalog();
+  const pickerDisabled = () => switchingSession() !== 'idle' || blocked() || busy() || uploading() || !catalog();
   const queueHeld = () => queue.paused(pickerScope()) || !nextTurnReady(snapshot().current);
   const canResume = () => !blocked() && !historyPending() && !busy() && !editTurn() && queuedRows().length > 0 && queueHeld() && nextTurnReady(snapshot().current, true);
   const queueStatus = computed(() => {
@@ -514,6 +542,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     editTurn.set(edit); if (!edit) refresh();
   };
   const resetEditor = () => {
+    cancelSessionSwitch();
     const previous = pendingDraft();
     if (previous) {
       pendingDraft.set(null);
@@ -538,7 +567,43 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
     right.set(false);
     selectedImported.set(item);
   };
-  const session = (id: string) => { resetEditor(); controller.selectSession(id); };
+  const session = (id: string) => {
+    cancelSessionSwitch();
+    if (!controller.sessions.some(item => item.id === id)) return;
+    if (id === controller.sessionId && !selectedImported()) return;
+    if (!managed()) { resetEditor(); controller.selectSession(id); return; }
+    const scope = { projectId: controller.projectId, sessionId: id };
+    const request = selectionRequest;
+    const isCurrent = () => !disposed && request === selectionRequest && scope.projectId === controller.projectId &&
+      controller.sessions.some(item => item.id === id);
+    const show = (page: HistoryPage, fresh: boolean) => {
+      if (!isCurrent()) return;
+      cacheHistory(page);
+      batch(() => {
+        resetEditor();
+        // Select only after the replacement is ready; the old header and list
+        // remain paired while the private history request is in flight.
+        controller.selectSession(id);
+        if (fresh && goalAvailable()) rememberGoal(scope, page.teamGoal);
+      });
+      queueMicrotask(() => {
+        if (!disposed && controller.projectId === scope.projectId && controller.sessionId === id) {
+          messageList?.scrollToEnd({ animated: false });
+        }
+      });
+    };
+    const saved = historyCache.get(scopeKey(scope));
+    if (saved) { show(saved, false); return; }
+    switchingSession.set('waiting');
+    selectionTimer = setTimeout(() => {
+      if (isCurrent()) switchingSession.set('slow');
+    }, 140);
+    void readHistory(scope, null).then(page => show(page, true)).catch(() => {
+      if (!isCurrent()) return;
+      cancelSessionSwitch();
+      sessionError.set('无法读取目标会话，请重试。');
+    });
+  };
   const create = async () => {
     if (disposed || controller.loading || !controller.projectId) return;
     closeArchive(); resetEditor();
@@ -562,7 +627,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const ink = () => dark() ? t.dark.ink : t.ink;
   const muted = () => dark() ? '#b7c3dd' : t.muted;
   const button = { borderRadius: 10, padding: 10, backgroundColor: 'transparent' };
-  const active = () => !!selectedImported() || !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
+  let lastChromeActive = false;
+  const active = computed(() => {
+    if (managed() && snapshot().loading) return lastChromeActive;
+    lastChromeActive = !!selectedImported() || (managed() && !pendingDraft() && !!selectedSession()) ||
+      !!snapshot().current?.rows.length || !!selectedHistory()?.messages.length;
+    return lastChromeActive;
+  });
   const safe = () => styleLayout(active(), artAvailable, titleBarHeight());
   const headingShadow = () => dark() || showHeaderInTrim() ? '0 1px 3px #050b21e6' : '0 1px 3px #f8faffe6';
   const measured = (name: string) => (e: { bounds: Bounds }) => props.onGeometry?.(name, e.bounds);
@@ -741,6 +812,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           flexShrink: 0, paddingHorizontal: managed() ? 26 : layout().inset, paddingTop: showHeaderInTrim() ? 0 : 4, gap: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Text testID="chat-title" onLayout={measured('chat-title')} class="line-clamp-1" style={{ flex: 1, minWidth: 0, color: headerInk(), textShadow: headingShadow(), fontFamily: t.fontFamily, fontSize: showHeaderInTrim() ? 14 : layout().compact ? 16 : 18, lineHeight: 24, fontWeight: '600' }}>{title()}</Text>
+            {switchingSession() === 'slow' && <Text testID="session-switch-pending" style={{ fontFamily: t.fontFamily, color: headerInk(), fontSize: 11 }}>正在切换…</Text>}
             {!selectedImported() && <Button testID="toggle-details" style={{ padding: 6, flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 }} disabled={windowSize().width < 1100} onPress={() => right.set(!right())}>
               <Text style={{ fontFamily: t.fontFamily, fontSize: 12, color: headerInk(), textShadow: headingShadow() }}>{layout().right ? '收起详情' : '任务详情'}</Text>
               <DesktopIcon name="panel" mirror color={headerInk()} size={14} testID="icon-details" />
@@ -756,19 +828,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
             paddingHorizontal: 10, paddingVertical: 6, backgroundColor: dark() ? t.dark.assistant : t.paper, borderWidth: 1, borderColor: '#ab324868' }}>
             <Text style={{ fontFamily: t.fontFamily, color: dark() ? '#ffc1cb' : t.danger, fontSize: 13 }}>{sessionError() || error()}</Text>
           </View>}
-          {props.persistentHistory && !pendingDraft() && !!snapshot().current && historyState() === 'loading' &&
+          {props.persistentHistory && !pendingDraft() && !!snapshot().current && !selectedHistory() && historyState() === 'loading' &&
             <Text testID="history-loading" style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>正在读取历史…</Text>}
           {props.persistentHistory && historyState() === 'error' && !!snapshot().current &&
             <Button testID="history-retry" onPress={() => void loadHistory(!!selectedHistory())} style={{ ...button, alignSelf: 'flex-start' }}>
               <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>历史读取失败 · 重试</Text>
             </Button>}
-          {!!selectedHistory()?.before && historyState() === 'ready' && (historyCapped() ?
+          {!!selectedHistory()?.before && (historyCapped() ?
             <Text style={{ fontFamily: t.fontFamily, color: muted(), fontSize: 12 }}>本次最多显示 120 条历史消息，较早记录未删除</Text> :
-            <Button testID="history-older" onPress={() => void loadHistory(true)} style={{ ...button, alignSelf: 'flex-start' }}>
+            <Button testID="history-older" disabled={historyState() === 'loading'} onPress={() => void loadHistory(true)} style={{ ...button, alignSelf: 'flex-start' }}>
               <Text style={{ fontFamily: t.fontFamily, color: ink(), fontSize: 12 }}>加载更早消息</Text>
             </Button>)}
           {!active() && (!props.persistentHistory || historyState() === 'ready') && !managed() && <View testID="empty-state" style={{ padding: layout().compact ? 14 : 24, gap: 10, flexShrink: 0, backgroundColor: dark() ? t.dark.glass : t.glass, backdropFilter: 'blur(8px)', borderRadius: 14 }}><Text style={{ fontFamily: t.fontFamily, fontSize: layout().compact ? 20 : 27, lineHeight: layout().compact ? 24 : 32, fontWeight: '600', color: ink() }}>从一个真实任务开始</Text><Text style={{ fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, color: muted() }}>选择项目与会话后发送消息。这里只展示 Host 返回的公开文本、工具动作与任务状态；没有预填任务结果。</Text></View>}
-          <List testID="messages" onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} keyExtractor={(row, index) => row.key ?? String(index)} scrollbar={managed() ? { mode: 'hover', motion: { idle: 0, enter: 90, exit: 120 }, vertical: { thumbStyle: { backgroundColor: '#768eb67f' } } } : undefined} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
+          <List testID="messages" ref={value => { messageList = value; }} onLayout={measured('messages')} onScroll={props.onMessageScroll} each={messageRows()} keyExtractor={(row, index) => row.key ?? String(index)} scrollbar={managed() ? { mode: 'hover', motion: { idle: 0, enter: 90, exit: 120 }, vertical: { thumbStyle: { backgroundColor: '#768eb67f' } } } : undefined} initialScrollAtEnd maintainVisibleContentPosition={{ autoscrollToBottomThreshold: 48 }} estimatedItemSize={88} contentStyle={{ paddingBottom: 12 }} style={{ flex: 1, minHeight: 0 }}>
             {(r, index) => {
               const groupKey = () => pickerScope() + ':' + (r().key ?? index());
               const expanded = () => openGroups().has(groupKey());

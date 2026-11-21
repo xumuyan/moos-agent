@@ -1,0 +1,75 @@
+{
+  "base": "88dd0a751a549e45ca1877a6d0c42968ebfe5117",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "ef914378b39a8b9499932da4dff2cfa5275924844d2d4d71629df551f346a650",
+    "probes/nsh-validation/desktop-management-check.tsx": "3d32e673520680bedd9a18b1b67f79e4a2028e6ec6ec245484d7a96c17a1a024",
+    "probes/nsh-validation/desktop-management-fixture.ts": "8c46a872d7312bf19d338b611f0176688f571a3ee87424bfd769511631ffba1d",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "e9a76f4174ba2463cd915eaf592e519a65f68f766344fc16821eb32346fe6f38",
+    "tests/nsh_composer_provenance.py": "0018707fb73701a1d28df105897349008755e2e1a6d2271ecb3a796cb1302797",
+    "tests/test_nsh_desktop_appkit_chat.py": "0465d04586e3640922084d0ee030295be5d0cb5645d12bceac3ede84a31f8bd6",
+    "tests/test_nsh_desktop_appkit_package.py": "ec8e1887f2ce9f361614b037cb01978c0df51cfd9c514857cf2782302516c7fa"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 86511,
+      "sha256": "9048fea8ae6d0b68a16b5d5e4615cfaee319e6d2b77b52078bca71de34d67055"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 9884,
+      "sha256": "3e729b36fdbdb16752286376e469c50c14da13aaa2d6477050810b9bb053b343"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 5223,
+      "sha256": "339166034c972eb1af2762161686e5f65a98d23d84dbf8c335c60f8b3e159ff5"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 18062,
+      "sha256": "7a40c2406a3fae857de7e7ca3b6bb36bd393e3e3d3d6e4ba850a16e27d9e6094"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4370,
+      "sha256": "7bf4c493199ffa0d206016777bb6419dab67a3222e34105dd4d2b1c88fd9f4fd"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 27920,
+      "sha256": "46e94861130f981f8ec7486c8c30e1dae91d16dcec5f27211b50171549103360"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4451,
+      "sha256": "e880fbd97bae442d86dd4bc32dbba68146581bc324856fef04b72b3c4f130304"
+    }
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64",
+    "passed": 8,
+    "fixture": true,
+    "coldHistoryDelayMs": 900,
+    "unchangedRegions": [
+      "top decoration",
+      "character crop",
+      "composer border and bow"
+    ],
+    "artifacts": {
+      "artifacts/nsh-validation/desktop-theme/run-13Ux9C/test.log": {
+        "bytes": 946,
+        "sha256": "9191101d3d0a646dbd6b194ed5fe616eb5ba71624e784413c028e0b60b93fb1b"
+      },
+      "artifacts/nsh-validation/desktop-theme/run-13Ux9C/session-switch-pending.png": {
+        "bytes": 1622635,
+        "sha256": "9390ee73c14b05841ef1311e5ab2333826985271fcdd25ad47666b92917ea391"
+      },
+      "artifacts/nsh-validation/desktop-theme/run-13Ux9C/session-switch-ready.png": {
+        "bytes": 1620936,
+        "sha256": "fbfe06e65a1e26e196d596708ca696390823943e7da5914a5a94df65ebeb3626"
+      }
+    }
+  },
+  "candidate": {
+    "signed": true,
+    "signedUiOnlyUpdate": true,
+    "profileHashUnchangedDuringSwap": true,
+    "bothExistingSessionsVerified": true,
+    "formalFrontendReadOnlyReference": true,
+    "formalInstallChanged": false
+  }
+}

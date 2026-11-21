@@ -3,8 +3,9 @@ import type { Calls, SavedService, Session } from './desktop-contract';
 const models = { defaultId: 'vision', options: [{ id: 'vision', label: '测试视觉模型', imageInput: true as const }] };
 const session = { id: 'one', projectId: 'demo', title: '设计会话',
   preview: { workspaceLabel: 'test-workspace', workspacePath: '/private/tmp/test-workspace', createdAt: '2026-11-21T02:00:00.000Z' } };
-export function managementFixture() {
-  let sessions: Session[] = [session];
+export function managementFixture(switching = false) {
+  let sessions: Session[] = switching ? [session,
+    { ...session, id: 'slow', title: '慢会话' }, { ...session, id: 'fast', title: '快会话' }] : [session];
   let archived: Session[] = [];
   const imported = { id: 'dsh-old', origin: 'DSH', title: '导入的会话', workspace: '旧工作区',
     updated: '2026-10-01T12:00:00Z', archived: 0, linked: null, messages: 2 };
@@ -15,7 +16,12 @@ export function managementFixture() {
   return { handlers: {
     'projects.list': () => ok({ projects: [{ id: 'demo', name: '候选验收' }, { id: 'other', name: '隔离验收' }], models, desktopManagement: true, teamGoals: true }),
     'sessions.list': (p: Calls['sessions.list']['params']) => ok(p.projectId === 'demo' ? { sessions, imported: [imported] } : { sessions: [] }),
-    'sessions.history': (p: Calls['sessions.history']['params']) => ok({ projectId: p.projectId, sessionId: p.sessionId, messages: [], before: null }),
+    'sessions.history': async (p: Calls['sessions.history']['params']) => {
+      if (switching && p.sessionId === 'slow') await new Promise(resolve => setTimeout(resolve, 900));
+      const text = ({ one: '首个会话的内容', slow: '慢会话的内容', fast: '快会话的内容' } as Record<string, string>)[p.sessionId];
+      return ok({ projectId: p.projectId, sessionId: p.sessionId,
+        messages: switching && text ? [{ id: p.sessionId + '-message', text, role: 'assistant', truncated: false }] : [], before: null });
+    },
     'sessions.manage': (p: Calls['sessions.manage']['params']) => {
       if (p.action === 'importedPage' && p.projectId === 'demo') return ok({ sessions: [], importedPage: {
         session: imported, before: p.before ? null : 2,
