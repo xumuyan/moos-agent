@@ -3564,3 +3564,12 @@
 - 验证结果：`verify-desktop-theme.mjs --management` 带主题复跑 9/9，覆盖打开大图、关闭后再次打开、关闭后保留原图、移除与重新上传。无头回归 22/22，Rust 11/11。AppKit 离线构建与严格验签通过，签名包的前端输入哈希一致。Node 首轮 408 通过、1 跳过；最终全量 405 通过、1 失败、2 超时取消、1 跳过。串行复核续聊通过，PI 并发和桌面辅助仍超时。Electron 两轮均 141 通过、1 跳过、Host 生命周期用例超时。详见 `desktop-image-preview-evidence.json`。
 - 遗留问题：文档检查 263/265，仍是旧 AppKit 日志哈希与 E124 回执缺失。超时用例涉及未改动的 PI、桌面辅助和 Electron Host。按用户最新明确要求推送并更新，源码推送与本机更新另行核对记录。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): open composer attachments in an image preview`，查询 `git log --oneline --grep="open composer attachments in an image preview"`。
+
+## 2026-11-22 15:29:32 +08:00｜N01-D3 推送并安装输入框与图片预览更新
+
+- 修改或新增内容：按用户授权将包含原输入框尺寸、15 点字号及图片大图预览的 `c469cf2` 推送到 GitHub main，然后安装到 `~/Applications/沐码 NSH/沐码.app`，同目录安装 ZIP 同步。
+- 遇到的难题：构建早于源码提交，需要绑定实际打包输入与已推送提交。已知历史证据缺失及超时回归在源码日志单独列出。
+- 处理方式：核对候选包视图哈希、远端提交和签名。独立进程检查无运行中任务，正常退出原实例及 Host，校验全量停机副本后替换程序包并单次启动。结果为成功且数据核对后清理本次备份和旧程序副本。
+- 验证结果：GitHub main 的远端提交与本地功能提交一致后开始更新。安装包 `codesign --verify --deep --strict` 通过，实际进程匹配原安装路径且单实例。旧 SQLite 的 6 个项目、10 个会话、1,703 条消息、2 条任务、1,380 条事件按原行核对。新版模块读取全部 10 个会话、2 个模型服务及 8 个模型配置。凭据、归档历史、皮肤和开屏素材字节核对通过。本机 ZIP 比对一致，图片预览代码已进入安装包。脱敏证据见 `desktop-image-preview-evidence.json` 的 `localUpdate`。
+- 遗留问题：图片点击及发送由隔离原生夹具验收，本次安装未向实际会话粘贴图片或发送模型请求。文档检查 263/265，剩余两项为既有 AppKit 日志与 E124 回执；最新超时用例见上条。
+- 对应 Git 提交：唯一说明 `docs(N01-D3): record installed composer image preview update`，查询 `git log --oneline --grep="record installed composer image preview update"`。

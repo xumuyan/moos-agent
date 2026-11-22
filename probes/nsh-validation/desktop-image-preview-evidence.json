@@ -92,5 +92,48 @@
         "missing E124 report.json"
       ]
     }
+  },
+  "localUpdate": {
+    "state": "success",
+    "commit": "c469cf2bbafd98ee21c810961c51c048fbb968fd",
+    "signatureVerified": true,
+    "singleLaunch": true,
+    "originalRowsVerified": {
+      "projects": 6,
+      "conversations": 10,
+      "messages": 1703,
+      "tasks": 2,
+      "events": 1380
+    },
+    "modelCatalog": {
+      "services": 2,
+      "models": 8,
+      "selectable": 8
+    },
+    "historyRead": {
+      "conversations": 10,
+      "readableConversations": 10,
+      "visibleMessages": 111
+    },
+    "credentialsByteIdentical": true,
+    "importedArchiveByteIdentical": true,
+    "badgeCapabilityVerified": true,
+    "imagePreviewMarkersVerified": true,
+    "artworkAndSplashIdentical": true,
+    "independentProcess": true,
+    "offlineBackupVerified": true,
+    "matchingLocalArchiveVerified": true,
+    "updateBackupCleaned": true,
+    "oldProgramBackupCleaned": true,
+    "imagePreviewTestedInNativeFixture": true,
+    "productionImagePasted": false,
+    "providerRequestsSent": false,
+    "oneshotUpdaterUnloaded": true,
+    "githubSourceVerifiedBeforeInstall": true,
+    "version": "1.0.0",
+    "macOS": "27.0.1",
+    "arch": "arm64",
+    "bundleIdentifier": "dev.muma.probe.nsh.appkit.chat",
+    "buildReport": "artifacts/nsh-validation/appkit-chat-interactive.wZgmbi/result.json"
   }
 }
