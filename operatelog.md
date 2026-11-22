@@ -3546,3 +3546,12 @@
 - 验证结果：`verify-desktop-theme.mjs --composer` 带原主题 3/3，实测亮暗宽窄窗、换行与发送；`--management` 带原主题 9/9，实测图片在文字区上方、可移除和重新提交；默认无头回归 22/22。全量 Node 408 通过、1 跳过，Electron 142 通过、1 跳过，M01 Rust 11/11。带主题和开屏的 AppKit 候选包完成离线构建与严格验签。证据见 `desktop-composer-layout-evidence.json`，测试与打包对应本次提交前的源码改动。
 - 遗留问题：候选包待本机更新。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致和 E124 `report.json` 缺失仍阻塞推送。
 - 对应 Git 提交：唯一说明 `fix(N01-D3): align composer fill and move image previews above text`，查询 `git log --oneline --grep="align composer fill and move image previews above text"`。
+
+## 2026-11-22 14:57:15 +08:00｜N01-D3 恢复原输入框尺寸并微调字号
+
+- 修改或新增内容：按用户明确的尺寸要求恢复上一版输入框的宽高与内边距。输入文字和占位提示从 14 调到 15 点。现有深色底板贴边和顶部图片预览继续进入本次候选包。
+- 遇到的难题：上一次把文字区域加宽并设置自动增高，与用户这次明确的保留原尺寸不符。首轮无头断言把无皮肤的活跃编辑区误写成 34 点，核对布局后修正为 32 点。
+- 处理方式：取消按文本内容动态增高，恢复旧布局高度和内边距。图片区复用原 30 点行高与 8 点间距，使用紧凑缩略图，保持编辑区高度。继续用原生多行输入接收 Shift+Enter，Enter 发送。
+- 验证结果：带原主题的 `verify-desktop-theme.mjs --composer` 3/3，覆盖亮暗宽窄窗、原尺寸和多行输入后几何一致；`--management` 9/9，确认顶部图片、编辑区高度和发送回归。无头回归复跑 22/22。Node 全量 408 通过、1 跳过，Electron 142 通过、1 跳过，M01 Rust 11/11。AppKit App 离线构建与严格验签通过。证据见 `desktop-composer-font-evidence.json`，测试与打包对应本次提交前的源码改动。
+- 遗留问题：候选包待本机更新。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致及 E124 `report.json` 缺失继续阻塞推送。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): restore composer dimensions and increase input font`，查询 `git log --oneline --grep="restore composer dimensions and increase input font"`。

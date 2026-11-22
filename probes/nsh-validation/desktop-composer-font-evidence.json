@@ -1,0 +1,122 @@
+{
+  "base": "e54f8ba4c6c00ffe5001b223b3a22019162b5d79",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "3495b950c34c024a7632017824dc3e9cc0c384d64a0427696c805a4d9ee09278",
+    "probes/nsh-validation/desktop-composer-check.tsx": "9c0859e26a9268cf090f7ee34567346b59497250500d70973882cd2fcfeb3ae5",
+    "probes/nsh-validation/desktop-management-check.tsx": "c83643eb67978908c0f1e12e70ab9a26f88d368d54bccd36b7017ab31997aa09",
+    "probes/nsh-validation/desktop-style-assert.ts": "cc7f21d9844c88f66e9efd17974c43f700bd5c9cb6749e1ba67e5d1efc9fe81d",
+    "probes/nsh-validation/desktop-theme.test.tsx": "6e2ec4c4fb44ee440e97e3904d1e4bdd2e4652e0168387da12367edc7f706c61",
+    "probes/nsh-validation/desktop-theme.ts": "0242d62be13888a9fb2511dab7d558e51598ad4ed66aa9403b1978ac5994e670",
+    "tests/nsh_composer_provenance.py": "3404626a829e2e142d868e5137e15f751de66f904fec9d6244549e3f9c01c5fd",
+    "tests/test_nsh_desktop_appkit_chat.py": "f92a2e674cceafa5ec45b5c0ccb1004abe5bfe3f05946670e38d9bfbd664e3ae",
+    "tests/test_nsh_desktop_appkit_package.py": "8dad960fc89c9eaa1e5cb222c270503418112bf91e519d82f0ee706cda701366"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "sha256": "55d65ebca0c71c391b3403efd676b9532bfdae027c283d354200f75aa232833a",
+      "bytes": 91760
+    },
+    "probes/nsh-validation/desktop-composer-check.tsx": {
+      "sha256": "08f583f6a10be4bb1c54b042447bab81fe4ff3e0eb58936ba011128394029718",
+      "bytes": 10320
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "sha256": "c544daac9730d37da3bd7370191a626a25e2a4fe7f62f79626b7d3faa2ba05a2",
+      "bytes": 12447
+    },
+    "probes/nsh-validation/desktop-style-assert.ts": {
+      "sha256": "83864b0a9ca365f485e953b4816cf396cb960da9c2616bdfe5eeaa210c0f696f",
+      "bytes": 3495
+    },
+    "probes/nsh-validation/desktop-theme.test.tsx": {
+      "sha256": "33f9667ef2ccce5c564bb1e6771e3958d9ace38b6356720f490a3bb5acd5c196",
+      "bytes": 14574
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "sha256": "e0ed0c35c5020a28a6674a7aa02a435f328109e850814247da2cdf4440d9c342",
+      "bytes": 12499
+    },
+    "tests/nsh_composer_provenance.py": {
+      "sha256": "2e8337832bd8ea1d19001bee664476cf0315419701c113c38c43aacbe218c757",
+      "bytes": 5383
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "sha256": "9665456809a3a386826811d1383af70f9ac29de3795312f454336de0f80e78c7",
+      "bytes": 30518
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "sha256": "07e1904d35a051489a13754314cd31dde08246f30da6c969f7244cc23f3efa34",
+      "bytes": 5227
+    }
+  },
+  "nativeComposer": {
+    "artwork": true,
+    "passed": 3,
+    "failed": 0,
+    "promptFontPoints": [
+      14,
+      15
+    ],
+    "promptHeightPoints": {
+      "active": 34,
+      "idle": 46
+    },
+    "multilineKeepsBounds": true,
+    "shiftReturnInsertsNewline": true,
+    "returnSubmits": true,
+    "screenshots": {
+      "artifacts/nsh-validation/desktop-theme/run-O2EBp2/composer-light-wide-stopped.png": {
+        "sha256": "dfcc4c3560dfe921322b8a66da607a6d7d52b661d9ab9d88467de789d4f859ca",
+        "bytes": 1632614
+      },
+      "artifacts/nsh-validation/desktop-theme/run-O2EBp2/composer-multiline.png": {
+        "sha256": "3107873991d5ab165a89d747baef49b69d36c9b73f75c3e7a98db882620424d8",
+        "bytes": 1652757
+      }
+    }
+  },
+  "package": {
+    "report": "artifacts/nsh-validation/appkit-chat-interactive.V7AwsS/result.json",
+    "strictSignatureVerified": true,
+    "artworkAndSplashIncluded": true,
+    "installed": false
+  },
+  "nativeAttachments": {
+    "artwork": true,
+    "passed": 9,
+    "failed": 0,
+    "aboveEditor": true,
+    "editorHeightUnchanged": true,
+    "attachmentRowPoints": 30,
+    "screenshot": "artifacts/nsh-validation/desktop-theme/run-bOepNy/composer-image-above-editor.png",
+    "screenshotSha256": "0830573f6abb86be819da93efd69a292b3f23c1413ffed04b5d8f7c0c79d6da6"
+  },
+  "headless": {
+    "passed": 22,
+    "failed": 0
+  },
+  "regressions": {
+    "node": {
+      "passed": 408,
+      "failed": 0,
+      "skipped": 1
+    },
+    "documents": {
+      "passed": 263,
+      "failed": 2,
+      "preexisting": [
+        "AppKit historical open.err digest mismatch",
+        "missing E124 report.json"
+      ]
+    },
+    "electron": {
+      "passed": 142,
+      "failed": 0,
+      "skipped": 1
+    },
+    "rust": {
+      "passed": 11,
+      "failed": 0
+    }
+  }
+}

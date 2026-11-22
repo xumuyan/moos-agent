@@ -173,6 +173,7 @@ test('dark system appearance preserves composer contrast and real disabled state
 });
 
 test('style safe envelopes reserve trim and frame without deleting source art', () => {
+  expect(desktopTheme.composerFont).toBe(desktopTheme.font + 1);
   for (const active of [false, true]) for (const artwork of [false, true]) {
     const s = styleLayout(active, artwork);
     expect(s.headerTop).toBeGreaterThanOrEqual(s.trim);

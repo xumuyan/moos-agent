@@ -1,6 +1,6 @@
 // Runs against actual NSH onLayout bounds, not just design constants.
 import { expect, type App } from 'nsh/test';
-import { composerEditor, composerFrame, styleLayout } from './desktop-theme';
+import { composerFrame, styleLayout } from './desktop-theme';
 import { artAvailable } from './desktop-theme-art';
 export async function assertStyleBounds(app: App, active: boolean, height: number) {
   await app.waitUntil(() => app.texts().some(t => t.startsWith('STYLE_GEOMETRY ') && t.includes('composer-statistics') && t.includes('primary-action') && t.includes('model-picker') && t.includes('composer-backdrop')));
@@ -27,8 +27,9 @@ export async function assertStyleBounds(app: App, active: boolean, height: numbe
   expect(b['model-picker'].origin.x + b['model-picker'].size.width).toBeLessThanOrEqual(b['primary-action'].origin.x);
   expect(b['composer-actions'].origin.x + b['primary-action'].origin.x + b['primary-action'].size.width).toBeLessThanOrEqual(b.composer.size.width - (artAvailable ? 24 : 12));
   expect(b.prompt.size.width).toBeGreaterThan(100);
-  expect(b.prompt.size.height).toBeGreaterThanOrEqual(composerEditor.minHeight);
-  expect(b.prompt.size.height).toBeLessThanOrEqual(composerEditor.maxHeight);
+  expect(b.composer.size.height).toBe(artAvailable ? (active ? 170 : 188) : (active ? 108 : 124));
+  expect(b.prompt.origin.x).toBe(artAvailable ? 44 : 16);
+  expect(b.prompt.size.height).toBe(artAvailable ? (active ? 34 : 46) : (active ? 32 : 42));
   expect(b['composer-backdrop'].origin.x).toBe(artAvailable ? composerFrame.backing.left : 0);
   expect(bottom(b['composer-backdrop'])).toBe(b.composer.size.height - (artAvailable ? composerFrame.backing.bottom : 0));
   expect(b['primary-action'].size.width).toBeGreaterThan(30);

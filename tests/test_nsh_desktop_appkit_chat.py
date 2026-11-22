@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from nsh_composer_provenance import desktop_composer_layout_evidence, desktop_session_completion_evidence, desktop_analysis_caption_evidence, desktop_command_preview_evidence, desktop_archive_evidence, desktop_first_draft_evidence, desktop_session_switch_evidence, desktop_startup_splash_evidence, desktop_import_evidence, desktop_turn_layout_evidence, desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
+from nsh_composer_provenance import desktop_composer_font_evidence, desktop_composer_layout_evidence, desktop_session_completion_evidence, desktop_analysis_caption_evidence, desktop_command_preview_evidence, desktop_archive_evidence, desktop_first_draft_evidence, desktop_session_switch_evidence, desktop_startup_splash_evidence, desktop_import_evidence, desktop_turn_layout_evidence, desktop_workspace_layout_evidence, desktop_workspace_migration_evidence, desktop_management_evidence, desktop_team_goal_evidence, idle_host_evidence, successor_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,6 +88,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_analysis_caption_evidence(), name, current)
             current = successor_input(self, desktop_session_completion_evidence(), name, current)
             current = successor_input(self, desktop_composer_layout_evidence(), name, current)
+            current = successor_input(self, desktop_composer_font_evidence(), name, current)
             self.assertEqual(current, sha(ROOT / name), name)
         entry = 'probes/nsh-validation/appkit-hostcheck/ChatCheck.tsx'
         entry_hash = successor_input(self, team_goal, entry, self.evidence['check']['entry'])
@@ -288,6 +289,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_analysis_caption_evidence(), name, current)
             current = successor_input(self, desktop_session_completion_evidence(), name, current)
             current = successor_input(self, desktop_composer_layout_evidence(), name, current)
+            current = successor_input(self, desktop_composer_font_evidence(), name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         for name, expected in {**data['localReceipts'], **data['archives']}.items():
             path = ROOT / name
@@ -368,6 +370,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             current = successor_input(self, desktop_analysis_caption_evidence(), name, current)
             current = successor_input(self, desktop_session_completion_evidence(), name, current)
             current = successor_input(self, desktop_composer_layout_evidence(), name, current)
+            current = successor_input(self, desktop_composer_font_evidence(), name, current)
             self.assertEqual(current['sha256'], sha(ROOT / name), name)
         self.assertTrue(data['localReceipts'])
         for name, expected in data['localReceipts'].items():
@@ -432,6 +435,7 @@ class AppKitChatEvidenceTests(unittest.TestCase):
             expected = successor_input(self, desktop_analysis_caption_evidence(), name, expected)
             expected = successor_input(self, desktop_session_completion_evidence(), name, expected)
             expected = successor_input(self, desktop_composer_layout_evidence(), name, expected)
+            expected = successor_input(self, desktop_composer_font_evidence(), name, expected)
             self.assertEqual(expected['sha256'], sha(ROOT / name), name)
         self.assertEqual(sum(p.endswith('/pruned-runtime.json') for p in data['localReceipts']), 2)
         for name, expected in data['localReceipts'].items():

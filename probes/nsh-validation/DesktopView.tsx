@@ -13,7 +13,7 @@ import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall, type Conversation } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, styleLayout, clamp, composerEditor, composerFrame, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
+import { desktopTheme as t, desktopLayout, styleLayout, composerAttachmentHeight, composerFrame, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionCompletions, sessionTreeState } from './desktop-sidebar-tree';
@@ -89,8 +89,6 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const archiveLoading = signal(false), archiveError = signal('');
   let archiveRequest = 0;
   const sessionHover = signal(''), sessionMenu = signal('');
-  const contentHeight = signal(0);
-  const editorHeight = () => clamp(composerEditor.minHeight, Math.ceil(contentHeight()) + 2, composerEditor.maxHeight);
   const files = signal<Attachment[]>([]), attachmentError = signal(''), uploading = signal(false);
   const changes = signal(new Map<string, { row: number; summary: WorkspaceChanges }>());
   const openGroups = signal(new Set<string>());
@@ -1014,6 +1012,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               </Text>}
             </View>}
             <View testID="composer" onLayout={measured('composer')} style={{ flexShrink: 0,
+              height: safe().composerHeight + (files().length ? composerAttachmentHeight + 8 : 0),
               paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom,
               paddingTop: safe().composerPaddingTop, gap: 8 }}>
               <View testID="composer-backdrop" onLayout={measured('composer-backdrop')} style={{
@@ -1027,26 +1026,26 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 onCenterLayout={measured('composer-bow')} style={{ top: composerFrame.top, left: composerFrame.left,
                   right: composerFrame.right, bottom: composerFrame.bottom, zIndex: 1 }} />}
               {!!files().length && <Scroll testID="composer-attachments" onLayout={measured('composer-attachments')}
-                horizontal scrollbar={{ mode: 'hover' }} style={{ zIndex: 2, height: 60, flexShrink: 0 }}
+                horizontal scrollbar={{ mode: 'hover' }} style={{ zIndex: 2, height: composerAttachmentHeight, flexShrink: 0 }}
                 contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {files().map((asset, index) => <View style={{ width: 56, height: 56, flexShrink: 0 }}>
+                {files().map((asset, index) => <View style={{ width: 30, height: 30, flexShrink: 0 }}>
                   <Image testID={`attachment-preview-${index}`} src={asset.url}
-                    style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
+                    style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover' }} />
                   <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
                     disabled={uploading()} onPress={() => removeImages(index)} hoverStyle={controlHover}
-                    style={{ position: 'absolute', top: 2, right: 2, width: 21, height: 21, borderRadius: 10.5,
+                    style={{ position: 'absolute', top: 2, right: 2, width: 17, height: 17, borderRadius: 8.5,
                       alignItems: 'center', justifyContent: 'center', backgroundColor: '#101b35e6' }}>
-                    <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 14 }}>×</Text>
+                    <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12 }}>×</Text>
                   </Button>
                 </View>)}
                 <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12, numberOfLines: 1 }}>
                   {uploading() ? '正在准备图片…' : modelCanSee() ? `${files().length} 张图片` : '请选择支持图片的模型'}
                 </Text>
               </Scroll>}
-              <Input testID="prompt" onLayout={measured('prompt')} onContentSizeChange={e => contentHeight.set(e.size.height)}
+              <Input testID="prompt" onLayout={measured('prompt')}
                 multiline submitBehavior="submit" scrollbar={{ mode: 'hover' }} accessibilityLabel="任务输入"
-                style={{ height: editorHeight(), flexShrink: 0, zIndex: 2, padding: 0,
-                  fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, backgroundColor: 'transparent',
+                style={{ minHeight: 32, flex: 1, zIndex: 2, padding: 0,
+                  fontFamily: t.fontFamily, fontSize: t.composerFont, lineHeight: t.lineHeight, backgroundColor: 'transparent',
                   color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }}
                 placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096}
                 value={draft()} onChange={e => draft.set(e.value)} onPaste={e => attachImages(e.files)}

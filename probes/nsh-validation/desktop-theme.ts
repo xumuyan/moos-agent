@@ -15,7 +15,7 @@ export const desktopTheme = {
   sidebarGradient: 'radial-gradient(circle at 50% 14%, #5b77bc3b, #0000 31%), linear-gradient(#102456f7, #050e2bf5), repeating-linear-gradient(135deg, #ffffff07 0 1px, #0000 1px 7px)',
   sidebarShadow: '8px 0 34px #08113038, inset -1px 0 #fff5d7d1, inset -3px 0 #e2cfa6b8',
   composerGradient: 'linear-gradient(#1b2c54f0, #0a173ae6)',
-  composerBase: '#0d193bb8', composerInk: '#eef3fc', caret: '#bcd2ff', placeholder: '#b6c2e0',
+  composerFont: 15, composerBase: '#0d193bb8', composerInk: '#eef3fc', caret: '#bcd2ff', placeholder: '#b6c2e0',
   darkComposerGradient: 'linear-gradient(#192a53eb, #0c193ce6)',
   sendGradient: 'linear-gradient(145deg, #6680bd, #304a91)',
   composerShadow: '0 18px 52px #1d305e2e, inset 0 1px #ffffff14',
@@ -56,7 +56,8 @@ export function styleLayout(active: boolean, artwork: boolean, titleBarHeight = 
   return { trim, headerTop: Math.max(trim, titleBarHeight) + (artwork || titleBarHeight > 0 ? 8 : 0), headerBody: 64,
     composerTop: 24, composerBottom: 24, frameTop: 20, frameBottom: 18,
     previewHeight: 36, bottom: artwork && !active ? 60 : 8,
-    composerPaddingX: artwork ? 32 : 16, composerPaddingTop: artwork ? 56 : 14,
+    composerHeight: artwork ? (active ? 170 : 188) : (active ? 108 : 124),
+    composerPaddingX: artwork ? 44 : 16, composerPaddingTop: artwork ? 56 : 14,
     composerPaddingBottom: artwork ? 34 : 16, composerActionHeight: active ? 38 : 44 };
 }
 // Extend the fill under the opaque rails of the nine-slice frame.
@@ -65,7 +66,7 @@ export const composerFrame = {
   backing: { left: -6, right: -6, top: 0, bottom: -7, borderRadius: 35 },
 } as const;
 
-export const composerEditor = { minHeight: 64, maxHeight: 144 } as const;
+export const composerAttachmentHeight = 30;
 
 // Keep the bow at the same scale on both axes. Only the lace/ribbon on
 // either side stretches; do not crop or double-paint the original bow.

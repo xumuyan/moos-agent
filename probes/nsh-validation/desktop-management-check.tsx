@@ -144,16 +144,18 @@ test('image preview sits above the editor and sends a scoped attachment batch', 
   const app = await open('./App.tsx', { width: 1240, height: 820 });
   await app.waitFor('id:composer-add');
   await app.press('id:create-session');
+  const geometry = () => JSON.parse(app.texts().find(text => text.startsWith('ATTACHMENT_GEOMETRY '))!.slice('ATTACHMENT_GEOMETRY '.length));
+  const draftHeight = geometry().prompt.size.height;
   await app.paste('id:prompt', { files: ['source/fixture-paste.png'] });
   await app.waitFor('id:attachment-preview-0');
-  const geometry = () => JSON.parse(app.texts().find(text => text.startsWith('ATTACHMENT_GEOMETRY '))!.slice('ATTACHMENT_GEOMETRY '.length));
   await app.waitUntil(() => {
     const bounds = geometry();
     const row = bounds['composer-attachments'];
     return row && bounds.prompt && row.origin.y + row.size.height < bounds.prompt.origin.y;
   });
   const bounds = geometry();
-  expect(bounds.prompt.size.height).toBeGreaterThanOrEqual(64);
+  expect(bounds.prompt.size.height).toBe(draftHeight);
+  expect(bounds['composer-attachments'].size.height).toBe(30);
   expect(bounds.prompt.origin.y + bounds.prompt.size.height).toBeLessThan(bounds['composer-actions'].origin.y);
   await app.screenshot('composer-image-above-editor.png');
   await app.press('id:remove-image-0');
