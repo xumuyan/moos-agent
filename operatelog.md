@@ -3537,3 +3537,12 @@
 - 验证结果：带现有皮肤和开屏素材的 AppKit 包离线构建与 `codesign --verify --deep --strict` 通过。新版进程路径与安装路径一致，单实例。逐行核对原有 6 个项目、10 个会话、1,703 条消息、2 条任务和 1,380 条事件。新版历史模块可读取全部 10 个会话，模型模块读到 2 个服务、8 个模型及其推理档位。凭据、归档历史、皮肤和开屏素材字节比对通过。核对安装 ZIP 一致后清理本次备份和旧程序副本。角标能力及对应前端代码已进入运行包。证据见 `desktop-session-completion-evidence.json` 的 `localUpdate`。
 - 遗留问题：本次未发送模型请求，系统 Dock 实际显示数字待有任务结果时复核。文档检查 `python3 -m unittest discover -s tests -v` 263/265，AppKit 历史 `open.err` 哈希差异和 E124 `report.json` 缺失仍阻塞 GitHub 推送。
 - 对应 Git 提交：唯一说明 `docs(N01-D3): record local session badge update`，查询 `git log --oneline --grep="record local session badge update"`。
+
+## 2026-11-22 14:46:08 +08:00｜N01-D3 输入框底板、多行编辑与图片位置
+
+- 修改或新增内容：让输入框深色底板延伸到主题边框内侧，收窄文字区横向留白，把文本编辑区改成可增长的多行输入。已粘贴图片的缩略图移到输入文字上方，支持单张移除和横向滚动。
+- 遇到的难题：主题边框的九切片伸出原输入框背景，加上固定高度留给输入文字的空间有限。首次全量 Node 回归时原有 Swift 私有管道夹具超时，复跑通过。
+- 处理方式：分离底板与文字布局，按边框内缘调整底板包络。文字区采用 NSH 原生多行输入与文本高度测量，限制在 64 到 144 点。保留 Enter 发送，新增 Shift+Enter 换行。
+- 验证结果：`verify-desktop-theme.mjs --composer` 带原主题 3/3，实测亮暗宽窄窗、换行与发送；`--management` 带原主题 9/9，实测图片在文字区上方、可移除和重新提交；默认无头回归 22/22。全量 Node 408 通过、1 跳过，Electron 142 通过、1 跳过，M01 Rust 11/11。带主题和开屏的 AppKit 候选包完成离线构建与严格验签。证据见 `desktop-composer-layout-evidence.json`，测试与打包对应本次提交前的源码改动。
+- 遗留问题：候选包待本机更新。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致和 E124 `report.json` 缺失仍阻塞推送。
+- 对应 Git 提交：唯一说明 `fix(N01-D3): align composer fill and move image previews above text`，查询 `git log --oneline --grep="align composer fill and move image previews above text"`。

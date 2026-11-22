@@ -46,13 +46,17 @@ if (management) {
 }
 if (native && !management) await cp(resolve('probes/nsh-validation', nativeCheck), join(source, 'native.test.tsx'));
 await writeFile(join(source, 'nsh.json'), JSON.stringify({ name: '沐码主题视图测试夹具', id: 'dev.muma.probe.nsh.theme', capabilities: { statusBar: true, ...(management && { notifications: true }), host: ['projects.list','sessions.list','sessions.create','tasks.submit','tasks.events','tasks.cancel', ...(management ? ['sessions.history', 'sessions.manage', 'models.manage', 'images.stage'] : [])] }, window: { title: 'NSH 原生主题验证 · 合成响应 · 非实际任务', defaultSize: { width: 1240, height: 820 } } }));
-const managementEntry = (switching = false) => `import { mount, signal, Text, View } from 'nsh';
+const managementEntry = (switching = false) => `import { mount, signal, Text, View, type Bounds } from 'nsh';
 import { DesktopView } from './DesktopView';
 import { managementFixture } from './desktop-management-fixture';
 const { handlers } = managementFixture(${switching});
 const calls = signal<{ name: string; data: unknown }[]>([]);
+const geometry = signal<Record<string, Bounds>>({});
 mount(() => <View style={{ flex: 1 }}>
-  <DesktopView persistentHistory onDockBadge={data => calls.set([...calls(), { name: 'dockBadge', data }])} call={async (name, data) => {
+  <DesktopView persistentHistory onGeometry={(name, bounds) => {
+    if (!['prompt','composer-attachments','composer-actions'].includes(name)) return;
+    if (JSON.stringify(geometry()[name]) !== JSON.stringify(bounds)) geometry.set({ ...geometry(), [name]: bounds });
+  }} onDockBadge={data => calls.set([...calls(), { name: 'dockBadge', data }])} call={async (name, data) => {
     const handle = (handlers as Record<string, (data: unknown) => { result: any } | Promise<{ result: any }>>)[name];
     if (['sessions.history', 'sessions.manage', 'models.manage', 'images.stage', 'tasks.submit'].includes(name)) {
       const { service, ...rest } = data as { service?: { api: string } };
@@ -62,6 +66,7 @@ mount(() => <View style={{ flex: 1 }}>
     return (await handle(data)).result;
   }} />
   <Text style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', fontSize: 1 }}>{'N01_MANAGEMENT_TEST ' + JSON.stringify(calls())}</Text>
+  <Text style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', fontSize: 1 }}>{'ATTACHMENT_GEOMETRY ' + JSON.stringify(geometry())}</Text>
 </View>);
 `;
 await writeFile(join(source, 'App.tsx'), management ? managementEntry() : "import './DesktopApp';\n");

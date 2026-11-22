@@ -13,7 +13,7 @@ import { DesktopTurnQueue } from './DesktopTurnQueue';
 import { nextTurnReady, turnQueue, validTurnText } from './desktop-turn-queue';
 import { DesktopController, isTerminal, type DesktopCall, type Conversation } from './desktop-ui-controller';
 import { desktopCall } from './desktop-ui-transport';
-import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
+import { desktopTheme as t, desktopLayout, styleLayout, clamp, composerEditor, composerFrame, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
 import { sidebarTree as tree, projectTreeHeight, sessionCompletions, sessionTreeState } from './desktop-sidebar-tree';
@@ -89,6 +89,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const archiveLoading = signal(false), archiveError = signal('');
   let archiveRequest = 0;
   const sessionHover = signal(''), sessionMenu = signal('');
+  const contentHeight = signal(0);
+  const editorHeight = () => clamp(composerEditor.minHeight, Math.ceil(contentHeight()) + 2, composerEditor.maxHeight);
   const files = signal<Attachment[]>([]), attachmentError = signal(''), uploading = signal(false);
   const changes = signal(new Map<string, { row: number; summary: WorkspaceChanges }>());
   const openGroups = signal(new Set<string>());
@@ -1011,21 +1013,44 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 {teamGoal()!.errorCode === 'timeout' ? '已达到本次执行时限，可继续目标。' : '完整目标尚未通过独立验收，可根据现有成果继续。'}
               </Text>}
             </View>}
-            <View testID="composer" onLayout={measured('composer')} style={{ height: safe().composerHeight + (files().length ? 38 : 0), flexShrink: 0, paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom, paddingTop: safe().composerPaddingTop, gap: 8, borderRadius: clamp(26, windowSize().width * .02, 34), backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient, backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow }}>
-              {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]} cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')} onCenterLayout={measured('composer-bow')} style={{ top: -20, left: -14, right: -14, bottom: -18, zIndex: 1 }} />}
-              <Input testID="prompt" onLayout={measured('prompt')} accessibilityLabel="任务输入" style={{ minHeight: 32, flex: 1, zIndex: 2, fontFamily: t.fontFamily, fontSize: t.font, backgroundColor: 'transparent', color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }} placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096} value={draft()} onChange={e => draft.set(e.value)} onPaste={e => attachImages(e.files)}
-                disabled={uploading() || (!!pendingDraft() && busy())} onSubmit={() => void send()} />
-              {!!files().length && <View testID="composer-attachments" style={{ zIndex: 2, flexDirection: 'row', alignItems: 'center', gap: 3, height: 30 }}>
-                {files().map((asset, index) => <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
-                  disabled={uploading()} onPress={() => removeImages(index)}
-                  style={{ ...controlSurface, paddingHorizontal: 4, height: 30, flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                  <Image src={asset.url} style={{ width: 22, height: 22, borderRadius: 3, objectFit: 'cover' }} />
-                  <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12 }}>×</Text>
-                </Button>)}
-                <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12, flexShrink: 1, numberOfLines: 1 }}>
+            <View testID="composer" onLayout={measured('composer')} style={{ flexShrink: 0,
+              paddingHorizontal: safe().composerPaddingX, paddingBottom: safe().composerPaddingBottom,
+              paddingTop: safe().composerPaddingTop, gap: 8 }}>
+              <View testID="composer-backdrop" onLayout={measured('composer-backdrop')} style={{
+                position: 'absolute', pointerEvents: 'none',
+                ...(artAvailable ? composerFrame.backing : { top: 0, left: 0, right: 0, bottom: 0, borderRadius: 26 }),
+                backgroundColor: t.composerBase, backgroundImage: dark() ? t.darkComposerGradient : t.composerGradient,
+                backdropFilter: 'blur(8px) saturate(.88)', boxShadow: t.composerShadow,
+              }} />
+              {artAvailable && <NineSlice testID="composer-frame" name="composer-frame" source={[1800,588]}
+                cuts={[170,120,115,120]} edges={[72,54,52,54]} topCenter={360} onLayout={measured('composer-frame')}
+                onCenterLayout={measured('composer-bow')} style={{ top: composerFrame.top, left: composerFrame.left,
+                  right: composerFrame.right, bottom: composerFrame.bottom, zIndex: 1 }} />}
+              {!!files().length && <Scroll testID="composer-attachments" onLayout={measured('composer-attachments')}
+                horizontal scrollbar={{ mode: 'hover' }} style={{ zIndex: 2, height: 60, flexShrink: 0 }}
+                contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {files().map((asset, index) => <View style={{ width: 56, height: 56, flexShrink: 0 }}>
+                  <Image testID={`attachment-preview-${index}`} src={asset.url}
+                    style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover' }} />
+                  <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
+                    disabled={uploading()} onPress={() => removeImages(index)} hoverStyle={controlHover}
+                    style={{ position: 'absolute', top: 2, right: 2, width: 21, height: 21, borderRadius: 10.5,
+                      alignItems: 'center', justifyContent: 'center', backgroundColor: '#101b35e6' }}>
+                    <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 14 }}>×</Text>
+                  </Button>
+                </View>)}
+                <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12, numberOfLines: 1 }}>
                   {uploading() ? '正在准备图片…' : modelCanSee() ? `${files().length} 张图片` : '请选择支持图片的模型'}
                 </Text>
-              </View>}
+              </Scroll>}
+              <Input testID="prompt" onLayout={measured('prompt')} onContentSizeChange={e => contentHeight.set(e.size.height)}
+                multiline submitBehavior="submit" scrollbar={{ mode: 'hover' }} accessibilityLabel="任务输入"
+                style={{ height: editorHeight(), flexShrink: 0, zIndex: 2, padding: 0,
+                  fontFamily: t.fontFamily, fontSize: t.font, lineHeight: t.lineHeight, backgroundColor: 'transparent',
+                  color: t.composerInk, caretColor: t.caret, placeholderColor: t.placeholder }}
+                placeholder="发消息或创建任务" autoCapitalize="none" autoCorrect={false} maxLength={4096}
+                value={draft()} onChange={e => draft.set(e.value)} onPaste={e => attachImages(e.files)}
+                disabled={uploading() || (!!pendingDraft() && busy())} onSubmit={() => void send()} />
               <View testID="composer-actions" onLayout={measured('composer-actions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 2, height: safe().composerActionHeight, flexShrink: 0 }}>
                 {managed() && <Menu testID="composer-add-menu" placement="top" offset={9} margin={12} popupStyle={{ ...popup(), minWidth: 172 }}
                   trigger={<Button testID="composer-add" onLayout={measured('composer-add')} accessibilityLabel="添加或切换模式"

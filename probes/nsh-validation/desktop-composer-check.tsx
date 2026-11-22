@@ -22,8 +22,8 @@ async function check(app: App, active: boolean, width: number, height: number, s
     expect(Math.abs(bow.origin.x + bow.size.width / 2 - frame.size.width / 2)).toBeLessThan(1);
     expect(bow.size.height).toBe(72);
     expect(frame.origin.y + bow.size.height).toBeLessThan(b.prompt.origin.y);
-    expect(b.prompt.origin.x).toBeGreaterThan(frame.origin.x + 54);
-    expect(b.prompt.origin.x + b.prompt.size.width).toBeLessThan(frame.origin.x + frame.size.width - 54);
+    expect(b.prompt.origin.x).toBeGreaterThan(frame.origin.x + 44);
+    expect(b.prompt.origin.x + b.prompt.size.width).toBeLessThan(frame.origin.x + frame.size.width - 44);
   }
   await app.screenshot(name + '.png');
   return b;
@@ -162,3 +162,23 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await check(app, true, 1240, 820, 280, `composer-${colorScheme}-wide-stopped`);
   });
 }
+
+
+test('multiline typing expands within the composer and Return submits the complete text', async () => {
+  const app = await open('./ThemeGeometry.tsx', { width: 1240, height: 820, reducedMotion: true });
+  await app.waitFor('text:项目 主题验证 A');
+  const initial = await assertStyleBounds(app, false, 820);
+  await app.type('id:prompt', '第一行');
+  await app.keyboard.press('shift+enter');
+  expect(app.value('id:prompt')).toBe('第一行\n');
+  expect(callCounts(app).submitCount).toBe(0);
+  await app.paste('id:prompt', { text: '第二行\n第三行\n第四行\n第五行\n第六行\n第七行\n第八行' });
+  const bounds = () => JSON.parse(app.texts().find(t => t.startsWith('STYLE_GEOMETRY '))!.slice('STYLE_GEOMETRY '.length));
+  await app.waitUntil(() => bounds().prompt.size.height > initial.prompt.size.height);
+  const grown = await assertStyleBounds(app, false, 820);
+  expect(grown.prompt.size.height).toBe(144);
+  await app.screenshot('composer-multiline.png');
+  await app.keyboard.press('enter');
+  await app.waitUntil(() => callCounts(app).submitCount === 1);
+  expect(app.value('id:prompt')).toBe('');
+});

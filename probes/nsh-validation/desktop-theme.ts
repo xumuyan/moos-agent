@@ -56,10 +56,17 @@ export function styleLayout(active: boolean, artwork: boolean, titleBarHeight = 
   return { trim, headerTop: Math.max(trim, titleBarHeight) + (artwork || titleBarHeight > 0 ? 8 : 0), headerBody: 64,
     composerTop: 24, composerBottom: 24, frameTop: 20, frameBottom: 18,
     previewHeight: 36, bottom: artwork && !active ? 60 : 8,
-    composerHeight: artwork ? (active ? 170 : 188) : (active ? 108 : 124),
-    composerPaddingX: artwork ? 44 : 16, composerPaddingTop: artwork ? 56 : 14,
+    composerPaddingX: artwork ? 32 : 16, composerPaddingTop: artwork ? 56 : 14,
     composerPaddingBottom: artwork ? 34 : 16, composerActionHeight: active ? 38 : 44 };
 }
+// Extend the fill under the opaque rails of the nine-slice frame.
+export const composerFrame = {
+  left: -14, right: -14, top: -20, bottom: -18,
+  backing: { left: -6, right: -6, top: 0, bottom: -7, borderRadius: 35 },
+} as const;
+
+export const composerEditor = { minHeight: 64, maxHeight: 144 } as const;
+
 // Keep the bow at the same scale on both axes. Only the lace/ribbon on
 // either side stretches; do not crop or double-paint the original bow.
 export function frameTopSegments(from: number, to: number, left: number, right: number, scale: number, centerSource: number) {
