@@ -3555,3 +3555,12 @@
 - 验证结果：带原主题的 `verify-desktop-theme.mjs --composer` 3/3，覆盖亮暗宽窄窗、原尺寸和多行输入后几何一致；`--management` 9/9，确认顶部图片、编辑区高度和发送回归。无头回归复跑 22/22。Node 全量 408 通过、1 跳过，Electron 142 通过、1 跳过，M01 Rust 11/11。AppKit App 离线构建与严格验签通过。证据见 `desktop-composer-font-evidence.json`，测试与打包对应本次提交前的源码改动。
 - 遗留问题：候选包待本机更新。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致及 E124 `report.json` 缺失继续阻塞推送。
 - 对应 Git 提交：唯一说明 `fix(N01-D3): restore composer dimensions and increase input font`，查询 `git log --oneline --grep="restore composer dimensions and increase input font"`。
+
+## 2026-11-22 15:24:30 +08:00｜N01-D3 发送前点击缩略图查看大图
+
+- 修改或新增内容：输入框上方的图片缩略图可以打开大图，移除按钮放在缩略图旁边。大图按比例显示，关闭后可继续输入或发送原附件。
+- 遇到的难题：最初移除按钮盖住了小缩略图的中央，原生点击误触移除。历史图片预览持有自己的 URL，草稿预览应继续借用附件 URL，关闭时不能把待发送图片释放。
+- 处理方式：分开预览与移除的点击区域。沿用会话图片弹框，区分草稿与历史 URL 的释放时机。切换会话、移除附件或退出时关闭关联预览。
+- 验证结果：`verify-desktop-theme.mjs --management` 带主题复跑 9/9，覆盖打开大图、关闭后再次打开、关闭后保留原图、移除与重新上传。无头回归 22/22，Rust 11/11。AppKit 离线构建与严格验签通过，签名包的前端输入哈希一致。Node 首轮 408 通过、1 跳过；最终全量 405 通过、1 失败、2 超时取消、1 跳过。串行复核续聊通过，PI 并发和桌面辅助仍超时。Electron 两轮均 141 通过、1 跳过、Host 生命周期用例超时。详见 `desktop-image-preview-evidence.json`。
+- 遗留问题：文档检查 263/265，仍是旧 AppKit 日志哈希与 E124 回执缺失。超时用例涉及未改动的 PI、桌面辅助和 Electron Host。按用户最新明确要求推送并更新，源码推送与本机更新另行核对记录。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): open composer attachments in an image preview`，查询 `git log --oneline --grep="open composer attachments in an image preview"`。

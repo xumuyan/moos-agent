@@ -352,6 +352,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   function removeImages(index?: number) {
     files.set(files().filter((asset, i) => {
       if (index !== undefined && i !== index) return true;
+      if (imagePreview()?.url === asset.url) closeImagePreview();
       URL.revokeObjectURL(asset.url);
       return false;
     }));
@@ -452,27 +453,31 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const title = () => selectedImported()?.title ?? snapshot().sessions.find(s => s.id === snapshot().sessionId)?.title ?? '新会话';
   const status = () => snapshot().current ? `${snapshot().current!.task?.status ?? (snapshot().current!.busy ? 'submitting' : 'idle')} · ${snapshot().current!.busy ? (snapshot().current!.stopping ? '停止请求中，等待收尾' : '读取事件中') : snapshot().current!.drained ? '已排空' : '未确认完成'} · ${snapshot().current!.sequence} 事件` : '加载项目/会话';
   const error = () => snapshot().error || snapshot().current?.error ? `Host/任务错误：${snapshot().error || snapshot().current?.error}；不自动重放。任务结果未确认时请勿重复提交。` : snapshot().current?.task?.errorCode ? `任务错误码：${snapshot().current!.task!.errorCode}` : '';
-  const savedImage = signal<string | null>(null);
+  const imagePreview = signal<{ url: string; source: 'draft' | 'history' } | null>(null);
   let assetRequest = 0;
-  function closeSavedImage() {
+  function closeImagePreview() {
     assetRequest++;
-    const url = savedImage();
-    if (url) URL.revokeObjectURL(url);
-    savedImage.set(null);
+    const preview = imagePreview();
+    if (preview?.source === 'history') URL.revokeObjectURL(preview.url);
+    imagePreview.set(null);
+  }
+  function showDraftImage(asset: Attachment) {
+    closeImagePreview();
+    imagePreview.set({ url: asset.url, source: 'draft' });
   }
   async function showSavedAsset(asset: ImportedAsset) {
     const scope = controller.current?.scope;
     if (!scope) return;
-    closeSavedImage();
+    closeImagePreview();
     const request = assetRequest;
     const current = () => !disposed && request === assetRequest;
     try {
       const url = await openHistoryAsset(value => transport('sessions.manage', value), scope, asset, current);
-      if (url && current()) savedImage.set(url);
+      if (url && current()) imagePreview.set({ url, source: 'history' });
       else if (url) URL.revokeObjectURL(url);
     } catch { if (current()) sessionError.set('无法读取该会话附件'); }
   }
-  const dispose = () => { disposed = true; cancelSessionSwitch(); historyCache.clear(); closeSavedImage(); removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
+  const dispose = () => { disposed = true; cancelSessionSwitch(); historyCache.clear(); closeImagePreview(); removeImages(); queue.clear(); statistics.clear(); outboundChoices.clear(); controller.dispose(); };
   const detach = host.on('desktop.dispose', dispose);
   cleanup(() => { detach(); dispose(); });
   const busy = computed(() => !!snapshot().current?.busy || submitting.has(snapshot().sessionId) || cancelling.has(snapshot().sessionId));
@@ -607,7 +612,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       }
       if (controller.sessionId === previous.sessionId) controller.sessionId = controller.sessions[0]?.id ?? '';
     }
-    closeSavedImage(); editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
+    closeImagePreview(); editorVersion++; draft.set(''); editTurn.set(null); goalSelected.set(false); removeImages(); attachmentError.set('');
     rename.set(null); sessionError.set(''); selectedImported.set(null);
   };
   const project = async (id: string) => {
@@ -1028,13 +1033,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               {!!files().length && <Scroll testID="composer-attachments" onLayout={measured('composer-attachments')}
                 horizontal scrollbar={{ mode: 'hover' }} style={{ zIndex: 2, height: composerAttachmentHeight, flexShrink: 0 }}
                 contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {files().map((asset, index) => <View style={{ width: 30, height: 30, flexShrink: 0 }}>
-                  <Image testID={`attachment-preview-${index}`} src={asset.url}
-                    style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover' }} />
+                {files().map((asset, index) => <View style={{ height: 30, flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                  <Button testID={`attachment-preview-${index}`} accessibilityLabel={`放大第 ${index + 1} 张图片`}
+                    onPress={() => showDraftImage(asset)} focusVisibleStyle={controlFocus}
+                    style={{ width: 30, height: 30, borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
+                    <Image src={asset.url} style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover' }} />
+                  </Button>
                   <Button testID={`remove-image-${index}`} accessibilityLabel={`移除第 ${index + 1} 张图片`}
                     disabled={uploading()} onPress={() => removeImages(index)} hoverStyle={controlHover}
-                    style={{ position: 'absolute', top: 2, right: 2, width: 17, height: 17, borderRadius: 8.5,
-                      alignItems: 'center', justifyContent: 'center', backgroundColor: '#101b35e6' }}>
+                    style={{ width: 19, height: 19, borderRadius: 9.5, alignItems: 'center', justifyContent: 'center',
+                      backgroundColor: '#101b35e6' }}>
                     <Text style={{ color: t.composerInk, fontFamily: t.fontFamily, fontSize: 12 }}>×</Text>
                   </Button>
                 </View>)}
@@ -1160,13 +1168,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
           </Button>
         </View>
       </Dialog>}
-      {savedImage() && <Dialog testID="history-asset-preview" accessibilityLabel="会话图片" animation="none"
-        onOpenChange={event => { if (!event.open) closeSavedImage(); }}
+      {imagePreview() && <Dialog testID="history-asset-preview" accessibilityLabel="图片预览" animation="none"
+        onOpenChange={event => { if (!event.open) closeImagePreview(); }}
         style={{ ...popup(), position: 'absolute', left: '12%', top: '10%', width: '76%', height: '80%', gap: 8, padding: 12 }}>
-        <Button testID="history-asset-close" style={menuItem} hoverStyle={controlHover} onPress={closeSavedImage}>
+        <Button testID="history-asset-close" style={menuItem} hoverStyle={controlHover} onPress={closeImagePreview}>
           <Text style={menuLabel()}>关闭图片</Text>
         </Button>
-        <Image src={savedImage()!} style={{ width: '100%', flex: 1, objectFit: 'contain' }} />
+        <Image testID="expanded-image" src={imagePreview()!.url} style={{ width: '100%', flex: 1, objectFit: 'contain' }} />
       </Dialog>}
       {settingsOpen() && <DesktopSettings onClose={() => settingsOpen.set(false)} dark={dark()} art={artAvailable}
         appearance={appearance()} onAppearance={changeAppearance} characters={showCharacters()} onCharacters={showCharacters.set}

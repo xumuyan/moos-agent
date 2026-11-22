@@ -1,0 +1,96 @@
+{
+  "base": "1674be5dad50a646cc58be516b6479347b466243",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "55d65ebca0c71c391b3403efd676b9532bfdae027c283d354200f75aa232833a",
+    "probes/nsh-validation/desktop-management-check.tsx": "c544daac9730d37da3bd7370191a626a25e2a4fe7f62f79626b7d3faa2ba05a2",
+    "tests/nsh_composer_provenance.py": "2e8337832bd8ea1d19001bee664476cf0315419701c113c38c43aacbe218c757",
+    "tests/test_nsh_desktop_appkit_chat.py": "9665456809a3a386826811d1383af70f9ac29de3795312f454336de0f80e78c7",
+    "tests/test_nsh_desktop_appkit_package.py": "07e1904d35a051489a13754314cd31dde08246f30da6c969f7244cc23f3efa34"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "sha256": "33ee28520031f20c8ad4cdaa13da2247b84d1de290bd3439a8b65a9f046d404a",
+      "bytes": 92416
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "sha256": "a117312e9c71b398b2c162df2d89f61d500b176020d99134aa9e9044e16f1593",
+      "bytes": 13049
+    },
+    "tests/nsh_composer_provenance.py": {
+      "sha256": "c6bfd4a7d0f442c3a2003a37b8882f6afeb0be8e329aed9e270e73ffe446e0c1",
+      "bytes": 5538
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "sha256": "a78b1951d807ef32edfdd2ff8bc44cf2a048207543a3f988cd29245c675c7df1",
+      "bytes": 30924
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "sha256": "85bcc593ffa53906eb853c8dd77cd3a05fd94113cea73460f43b69378d52403d",
+      "bytes": 5352
+    }
+  },
+  "package": {
+    "report": "artifacts/nsh-validation/appkit-chat-interactive.wZgmbi/result.json",
+    "strictSignatureVerified": true,
+    "artworkAndSplashIncluded": true,
+    "installed": false
+  },
+  "native": {
+    "artwork": true,
+    "passed": 9,
+    "failed": 0,
+    "thumbnailOpensDialog": true,
+    "canReopenAfterClose": true,
+    "closeKeepsAttachment": true,
+    "previewSendsNoImageBatch": true,
+    "canRemoveAndResend": true,
+    "screenshot": "artifacts/nsh-validation/desktop-theme/run-pC77cA/composer-image-expanded.png",
+    "screenshotSha256": "caab7ab30bc86c93150419ba7c2fff8cd2b08223268a56bc2fbd4baf72234030"
+  },
+  "headless": {
+    "passed": 22,
+    "failed": 0
+  },
+  "regressions": {
+    "node": {
+      "initial": {
+        "passed": 408,
+        "skipped": 1
+      },
+      "final": {
+        "passed": 405,
+        "failed": 1,
+        "cancelled": 2,
+        "skipped": 1
+      },
+      "targetedSerial": {
+        "passed": 1,
+        "failed": 1,
+        "cancelled": 1
+      },
+      "runtimeAndTestsUnchanged": true,
+      "remaining": [
+        "concurrent PI project timeout",
+        "desktop helper timeout"
+      ]
+    },
+    "electron": {
+      "passed": 141,
+      "failed": 1,
+      "skipped": 1,
+      "remaining": "packaged Host lifetime pipe test timed out on both runs"
+    },
+    "rust": {
+      "passed": 11,
+      "failed": 0
+    },
+    "documents": {
+      "passed": 263,
+      "failed": 2,
+      "preexisting": [
+        "AppKit historical open.err digest mismatch",
+        "missing E124 report.json"
+      ]
+    }
+  }
+}

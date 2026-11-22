@@ -140,7 +140,7 @@ test('new conversation stays a draft until its first message is accepted', async
   expect(app.value('id:prompt')).toBe('');
 });
 
-test('image preview sits above the editor and sends a scoped attachment batch', async () => {
+test('draft images open above the editor and remain attached until removed or sent', async () => {
   const app = await open('./App.tsx', { width: 1240, height: 820 });
   await app.waitFor('id:composer-add');
   await app.press('id:create-session');
@@ -158,6 +158,17 @@ test('image preview sits above the editor and sends a scoped attachment batch', 
   expect(bounds['composer-attachments'].size.height).toBe(30);
   expect(bounds.prompt.origin.y + bounds.prompt.size.height).toBeLessThan(bounds['composer-actions'].origin.y);
   await app.screenshot('composer-image-above-editor.png');
+  await app.press('id:attachment-preview-0');
+  await app.waitFor('id:expanded-image');
+  await app.screenshot('composer-image-expanded.png');
+  await app.press('id:history-asset-close');
+  await app.waitUntil(() => !app.shows('id:history-asset-preview'));
+  expect(app.shows('id:attachment-preview-0')).toBe(true);
+  expect(records(app).some(call => call.name === 'images.stage')).toBe(false);
+  await app.press('id:attachment-preview-0');
+  await app.waitFor('id:expanded-image');
+  await app.press('id:history-asset-close');
+  await app.waitUntil(() => !app.shows('id:history-asset-preview'));
   await app.press('id:remove-image-0');
   await app.waitUntil(() => !app.shows('id:composer-attachments'));
   await app.paste('id:prompt', { files: ['source/fixture-paste.png'] });
