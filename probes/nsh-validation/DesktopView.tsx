@@ -1,4 +1,4 @@
-import { batch, cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, platform, Scroll, setColorScheme, signal, Text, View, windowSize, type Bounds, type InputRef, type ListRef, type ScrollEvent } from 'nsh';
+import { batch, cleanup, Clipboard, colorScheme, computed, createMotion, host, Image, List, Notifications, platform, Scroll, setColorScheme, signal, Storage, Text, View, windowSize, type Bounds, type InputRef, type ListRef, type ScrollEvent } from 'nsh';
 import { currentWindow, isAvailable as desktopAvailable } from 'nsh/desktop';
 import { Button, Dialog, Input, Menu, MenuItem, MenuSeparator, TextView, Tooltip } from 'nsh/base';
 import { sessionAge, sessionPreviews, sessionPreviewStatus } from './desktop-session-preview';
@@ -16,7 +16,7 @@ import { desktopCall } from './desktop-ui-transport';
 import { desktopTheme as t, desktopLayout, styleLayout, clamp, createMessageRows, presentTurns, toolCard, type TurnActivity } from './desktop-theme';
 import { Art, NineSlice, Wallpaper, TopTrim, BottomTrim, SidebarCorners, artAvailable } from './desktop-theme-layers';
 import { liveSidebar } from './desktop-live-sidebar';
-import { sidebarTree as tree, projectTreeHeight, sessionTreeState } from './desktop-sidebar-tree';
+import { sidebarTree as tree, projectTreeHeight, sessionCompletions, sessionTreeState } from './desktop-sidebar-tree';
 import { sidebarFooter } from './desktop-sidebar-footer';
 import { DesktopIcon } from './DesktopIcon';
 import { controlFocus, controlHover, controlPressed, controlSurface } from './desktop-control-style';
@@ -53,6 +53,7 @@ export type DesktopActions = { controller: DesktopController; type: (text: strin
   attachImages: (files: File[]) => void; chooseModel: (choice: ModelChoice) => void; toggleGoal: () => void; resumeGoal: () => void; goal: () => TeamGoal | undefined };
 type Attachment = { file: File; url: string };
 type HistoryPage = Calls['sessions.history']['result'];
+const completionStorageKey = 'sidebar.session-completions.v1';
 const teamGoalStatuses = { queued: '排队中', running: '进行中', paused: '已暂停', blocked: '待处理', completed: '已完成' };
 const teamGoalPhases = { planning: '队长拆分', working: '成员执行', checking: '独立验收', continuing: '补齐验收差距', verified: '验收通过' };
 function goalSnapshot(value: unknown, scope: Scope, taskId?: string): TeamGoal | undefined {
@@ -69,7 +70,7 @@ function goalSnapshot(value: unknown, scope: Scope, taskId?: string): TeamGoal |
   return goal;
 }
 
-export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; persistentHistory?: boolean; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void } = {}) {
+export function DesktopView(props: { ready?: (actions: DesktopActions) => void; call?: DesktopCall; persistentHistory?: boolean; onGeometry?: (name: string, bounds: Bounds) => void; onMessageScroll?: (event: ScrollEvent) => void; onDockBadge?: (count: number) => void } = {}) {
   const macWindow = platform.os === 'macos' && desktopAvailable ? currentWindow() : null;
   // Preserve the native window frame and controls, but extend artwork under them.
   macWindow?.set({ titleBar: { style: 'hidden', height: 32 } });
@@ -127,6 +128,23 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         before.status === goal.status && before.verifiedMembers === goal.verifiedMembers &&
         before.toolPreviewLimited === goal.toolPreviewLimited && before.errorCode === goal.errorCode) return;
     teamGoals.set(new Map(teamGoals()).set(key, goal));
+  }
+  const completions = sessionCompletions();
+  const unread = signal(completions.snapshot());
+  const saveCompletions = props.persistentHistory === true && !props.call && platform.os === 'macos';
+  function syncCompletions(persist = true) {
+    const previous = unread();
+    const next = completions.snapshot();
+    if (previous === next) return;
+    unread.set(next);
+    if (persist && saveCompletions) void Storage.setItem(completionStorageKey, JSON.stringify([...next])).catch(() => {});
+    if (platform.os === 'macos' && previous.size !== next.size) {
+      void Notifications.setBadge(next.size).then(() => props.onDockBadge?.(next.size)).catch(() => {});
+    }
+  }
+  function viewCompletion(scope: Scope) {
+    completions.view(scopeKey(scope));
+    syncCompletions();
   }
   let disposed = false, pumpScheduled = false;
   const transport = props.call ?? desktopCall;
@@ -215,6 +233,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       });
     }
     batch(() => {
+      if (managed()) {
+        for (const conversation of controller.conversations.values()) {
+          completions.observe(conversation);
+        }
+        syncCompletions();
+      }
       revision.set(revision() + 1);
       syncHistory();
     });
@@ -399,7 +423,9 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       if (action === 'copy') { await Clipboard.writeText(id); return; }
       const target = { projectId, sessionId: id };
       const result = await transport('sessions.manage', action === 'rename' ? { ...target, action, title: name } : { ...target, action });
-      if (disposed || projectId !== controller.projectId || action === 'reveal') return;
+      if (disposed || action === 'reveal') return;
+      if (action === 'archive') viewCompletion(target);
+      if (projectId !== controller.projectId) return;
       const selected = result.selectedId || controller.sessionId;
       if (!result.sessions.some(s => s.id === controller.sessionId) || result.selectedId) resetEditor();
       if (action === 'fork' || action === 'restore') {
@@ -598,9 +624,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const session = (id: string) => {
     cancelSessionSwitch();
     if (!controller.sessions.some(item => item.id === id)) return;
-    if (id === controller.sessionId && !selectedImported()) return;
-    if (!managed()) { resetEditor(); controller.selectSession(id); return; }
     const scope = { projectId: controller.projectId, sessionId: id };
+    if (id === controller.sessionId && !selectedImported()) {
+      viewCompletion(scope);
+      return;
+    }
+    if (!managed()) { resetEditor(); controller.selectSession(id); return; }
     const request = selectionRequest;
     const isCurrent = () => !disposed && request === selectionRequest && scope.projectId === controller.projectId &&
       controller.sessions.some(item => item.id === id);
@@ -612,6 +641,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
         // Select only after the replacement is ready; the old header and list
         // remain paired while the private history request is in flight.
         controller.selectSession(id);
+        viewCompletion(scope);
         if (fresh && goalAvailable()) rememberGoal(scope, page.teamGoal);
       });
       queueMicrotask(() => {
@@ -650,7 +680,13 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   };
   props.ready?.({ controller, type: text => draft.set(text), send, stop, project, session, create, history: selectedHistory,
     attachImages, chooseModel, toggleGoal, resumeGoal, goal: teamGoal });
-  void controller.start();
+  if (saveCompletions) {
+    void Storage.getItem(completionStorageKey).then(saved => {
+      if (disposed) return;
+      completions.restore(saved);
+      syncCompletions(false);
+    }).catch(() => {}).finally(() => { if (!disposed) void controller.start(); });
+  } else void controller.start();
   const dark = () => colorScheme() === 'dark';
   const ink = () => dark() ? t.dark.ink : t.ink;
   const muted = () => dark() ? '#b7c3dd' : t.muted;
@@ -733,6 +769,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                 const row = () => sessionTreeState(item, { projectId: selectedProject(), sessionId: selectedSession() }, snapshot().conversations.get(item.id));
                 const selected = computed(() => !selectedImported() && row().selected);
                 const working = computed(() => row().working);
+                const unreadResult = computed(() => unread().get(scopeKey({ projectId: item.projectId, sessionId: item.id })));
                 const preview = previews.read(item.projectId, item.id);
                 const shownAt = signal(Date.now());
                 const taskStatus = computed(() => sessionPreviewStatus(activity(), submitting.has(item.id)) || (managed() ? '空闲' : ''));
@@ -749,7 +786,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                     style={{ height: tree.sessionHeight }}>
                   <View testID={`branch-stem-${item.id}`} style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: 0, height: last ? mid : tree.sessionHeight, borderLeftWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
                   <View style={{ position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid, width: tree.branchWidth, borderTopWidth: 1, borderStyle: 'dashed', borderColor: '#dfcc9a99' }} />
-                  <Button testID={`session-${item.title}`} onLayout={measured(`session-row-${item.id}`)} selected={selected()} accessibilityLabel={`${item.title}${working() ? '，任务处理中' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: toolsVisible() ? 80 : 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundImage: selected() ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} hoverStyle={controlHover} onPress={() => session(item.id)}
+                  <Button testID={`session-${item.title}`} onLayout={measured(`session-row-${item.id}`)} selected={selected()} accessibilityLabel={`${item.title}${working() ? '，任务处理中' : ''}${unreadResult() === 'succeeded' ? '，有未读的完成结果' : unreadResult() === 'failed' ? '，有未读的失败结果' : ''}`} style={{ height: tree.sessionHeight - 4, marginTop: 2, marginLeft: tree.branchX + tree.branchWidth, paddingLeft: 10, paddingRight: toolsVisible() ? 80 : 9, justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: selected() ? '#e2be70b8' : 'transparent', backgroundImage: selected() ? 'linear-gradient(90deg, #526fb879, #2b468b55 72%, #142a5e38)' : undefined, backgroundColor: 'transparent' }} hoverStyle={controlHover} onPress={() => session(item.id)}
                     tooltip={<Tooltip testID={`session-preview-${item.id}`} placement="right" align="start" offset={18} margin={8} delay={500}
                       onOpen={() => shownAt.set(Date.now())}
                       style={{ width: 244, padding: 14, gap: 6, borderRadius: 12, backgroundColor: '#29292b', boxShadow: '0 4px 14px #00000030' }}>
@@ -797,7 +834,12 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                         <DesktopIcon name={icon} size={13} color={action === 'pin' && pinned() ? t.goldSoft : t.sidebarInk} />
                       </Button>)}
                   </View>}
-                  {working() && <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} />}
+                  {working() ? <SessionActivity id={item.id} onLayout={measured(`session-activity-${item.id}`)} /> :
+                    unreadResult() && <View testID={`session-result-${item.id}-${unreadResult()}`} style={{
+                      position: 'absolute', pointerEvents: 'none', left: tree.branchX, top: mid - 4, width: 8, height: 8,
+                      borderRadius: 4, borderWidth: 1, borderColor: '#102147',
+                      backgroundColor: unreadResult() === 'succeeded' ? '#48d597' : '#ff636f',
+                    }} />}
                 </View>;
               })}
               {visibleImported().map((item, index) => {

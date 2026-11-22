@@ -192,3 +192,28 @@ test('settings adds a model with site-specific protocol and selectable reasoning
   await app.waitFor('id:model-form');
   expect(app.shows('id:settings-model-new-model')).toBe(true);
 });
+
+
+test('session results show success and failure dots and clear their Dock counts when opened', async () => {
+  const app = await open('./SessionSwitch.tsx', { width: 1240, height: 820, reducedMotion: true });
+  const badgeCounts = () => records(app).filter(call => call.name === 'dockBadge').map(call => call.data);
+  await app.waitFor('text:首个会话的内容');
+  await app.type('id:prompt', '成功任务');
+  await app.press('id:primary-action');
+  await app.waitFor('id:session-result-one-succeeded');
+  await app.waitUntil(() => badgeCounts().length === 1);
+  await app.press('id:session-快会话');
+  await app.waitFor('text:快会话的内容');
+  await app.type('id:prompt', '失败任务');
+  await app.press('id:primary-action');
+  await app.waitFor('id:session-result-fast-failed');
+  expect(app.shows('id:session-result-one-succeeded')).toBe(true);
+  await app.waitUntil(() => badgeCounts().length === 2);
+  await app.screenshot('session-result-indicators.png');
+  await app.press('id:session-快会话');
+  await app.waitUntil(() => !app.shows('id:session-result-fast-failed') && badgeCounts().length === 3);
+  expect(app.shows('id:session-result-one-succeeded')).toBe(true);
+  await app.press('id:session-设计会话');
+  await app.waitUntil(() => !app.shows('id:session-result-one-succeeded') && badgeCounts().length === 4);
+  expect(badgeCounts()).toEqual([1, 2, 1, 0]);
+});

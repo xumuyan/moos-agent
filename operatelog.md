@@ -3519,3 +3519,12 @@
 - 验证结果：独立结果为成功。新版严格验签并只启动一次，核对两项新增内容已进入运行包。对比 SQLite 原记录，6 个项目、10 条会话、1,703 条消息、2 条任务及 1,380 条事件逐行一致。已装模型存储可读 2 个服务、8 个可选推理等级的模型，密钥文件字节和权限一致。本次停机备份和上一候选程序包在核对后清理。见 `desktop-analysis-caption-evidence.json` 的 `localUpdate`。
 - 遗留问题：安装验证使用实际进程和本地只读数据核对，界面功能由前次原生合成测试覆盖。本轮文档检查 263/265，两项旧回执阻塞推送。
 - 对应 Git 提交：唯一说明 `docs(N01-D3): record analysis caption local update`，查询 `git log --oneline --grep="record analysis caption local update"`。
+
+## 2026-11-22 13:27:59 +08:00｜N01-D3 会话未读结果与 Dock 角标
+
+- 修改或新增内容：会话树为成功和失败分别显示绿点和红点。点击打开会话清除该结果，macOS Dock 角标显示所有未读结果涉及的会话数。一个会话只计一次，归零清空。归档同时清除对应提醒。
+- 遇到的难题：旧 Electron 用未读集合标记非当前会话，NSH 同时轮询多个会话，停止确认和终态事件可能分批到达，必须等控制器确认事件已排空；原生管理测试第一次有一个既有图片粘贴用例超时，复跑通过。
+- 处理方式：复用控制器已验证的任务结果，用工作区和会话作键，限制同一任务只确认一次。NSH 本地 Storage 保存未读状态，点开会话或归档时同步更新，调用原生角标接口，无需请求系统弹窗权限。
+- 验证结果：`node --test probes/nsh-validation/desktop-sidebar-tree.test.mjs` 5/5。`node probes/nsh-validation/verify-desktop-theme.mjs --management` 首轮 8/9，复跑 9/9，捕捉两色圆点并确认 Dock 接口序列 1、2、1、0。Node 全量 408 通过、1 跳过，`npm run test:electron` 142 通过、1 跳过，M01 Rust 离线 11/11。AppKit `verify-desktop-appkit-chat.mjs --interactive` 离线构建并严格验签，包内角标能力已核对。原生及打包证据见 `desktop-session-completion-evidence.json`。
+- 遗留问题：未替换已安装应用，未人工查看实际 Dock 图标。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致和 E124 `report.json` 缺失仍阻塞 GitHub 推送。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): show unread session results and Dock badge`，查询 `git log --oneline --grep="show unread session results and Dock badge"`。

@@ -1,0 +1,117 @@
+{
+  "base": "dc04885e289d838bf7530fa2ebf32d9fb7215fda",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "5ce67505a89504cbd208db5bc5204ef26a9da25871105222422491cff6c495c5",
+    "probes/nsh-validation/desktop-management-check.tsx": "55ef903efee2e0be8b6c868c415c1f5164adc9319c43aebc26d5b7403c592a59",
+    "probes/nsh-validation/desktop-management-fixture.ts": "49eded6eb85450944ccfe5cc2be0dcee2df00759aebed8f37aef18f8b62feeae",
+    "probes/nsh-validation/desktop-sidebar-tree.test.mjs": "eede1a09a33fe0be44d184d21ebe2e6d2a54e72f4fa5e4423fc1e57517dbdda8",
+    "probes/nsh-validation/desktop-sidebar-tree.ts": "d9ce021df4bb7cb08e34765366822e6d971d51a4b98848eea7e2a0598753f60c",
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": "054c59406190ba1eeb557729ca4158a57eed7df895d5917a29dc54572d68c1d3",
+    "probes/nsh-validation/verify-desktop-theme.mjs": "7a40c2406a3fae857de7e7ca3b6bb36bd393e3e3d3d6e4ba850a16e27d9e6094",
+    "tests/nsh_composer_provenance.py": "d8723de3ebe28bb74b47e1778b646a964d5c3c715e3387b28a6cd2c654358a49",
+    "tests/test_nsh_desktop_appkit_chat.py": "a949e53ce2d3face0debb430ba74c59015fc75f460a7022c212701a4fb506c95",
+    "tests/test_nsh_desktop_appkit_package.py": "410956ae6d5bc299356cc390736e1fca30caaf52134480298f751f3394d0c960"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 90632,
+      "sha256": "79ee1207850cff7d48216d7d605b6f43182be51a78c3a6e1a1856b1ba8da662d"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 11493,
+      "sha256": "a7bd6880c2d7009977fb394689a0e46f590da8549bb94fdbc7ba845930b19a2b"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 5812,
+      "sha256": "997c10ea3ba66ea95ad06266d994da9ec280218b0b0985b72694d5fd723d0168"
+    },
+    "probes/nsh-validation/desktop-sidebar-tree.test.mjs": {
+      "bytes": 3689,
+      "sha256": "94c804651b34f3ba08f95b9df1a19dd2de46f68c17e887d9843cf4e086fcd9fc"
+    },
+    "probes/nsh-validation/desktop-sidebar-tree.ts": {
+      "bytes": 2504,
+      "sha256": "fb62acd9efb78d645f898d6e6dbf372390a46d41eb726717dc77520128c0bf66"
+    },
+    "probes/nsh-validation/verify-desktop-appkit-chat.mjs": {
+      "bytes": 16761,
+      "sha256": "1cc1245dd333e1ed7d61a230ffe0128644833f51dd2a20cef5c5b942178e38f2"
+    },
+    "probes/nsh-validation/verify-desktop-theme.mjs": {
+      "bytes": 18181,
+      "sha256": "b2c2616b0c1e40d4b0c2911489f74125d2c872c29bb5e16c70fdde9cf7fe8748"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 5067,
+      "sha256": "2f7678511b2b15fa7ee9248fb001911f95fdafcd330c0f9eabe6795c7a55bbc5"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 29696,
+      "sha256": "24617f5647e706cb08436cf0fa5700a17311c98d6a596a3f4efa7ccb2fc16865"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4973,
+      "sha256": "a6e23fd51a3e777f9e5fef93a89e226033f308647757e44fba9e3401c19576b0"
+    }
+  },
+  "reference": {
+    "version": "Electron 0.1.52",
+    "state": "completionUnread",
+    "activationClears": true
+  },
+  "focusedTests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "native": {
+    "platform": "macOS 27.0.1 arm64 / NSH 0.5.0",
+    "fixture": true,
+    "badgeCounts": [
+      1,
+      2,
+      1,
+      0
+    ],
+    "screenshot": "artifacts/nsh-validation/desktop-theme/run-edeHew/session-result-indicators.png",
+    "firstRun": {
+      "passed": 8,
+      "failed": 1,
+      "failure": "clipboard test timed out",
+      "completionTestPassed": true
+    },
+    "screenshotSha256": "32d1478edd5418ef0be5c282e6f0180989dd2bc0b8073646725e117c4c8a6bb7",
+    "rerun": {
+      "passed": 9,
+      "failed": 0
+    },
+    "dockBadgeApiConfirmed": true,
+    "physicalDockObserved": false
+  },
+  "package": {
+    "report": "artifacts/nsh-validation/appkit-chat-interactive.HrmEwg/result.json",
+    "notificationsCapability": true,
+    "strictSignatureVerified": true,
+    "installed": false
+  },
+  "regressions": {
+    "node": {
+      "passed": 408,
+      "skipped": 1
+    },
+    "electron": {
+      "passed": 142,
+      "skipped": 1
+    },
+    "rust": {
+      "passed": 11
+    },
+    "documents": {
+      "passed": 263,
+      "failed": 2,
+      "preexisting": [
+        "AppKit historical open.err digest mismatch",
+        "missing E124 report.json"
+      ]
+    }
+  }
+}

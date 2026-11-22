@@ -61,8 +61,10 @@ export function managementFixture(switching = false) {
     },
     'tasks.events': async (p: Calls['tasks.events']['params']) => {
       if (goalSubmission) await new Promise(resolve => setTimeout(resolve, 1500));
+      const failed = p.sessionId === 'fast';
+      const result = { status: failed ? 'failed' : 'succeeded', errorCode: failed ? 'fixture_failure' : null };
       return ok({
-      task: { ...task, projectId: p.projectId, sessionId: p.sessionId }, terminal: true, hasMore: false, cursor: 'task:7',
+      task: { ...task, projectId: p.projectId, sessionId: p.sessionId, ...result }, terminal: true, hasMore: false, cursor: 'task:7',
       events: [
         { sequence: 1, type: 'text_delta', payload: { delta: '先读取再修改', truncated: false } },
         { sequence: 2, type: 'tool_start', payload: { toolCallId: 'edit', toolName: 'edit' } },
@@ -70,7 +72,7 @@ export function managementFixture(switching = false) {
         { sequence: 4, type: 'tool_start', payload: { toolCallId: 'status', toolName: 'bash', commandPreview: 'git status --short' } },
         { sequence: 5, type: 'tool_end', payload: { toolCallId: 'status', toolName: 'bash', isError: false } },
         { sequence: 6, type: 'text_delta', payload: { delta: '已完成合成验收', truncated: false } },
-        { sequence: 7, type: 'task_state', payload: { status: 'succeeded', errorCode: null } },
+        { sequence: 7, type: 'task_state', payload: result },
       ], workspaceChanges: { files: [
         { path: 'test-file.txt', summary: '修改' }, { path: 'added.txt', summary: '新增' },
         { path: 'removed.txt', summary: '删除' }, { path: 'last.txt', summary: '修改' },

@@ -67,7 +67,7 @@ else {
   await writeFile(entry, interactiveDesktopEntry);
 }
 const config = { name: '沐码', id, version: '1.0.0', build: 1,
-  capabilities: { host: [...methods, ...(scripted ? ['n01.complete'] : [])], statusBar: true } };
+  capabilities: { host: [...methods, ...(scripted ? ['n01.complete'] : [])], statusBar: true, ...(!scripted && { notifications: true }) } };
 await writeFile(join(ui, 'nsh.json'), JSON.stringify(config));
 // Pass an existing compiler explicitly: `nsh check` otherwise downloads on cache miss.
 const tsc = join(homedir(), 'Library/Caches/nsh/typescript-7.0.2-darwin-arm64/package/lib/tsc');
