@@ -3528,3 +3528,12 @@
 - 验证结果：`node --test probes/nsh-validation/desktop-sidebar-tree.test.mjs` 5/5。`node probes/nsh-validation/verify-desktop-theme.mjs --management` 首轮 8/9，复跑 9/9，捕捉两色圆点并确认 Dock 接口序列 1、2、1、0。Node 全量 408 通过、1 跳过，`npm run test:electron` 142 通过、1 跳过，M01 Rust 离线 11/11。AppKit `verify-desktop-appkit-chat.mjs --interactive` 离线构建并严格验签，包内角标能力已核对。原生及打包证据见 `desktop-session-completion-evidence.json`。
 - 遗留问题：未替换已安装应用，未人工查看实际 Dock 图标。文档检查 `python3 -m unittest discover -s tests -v` 263/265，旧 AppKit `open.err` 哈希不一致和 E124 `report.json` 缺失仍阻塞 GitHub 推送。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): show unread session results and Dock badge`，查询 `git log --oneline --grep="show unread session results and Dock badge"`。
+
+## 2026-11-22 13:39:04 +08:00｜N01-D3 安装会话未读和 Dock 角标更新
+
+- 修改或新增内容：按用户授权将 `fcd62f8` 构建安装到 `~/Applications/沐码 NSH/沐码.app`，并同步同目录本机安装包。保留相同标识、归档历史和配置。
+- 遇到的难题：首轮独立更新在旧实例正常退出后，原只读 SQLite 连接因 WAL 侧文件已清理而无法打开数据库。首轮在停机备份前停止，尚未移包。
+- 处理方式：确认旧实例和 Host 已退出、无 WAL 后，用只读不可变连接核对完整性和任务状态。独立进程从停机检查继续，逐文件备份并核对 profile 和 storage 后，只替换程序包。旧进程正常退出，新程序仅启动一次。
+- 验证结果：带现有皮肤和开屏素材的 AppKit 包离线构建与 `codesign --verify --deep --strict` 通过。新版进程路径与安装路径一致，单实例。逐行核对原有 6 个项目、10 个会话、1,703 条消息、2 条任务和 1,380 条事件。新版历史模块可读取全部 10 个会话，模型模块读到 2 个服务、8 个模型及其推理档位。凭据、归档历史、皮肤和开屏素材字节比对通过。核对安装 ZIP 一致后清理本次备份和旧程序副本。角标能力及对应前端代码已进入运行包。证据见 `desktop-session-completion-evidence.json` 的 `localUpdate`。
+- 遗留问题：本次未发送模型请求，系统 Dock 实际显示数字待有任务结果时复核。文档检查 `python3 -m unittest discover -s tests -v` 263/265，AppKit 历史 `open.err` 哈希差异和 E124 `report.json` 缺失仍阻塞 GitHub 推送。
+- 对应 Git 提交：唯一说明 `docs(N01-D3): record local session badge update`，查询 `git log --oneline --grep="record local session badge update"`。
