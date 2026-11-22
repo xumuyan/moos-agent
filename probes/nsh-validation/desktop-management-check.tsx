@@ -78,6 +78,7 @@ test('the bottom-left plus contains the single goal mode and opens a scoped subm
   await app.type('id:prompt', '验收这个目标');
   await app.press('id:primary-action');
   await app.waitFor('id:turn-process');
+  await app.waitFor('text:正在分析请求');
   expect((records(app).find(call => call.name === 'tasks.submit')?.data as { teamGoal: string }).teamGoal).toBe('start');
   await app.waitFor('text:已完成 · 编辑、运行命令 · 2 项操作');
   await app.waitFor('text:已完成合成验收');

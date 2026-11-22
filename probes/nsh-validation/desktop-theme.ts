@@ -148,9 +148,17 @@ export function presentTurns(rows: readonly TurnRow[], finish: { live: boolean; 
     if (start < 0) { output.push(...parts); return; }
     const stateRow = parts.findLast(row => row.role === '状态');
     const error = last ? finish.error : '';
-    const state = error ? '执行失败' : last && finish.live
-      ? finish.stopping ? '正在停止' : stateRow?.body === 'queued' || finish.state === 'queued' ? '等待执行' : '正在处理'
-      : turnStatuses[stateRow?.body ?? (last ? finish.state ?? '' : '')] ?? '';
+    let state = turnStatuses[stateRow?.body ?? (last ? finish.state ?? '' : '')] ?? '';
+    if (error) state = '执行失败';
+    else if (last && finish.live) {
+      const status = finish.state ?? stateRow?.body;
+      if (finish.stopping) state = '正在停止';
+      else if (status === 'queued') state = '等待执行';
+      else {
+        const hasProgress = parts.some(row => row.role === '工具' || (row.role === 'PI 公开文本' && row.body.trim()));
+        state = status === 'running' && !hasProgress ? '正在分析请求' : '正在处理';
+      }
+    }
     const final = parts.findLastIndex(row => row.role !== '状态');
     const answer = parts[final]?.role === 'PI 公开文本' ? parts[final] : undefined;
     const operations: Operation[] = [];

@@ -13,6 +13,7 @@ export function managementFixture(switching = false) {
   let services: SavedService[] = [];
   const ok = (result: unknown) => ({ version: 1, id: 'test', ok: true, result });
   const task = { id: 'task', projectId: 'demo', sessionId: 'one', status: 'succeeded', errorCode: null };
+  let goalSubmission = false;
   return { handlers: {
     'projects.list': () => ok({ projects: [{ id: 'demo', name: '候选验收' }, { id: 'other', name: '隔离验收' }], models, desktopManagement: true, teamGoals: true }),
     'sessions.list': (p: Calls['sessions.list']['params']) => ok(p.projectId === 'demo' ? { sessions, imported: [imported] } : { sessions: [] }),
@@ -53,11 +54,14 @@ export function managementFixture(switching = false) {
     },
     'images.stage': () => ok({}),
     'tasks.submit': (p: Calls['tasks.submit']['params']) => {
+      goalSubmission = p.teamGoal === 'start';
       const first = p.draft ? { id: p.sessionId, projectId: p.projectId, title: `新会话 ${sessions.length + 1}` } : undefined;
       if (first) sessions = [...sessions, first];
-      return ok({ task: { ...task, projectId: p.projectId, sessionId: p.sessionId }, replayed: false, ...(first && { session: first }) });
+      return ok({ task: { ...task, projectId: p.projectId, sessionId: p.sessionId, status: 'running' }, replayed: false, ...(first && { session: first }) });
     },
-    'tasks.events': (p: Calls['tasks.events']['params']) => ok({
+    'tasks.events': async (p: Calls['tasks.events']['params']) => {
+      if (goalSubmission) await new Promise(resolve => setTimeout(resolve, 1500));
+      return ok({
       task: { ...task, projectId: p.projectId, sessionId: p.sessionId }, terminal: true, hasMore: false, cursor: 'task:7',
       events: [
         { sequence: 1, type: 'text_delta', payload: { delta: '先读取再修改', truncated: false } },
@@ -70,6 +74,7 @@ export function managementFixture(switching = false) {
       ], workspaceChanges: { files: [
         { path: 'test-file.txt', summary: '修改' }, { path: 'added.txt', summary: '新增' },
         { path: 'removed.txt', summary: '删除' }, { path: 'last.txt', summary: '修改' },
-      ], limited: false } }),
+      ], limited: false } });
+    },
   } };
 }

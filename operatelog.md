@@ -3501,3 +3501,12 @@
 - 验证结果：相关 Node 专项 22/22，NSH 原生 `verify-desktop-theme.mjs --management` 8/8，覆盖收起隐藏和展开显示命令预览。全量 Node 24.15.0 回归 405 通过、1 跳过，Electron 142 通过、1 跳过，Rust 离线 11/11。独立 AppKit 候选包离线构建与严格验签通过。证据见 `desktop-command-preview-evidence.json`。
 - 遗留问题：历史记录没有提供工具预览，范围为这版运行时的新操作。已安装版本待更新。文档检查 263/265，两项既有 AppKit 历史日志哈希和 E124 回执缺失阻塞推送。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): show shell command previews in execution details`，查询 `git log --oneline --grep="show shell command previews in execution details"`。
+
+## 2026-11-22 09:15:56 +08:00｜N01-D3 对齐正式版模型分析提示
+
+- 修改或新增内容：从正式版 Electron 0.1.52 随包文案核对「正在分析请求」，加到 NSH 执行过程的当前状态行。
+- 遇到的难题：候选原用「正在处理」覆盖等待首个输出和已有公开进展的两段状态。队列刚切到运行时，延迟到达的旧排队事件也可能遮住运行状态。
+- 处理方式：运行且尚无正文或工具时显示分析提示，当前任务状态优先于较早的排队事件。收到公开进展后显示处理状态；停止、排队和完成按各自状态呈现。
+- 验证结果：消息布局专项 6/6，原生 `verify-desktop-theme.mjs --management` 8/8，包括等待提示、完成与命令展示。全量 Node 回归 406 通过、1 跳过，Electron 142 通过、1 跳过，Rust 11/11。候选包离线构建与严格验签通过。详情见 `desktop-analysis-caption-evidence.json`。
+- 遗留问题：候选包待实际安装。本轮文档检查 263/265，仍有旧 AppKit 日志哈希不一致及 E124 回执缺失，阻塞推送。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): show the legacy analysis caption before progress`，查询 `git log --oneline --grep="show the legacy analysis caption before progress"`。

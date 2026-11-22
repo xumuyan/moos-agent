@@ -1,0 +1,62 @@
+{
+  "base": "586e6463462c56ab56fc34045306d88a25f2a046",
+  "previousInputs": {
+    "probes/nsh-validation/desktop-management-check.tsx": "0fcae99d0041b79af52baee7eb2baaeff79a262ca9693d91d353ae724be2a5a6",
+    "probes/nsh-validation/desktop-management-fixture.ts": "583718d97e8b2d122688c7c91558fd5bf40cea223e26d5b56e7708093df5e589",
+    "probes/nsh-validation/desktop-message-rows.test.mjs": "1218db699295d0526fcda070ca58097ea601151a72c2f003b2c8c6a3f55681ef",
+    "probes/nsh-validation/desktop-theme.ts": "cfd62c1465ba077dd1bc934fcf6058e5f9f9d95b1cb8d159ea56b0e649217719",
+    "tests/nsh_composer_provenance.py": "647cfd81166f63e3f175db3374adf2e8226c0b1b091c45d58e10ccc1c4969ec4",
+    "tests/test_nsh_desktop_appkit_chat.py": "26129ac70f5011662df16e4919329140979245489e9faad793930f51adc96ff0",
+    "tests/test_nsh_desktop_appkit_package.py": "abdee08895a3387fc2927e585d67d6f92dc4dca7dc44bde4c215bf2083a2241b"
+  },
+  "inputs": {
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 10095,
+      "sha256": "55ef903efee2e0be8b6c868c415c1f5164adc9319c43aebc26d5b7403c592a59"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 5678,
+      "sha256": "49eded6eb85450944ccfe5cc2be0dcee2df00759aebed8f37aef18f8b62feeae"
+    },
+    "probes/nsh-validation/desktop-message-rows.test.mjs": {
+      "bytes": 5550,
+      "sha256": "d2244ae09e291d687cbb1fe279048454b201562cf492087d6c3b6fe5067b4734"
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "bytes": 12203,
+      "sha256": "f4e780b4951d90e4d37b45e3bf61eea4f82d1027065aaf27c85aaa278beb3f78"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4897,
+      "sha256": "d8723de3ebe28bb74b47e1778b646a964d5c3c715e3387b28a6cd2c654358a49"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 29265,
+      "sha256": "a949e53ce2d3face0debb430ba74c59015fc75f460a7022c212701a4fb506c95"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4838,
+      "sha256": "410956ae6d5bc299356cc390736e1fca30caaf52134480298f751f3394d0c960"
+    }
+  },
+  "reference": {
+    "version": "Electron 0.1.52",
+    "localeKey": "message.stepProcess.thinking",
+    "caption": "正在分析请求"
+  },
+  "focusedTests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "native": {
+    "platform": "macOS NSH development host",
+    "fixture": true,
+    "testsPassed": 8,
+    "analysisCaptionVisibleBeforeFirstEvent": true
+  },
+  "package": {
+    "built": true,
+    "strictSignatureVerified": true,
+    "installed": false
+  }
+}

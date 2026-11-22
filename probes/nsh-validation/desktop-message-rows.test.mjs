@@ -87,3 +87,14 @@ test('the same disclosure key stays with a turn through queueing, stopping, and 
   const failed = presentTurns(rows, { live: false, stopping: false, error: '真实错误码' }, changed);
   assert.equal(JSON.parse(failed[1].body).error, '真实错误码');
 });
+
+test('a running turn shows the analysis caption until visible progress arrives', () => {
+  const rows = [{ role: '你', body: '处理' }, { role: '状态', body: 'queued' }];
+  const state = (items, status) => JSON.parse(presentTurns(items, {
+    live: true, stopping: false, error: '', state: status,
+  }, new Map())[1].body).state;
+  assert.equal(state(rows, 'queued'), '等待执行');
+  assert.equal(state(rows, 'running'), '正在分析请求');
+  assert.equal(state([...rows, { role: 'PI 公开文本', body: '已开始回复。' }], 'running'), '正在处理');
+  assert.equal(state([...rows, { role: '工具', body: 'tool_start · bash' }], 'running'), '正在处理');
+});
