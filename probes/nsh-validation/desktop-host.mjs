@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { Store } from '../../services/agent/store.mjs';
 import { Scheduler } from '../../services/agent/scheduler.mjs';
 import { TaskFailure } from '../../services/agent/errors.mjs';
+import { desktopCommandPreview } from '../../services/agent/timeline-view.mjs';
 import { desktopFixtureModels, startDesktopModelFixture } from './desktop-model-fixture.mjs';
 
 import { desktopTaskStatistics } from './desktop-statistics.mjs';
@@ -42,13 +43,16 @@ async function runDesktopPi(options) {
   options.signal.throwIfAborted();
   return runPiSdk(options);
 }
-function publicPayload(type, payload) {
+function publicPayload(type, payload, apiKey) {
   if (type === 'task_state') return { status: payload.status, errorCode: payload.errorCode ?? null };
   if (type === 'text_delta' && typeof payload.delta === 'string') return { delta: payload.delta.slice(0, 4096), truncated: payload.delta.length > 4096 };
-  if (['tool_start', 'tool_end'].includes(type)) return {
+  if (!['tool_start', 'tool_end'].includes(type)) return undefined;
+  const commandPreview = type === 'tool_start' ? desktopCommandPreview(payload, apiKey) : undefined;
+  return {
     toolCallId: String(payload.toolCallId ?? '').slice(0, 200),
     toolName: ['read', 'write', 'edit', 'bash', 'grep', 'find', 'ls'].includes(payload.toolName) ? payload.toolName : 'other',
     ...(type === 'tool_end' ? { isError: payload.isError === true } : {}),
+    ...(commandPreview && { commandPreview }),
   };
 }
 
@@ -161,7 +165,7 @@ export async function startDesktopHost({ projectNames = ['Desktop A', 'Desktop B
         journal.configured = undefined;
       }
       journal.statistics.observe(event);
-      const payload = publicPayload(event.type, event.payload);
+      const payload = publicPayload(event.type, event.payload, journal.configured?.apiKey ?? liveModels?.routes.get(journal.modelId)?.apiKey);
       if (!payload) return;
       if (journal.goal && event.type.startsWith('tool_') && (journal.last >= 2800 || journal.bytes >= 768 * 1024)) {
         if (!journal.goal.toolPreviewLimited) {

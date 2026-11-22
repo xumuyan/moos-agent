@@ -16,3 +16,20 @@ export function timelinePayload(type, input) {
   }
   return result;
 }
+
+// The desktop's local timeline can show simple commands. Fall back to the
+// public tool name for inline scripts, shell expressions and sensitive arguments.
+export function desktopCommandPreview(payload, apiKey) {
+  if (payload.toolName !== 'bash' || typeof payload.args?.command !== 'string') return undefined;
+  const command = payload.args.command.trim();
+  const firstCommand = command.split(/[;|&\n]/, 1)[0];
+  const label = timelinePayload('tool_start', { toolName: 'bash', args: { command: firstCommand } }).commandLabel;
+  if (!label) return undefined;
+  if (command.length > 320 || (apiKey && command.includes(apiKey)) ||
+      /(?:api[-_]?key|access[-_]?key|auth|bearer|token|password|passwd|secret|credentials?|cookie|\.env\b|\.npmrc\b|\.netrc\b|\.ssh\b)/i.test(command) ||
+      /(?:^|\s)-(?:c|e|E)(?:\s|$)/.test(command) ||
+      (label === 'git commit' && /(?:^|\s)(?:-m|--message)(?:\s|$)/.test(command)) ||
+      /\b(?:sk-|gh[pousr]_|github_pat_|AKIA)[\w-]+/i.test(command) ||
+      !/^[\p{L}\p{N}_.:/@+ -]+$/u.test(command) || command.includes('://')) return label + ' …';
+  return command;
+}

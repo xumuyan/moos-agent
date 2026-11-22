@@ -1,0 +1,83 @@
+{
+  "base": "f736978368b102315ae679b40476e44016494e90",
+  "previousInputs": {
+    "probes/nsh-validation/DesktopView.tsx": "9048fea8ae6d0b68a16b5d5e4615cfaee319e6d2b77b52078bca71de34d67055",
+    "probes/nsh-validation/desktop-contract.ts": "9edde8b27a1f2e82e6b108cbb4a397a5a730efcd90471acf9b8fdaea4bd2e6a3",
+    "probes/nsh-validation/desktop-host.mjs": "c01173be25115de918f1c797013c6d16d7aa2652b092ea813120e6f1099678b8",
+    "probes/nsh-validation/desktop-host.test.mjs": "150fa0d6a5537b02358ad7180cd087aff90547293c512866f13139c9be0060d1",
+    "probes/nsh-validation/desktop-management-check.tsx": "3e729b36fdbdb16752286376e469c50c14da13aaa2d6477050810b9bb053b343",
+    "probes/nsh-validation/desktop-management-fixture.ts": "339166034c972eb1af2762161686e5f65a98d23d84dbf8c335c60f8b3e159ff5",
+    "probes/nsh-validation/desktop-theme.ts": "ba225180a713bcd64a99c67cc84c0f795e141a2be07591aa63dc7a008550a6b2",
+    "services/agent/timeline-view.mjs": "137c63df45cedffd1462675244f6035e85f435c11546a196c96760ec0f5e7577",
+    "services/agent/timeline-view.test.mjs": "2f8e815f20b5de0e9d37d9fc2e0cdbd502257256aa694532322870e4c9382f8d",
+    "tests/nsh_composer_provenance.py": "f215e887699fc41061d12266d0aabc135b6e31c7c69e451f94efcc2d77a95888",
+    "tests/test_nsh_desktop_appkit_chat.py": "92f8fbb1f3bcf9036d561eeaf7a8211631ded3084597c1e66ad3e71054d5cdc3",
+    "tests/test_nsh_desktop_appkit_package.py": "31516763182e3ec3b8af1acb206edd842ddb70be399077198ee523746d1b96f9"
+  },
+  "inputs": {
+    "probes/nsh-validation/DesktopView.tsx": {
+      "bytes": 88413,
+      "sha256": "5ce67505a89504cbd208db5bc5204ef26a9da25871105222422491cff6c495c5"
+    },
+    "probes/nsh-validation/desktop-contract.ts": {
+      "bytes": 8845,
+      "sha256": "f8d25004331de326ccfdee907a7846bfcd87c28310411d42242be28d3751fe31"
+    },
+    "probes/nsh-validation/desktop-host.mjs": {
+      "bytes": 28855,
+      "sha256": "e2a5eb77bf284ef51bfd101cb0ebd29e86e4a41a21bf679eff8b72810da29b01"
+    },
+    "probes/nsh-validation/desktop-host.test.mjs": {
+      "bytes": 25089,
+      "sha256": "4810c005e22a27d30129ae5309a040a52b508004bd422bda588078a32025c1e4"
+    },
+    "probes/nsh-validation/desktop-management-check.tsx": {
+      "bytes": 10047,
+      "sha256": "0fcae99d0041b79af52baee7eb2baaeff79a262ca9693d91d353ae724be2a5a6"
+    },
+    "probes/nsh-validation/desktop-management-fixture.ts": {
+      "bytes": 5471,
+      "sha256": "583718d97e8b2d122688c7c91558fd5bf40cea223e26d5b56e7708093df5e589"
+    },
+    "probes/nsh-validation/desktop-theme.ts": {
+      "bytes": 11907,
+      "sha256": "cfd62c1465ba077dd1bc934fcf6058e5f9f9d95b1cb8d159ea56b0e649217719"
+    },
+    "services/agent/timeline-view.mjs": {
+      "bytes": 2425,
+      "sha256": "e322de8cb12c3fdfd29ca3d9467e26544fbc6d198977a401fb38470cff20d8a9"
+    },
+    "services/agent/timeline-view.test.mjs": {
+      "bytes": 2081,
+      "sha256": "3326f6cff2970d15cb3a5309af15560a6e0cb850617a03032641e665d638c225"
+    },
+    "tests/nsh_composer_provenance.py": {
+      "bytes": 4711,
+      "sha256": "647cfd81166f63e3f175db3374adf2e8226c0b1b091c45d58e10ccc1c4969ec4"
+    },
+    "tests/test_nsh_desktop_appkit_chat.py": {
+      "bytes": 28844,
+      "sha256": "26129ac70f5011662df16e4919329140979245489e9faad793930f51adc96ff0"
+    },
+    "tests/test_nsh_desktop_appkit_package.py": {
+      "bytes": 4707,
+      "sha256": "abdee08895a3387fc2927e585d67d6f92dc4dca7dc44bde4c215bf2083a2241b"
+    }
+  },
+  "native": {
+    "platform": "macOS NSH development host",
+    "fixture": true,
+    "testsPassed": 8,
+    "foldedCommandHidden": true,
+    "expandedCommandVisible": true
+  },
+  "focusedTests": {
+    "passed": 22,
+    "failed": 0
+  },
+  "package": {
+    "built": true,
+    "strictSignatureVerified": true,
+    "installed": false
+  }
+}

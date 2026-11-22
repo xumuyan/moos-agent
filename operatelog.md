@@ -3492,3 +3492,12 @@
 - 验证结果：用实际安装包的模型存储核对 8 个模型的档位、默认项和路由。实际应用单实例启动并打开档案。原生合成 `verify-desktop-theme.mjs --composer` 2/2，覆盖菜单切换推理档及不同会话选择。模型配置和路由专项 14/14。修正上一条操作日志遗漏的审计字段。
 - 遗留问题：本次使用本地校验及合成模型。中转站实际响应、续聊及两项既有历史文档证据待验证。
 - 对应 Git 提交：唯一说明 `docs(N01-D2): record selectable model reasoning levels`，查询 `git log --oneline --grep="record selectable model reasoning levels"`。
+
+## 2026-11-22 09:05:40 +08:00｜N01-D3 执行过程显示命令预览
+
+- 修改或新增内容：候选版执行过程展开后，Shell 开始行显示有界命令预览。原生详情继续显示开始、完成和失败，简单命令例如 `git status --short`。
+- 遇到的难题：Host 投影以前只含工具名和状态。控制器以整页验证事件，界面需要等页面提交后才能给相应工具行加文字。
+- 处理方式：Host 生成独立可选预览，过滤凭据、URL、内联脚本、Shell 复合表达式及超长参数。NSH 界面按会话、任务、游标和工具行顺序关联已确认的预览，通过普通文本渲染。保留各历史回执和原 owner 输入。
+- 验证结果：相关 Node 专项 22/22，NSH 原生 `verify-desktop-theme.mjs --management` 8/8，覆盖收起隐藏和展开显示命令预览。全量 Node 24.15.0 回归 405 通过、1 跳过，Electron 142 通过、1 跳过，Rust 离线 11/11。独立 AppKit 候选包离线构建与严格验签通过。证据见 `desktop-command-preview-evidence.json`。
+- 遗留问题：历史记录没有提供工具预览，范围为这版运行时的新操作。已安装版本待更新。文档检查 263/265，两项既有 AppKit 历史日志哈希和 E124 回执缺失阻塞推送。
+- 对应 Git 提交：唯一说明 `feat(N01-D3): show shell command previews in execution details`，查询 `git log --oneline --grep="show shell command previews in execution details"`。

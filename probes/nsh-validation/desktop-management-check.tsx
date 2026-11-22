@@ -79,9 +79,10 @@ test('the bottom-left plus contains the single goal mode and opens a scoped subm
   await app.press('id:primary-action');
   await app.waitFor('id:turn-process');
   expect((records(app).find(call => call.name === 'tasks.submit')?.data as { teamGoal: string }).teamGoal).toBe('start');
-  await app.waitFor('text:已完成 · 编辑 · 1 项操作');
+  await app.waitFor('text:已完成 · 编辑、运行命令 · 2 项操作');
   await app.waitFor('text:已完成合成验收');
   expect(app.shows('text:编辑 · 完成')).toBe(false);
+  expect(app.shows('text:命令 · 开始 · git status --short')).toBe(false);
   expect(app.shows('text:先读取再修改')).toBe(false);
   await app.waitFor('text:test-file.txt');
   expect(app.shows('text:last.txt')).toBe(false);
@@ -89,6 +90,7 @@ test('the bottom-left plus contains the single goal mode and opens a scoped subm
   await app.press('id:turn-process');
   await app.waitFor('text:先读取再修改');
   await app.waitFor('text:编辑 · 完成');
+  await app.waitFor('text:命令 · 开始 · git status --short');
   await app.press('id:workspace-changes-more');
   await app.waitFor('text:last.txt');
   await app.screenshot('chat-disclosures.png');

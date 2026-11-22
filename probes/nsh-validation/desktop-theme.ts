@@ -81,13 +81,14 @@ export const sidebarCorners = [
 // are recognized; lookalike text in a user/assistant message stays Markdown.
 const toolLabels = { read: '读取', write: '写入', edit: '编辑', bash: '命令', grep: '搜索', find: '查找', ls: '列出目录', other: '其他工具' } as const;
 const toolPattern = /^(?:(tool_start)|(tool_end)) · (read|write|edit|bash|grep|find|ls|other)( · 错误)?$/u;
-export function toolCard(role: string, body: string, dark: boolean) {
+export function toolCard(role: string, body: string, dark: boolean, commandPreview?: string) {
   const event = role === '工具' ? toolPattern.exec(body) : null;
   if (!event || event[0] !== body || (event[1] && event[4])) return null;
   const phase = event[1] ? 'start' : event[4] ? 'error' : 'end';
   const name = event[3] as keyof typeof toolLabels;
   const status = phase === 'start' ? '开始' : phase === 'error' ? '失败' : '完成';
-  return { phase, name, label: `${toolLabels[name]} · ${status}`,
+  const command = name === 'bash' && phase === 'start' && commandPreview ? ` · ${commandPreview}` : '';
+  return { phase, name, label: `${toolLabels[name]} · ${status}${command}`,
     color: dark ? { start: '#d3ddf2', end: '#b7ddca', error: '#ffc1cb' }[phase] : { start: '#2d3a55', end: '#215440', error: '#862a3d' }[phase],
     // Source disclosure gradient; a uniform floor preserves legibility over art.
     // No per-row backdrop sampling or motion in virtualized chat history.
@@ -101,7 +102,8 @@ export function toolCard(role: string, body: string, dark: boolean) {
 // row in place; status-only polling must not discard native height measurements.
 export function createMessageRows() {
   let scope = '', cached: TurnRow[] = [];
-  const equal = (row: TurnRow, old?: TurnRow) => !!old && row.key === old.key && row.role === old.role && row.body === old.body && row.changes === old.changes;
+  const equal = (row: TurnRow, old?: TurnRow) => !!old && row.key === old.key && row.role === old.role && row.body === old.body &&
+    row.changes === old.changes && row.commandPreview === old.commandPreview;
   return (nextScope: string, rows: readonly TurnRow[]): TurnRow[] => {
     if (scope !== nextScope) { scope = nextScope; cached = []; }
     if (rows.length !== cached.length || rows.some((row, index) => !equal(row, cached[index]))) {
@@ -115,8 +117,8 @@ export function createMessageRows() {
   };
 }
 
-type TurnRow = { role: string; body: string; key?: string; changes?: WorkspaceChanges };
-type Operation = { kind: 'tool'; body: string } | { kind: 'update'; body: string };
+type TurnRow = { role: string; body: string; key?: string; changes?: WorkspaceChanges; commandPreview?: string };
+type Operation = { kind: 'tool'; body: string; commandPreview?: string } | { kind: 'update'; body: string };
 export type TurnActivity = {
   state: string;
   error: string;
@@ -160,7 +162,7 @@ export function presentTurns(rows: readonly TurnRow[], finish: { live: boolean; 
         const pair = counts.get(tool.name) ?? [0, 0];
         pair[tool.phase === 'start' ? 0 : 1]++;
         counts.set(tool.name, pair);
-        operations.push({ kind: 'tool', body: row.body });
+        operations.push({ kind: 'tool', body: row.body, ...(row.commandPreview && { commandPreview: row.commandPreview }) });
       } else {
         const text = shortUpdate(row.body);
         if (text) operations.push({ kind: 'update', body: text });

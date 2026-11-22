@@ -22,7 +22,7 @@ export type Session = { id: string; projectId: string; title: string; pinned?: t
 export type PublicEvent = { sequence: number } & (
   { type: 'text_delta'; payload: { delta: string; truncated: boolean } } |
   { type: 'task_state'; payload: { status: TaskStatus; errorCode: string | null } } |
-  { type: 'tool_start'; payload: { toolCallId: string; toolName: string } } |
+  { type: 'tool_start'; payload: { toolCallId: string; toolName: string; commandPreview?: string } } |
   { type: 'tool_end'; payload: { toolCallId: string; toolName: string; isError: boolean } }
 );
 // Optional task-local observations; never accumulated from chat/history text.

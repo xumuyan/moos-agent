@@ -132,6 +132,8 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const transport = props.call ?? desktopCall;
   const previews = sessionPreviews();
   const statistics = composerStatistics();
+  const pendingCommands = new Map<Conversation, { cursor: string; rowCount: number; previews: (string | undefined)[] }>();
+  const commandRows = new WeakMap<Conversation['rows'][number], string>();
   const call: DesktopCall = async (method, params) => {
     const key = method === 'tasks.submit' ? scopeKey(params as { projectId: string; sessionId: string }) : '';
     const outbound = outboundChoices.get(key);
@@ -172,8 +174,19 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
       }
     }
     if (method === 'tasks.events' && !disposed) {
-      statistics.stage(params as TaskRef, result);
+      const ref = params as TaskRef;
+      statistics.stage(ref, result);
       const page = result as Calls['tasks.events']['result'];
+      const conversation = controller.conversations.get(ref.sessionId);
+      if (conversation?.task?.id === ref.taskId && page.task?.id === ref.taskId &&
+          page.task.projectId === ref.projectId && page.task.sessionId === ref.sessionId &&
+          Array.isArray(page.events) && page.events.length <= 100) {
+        const descriptions = page.events.filter(event => ['tool_start', 'tool_end'].includes(event?.type)).map(event => {
+          const command = event.type === 'tool_start' && event.payload?.toolName === 'bash' ? event.payload.commandPreview : undefined;
+          return typeof command === 'string' && command.length <= 328 && !/[\x00-\x1f\x7f]/.test(command) ? command : undefined;
+        });
+        if (descriptions.some(Boolean)) pendingCommands.set(conversation, { cursor: page.cursor, rowCount: conversation.rows.length, previews: descriptions });
+      }
       const id = scopeKey(params as Scope) + ':' + page.task?.id;
       if (page.terminal && !page.hasMore && page.workspaceChanges && !changes().has(id)) {
         const row = controller.conversations.get((params as Scope).sessionId)?.rows.findLastIndex(r => r.role === '你');
@@ -189,6 +202,18 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const refresh = () => {
     if (disposed) return;
     statistics.confirm(controller.conversations.values());
+    for (const [conversation, page] of pendingCommands) {
+      if (conversation.error) { pendingCommands.delete(conversation); continue; }
+      // Tool rows are appended in wire order after the controller validates a page.
+      if (conversation.cursor !== page.cursor) continue;
+      pendingCommands.delete(conversation);
+      const rows = conversation.rows.slice(page.rowCount).filter(row => row.role === '工具');
+      if (rows.length !== page.previews.length) continue;
+      rows.forEach((row, index) => {
+        const preview = page.previews[index];
+        if (preview) commandRows.set(row, preview);
+      });
+    }
     batch(() => {
       revision.set(revision() + 1);
       syncHistory();
@@ -283,13 +308,16 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
   const messageRows = () => {
     const c = snapshot().current;
     const key = c ? scopeKey(c.scope) : '';
-    if (!props.persistentHistory) return cachedRows(key, c?.rows ?? []);
+    const live = c?.rows.map(row => {
+      const commandPreview = commandRows.get(row);
+      return commandPreview ? { ...row, commandPreview } : row;
+    }) ?? [];
+    if (!props.persistentHistory) return cachedRows(key, live);
     const saved = selectedHistory()?.messages.flatMap(m => [
       ...((m.text || !m.assets?.length) ? [{ role: m.role === 'user' ? '你' : 'PI 公开文本',
         body: m.text + (m.truncated ? ' [历史预览已截断]' : ''), key: `saved-${m.id}` }] : []),
       ...(m.assets?.length ? [{ role: '会话附件', body: JSON.stringify(m.assets), key: `asset-${m.id}` }] : []),
     ]) ?? [];
-    const live = c?.rows ?? [];
     if (!managed()) return cachedRows(key, [...saved, ...live]);
     const byTurn = new Map([...changes()].filter(([id]) => id.startsWith(key + ':')).map(([, value]) => [value.row, value.summary]));
     const grouped = presentTurns(live, { live: !!c?.busy, stopping: !!c?.stopping, state: c?.task?.status,
@@ -856,7 +884,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
               };
               const filesChanged = () => r().changes;
               const disclosure = () => !!activity() || r().role === '工作区变化';
-              const tool = computed(() => toolCard(r().role, r().body, dark()));
+              const tool = computed(() => toolCard(r().role, r().body, dark(), r().commandPreview));
               const user = () => r().role === '你';
               const messageWidth = () => Math.max(0, Math.min(680, (windowSize().width - sidebarWidth() - (layout().right ? t.rightWidth : 0) - 2 * layout().inset) * .96));
               const rowLayout = (e: { bounds: Bounds }) => {
@@ -892,7 +920,7 @@ export function DesktopView(props: { ready?: (actions: DesktopActions) => void; 
                   {expanded() && <View testID="turn-activity-details" style={{ gap: 6, paddingLeft: 18, paddingVertical: 3 }}>
                     {activity()!.operations.map(step => <Text style={{ ...menuLabel(), color: step.kind === 'tool' ?
                       toolCard('工具', step.body, dark())?.color : ink() }}>
-                      {step.kind === 'tool' ? toolCard('工具', step.body, dark())?.label : step.body}
+                      {step.kind === 'tool' ? toolCard('工具', step.body, dark(), step.commandPreview)?.label : step.body}
                     </Text>)}
                     {!!activity()!.error && <Text testID="turn-error" style={{ ...menuLabel(), color: dark() ? '#ffc1cb' : t.danger }}>{activity()!.error}</Text>}
                   </View>}

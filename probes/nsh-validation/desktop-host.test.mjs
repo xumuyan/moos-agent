@@ -340,6 +340,8 @@ test('N01-D1 sessions, byte limits and public payload whitelist remain bounded',
   const host = await fixture(t, { run: async ({ emit }) => {
     emit('text_delta', { delta: '中'.repeat(20000), credential: 'NOT_PUBLIC' });
     emit('tool_start', { toolName: 'injected', toolCallId: 'i'.repeat(1000), args: 'NOT_PUBLIC' });
+    emit('tool_start', { toolName: 'bash', toolCallId: 'command', args: { command: 'git status --short' } });
+    emit('tool_start', { toolName: 'bash', toolCallId: 'sensitive', args: { command: 'git status --token=NOT_PUBLIC' } });
     emit('private_debug', { secret: 'NOT_PUBLIC' });
     return { text: 'done' };
   } });
@@ -355,6 +357,9 @@ test('N01-D1 sessions, byte limits and public payload whitelist remain bounded',
   assert.equal(p.events.find(e => e.type === 'text_delta').payload.delta.length, 4096);
   const tool = p.events.find(e => e.type === 'tool_start').payload;
   assert.equal(tool.toolName, 'other'); assert.equal(tool.toolCallId.length, 200);
+  const command = p.events.find(e => e.payload.toolCallId === 'command').payload;
+  assert.deepEqual(command, { toolCallId: 'command', toolName: 'bash', commandPreview: 'git status --short' });
+  assert.equal(p.events.find(e => e.payload.toolCallId === 'sensitive').payload.commandPreview, 'git status …');
   assert.doesNotMatch(JSON.stringify(p), /NOT_PUBLIC|private_debug|credential/);
 });
 
