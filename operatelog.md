@@ -3510,3 +3510,12 @@
 - 验证结果：消息布局专项 6/6，原生 `verify-desktop-theme.mjs --management` 8/8，包括等待提示、完成与命令展示。全量 Node 回归 406 通过、1 跳过，Electron 142 通过、1 跳过，Rust 11/11。候选包离线构建与严格验签通过。详情见 `desktop-analysis-caption-evidence.json`。
 - 遗留问题：候选包待实际安装。本轮文档检查 263/265，仍有旧 AppKit 日志哈希不一致及 E124 回执缺失，阻塞推送。
 - 对应 Git 提交：唯一说明 `feat(N01-D3): show the legacy analysis caption before progress`，查询 `git log --oneline --grep="show the legacy analysis caption before progress"`。
+
+## 2026-11-22 12:19:26 +08:00｜N01-D3 更新本机 NSH 命令和分析提示
+
+- 修改或新增内容：按用户要求将 `e7e1e63` 候选安装到 `~/Applications/沐码 NSH/沐码.app`，同目录安装包更新为此版本。包含命令预览及「正在分析请求」。
+- 遇到的难题：起初有 1 个在途任务，更新进程等待到终态。首个更新进程在后续预检出现签名超时，尚未移包。独立重新验签成功后，由一次性安装进程继续。
+- 处理方式：正常退出候选窗口并等待 Host 清理。停机备份完整 profile 和 storage 并逐文件核验，在原路径仅替换已签名程序包。重签包保留原主题及开屏素材。
+- 验证结果：独立结果为成功。新版严格验签并只启动一次，核对两项新增内容已进入运行包。对比 SQLite 原记录，6 个项目、10 条会话、1,703 条消息、2 条任务及 1,380 条事件逐行一致。已装模型存储可读 2 个服务、8 个可选推理等级的模型，密钥文件字节和权限一致。本次停机备份和上一候选程序包在核对后清理。见 `desktop-analysis-caption-evidence.json` 的 `localUpdate`。
+- 遗留问题：安装验证使用实际进程和本地只读数据核对，界面功能由前次原生合成测试覆盖。本轮文档检查 263/265，两项旧回执阻塞推送。
+- 对应 Git 提交：唯一说明 `docs(N01-D3): record analysis caption local update`，查询 `git log --oneline --grep="record analysis caption local update"`。

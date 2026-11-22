@@ -58,5 +58,30 @@
     "built": true,
     "strictSignatureVerified": true,
     "installed": false
+  },
+  "localUpdate": {
+    "sourceCommit": "e7e1e63",
+    "initialPreflightTimedOut": true,
+    "state": "success",
+    "signatureVerified": true,
+    "singleLaunch": true,
+    "originalRowsVerified": {
+      "projects": 6,
+      "conversations": 10,
+      "messages": 1703,
+      "tasks": 2,
+      "events": 1380
+    },
+    "modelCatalog": {
+      "services": 2,
+      "models": 8,
+      "selectable": 8
+    },
+    "credentialsByteIdentical": true,
+    "packagedCaptionsVerified": true,
+    "artworkIdentical": true,
+    "independentProcess": true,
+    "offlineBackupVerified": true,
+    "updateBackupCleaned": true
   }
 }
